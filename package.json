@@ -1,7 +1,7 @@
 {
   "author": "Einar Otto Stangvik <einaros@gmail.com> (http://2x.io)",
   "name": "wetsock",
-  "description": "microscopic websocket client",
+  "description": "plain and simple websocket client",
   "version": "0.0.1",
   "repository": {
     "type": "git",
