@@ -5,19 +5,19 @@ var server = require('./server');
 var port = 20000;
 
 module.exports = {
-    'can connect to echo service': function() {
+    'connects to echo service': function() {
         var ws = new Wetsock('echo.websocket.org');
-        ws.on('connect', function() {
+        ws.on('connected', function() {
             ws.close();
         });
     },
     'can disconnect before connection is established': function(done) {
         var ws = new Wetsock('echo.websocket.org');
         ws.close();
-        ws.on('connect', function() {
+        ws.on('connected', function() {
             assert.fail('connect shouldnt be raised here');
         });
-        ws.on('disconnect', function() {
+        ws.on('disconnected', function() {
             done();
         });
     },
@@ -35,6 +35,14 @@ module.exports = {
         var srv = server.listen(++port, server.handlers.invalidKey);
         var ws = new Wetsock('localhost', port);
         ws.on('error', function() {
+            srv.close();
+            done();
+        });
+    },    
+    'disconnected event is raised when server closes connection': function(done) {
+        var srv = server.listen(++port, server.handlers.closeAfterConnect);
+        var ws = new Wetsock('localhost', port);
+        ws.on('disconnected', function() {
             srv.close();
             done();
         });
