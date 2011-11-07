@@ -24,7 +24,17 @@ module.exports = {
     'send before connect should fail': function(done) {
         var ws = new Wetsock('echo.websocket.org');
         try {
-            ws.send('hi');            
+            ws.send('hi');
+        }
+        catch (e) {
+            ws.close();
+            done();
+        }
+    },
+    'ping before connect should fail': function(done) {
+        var ws = new Wetsock('echo.websocket.org');
+        try {
+            ws.ping();
         }
         catch (e) {
             ws.close();
@@ -38,7 +48,7 @@ module.exports = {
             srv.close();
             done();
         });
-    },    
+    },
     'disconnected event is raised when server closes connection': function(done) {
         var srv = server.listen(++port, server.handlers.closeAfterConnect);
         var ws = new Wetsock('localhost', port);
@@ -46,15 +56,27 @@ module.exports = {
             srv.close();
             done();
         });
-    },    
-    'send with unencoded message transmit successfully to server': function(done) {
+    },
+    'send with unencoded message is successfully tarnsmitted to the server': function(done) {
         var srv = server.listen(++port);
         var ws = new Wetsock('localhost', port);
         ws.on('connected', function() {
-            ws.send('hi');            
+            ws.send('hi');
         });
         srv.on('message', function(message) {
             assert.equal('hi', message);
+            srv.close();
+            ws.close();
+            done();
+        });
+    },
+    'ping without message is successfully tarnsmitted to the server': function(done) {
+        var srv = server.listen(++port);
+        var ws = new Wetsock('localhost', port);
+        ws.on('connected', function() {
+            ws.ping();
+        });
+        srv.on('ping', function(message) {
             srv.close();
             ws.close();
             done();
