@@ -47,4 +47,17 @@ module.exports = {
             done();
         });
     },    
+    'send with unencoded message transmit successfully to server': function(done) {
+        var srv = server.listen(++port);
+        var ws = new Wetsock('localhost', port);
+        ws.on('connected', function() {
+            ws.send('hi');            
+        });
+        srv.on('message', function(message) {
+            assert.equal('hi', message);
+            srv.close();
+            ws.close();
+            done();
+        });
+    },
 }

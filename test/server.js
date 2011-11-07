@@ -1,7 +1,8 @@
 var http = require('http');
 var crypto = require('crypto');
+var Parser = require('./parser');
 
-function validRequestHandler(req, socket) {
+function validRequestHandler(server, req, socket) {
     if (typeof req.headers.upgrade === 'undefined' || 
         req.headers.upgrade.toLowerCase() !== 'websocket') {
         throw 'invalid headers';
@@ -27,13 +28,25 @@ function validRequestHandler(req, socket) {
     ];
 
     socket.write(headers.concat('', '').join('\r\n'));
-    socket.end();
-    // socket.on('data', function (data) {
-    //     self.parser.add(data);
-    // });
+    socket.setTimeout(0);
+    socket.setNoDelay(true);
+
+    var parser = new Parser();
+    parser.on('data', function (message) {
+        server.emit('message', message);
+    });
+    parser.on('ping', function (message) {
+        server.emit('ping', message);
+    });
+    socket.on('data', function (data) {
+        parser.add(data);
+    });
+    socket.on('end', function() {
+        socket.end();
+    });
 }
 
-function invalidRequestHandler(req, socket) {
+function invalidRequestHandler(server, req, socket) {
     if (typeof req.headers.upgrade === 'undefined' || 
         req.headers.upgrade.toLowerCase() !== 'websocket') {
         throw 'invalid headers';
@@ -65,7 +78,7 @@ function invalidRequestHandler(req, socket) {
     // });
 }
 
-function closeAfterConnectHandler(req, socket) {
+function closeAfterConnectHandler(server, req, socket) {
     if (typeof req.headers.upgrade === 'undefined' || 
         req.headers.upgrade.toLowerCase() !== 'websocket') {
         throw 'invalid headers';
@@ -108,7 +121,7 @@ module.exports = {
             res.writeHead(200, {'Content-Type': 'text/plain'});
             res.end('okay');
         });
-        srv.on('upgrade', handler || validRequestHandler);
+        srv.on('upgrade', (handler || validRequestHandler).bind(null, srv));
         srv.listen(port, '127.0.0.1');
         return srv;
     }
