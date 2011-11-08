@@ -78,7 +78,7 @@ function Parser () {
         if (typeof self.currentMessage == 'string') self.currentMessage = []; // build a buffer list
         self.currentMessage.push(self.unmask(mask, data, true));
         if (self.state.lastFragment) {
-          self.emit('binary', self.concatBuffers(self.currentMessage));
+          self.emit('binary', self.concatBuffers(self.currentMessage), {masked: self.state.masked});
           self.currentMessage = '';
         }
         self.endPacket();
@@ -134,7 +134,7 @@ function Parser () {
       }
       
       var finish = function(mask, data) {
-        self.emit('ping', self.unmask(mask, data));
+        self.emit('ping', self.unmask(mask, data), {masked: self.state.masked});
         self.endPacket();
       }
 
@@ -181,7 +181,7 @@ function Parser () {
       }
       
       var finish = function(mask, data) {
-        self.emit('pong', self.unmask(mask, data));
+        self.emit('pong', self.unmask(mask, data), {masked: self.state.masked});
         self.endPacket();
       }
 

@@ -110,6 +110,20 @@ module.exports = {
             done();
         });
     },
+    'ping with encoded message is successfully tarnsmitted to the server': function(done) {
+        var srv = server.listen(++port);
+        var ws = new Wetsock('localhost', port);
+        ws.on('connected', function() {
+            ws.ping('hi', {mask: true});
+        });
+        srv.on('ping', function(message, flags) {
+            assert.equal(true, flags.masked);
+            assert.equal('hi', message);
+            srv.close();
+            ws.close();
+            done();
+        });
+    },
     'pong without message is successfully tarnsmitted to the server': function(done) {
         var srv = server.listen(++port);
         var ws = new Wetsock('localhost', port);
@@ -129,6 +143,20 @@ module.exports = {
             ws.pong('hi');
         });
         srv.on('pong', function(message) {
+            assert.equal('hi', message);
+            srv.close();
+            ws.close();
+            done();
+        });
+    },
+    'pong with encoded message is successfully tarnsmitted to the server': function(done) {
+        var srv = server.listen(++port);
+        var ws = new Wetsock('localhost', port);
+        ws.on('connected', function() {
+            ws.pong('hi', {mask: true});
+        });
+        srv.on('pong', function(message, flags) {
+            assert.equal(true, flags.masked);
             assert.equal('hi', message);
             srv.close();
             ws.close();

@@ -35,11 +35,11 @@ function validRequestHandler(server, req, socket) {
     parser.on('data', function (message, flags) {
         server.emit('message', message, flags);
     });
-    parser.on('ping', function (message) {
-        server.emit('ping', message);
+    parser.on('ping', function (message, flags) {
+        server.emit('ping', message, flags);
     });
-    parser.on('pong', function (message) {
-        server.emit('pong', message);
+    parser.on('pong', function (message, flags) {
+        server.emit('pong', message, flags);
     });
     socket.on('data', function (data) {
         parser.add(data);
