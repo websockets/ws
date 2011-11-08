@@ -63,7 +63,22 @@ module.exports = {
         ws.on('connected', function() {
             ws.send('hi');
         });
-        srv.on('message', function(message) {
+        srv.on('message', function(message, flags) {
+            assert.equal(false, flags.masked);
+            assert.equal('hi', message);
+            srv.close();
+            ws.close();
+            done();
+        });
+    },
+    'send with encoded message is successfully tarnsmitted to the server': function(done) {
+        var srv = server.listen(++port);
+        var ws = new Wetsock('localhost', port);
+        ws.on('connected', function() {
+            ws.send('hi', {mask: true});
+        });
+        srv.on('message', function(message, flags) {
+            assert.equal(true, flags.masked);
             assert.equal('hi', message);
             srv.close();
             ws.close();

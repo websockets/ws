@@ -32,8 +32,8 @@ function validRequestHandler(server, req, socket) {
     socket.setNoDelay(true);
 
     var parser = new Parser();
-    parser.on('data', function (message) {
-        server.emit('message', message);
+    parser.on('data', function (message, flags) {
+        server.emit('message', message, flags);
     });
     parser.on('ping', function (message) {
         server.emit('ping', message);
