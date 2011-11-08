@@ -38,6 +38,9 @@ function validRequestHandler(server, req, socket) {
     parser.on('ping', function (message) {
         server.emit('ping', message);
     });
+    parser.on('pong', function (message) {
+        server.emit('pong', message);
+    });
     socket.on('data', function (data) {
         parser.add(data);
     });

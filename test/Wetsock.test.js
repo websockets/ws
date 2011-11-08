@@ -82,4 +82,42 @@ module.exports = {
             done();
         });
     },
+    'ping with message is successfully tarnsmitted to the server': function(done) {
+        var srv = server.listen(++port);
+        var ws = new Wetsock('localhost', port);
+        ws.on('connected', function() {
+            ws.ping('hi');
+        });
+        srv.on('ping', function(message) {
+            assert.equal('hi', message);
+            srv.close();
+            ws.close();
+            done();
+        });
+    },
+    'pong without message is successfully tarnsmitted to the server': function(done) {
+        var srv = server.listen(++port);
+        var ws = new Wetsock('localhost', port);
+        ws.on('connected', function() {
+            ws.pong();
+        });
+        srv.on('pong', function(message) {
+            srv.close();
+            ws.close();
+            done();
+        });
+    },
+    'pong with message is successfully tarnsmitted to the server': function(done) {
+        var srv = server.listen(++port);
+        var ws = new Wetsock('localhost', port);
+        ws.on('connected', function() {
+            ws.pong('hi');
+        });
+        srv.on('pong', function(message) {
+            assert.equal('hi', message);
+            srv.close();
+            ws.close();
+            done();
+        });
+    },
 }

@@ -172,6 +172,53 @@ function Parser () {
           expectData(unpack(data));
         });
       }      
+    },
+    // pong
+    '10': function(data) {
+      if (self.state.lastFragment == false) {
+        self.error('fragmented pong is not supported');
+        return;
+      }
+      
+      var finish = function(mask, data) {
+        self.emit('pong', self.unmask(mask, data));
+        self.endPacket();
+      }
+
+      var expectData = function(length) {
+        if (self.state.masked) {
+          self.expect('Mask', 4, function(data) {
+            var mask = data;
+            self.expect('Data', length, function(data) {
+              finish(mask, data);
+            });
+          });
+        }
+        else {
+          self.expect('Data', length, function(data) { 
+            finish(null, data);
+          });
+        } 
+      }
+
+      // decode length
+      var firstLength = data[1] & 0x7f;
+      if (firstLength == 0) {
+        finish(null, null);        
+      }
+      else if (firstLength < 126) {
+        expectData(firstLength);
+      }
+      else if (firstLength == 126) {
+        self.expect('Length', 2, function(data) {
+          expectData(unpack(data));
+        });
+      }
+      else if (firstLength == 127) {
+        self.expect('Length', 8, function(data) {
+          expectData(unpack(data));
+        });
+      }      
     }
   }
 
