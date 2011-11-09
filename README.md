@@ -11,6 +11,7 @@
 ### Sending and receiving text data ###
 
 ```js
+var WebSocket = require('easy-websocket');
 var ws = new WebSocket('ws://www.host.com/path');
 ws.on('connected', function() {
     ws.send('something');
@@ -24,6 +25,7 @@ ws.on('message', function(message, flags) {
 ### Sending binary data ###
 
 ```js
+var WebSocket = require('easy-websocket');
 var ws = new WebSocket('ws://www.host.com/path');
 ws.on('connected', function() {
     var array = new Float32Array(5);
