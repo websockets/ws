@@ -34,6 +34,10 @@ Setting `mask`, as done for the send options above, will cause the message to be
 
 See the test cases.
 
+### Running the tests ###
+
+`make test`
+
 ## Yet to be done ##
 
 - While the receiver does support fragmentation, the sender does currently not do fragmentation -- even for large data pieces. Ideally streams can be transmitted using fragmentation.
