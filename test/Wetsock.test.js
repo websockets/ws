@@ -22,14 +22,40 @@ function areArraysEqual(x, y) {
 }
 
 module.exports = {
-    'connects to echo service': function() {
-        var ws = new Wetsock('echo.websocket.org');
+    'throws exception for invalid url': function(done) {
+        try {
+            var ws = new Wetsock('echo.websocket.org');            
+        }
+        catch (e) {
+            done();
+        }
+    },
+    'connects to echo service': function(done) {
+        var ws = new Wetsock('ws://echo.websocket.org');
         ws.on('connected', function() {
             ws.terminate();
+            done();
         });
     },
+    // 'echo service returns sent data': function(done) {
+    //     assert.fail('pending proper implementation');
+    //     var ws = new Wetsock('ws://ws.websocketstest.com/service', {origin: 'http://websocketstest.com'});
+    //     var gotResponse = false;
+    //     ws.on('connected', function() {
+    //         ws.send('hi');
+    //     });
+    //     ws.on('message', function(message, flags) {
+    //         console.log(message);
+    //         assert.equal('hi', message);
+    //         gotResponse = true;
+    //     });
+    //     ws.on('disconnected', function() {
+    //         assert.equal(true, gotResponse);
+    //         done();
+    //     });
+    // },
     'can disconnect before connection is established': function(done) {
-        var ws = new Wetsock('echo.websocket.org');
+        var ws = new Wetsock('ws://echo.websocket.org');
         ws.terminate();
         ws.on('connected', function() {
             assert.fail('connect shouldnt be raised here');
@@ -39,7 +65,7 @@ module.exports = {
         });
     },
     'send before connect should fail': function(done) {
-        var ws = new Wetsock('echo.websocket.org');
+        var ws = new Wetsock('ws://echo.websocket.org');
         try {
             ws.send('hi');
         }
@@ -50,7 +76,7 @@ module.exports = {
     },
     'send without data should fail': function(done) {
         var srv = server.listen(++port);
-        var ws = new Wetsock('localhost', port);
+        var ws = new Wetsock('ws://localhost:' + port);
         ws.on('connected', function() {
             try {
                 ws.send();
@@ -63,7 +89,7 @@ module.exports = {
         });
     },
     'ping before connect should fail': function(done) {
-        var ws = new Wetsock('echo.websocket.org');
+        var ws = new Wetsock('ws://echo.websocket.org');
         try {
             ws.ping();
         }
@@ -74,7 +100,7 @@ module.exports = {
     },
     'invalid server key is denied': function(done) {
         var srv = server.listen(++port, server.handlers.invalidKey);
-        var ws = new Wetsock('localhost', port);
+        var ws = new Wetsock('ws://localhost:' + port);
         ws.on('error', function() {
             srv.close();
             done();
@@ -82,7 +108,7 @@ module.exports = {
     },
     'disconnected event is raised when server closes connection': function(done) {
         var srv = server.listen(++port, server.handlers.closeAfterConnect);
-        var ws = new Wetsock('localhost', port);
+        var ws = new Wetsock('ws://localhost:' + port);
         ws.on('disconnected', function() {
             srv.close();
             done();
@@ -90,7 +116,7 @@ module.exports = {
     },
     'send with unencoded message is successfully transmitted to the server': function(done) {
         var srv = server.listen(++port);
-        var ws = new Wetsock('localhost', port);
+        var ws = new Wetsock('ws://localhost:' + port);
         ws.on('connected', function() {
             ws.send('hi');
         });
@@ -104,7 +130,7 @@ module.exports = {
     },
     'send with encoded message is successfully transmitted to the server': function(done) {
         var srv = server.listen(++port);
-        var ws = new Wetsock('localhost', port);
+        var ws = new Wetsock('ws://localhost:' + port);
         ws.on('connected', function() {
             ws.send('hi', {mask: true});
         });
@@ -118,7 +144,7 @@ module.exports = {
     },
     'send with unencoded binary message is successfully transmitted to the server': function(done) {
         var srv = server.listen(++port);
-        var ws = new Wetsock('localhost', port);
+        var ws = new Wetsock('ws://localhost:' + port);
         var array = new Float32Array(5);
         for (var i = 0; i < 5; ++i) array[i] = i / 2;
         ws.on('connected', function() {
@@ -135,7 +161,7 @@ module.exports = {
     },
     'send with encoded binary message is successfully transmitted to the server': function(done) {
         var srv = server.listen(++port);
-        var ws = new Wetsock('localhost', port);
+        var ws = new Wetsock('ws://localhost:' + port);
         var array = new Float32Array(5);
         for (var i = 0; i < 5; ++i) array[i] = i / 2;
         ws.on('connected', function() {
@@ -152,7 +178,7 @@ module.exports = {
     },
     'ping without message is successfully transmitted to the server': function(done) {
         var srv = server.listen(++port);
-        var ws = new Wetsock('localhost', port);
+        var ws = new Wetsock('ws://localhost:' + port);
         ws.on('connected', function() {
             ws.ping();
         });
@@ -164,7 +190,7 @@ module.exports = {
     },
     'ping with message is successfully transmitted to the server': function(done) {
         var srv = server.listen(++port);
-        var ws = new Wetsock('localhost', port);
+        var ws = new Wetsock('ws://localhost:' + port);
         ws.on('connected', function() {
             ws.ping('hi');
         });
@@ -177,7 +203,7 @@ module.exports = {
     },
     'ping with encoded message is successfully transmitted to the server': function(done) {
         var srv = server.listen(++port);
-        var ws = new Wetsock('localhost', port);
+        var ws = new Wetsock('ws://localhost:' + port);
         ws.on('connected', function() {
             ws.ping('hi', {mask: true});
         });
@@ -191,7 +217,7 @@ module.exports = {
     },
     'pong without message is successfully transmitted to the server': function(done) {
         var srv = server.listen(++port);
-        var ws = new Wetsock('localhost', port);
+        var ws = new Wetsock('ws://localhost:' + port);
         ws.on('connected', function() {
             ws.pong();
         });
@@ -203,7 +229,7 @@ module.exports = {
     },
     'pong with message is successfully transmitted to the server': function(done) {
         var srv = server.listen(++port);
-        var ws = new Wetsock('localhost', port);
+        var ws = new Wetsock('ws://localhost:' + port);
         ws.on('connected', function() {
             ws.pong('hi');
         });
@@ -216,7 +242,7 @@ module.exports = {
     },
     'pong with encoded message is successfully transmitted to the server': function(done) {
         var srv = server.listen(++port);
-        var ws = new Wetsock('localhost', port);
+        var ws = new Wetsock('ws://localhost:' + port);
         ws.on('connected', function() {
             ws.pong('hi', {mask: true});
         });
@@ -230,7 +256,7 @@ module.exports = {
     },
     'close without message is successfully transmitted to the server': function(done) {
         var srv = server.listen(++port);
-        var ws = new Wetsock('localhost', port);
+        var ws = new Wetsock('ws://localhost:' + port);
         ws.on('connected', function() {
             ws.close();
         });
@@ -244,7 +270,7 @@ module.exports = {
     },
     'close with message is successfully transmitted to the server': function(done) {
         var srv = server.listen(++port);
-        var ws = new Wetsock('localhost', port);
+        var ws = new Wetsock('ws://localhost:' + port);
         ws.on('connected', function() {
             ws.close('some reason');
         });
@@ -258,7 +284,7 @@ module.exports = {
     },
     'close with encoded message is successfully transmitted to the server': function(done) {
         var srv = server.listen(++port);
-        var ws = new Wetsock('localhost', port);
+        var ws = new Wetsock('ws://localhost:' + port);
         ws.on('connected', function() {
             ws.close('some reason', {mask: true});
         });
@@ -272,7 +298,7 @@ module.exports = {
     },
     'close ends connection to the server': function(done) {
         var srv = server.listen(++port);
-        var ws = new Wetsock('localhost', port);
+        var ws = new Wetsock('ws://localhost:' + port);
         var connectedOnce = false;
         ws.on('connected', function() {
             connectedOnce = true;
