@@ -2,7 +2,7 @@ var http = require('http')
   , util = require('util')
   , crypto = require('crypto')
   , events = require('events')
-  , Parser = require('../lib/Parser');
+  , Receiver = require('../lib/Receiver');
 
 module.exports = {
     handlers: {
@@ -55,26 +55,26 @@ function validRequestHandler(server, req, socket) {
     socket.setTimeout(0);
     socket.setNoDelay(true);
 
-    var parser = new Parser();
-    parser.on('text', function (message, flags) {
+    var receiver = new Receiver();
+    receiver.on('text', function (message, flags) {
         server.emit('message', message, flags);
     });
-    parser.on('binary', function (message, flags) {
+    receiver.on('binary', function (message, flags) {
         flags = flags || {};
         flags.binary = true;
         server.emit('message', message, flags);
     });
-    parser.on('ping', function (message, flags) {
+    receiver.on('ping', function (message, flags) {
         server.emit('ping', message, flags);
     });
-    parser.on('pong', function (message, flags) {
+    receiver.on('pong', function (message, flags) {
         server.emit('pong', message, flags);
     });
-    parser.on('close', function (message, flags) {
+    receiver.on('close', function (message, flags) {
         server.emit('close', message, flags);
     });
     socket.on('data', function (data) {
-        parser.add(data);
+        receiver.add(data);
     });
     socket.on('end', function() {
         socket.end();
