@@ -29,7 +29,7 @@ function Parser () {
       var finish = function(mask, data) {
         self.currentMessage += self.unmask(mask, data);
         if (self.state.lastFragment) {
-          self.emit('data', self.currentMessage, {masked: self.state.masked});
+          self.emit('text', self.currentMessage, {masked: self.state.masked});
           self.currentMessage = '';
         }
         self.endPacket();

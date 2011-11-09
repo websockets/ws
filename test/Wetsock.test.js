@@ -4,6 +4,23 @@ var server = require('./server');
 
 var port = 20000;
 
+function getArrayBuffer(buf) {
+    var l = buf.length;
+    var arrayBuf = new ArrayBuffer(l);
+    for (var i = 0; i < l; ++i) {
+        arrayBuf[i] = buf[i];
+    }
+    return arrayBuf;
+}
+
+function areArraysEqual(x, y) {
+    if (x.length != y.length) return false;
+    for (var i = 0, l = x.length; i < l; ++i) {
+        if (x[i] !== y[i]) return false;
+    }
+    return true;
+}
+
 module.exports = {
     'connects to echo service': function() {
         var ws = new Wetsock('echo.websocket.org');
@@ -80,6 +97,40 @@ module.exports = {
         srv.on('message', function(message, flags) {
             assert.equal(true, flags.masked);
             assert.equal('hi', message);
+            srv.close();
+            ws.close();
+            done();
+        });
+    },
+    'send with unencoded binary message is successfully tarnsmitted to the server': function(done) {
+        var srv = server.listen(++port);
+        var ws = new Wetsock('localhost', port);
+        var array = new Float32Array(5);
+        for (var i = 0; i < 5; ++i) array[i] = i / 2;
+        ws.on('connected', function() {
+            ws.send(array, {binary: true});
+        });
+        srv.on('message', function(message, flags) {
+            assert.equal(true, flags.binary);
+            assert.equal(false, flags.masked);
+            assert.equal(true, areArraysEqual(array, new Float32Array(getArrayBuffer(message))));
+            srv.close();
+            ws.close();
+            done();
+        });
+    },
+    'send with encoded binary message is successfully tarnsmitted to the server': function(done) {
+        var srv = server.listen(++port);
+        var ws = new Wetsock('localhost', port);
+        var array = new Float32Array(5);
+        for (var i = 0; i < 5; ++i) array[i] = i / 2;
+        ws.on('connected', function() {
+            ws.send(array, {mask: true, binary: true});
+        });
+        srv.on('message', function(message, flags) {
+            assert.equal(true, flags.binary);
+            assert.equal(true, flags.masked);
+            assert.equal(true, areArraysEqual(array, new Float32Array(getArrayBuffer(message))));
             srv.close();
             ws.close();
             done();

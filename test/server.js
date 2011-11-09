@@ -32,7 +32,12 @@ function validRequestHandler(server, req, socket) {
     socket.setNoDelay(true);
 
     var parser = new Parser();
-    parser.on('data', function (message, flags) {
+    parser.on('text', function (message, flags) {
+        server.emit('message', message, flags);
+    });
+    parser.on('binary', function (message, flags) {
+        flags = flags || {};
+        flags.binary = true;
         server.emit('message', message, flags);
     });
     parser.on('ping', function (message, flags) {
