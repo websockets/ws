@@ -1,6 +1,6 @@
 # easy-websocket #
 
-`easy-websocket` aims to be a easy to use websocket client, up-to-date against current HyBi protocol versions.
+`easy-websocket` aims to be a easy to use websocket client for node.js, up-to-date against current HyBi protocol versions.
 
 ## Usage ##
 
