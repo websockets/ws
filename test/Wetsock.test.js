@@ -25,12 +25,12 @@ module.exports = {
     'connects to echo service': function() {
         var ws = new Wetsock('echo.websocket.org');
         ws.on('connected', function() {
-            ws.close();
+            ws.terminate();
         });
     },
     'can disconnect before connection is established': function(done) {
         var ws = new Wetsock('echo.websocket.org');
-        ws.close();
+        ws.terminate();
         ws.on('connected', function() {
             assert.fail('connect shouldnt be raised here');
         });
@@ -44,9 +44,23 @@ module.exports = {
             ws.send('hi');
         }
         catch (e) {
-            ws.close();
+            ws.terminate();
             done();
         }
+    },
+    'send without data should fail': function(done) {
+        var srv = server.listen(++port);
+        var ws = new Wetsock('localhost', port);
+        ws.on('connected', function() {
+            try {
+                ws.send();
+            }
+            catch (e) {
+                srv.close();
+                ws.terminate();
+                done();
+            }
+        });
     },
     'ping before connect should fail': function(done) {
         var ws = new Wetsock('echo.websocket.org');
@@ -54,7 +68,7 @@ module.exports = {
             ws.ping();
         }
         catch (e) {
-            ws.close();
+            ws.terminate();
             done();
         }
     },
@@ -74,7 +88,7 @@ module.exports = {
             done();
         });
     },
-    'send with unencoded message is successfully tarnsmitted to the server': function(done) {
+    'send with unencoded message is successfully transmitted to the server': function(done) {
         var srv = server.listen(++port);
         var ws = new Wetsock('localhost', port);
         ws.on('connected', function() {
@@ -84,11 +98,11 @@ module.exports = {
             assert.equal(false, flags.masked);
             assert.equal('hi', message);
             srv.close();
-            ws.close();
+            ws.terminate();
             done();
         });
     },
-    'send with encoded message is successfully tarnsmitted to the server': function(done) {
+    'send with encoded message is successfully transmitted to the server': function(done) {
         var srv = server.listen(++port);
         var ws = new Wetsock('localhost', port);
         ws.on('connected', function() {
@@ -98,11 +112,11 @@ module.exports = {
             assert.equal(true, flags.masked);
             assert.equal('hi', message);
             srv.close();
-            ws.close();
+            ws.terminate();
             done();
         });
     },
-    'send with unencoded binary message is successfully tarnsmitted to the server': function(done) {
+    'send with unencoded binary message is successfully transmitted to the server': function(done) {
         var srv = server.listen(++port);
         var ws = new Wetsock('localhost', port);
         var array = new Float32Array(5);
@@ -115,11 +129,11 @@ module.exports = {
             assert.equal(false, flags.masked);
             assert.equal(true, areArraysEqual(array, new Float32Array(getArrayBuffer(message))));
             srv.close();
-            ws.close();
+            ws.terminate();
             done();
         });
     },
-    'send with encoded binary message is successfully tarnsmitted to the server': function(done) {
+    'send with encoded binary message is successfully transmitted to the server': function(done) {
         var srv = server.listen(++port);
         var ws = new Wetsock('localhost', port);
         var array = new Float32Array(5);
@@ -132,11 +146,11 @@ module.exports = {
             assert.equal(true, flags.masked);
             assert.equal(true, areArraysEqual(array, new Float32Array(getArrayBuffer(message))));
             srv.close();
-            ws.close();
+            ws.terminate();
             done();
         });
     },
-    'ping without message is successfully tarnsmitted to the server': function(done) {
+    'ping without message is successfully transmitted to the server': function(done) {
         var srv = server.listen(++port);
         var ws = new Wetsock('localhost', port);
         ws.on('connected', function() {
@@ -144,11 +158,11 @@ module.exports = {
         });
         srv.on('ping', function(message) {
             srv.close();
-            ws.close();
+            ws.terminate();
             done();
         });
     },
-    'ping with message is successfully tarnsmitted to the server': function(done) {
+    'ping with message is successfully transmitted to the server': function(done) {
         var srv = server.listen(++port);
         var ws = new Wetsock('localhost', port);
         ws.on('connected', function() {
@@ -157,11 +171,11 @@ module.exports = {
         srv.on('ping', function(message) {
             assert.equal('hi', message);
             srv.close();
-            ws.close();
+            ws.terminate();
             done();
         });
     },
-    'ping with encoded message is successfully tarnsmitted to the server': function(done) {
+    'ping with encoded message is successfully transmitted to the server': function(done) {
         var srv = server.listen(++port);
         var ws = new Wetsock('localhost', port);
         ws.on('connected', function() {
@@ -171,11 +185,11 @@ module.exports = {
             assert.equal(true, flags.masked);
             assert.equal('hi', message);
             srv.close();
-            ws.close();
+            ws.terminate();
             done();
         });
     },
-    'pong without message is successfully tarnsmitted to the server': function(done) {
+    'pong without message is successfully transmitted to the server': function(done) {
         var srv = server.listen(++port);
         var ws = new Wetsock('localhost', port);
         ws.on('connected', function() {
@@ -183,11 +197,11 @@ module.exports = {
         });
         srv.on('pong', function(message) {
             srv.close();
-            ws.close();
+            ws.terminate();
             done();
         });
     },
-    'pong with message is successfully tarnsmitted to the server': function(done) {
+    'pong with message is successfully transmitted to the server': function(done) {
         var srv = server.listen(++port);
         var ws = new Wetsock('localhost', port);
         ws.on('connected', function() {
@@ -196,11 +210,11 @@ module.exports = {
         srv.on('pong', function(message) {
             assert.equal('hi', message);
             srv.close();
-            ws.close();
+            ws.terminate();
             done();
         });
     },
-    'pong with encoded message is successfully tarnsmitted to the server': function(done) {
+    'pong with encoded message is successfully transmitted to the server': function(done) {
         var srv = server.listen(++port);
         var ws = new Wetsock('localhost', port);
         ws.on('connected', function() {
@@ -210,8 +224,50 @@ module.exports = {
             assert.equal(true, flags.masked);
             assert.equal('hi', message);
             srv.close();
-            ws.close();
+            ws.terminate();
             done();
         });
+    },
+    'close without message is successfully transmitted to the server': function(done) {
+        var srv = server.listen(++port);
+        var ws = new Wetsock('localhost', port);
+        ws.on('connected', function() {
+            ws.close();
+        });
+        srv.on('close', function(message, flags) {
+            assert.equal(false, flags.masked);
+            assert.equal('', message);
+            srv.close();
+            ws.terminate();
+            done();
+        });        
+    },
+    'close with message is successfully transmitted to the server': function(done) {
+        var srv = server.listen(++port);
+        var ws = new Wetsock('localhost', port);
+        ws.on('connected', function() {
+            ws.close('some reason');
+        });
+        srv.on('close', function(message, flags) {
+            assert.equal(false, flags.masked);
+            assert.equal('some reason', message);
+            srv.close();
+            ws.terminate();
+            done();
+        });        
+    },
+    'close with encoded message is successfully transmitted to the server': function(done) {
+        var srv = server.listen(++port);
+        var ws = new Wetsock('localhost', port);
+        ws.on('connected', function() {
+            ws.close('some reason', {mask: true});
+        });
+        srv.on('close', function(message, flags) {
+            assert.equal(true, flags.masked);
+            assert.equal('some reason', message);
+            srv.close();
+            ws.terminate();
+            done();
+        });        
     },
 }

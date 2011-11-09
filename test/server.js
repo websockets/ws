@@ -1,6 +1,30 @@
-var http = require('http');
-var crypto = require('crypto');
-var Parser = require('./parser');
+var http = require('http')
+  , util = require('util')
+  , crypto = require('crypto')
+  , events = require('events')
+  , Parser = require('../lib/parser');
+
+module.exports = {
+    handlers: {
+        valid: validRequestHandler,
+        invalidKey: invalidRequestHandler,
+        closeAfterConnect: closeAfterConnectHandler      
+    },
+    listen: function(port, handler) {
+        var webServer = http.createServer(function (req, res) {
+            res.writeHead(200, {'Content-Type': 'text/plain'});
+            res.end('okay');
+        });
+        var srv = new Server(webServer);
+        webServer.on('upgrade', (handler || validRequestHandler).bind(null, srv));
+        webServer.listen(port, '127.0.0.1');
+        return srv;
+    }
+};
+
+/**
+ * Test strategies
+ */
 
 function validRequestHandler(server, req, socket) {
     if (typeof req.headers.upgrade === 'undefined' || 
@@ -46,6 +70,9 @@ function validRequestHandler(server, req, socket) {
     parser.on('pong', function (message, flags) {
         server.emit('pong', message, flags);
     });
+    parser.on('close', function (message, flags) {
+        server.emit('close', message, flags);
+    });
     socket.on('data', function (data) {
         parser.add(data);
     });
@@ -81,9 +108,6 @@ function invalidRequestHandler(server, req, socket) {
 
     socket.write(headers.concat('', '').join('\r\n'));
     socket.end();
-    // socket.on('data', function (data) {
-    //     self.parser.add(data);
-    // });
 }
 
 function closeAfterConnectHandler(server, req, socket) {
@@ -113,24 +137,18 @@ function closeAfterConnectHandler(server, req, socket) {
 
     socket.write(headers.concat('', '').join('\r\n'));
     socket.end();
-    // socket.on('data', function (data) {
-    //     self.parser.add(data);
-    // });
 }
 
-module.exports = {
-    handlers: {
-        valid: validRequestHandler,
-        invalidKey: invalidRequestHandler,
-        closeAfterConnect: closeAfterConnectHandler      
-    },
-    listen: function(port, handler) {
-        var srv = http.createServer(function (req, res) {
-            res.writeHead(200, {'Content-Type': 'text/plain'});
-            res.end('okay');
-        });
-        srv.on('upgrade', (handler || validRequestHandler).bind(null, srv));
-        srv.listen(port, '127.0.0.1');
-        return srv;
-    }
-};
+/**
+ * Server object, which will do the actual emitting
+ */
+
+function Server(webServer) {
+    this.webServer = webServer;
+}
+
+util.inherits(Server, events.EventEmitter);
+
+Server.prototype.close = function() {
+    this.webServer.close();
+}
