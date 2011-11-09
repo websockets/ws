@@ -1,1 +1,1 @@
-module.exports = require('./lib/Wetsock');
+module.exports = require('./lib/WebSocket');

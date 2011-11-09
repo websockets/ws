@@ -2,7 +2,7 @@ var http = require('http')
   , util = require('util')
   , crypto = require('crypto')
   , events = require('events')
-  , Parser = require('../lib/parser');
+  , Parser = require('../lib/Parser');
 
 module.exports = {
     handlers: {
