@@ -2,11 +2,11 @@
 
 `easy-websocket` aims to be a easy to use websocket client for node.js, up-to-date against current HyBi protocol versions.
 
-## Installing ##
+## Usage ##
+
+### Installing ###
 
 `npm install easy-websocket`
-
-## Usage ##
 
 ### Sending and receiving text data ###
 
