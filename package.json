@@ -1,11 +1,11 @@
 {
   "author": "Einar Otto Stangvik <einaros@gmail.com> (http://2x.io)",
-  "name": "wetsock",
+  "name": "easy-websocket",
   "description": "plain and simple websocket client",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "repository": {
     "type": "git",
-    "url": "git://github.com/einaros/wetsock.git"
+    "url": "git://github.com/einaros/easy-websocket.git"
   },
   "scripts": {
     "test": "make test"
