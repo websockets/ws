@@ -270,4 +270,19 @@ module.exports = {
             done();
         });        
     },
+    'close ends connection to the server': function(done) {
+        var srv = server.listen(++port);
+        var ws = new Wetsock('localhost', port);
+        var connectedOnce = false;
+        ws.on('connected', function() {
+            connectedOnce = true;
+            ws.close('some reason', {mask: true});
+        });
+        ws.on('disconnected', function() {
+            assert.equal(true, connectedOnce);
+            srv.close();
+            ws.terminate();
+            done();
+        });
+    },
 }
