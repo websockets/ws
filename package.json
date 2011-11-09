@@ -14,7 +14,8 @@
     "node": "~0.6.0"
   },
   "dependencies": {
-    "expresso": "latest"
   },
-  "devDependencies": {}
+  "devDependencies": {
+      "expresso": "0.9.x"      
+  }
 }
