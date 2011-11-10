@@ -11,15 +11,18 @@ module.exports = {
         invalidKey: invalidRequestHandler,
         closeAfterConnect: closeAfterConnectHandler      
     },
-    createServer: function(port, handler) {
+    createServer: function(port, handler, cb) {
+        if (handler && !cb) {
+            cb = handler;
+            handler = null;
+        }
         var webServer = http.createServer(function (req, res) {
             res.writeHead(200, {'Content-Type': 'text/plain'});
             res.end('okay');
         });
         var srv = new Server(webServer);
         webServer.on('upgrade', (handler || validServer).bind(null, srv));
-        webServer.listen(port, '127.0.0.1');
-        return srv;
+        webServer.listen(port, '127.0.0.1', function() { cb(srv); });
     }
 };
 
