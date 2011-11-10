@@ -1,6 +1,6 @@
-var assert = require('assert');
-var WebSocket = require('../');
-var server = require('./testserver');
+var assert = require('assert')
+  , WebSocket = require('../')
+  , server = require('./testserver');
 
 var port = 20000;
 
@@ -44,7 +44,7 @@ module.exports = {
             });
         });
     },
-    'binary data can be sent and received': function(done) {
+    'binary data can be sent and received as array': function(done) {
         server.createServer(++port, function(srv) {
             var ws = new WebSocket('ws://localhost:' + port);
             var array = new Float32Array(5);
@@ -55,6 +55,22 @@ module.exports = {
             ws.on('message', function(message, flags) {
                 assert.equal(true, flags.binary);
                 assert.equal(true, areArraysEqual(array, new Float32Array(getArrayBuffer(message))));
+                ws.terminate();
+                srv.close();
+                done();
+            });
+        });
+    },
+    'binary data can be sent and received as buffer': function(done) {
+        server.createServer(++port, function(srv) {
+            var ws = new WebSocket('ws://localhost:' + port);
+            var buf = new Buffer('foobar');
+            ws.on('connected', function() {
+                ws.send(buf, {binary: true});
+            });
+            ws.on('message', function(message, flags) {
+                assert.equal(true, flags.binary);
+                assert.equal(true, areArraysEqual(buf, message));
                 ws.terminate();
                 srv.close();
                 done();
