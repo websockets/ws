@@ -62,13 +62,13 @@ function validServer(server, req, socket) {
     var sender = new Sender(socket);
     var receiver = new Receiver();
     receiver.on('text', function (message, flags) {
-        server.emit('message', message, flags);
+        server.emit('data', message, flags);
         sender.send(message);
     });
     receiver.on('binary', function (message, flags) {
         flags = flags || {};
         flags.binary = true;
-        server.emit('message', message, flags);
+        server.emit('data', message, flags);
         sender.send(message, {binary: true});
     });
     receiver.on('ping', function (message, flags) {

@@ -36,7 +36,7 @@ module.exports = {
             ws.on('connected', function() {
                 ws.send('hi');
             });
-            ws.on('message', function(message, flags) {
+            ws.on('data', function(message, flags) {
                 assert.equal('hi', message);
                 ws.terminate();
                 srv.close();
@@ -52,7 +52,7 @@ module.exports = {
             ws.on('connected', function() {
                 ws.send(array, {binary: true});
             });
-            ws.on('message', function(message, flags) {
+            ws.on('data', function(message, flags) {
                 assert.equal(true, flags.binary);
                 assert.equal(true, areArraysEqual(array, new Float32Array(getArrayBuffer(message))));
                 ws.terminate();
@@ -68,7 +68,7 @@ module.exports = {
             ws.on('connected', function() {
                 ws.send(buf, {binary: true});
             });
-            ws.on('message', function(message, flags) {
+            ws.on('data', function(message, flags) {
                 assert.equal(true, flags.binary);
                 assert.equal(true, areArraysEqual(buf, message));
                 ws.terminate();
@@ -146,7 +146,7 @@ module.exports = {
             ws.on('connected', function() {
                 ws.send('hi');
             });
-            srv.on('message', function(message, flags) {
+            srv.on('data', function(message, flags) {
                 assert.equal(false, flags.masked);
                 assert.equal('hi', message);
                 srv.close();
@@ -161,7 +161,7 @@ module.exports = {
             ws.on('connected', function() {
                 ws.send('hi', {mask: true});
             });
-            srv.on('message', function(message, flags) {
+            srv.on('data', function(message, flags) {
                 assert.equal(true, flags.masked);
                 assert.equal('hi', message);
                 srv.close();
@@ -178,7 +178,7 @@ module.exports = {
             ws.on('connected', function() {
                 ws.send(array, {binary: true});
             });
-            srv.on('message', function(message, flags) {
+            srv.on('data', function(message, flags) {
                 assert.equal(true, flags.binary);
                 assert.equal(false, flags.masked);
                 assert.equal(true, areArraysEqual(array, new Float32Array(getArrayBuffer(message))));
@@ -196,7 +196,7 @@ module.exports = {
             ws.on('connected', function() {
                 ws.send(array, {mask: true, binary: true});
             });
-            srv.on('message', function(message, flags) {
+            srv.on('data', function(message, flags) {
                 assert.equal(true, flags.binary);
                 assert.equal(true, flags.masked);
                 assert.equal(true, areArraysEqual(array, new Float32Array(getArrayBuffer(message))));
@@ -359,7 +359,7 @@ module.exports = {
             ws.on('connected', function() {
                 ws.send(array, {binary: true});
             });
-            ws.on('message', function(message, flags) {
+            ws.on('data', function(message, flags) {
                 assert.equal(true, flags.binary);
                 assert.equal(true, areArraysEqual(array, new Float32Array(getArrayBuffer(message))));
                 ws.terminate();

@@ -16,9 +16,9 @@ var ws = new WebSocket('ws://www.host.com/path');
 ws.on('connected', function() {
     ws.send('something');
 });
-ws.on('message', function(message, flags) {
-    // flags.binary will be set if a binary message is received
-    // flags.masked will be set if the message was masked
+ws.on('data', function(data, flags) {
+    // flags.binary will be set if a binary data is received
+    // flags.masked will be set if the data was masked
 });
 ```
     
@@ -34,7 +34,7 @@ ws.on('connected', function() {
 });
 ```
 
-Setting `mask`, as done for the send options above, will cause the message to be masked according to the websocket protocol. The same option applies for text messages.
+Setting `mask`, as done for the send options above, will cause the data to be masked according to the websocket protocol. The same option applies for text data.
 
 ### echo.websocket.org demo ###
 
@@ -48,7 +48,7 @@ ws.on('connected', function() {
 ws.on('disconnected', function() {
     console.log('disconnected');
 });
-ws.on('message', function(data, flags) {
+ws.on('data', function(data, flags) {
     console.log('Roundtrip time: ' + (Date.now() - parseInt(data)) + 'ms', flags);
     setTimeout(function() {
         ws.send(Date.now().toString(), {mask: true});
