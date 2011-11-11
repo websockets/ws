@@ -23,7 +23,7 @@ function areArraysEqual(x, y) {
 
 module.exports = {
     'communicates successfully with echo service': function(done) {
-        var ws = new WebSocket('ws://echo.websocket.org/', {protocolVersion: 8, origin: 'http://websocket.org'});
+        var ws = new WebSocket('ws://echo.websocket.org', {protocolVersion: 8, origin: 'http://websocket.org'});
         var str = Date.now().toString();
         var dataReceived = false;
         ws.on('connected', function() {
@@ -31,11 +31,12 @@ module.exports = {
         });
         ws.on('disconnected', function() {
             assert.equal(true, dataReceived);
-            ws.terminate();
             done();
         });
         ws.on('data', function(data, flags) {
             assert.equal(str, data);
+            ws.terminate();
+            dataReceived = true;
         });
     },
 }
