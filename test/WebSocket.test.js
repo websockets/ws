@@ -1,5 +1,6 @@
 var assert = require('assert')
   , WebSocket = require('../')
+  , fs = require('fs')
   , server = require('./testserver');
 
 var port = 20000;
@@ -140,6 +141,18 @@ module.exports = {
             });
         });
     },
+    'send calls optional callback when flushed': function(done) {
+        server.createServer(++port, function(srv) {
+            var ws = new WebSocket('ws://localhost:' + port);
+            ws.on('connected', function() {
+                ws.send('hi', function() {
+                    srv.close();
+                    ws.terminate();
+                    done();
+                });
+            });
+        });
+    },
     'send with unencoded message is successfully transmitted to the server': function(done) {
         server.createServer(++port, function(srv) {
             var ws = new WebSocket('ws://localhost:' + port);
@@ -205,6 +218,65 @@ module.exports = {
                 done();
             });
         });
+    },
+    'send with binary stream will send fragmented data': function(done) {
+        server.createServer(++port, function(srv) {
+            var ws = new WebSocket('ws://localhost:' + port);
+            var callbackFired = false;
+            ws.on('connected', function() {
+                var fileStream = fs.createReadStream('test/fixtures/textfile');
+                fileStream.bufferSize = 100;
+                ws.send(fileStream, {binary: true}, function(error) {
+                    assert.equal(null, error);
+                    callbackFired = true;
+                });
+            });
+            ws.on('data', function(data, flags) {
+                assert.equal(true, flags.binary);
+                assert.equal(true, areArraysEqual(fs.readFileSync('test/fixtures/textfile'), data));
+                ws.terminate();
+            });
+            ws.on('disconnected', function() {
+                assert.equal(true, callbackFired);
+                srv.close();
+                done();                
+            });
+        });
+    },
+    'send with text stream will send fragmented data': function(done) {
+        server.createServer(++port, function(srv) {
+            var ws = new WebSocket('ws://localhost:' + port);
+            var callbackFired = false;
+            ws.on('connected', function() {
+                var fileStream = fs.createReadStream('test/fixtures/textfile');
+                fileStream.setEncoding('utf8');
+                fileStream.bufferSize = 100;
+                ws.send(fileStream, {binary: false}, function(error) {
+                    assert.equal(null, error);
+                    callbackFired = true;
+                });
+            });
+            ws.on('data', function(data, flags) {
+                assert.equal(true, !flags.binary);
+                assert.equal(true, areArraysEqual(fs.readFileSync('test/fixtures/textfile', 'utf8'), data));
+                ws.terminate();
+            });
+            ws.on('disconnected', function() {
+                assert.equal(true, callbackFired);
+                srv.close();
+                done();                
+            });
+        });
+    },
+    'stream before connect should fail': function(done) {
+        var ws = new WebSocket('ws://echo.websocket.org');
+        try {
+            ws.stream(function() {});
+        }
+        catch (e) {
+            ws.terminate();
+            done();
+        }
     },
     'ping without message is successfully transmitted to the server': function(done) {
         server.createServer(++port, function(srv) {
@@ -362,6 +434,33 @@ module.exports = {
             ws.on('data', function(message, flags) {
                 assert.equal(true, flags.binary);
                 assert.equal(true, areArraysEqual(array, new Float32Array(getArrayBuffer(message))));
+                ws.terminate();
+                srv.close();
+                done();
+            });
+        });
+    },
+    'very long binary data can be streamed': function(done) {
+        server.createServer(++port, function(srv) {
+            var ws = new WebSocket('ws://localhost:' + port);
+            var buffer = new Buffer(10 * 1024);
+            for (var i = 0; i < buffer.length; ++i) buffer[i] = i % 0xff;
+            ws.on('connected', function() {
+                var i = 0;
+                var blockSize = 800;
+                var bufLen = buffer.length;
+                ws.stream({binary: true}, function(send) {
+                    var start = i * blockSize;
+                    var toSend = Math.min(blockSize, bufLen - (i * blockSize));
+                    var end = start + toSend;
+                    var isFinal = toSend < blockSize;
+                    send(buffer.slice(start, end), isFinal);
+                    i += 1;
+                });
+            });
+            ws.on('data', function(data, flags) {
+                assert.equal(true, flags.binary);
+                assert.equal(true, areArraysEqual(buffer, data));
                 ws.terminate();
                 srv.close();
                 done();
