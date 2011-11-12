@@ -66,8 +66,7 @@ See the test cases.
 
 ## Yet to be done ##
 
-- While the receiver does support fragmentation, the sender does currently not do fragmentation -- even for large data pieces. Ideally streams can be transmitted using fragmentation.
-- More tests should be written for the receiving bits, such as for `close`; although these are implicitly tested already since the testserver shares the same receiver.
+- Specify, test and implement what happens when a streamed send is started, and another send is begun prior to the first one completing. This will currently break the data. Make sure that control messages are allowed, however.
 
 ## License ##
 
