@@ -66,7 +66,7 @@ See the test cases.
 
 ## Yet to be done ##
 
-- Specify, test and implement what happens when a streamed send is started, and another send is begun prior to the first one completing. This will currently break the data. Make sure that control messages are allowed, however.
+Nothing planned, but certainly something is in the works.
 
 ## License ##
 

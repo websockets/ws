@@ -231,7 +231,7 @@ module.exports = {
                     callbackFired = true;
                 });
             });
-            ws.on('data', function(data, flags) {
+            srv.on('data', function(data, flags) {
                 assert.ok(flags.binary);
                 assert.ok(areArraysEqual(fs.readFileSync('test/fixtures/textfile'), data));
                 ws.terminate();
@@ -256,7 +256,7 @@ module.exports = {
                     callbackFired = true;
                 });
             });
-            ws.on('data', function(data, flags) {
+            srv.on('data', function(data, flags) {
                 assert.ok(!flags.binary);
                 assert.ok(areArraysEqual(fs.readFileSync('test/fixtures/textfile', 'utf8'), data));
                 ws.terminate();
@@ -277,6 +277,22 @@ module.exports = {
             ws.terminate();
             done();
         }
+    },
+    'stream without callback should fail': function(done) {
+        server.createServer(++port, function(srv) {
+            var ws = new WebSocket('ws://localhost:' + port);
+            var payload = 'HelloWorld';
+            ws.on('connected', function() {
+                try {
+                    ws.stream();
+                }
+                catch (e) {
+                    srv.close();
+                    ws.terminate();
+                    done();                
+                }
+            });
+        });
     },
     'ping without message is successfully transmitted to the server': function(done) {
         server.createServer(++port, function(srv) {
@@ -423,7 +439,7 @@ module.exports = {
             });
         });
     },
-    'very long binary data can be sent and received': function(done) {
+    'very long binary data can be sent and received (with echoing server)': function(done) {
         server.createServer(++port, function(srv) {
             var ws = new WebSocket('ws://localhost:' + port);
             var array = new Float32Array(5 * 1024 * 1024);
@@ -449,7 +465,8 @@ module.exports = {
                 var i = 0;
                 var blockSize = 800;
                 var bufLen = buffer.length;
-                ws.stream({binary: true}, function(send) {
+                ws.stream({binary: true}, function(error, send) {
+                    assert.ok(!error);
                     var start = i * blockSize;
                     var toSend = Math.min(blockSize, bufLen - (i * blockSize));
                     var end = start + toSend;
@@ -458,7 +475,7 @@ module.exports = {
                     i += 1;
                 });
             });
-            ws.on('data', function(data, flags) {
+            srv.on('data', function(data, flags) {
                 assert.ok(flags.binary);
                 assert.ok(areArraysEqual(buffer, data));
                 ws.terminate();
@@ -467,13 +484,14 @@ module.exports = {
             });
         });
     },
-    'streaming data will cause intermittend send to be delayed in order': function(done) {
+    'streaming data will cause intermittent send to be delayed in order': function(done) {
         server.createServer(++port, function(srv) {
             var ws = new WebSocket('ws://localhost:' + port);
             var payload = 'HelloWorld';
             ws.on('connected', function() {
                 var i = 0;
-                ws.stream(function(send) {
+                ws.stream(function(error, send) {
+                    assert.ok(!error);
                     if (++i == 1) {
                         send(payload.substr(0, 5));
                         ws.send('foobar');
@@ -485,7 +503,7 @@ module.exports = {
                 });
             });
             var receivedIndex = 0;
-            ws.on('data', function(data, flags) {
+            srv.on('data', function(data, flags) {
                 ++receivedIndex;
                 if (receivedIndex == 1) {
                     assert.ok(!flags.binary);
@@ -505,17 +523,19 @@ module.exports = {
             });
         });
     },
-    'streaming data will cause intermittend stream to be delayed in order': function(done) {
+    'streaming data will cause intermittent stream to be delayed in order': function(done) {
         server.createServer(++port, function(srv) {
             var ws = new WebSocket('ws://localhost:' + port);
             var payload = 'HelloWorld';
             ws.on('connected', function() {
                 var i = 0;
-                ws.stream(function(send) {
+                ws.stream(function(error, send) {
+                    assert.ok(!error);
                     if (++i == 1) {
                         send(payload.substr(0, 5));
                         var i2 = 0;
-                        ws.stream(function(send) {
+                        ws.stream(function(error, send) {
+                            assert.ok(!error);                            
                             if (++i2 == 1) send('foo');
                             else send('bar', true);
                         });
@@ -525,7 +545,7 @@ module.exports = {
                 });
             });
             var receivedIndex = 0;
-            ws.on('data', function(data, flags) {
+            srv.on('data', function(data, flags) {
                 ++receivedIndex;
                 if (receivedIndex == 1) {
                     assert.ok(!flags.binary);
@@ -548,17 +568,308 @@ module.exports = {
             });
         });
     },
-
-    // Todo:
-    // 'sending stream will cause intermittend send to be delayed in order': function(done) {}
-    // 'sending stream will cause intermittend stream to be delayed in order': function(done) {}
-
-    // 'streaming data will cause intermittend ping to be delievered': function(done) {}
-    // 'sending stream will cause intermittend ping to be delivered': function(done) {}
-
-    // 'streaming data will cause intermittend pong to be delievered': function(done) {}
-    // 'sending stream will cause intermittend pong to be delivered': function(done) {}
-
-    // 'streaming data will cause intermittend close to be delievered': function(done) {}
-    // 'sending stream will cause intermittend close to be delivered': function(done) {}
+    'sending stream will cause intermittent send to be delayed in order': function(done) {
+        server.createServer(++port, function(srv) {
+            var ws = new WebSocket('ws://localhost:' + port);
+            ws.on('connected', function() {
+                var fileStream = fs.createReadStream('test/fixtures/textfile');
+                fileStream.setEncoding('utf8');
+                fileStream.bufferSize = 100;
+                ws.send(fileStream);
+                ws.send('foobar');
+                ws.send('baz');
+            });
+            var receivedIndex = 0;
+            srv.on('data', function(data, flags) {
+                ++receivedIndex;
+                if (receivedIndex == 1) {
+                    assert.ok(!flags.binary);
+                    assert.ok(areArraysEqual(fs.readFileSync('test/fixtures/textfile', 'utf8'), data));
+                }
+                else if (receivedIndex == 2) {
+                    assert.ok(!flags.binary);
+                    assert.equal('foobar', data);
+                }
+                else {
+                    assert.ok(!flags.binary);
+                    assert.equal('baz', data);
+                    srv.close();
+                    ws.terminate();
+                    done();            
+                }
+            });
+        });
+    },
+    'sending stream will cause intermittent stream to be delayed in order': function(done) {
+        server.createServer(++port, function(srv) {
+            var ws = new WebSocket('ws://localhost:' + port);
+            ws.on('connected', function() {
+                var fileStream = fs.createReadStream('test/fixtures/textfile');
+                fileStream.setEncoding('utf8');
+                fileStream.bufferSize = 100;
+                ws.send(fileStream);
+                var i = 0;
+                ws.stream(function(error, send) {
+                    assert.ok(!error);
+                    if (++i == 1) send('foo');
+                    else send('bar', true);
+                });
+            });
+            var receivedIndex = 0;
+            srv.on('data', function(data, flags) {
+                ++receivedIndex;
+                if (receivedIndex == 1) {
+                    assert.ok(!flags.binary);
+                    assert.ok(areArraysEqual(fs.readFileSync('test/fixtures/textfile', 'utf8'), data));
+                }
+                else if (receivedIndex == 2) {
+                    assert.ok(!flags.binary);
+                    assert.equal('foobar', data);
+                    srv.close();
+                    ws.terminate();
+                    done();            
+                }
+            });
+        });
+    },
+    'streaming data will cause intermittent ping to be delivered': function(done) {
+        server.createServer(++port, function(srv) {
+            var ws = new WebSocket('ws://localhost:' + port);
+            var payload = 'HelloWorld';
+            ws.on('connected', function() {
+                var i = 0;
+                ws.stream(function(error, send) {
+                    assert.ok(!error);
+                    if (++i == 1) {
+                        send(payload.substr(0, 5));
+                        ws.ping('foobar');
+                    }
+                    else {
+                        send(payload.substr(5, 5), true);
+                    }
+                });
+            });
+            var receivedIndex = 0;
+            srv.on('data', function(data, flags) {
+                assert.ok(!flags.binary);
+                assert.equal(payload, data);
+                if (++receivedIndex == 2) {
+                    srv.close();
+                    ws.terminate();
+                    done();            
+                }
+            });
+            srv.on('ping', function(data) {
+                assert.equal('foobar', data);
+                if (++receivedIndex == 2) {
+                    srv.close();
+                    ws.terminate();
+                    done();            
+                }
+            });
+        });
+    },
+    'sending stream will cause intermittent ping to be delivered': function(done) {
+        server.createServer(++port, function(srv) {
+            var ws = new WebSocket('ws://localhost:' + port);
+            ws.on('connected', function() {
+                var fileStream = fs.createReadStream('test/fixtures/textfile');
+                fileStream.setEncoding('utf8');
+                fileStream.bufferSize = 100;
+                ws.send(fileStream);
+                ws.ping('foobar');
+            });
+            var receivedIndex = 0;
+            srv.on('data', function(data, flags) {
+                assert.ok(!flags.binary);
+                assert.ok(areArraysEqual(fs.readFileSync('test/fixtures/textfile', 'utf8'), data));
+                if (++receivedIndex == 2) {
+                    srv.close();
+                    ws.terminate();
+                    done();            
+                }
+            });
+            srv.on('ping', function(data) {
+                assert.equal('foobar', data);
+                if (++receivedIndex == 2) {
+                    srv.close();
+                    ws.terminate();
+                    done();            
+                }
+            });
+        });
+    },
+    'streaming data will cause intermittent pong to be delivered': function(done) {
+        server.createServer(++port, function(srv) {
+            var ws = new WebSocket('ws://localhost:' + port);
+            var payload = 'HelloWorld';
+            ws.on('connected', function() {
+                var i = 0;
+                ws.stream(function(error, send) {
+                    assert.ok(!error);
+                    if (++i == 1) {
+                        send(payload.substr(0, 5));
+                        ws.pong('foobar');
+                    }
+                    else {
+                        send(payload.substr(5, 5), true);
+                    }
+                });
+            });
+            var receivedIndex = 0;
+            srv.on('data', function(data, flags) {
+                assert.ok(!flags.binary);
+                assert.equal(payload, data);
+                if (++receivedIndex == 2) {
+                    srv.close();
+                    ws.terminate();
+                    done();            
+                }
+            });
+            srv.on('pong', function(data) {
+                assert.equal('foobar', data);
+                if (++receivedIndex == 2) {
+                    srv.close();
+                    ws.terminate();
+                    done();            
+                }
+            });
+        });
+    },
+    'sending stream will cause intermittent pong to be delivered': function(done) {
+        server.createServer(++port, function(srv) {
+            var ws = new WebSocket('ws://localhost:' + port);
+            ws.on('connected', function() {
+                var fileStream = fs.createReadStream('test/fixtures/textfile');
+                fileStream.setEncoding('utf8');
+                fileStream.bufferSize = 100;
+                ws.send(fileStream);
+                ws.pong('foobar');
+            });
+            var receivedIndex = 0;
+            srv.on('data', function(data, flags) {
+                assert.ok(!flags.binary);
+                assert.ok(areArraysEqual(fs.readFileSync('test/fixtures/textfile', 'utf8'), data));
+                if (++receivedIndex == 2) {
+                    srv.close();
+                    ws.terminate();
+                    done();            
+                }
+            });
+            srv.on('pong', function(data) {
+                assert.equal('foobar', data);
+                if (++receivedIndex == 2) {
+                    srv.close();
+                    ws.terminate();
+                    done();            
+                }
+            });
+        });
+    },
+    'streaming data will cause intermittent close to be delivered': function(done) {
+        server.createServer(++port, function(srv) {
+            var ws = new WebSocket('ws://localhost:' + port);
+            var payload = 'HelloWorld';
+            var errorGiven = false;
+            ws.on('connected', function() {
+                var i = 0;
+                ws.stream(function(error, send) {
+                    if (++i == 1) {
+                        send(payload.substr(0, 5));
+                        ws.close('foobar');
+                        ws._state = 'disconnected'; // forced, to provoke an error from the next send
+                    }
+                    else if(i == 2) {
+                        send(payload.substr(5, 5), true);
+                    }
+                    else if (i == 3) {
+                        assert.ok(error);
+                        errorGiven = true;
+                    }
+                });
+            });
+            ws.on('disconnected', function() {
+                assert.ok(errorGiven);
+                srv.close();
+                ws.terminate();
+                done();                
+            });
+            srv.on('data', function(data, flags) {
+                assert.ok(!flags.binary);
+                assert.equal(payload, data);
+            });
+            srv.on('close', function(data) {
+                assert.equal('foobar', data);
+            });
+        });
+    },
+    'sending stream will cause intermittent close to be delivered': function(done) {
+        server.createServer(++port, function(srv) {
+            var ws = new WebSocket('ws://localhost:' + port);
+            ws.on('connected', function() {
+                var fileStream = fs.createReadStream('test/fixtures/textfile');
+                fileStream.setEncoding('utf8');
+                fileStream.bufferSize = 100;
+                ws.send(fileStream);
+                ws.close('foobar');
+            });
+            ws.on('disconnected', function() {
+                srv.close();
+                ws.terminate();
+                done();                
+            });
+            ws.on('error', function() { /* That's quite alright -- a send was attempted after close */ });
+            srv.on('data', function(data, flags) {
+                assert.ok(!flags.binary);
+                assert.ok(areArraysEqual(fs.readFileSync('test/fixtures/textfile', 'utf8'), data));
+            });
+            srv.on('close', function(data) {
+                assert.equal('foobar', data);
+            });
+        });
+    },
+    'close during send stream causes error callback if given': function(done) {
+        server.createServer(++port, function(srv) {
+            var ws = new WebSocket('ws://localhost:' + port);
+            var errorGiven = false;
+            ws.on('connected', function() {
+                var fileStream = fs.createReadStream('test/fixtures/textfile');
+                fileStream.setEncoding('utf8');
+                fileStream.bufferSize = 100;
+                ws.send(fileStream, function(error) {
+                    errorGiven = error != null;
+                });
+                ws.close('foobar');
+                ws._state = 'disconnected'; // forced, to provoke an error from the next send
+            });
+            ws.on('disconnected', function() {
+                setTimeout(function() {
+                    assert.ok(errorGiven);
+                    srv.close();
+                    ws.terminate();
+                    done();                
+                }, 1000);
+            });
+        });
+    },
+    'error causes send queue to clear and connection to reset': function(done) {
+        server.createServer(++port, function(srv) {
+            var ws = new WebSocket('ws://localhost:' + port);
+            var errorCaught = false;
+            ws.on('connected', function() {
+                ws._queue = [];
+                ws.emit('error', 'something');
+                assert.ok(typeof ws._queue == 'undefined');
+                assert.ok(ws._state == 'disconnected');
+            });
+            ws.on('error', function() {
+                errorCaught = true;
+            });
+            ws.on('disconnected', function() {
+                assert.ok(errorCaught);
+                srv.close();
+                done();                
+            });
+        });
+    },
 }
