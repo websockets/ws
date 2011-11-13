@@ -467,4 +467,98 @@ module.exports = {
             });
         });
     },
+    'streaming data will cause intermittend send to be delayed in order': function(done) {
+        server.createServer(++port, function(srv) {
+            var ws = new WebSocket('ws://localhost:' + port);
+            var payload = 'HelloWorld';
+            ws.on('connected', function() {
+                var i = 0;
+                ws.stream(function(send) {
+                    if (++i == 1) {
+                        send(payload.substr(0, 5));
+                        ws.send('foobar');
+                        ws.send('baz');
+                    }
+                    else {
+                        send(payload.substr(5, 5), true);
+                    }
+                });
+            });
+            var receivedIndex = 0;
+            ws.on('data', function(data, flags) {
+                ++receivedIndex;
+                if (receivedIndex == 1) {
+                    assert.equal(true, !flags.binary);
+                    assert.equal(payload, data);
+                }
+                else if (receivedIndex == 2) {
+                    assert.equal(true, !flags.binary);
+                    assert.equal('foobar', data);
+                }
+                else {
+                    assert.equal(true, !flags.binary);
+                    assert.equal('baz', data);
+                    srv.close();
+                    ws.terminate();
+                    done();            
+                }
+            });
+        });
+    },
+    'streaming data will cause intermittend stream to be delayed in order': function(done) {
+        server.createServer(++port, function(srv) {
+            var ws = new WebSocket('ws://localhost:' + port);
+            var payload = 'HelloWorld';
+            ws.on('connected', function() {
+                var i = 0;
+                ws.stream(function(send) {
+                    if (++i == 1) {
+                        send(payload.substr(0, 5));
+                        var i2 = 0;
+                        ws.stream(function(send) {
+                            if (++i2 == 1) send('foo');
+                            else send('bar', true);
+                        });
+                        ws.send('baz');
+                    }
+                    else send(payload.substr(5, 5), true);
+                });
+            });
+            var receivedIndex = 0;
+            ws.on('data', function(data, flags) {
+                ++receivedIndex;
+                if (receivedIndex == 1) {
+                    assert.equal(true, !flags.binary);
+                    assert.equal(payload, data);
+                }
+                else if (receivedIndex == 2) {
+                    assert.equal(true, !flags.binary);
+                    assert.equal('foobar', data);
+                }
+                else if (receivedIndex == 3){
+                    assert.equal(true, !flags.binary);
+                    assert.equal('baz', data);
+                    setTimeout(function() {
+                        srv.close();
+                        ws.terminate();
+                        done();            
+                    }, 1000);
+                }
+                else throw 'more messages than we actually sent just arrived';
+            });
+        });
+    },
+
+    // Todo:
+    // 'sending stream will cause intermittend send to be delayed in order': function(done) {}
+    // 'sending stream will cause intermittend stream to be delayed in order': function(done) {}
+
+    // 'streaming data will cause intermittend ping to be delievered': function(done) {}
+    // 'sending stream will cause intermittend ping to be delivered': function(done) {}
+
+    // 'streaming data will cause intermittend pong to be delievered': function(done) {}
+    // 'sending stream will cause intermittend pong to be delivered': function(done) {}
+
+    // 'streaming data will cause intermittend close to be delievered': function(done) {}
+    // 'sending stream will cause intermittend close to be delivered': function(done) {}
 }
