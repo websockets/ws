@@ -13,10 +13,10 @@
 ```js
 var WebSocket = require('easy-websocket');
 var ws = new WebSocket('ws://www.host.com/path');
-ws.on('connected', function() {
+ws.on('open', function() {
     ws.send('something');
 });
-ws.on('data', function(data, flags) {
+ws.on('message', function(data, flags) {
     // flags.binary will be set if a binary data is received
     // flags.masked will be set if the data was masked
 });
@@ -27,7 +27,7 @@ ws.on('data', function(data, flags) {
 ```js
 var WebSocket = require('easy-websocket');
 var ws = new WebSocket('ws://www.host.com/path');
-ws.on('connected', function() {
+ws.on('open', function() {
     var array = new Float32Array(5);
     for (var i = 0; i < array.length; ++i) array[i] = i / 2;
     ws.send(array, {binary: true, mask: true});
@@ -41,14 +41,14 @@ Setting `mask`, as done for the send options above, will cause the data to be ma
 ```js
 var WebSocket = require('easy-websocket');
 var ws = new WebSocket('ws://echo.websocket.org/', {protocolVersion: 8, origin: 'http://websocket.org'});
-ws.on('connected', function() {
+ws.on('open', function() {
     console.log('connected');
     ws.send(Date.now().toString(), {mask: true});
 });
-ws.on('disconnected', function() {
+ws.on('close', function() {
     console.log('disconnected');
 });
-ws.on('data', function(data, flags) {
+ws.on('message', function(data, flags) {
     console.log('Roundtrip time: ' + (Date.now() - parseInt(data)) + 'ms', flags);
     setTimeout(function() {
         ws.send(Date.now().toString(), {mask: true});
