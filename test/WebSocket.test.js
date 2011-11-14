@@ -9,7 +9,7 @@ function getArrayBuffer(buf) {
     var l = buf.length;
     var arrayBuf = new ArrayBuffer(l);
     for (var i = 0; i < l; ++i) {
-        arrayBuf[i] = buf[i];
+        arrayBuf[i] = buf[i];
     }
     return arrayBuf;
 }
@@ -93,7 +93,7 @@ module.exports = {
         try {
             ws.send('hi');
         }
-        catch (e) {
+        catch (e) {
             ws.terminate();
             done();
         }
@@ -105,7 +105,7 @@ module.exports = {
                 try {
                     ws.send();
                 }
-                catch (e) {
+                catch (e) {
                     srv.close();
                     ws.terminate();
                     done();
@@ -118,7 +118,7 @@ module.exports = {
         try {
             ws.ping();
         }
-        catch (e) {
+        catch (e) {
             ws.terminate();
             done();
         }
@@ -273,7 +273,7 @@ module.exports = {
         try {
             ws.stream(function() {});
         }
-        catch (e) {
+        catch (e) {
             ws.terminate();
             done();
         }
