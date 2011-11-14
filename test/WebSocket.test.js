@@ -564,7 +564,7 @@ module.exports = {
                         done();            
                     }, 1000);
                 }
-                else throw 'more messages than we actually sent just arrived';
+                else throw new Error('more messages than we actually sent just arrived');
             });
         });
     },

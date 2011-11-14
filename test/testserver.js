@@ -33,13 +33,13 @@ module.exports = {
 function validServer(server, req, socket) {
     if (typeof req.headers.upgrade === 'undefined' || 
         req.headers.upgrade.toLowerCase() !== 'websocket') {
-        throw 'invalid headers';
+        throw new Error('invalid headers');
         return;
     }
 
     if (!req.headers['sec-websocket-key']) {
         socket.end();
-        throw 'websocket key is missing';
+        throw new Error('websocket key is missing');
     }
         
     // calc key
@@ -91,13 +91,13 @@ function validServer(server, req, socket) {
 function invalidRequestHandler(server, req, socket) {
     if (typeof req.headers.upgrade === 'undefined' || 
         req.headers.upgrade.toLowerCase() !== 'websocket') {
-        throw 'invalid headers';
+        throw new Error('invalid headers');
         return;
     }
 
     if (!req.headers['sec-websocket-key']) {
         socket.end();
-        throw 'websocket key is missing';
+        throw new Error('websocket key is missing');
     }
         
     // calc key
@@ -120,13 +120,13 @@ function invalidRequestHandler(server, req, socket) {
 function closeAfterConnectHandler(server, req, socket) {
     if (typeof req.headers.upgrade === 'undefined' || 
         req.headers.upgrade.toLowerCase() !== 'websocket') {
-        throw 'invalid headers';
+        throw new Error('invalid headers');
         return;
     }
 
     if (!req.headers['sec-websocket-key']) {
         socket.end();
-        throw 'websocket key is missing';
+        throw new Error('websocket key is missing');
     }
         
     // calc key
