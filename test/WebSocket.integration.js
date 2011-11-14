@@ -26,14 +26,14 @@ module.exports = {
         var ws = new WebSocket('ws://echo.websocket.org', {protocolVersion: 8, origin: 'http://websocket.org'});
         var str = Date.now().toString();
         var dataReceived = false;
-        ws.on('connected', function() {
+        ws.on('open', function() {
             ws.send(str, {mask: true});
         });
-        ws.on('disconnected', function() {
+        ws.on('close', function() {
             assert.equal(true, dataReceived);
             done();
         });
-        ws.on('data', function(data, flags) {
+        ws.on('message', function(data, flags) {
             assert.equal(str, data);
             ws.terminate();
             dataReceived = true;

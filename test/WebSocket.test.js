@@ -34,10 +34,10 @@ module.exports = {
     'text data can be sent and received': function(done) {
         server.createServer(++port, function(srv) {
             var ws = new WebSocket('ws://localhost:' + port);
-            ws.on('connected', function() {
+            ws.on('open', function() {
                 ws.send('hi');
             });
-            ws.on('data', function(message, flags) {
+            ws.on('message', function(message, flags) {
                 assert.equal('hi', message);
                 ws.terminate();
                 srv.close();
@@ -50,10 +50,10 @@ module.exports = {
             var ws = new WebSocket('ws://localhost:' + port);
             var array = new Float32Array(5);
             for (var i = 0; i < array.length; ++i) array[i] = i / 2;
-            ws.on('connected', function() {
+            ws.on('open', function() {
                 ws.send(array, {binary: true});
             });
-            ws.on('data', function(message, flags) {
+            ws.on('message', function(message, flags) {
                 assert.ok(flags.binary);
                 assert.ok(areArraysEqual(array, new Float32Array(getArrayBuffer(message))));
                 ws.terminate();
@@ -66,10 +66,10 @@ module.exports = {
         server.createServer(++port, function(srv) {
             var ws = new WebSocket('ws://localhost:' + port);
             var buf = new Buffer('foobar');
-            ws.on('connected', function() {
+            ws.on('open', function() {
                 ws.send(buf, {binary: true});
             });
-            ws.on('data', function(message, flags) {
+            ws.on('message', function(message, flags) {
                 assert.ok(flags.binary);
                 assert.ok(areArraysEqual(buf, message));
                 ws.terminate();
@@ -81,10 +81,10 @@ module.exports = {
     'can disconnect before connection is established': function(done) {
         var ws = new WebSocket('ws://echo.websocket.org');
         ws.terminate();
-        ws.on('connected', function() {
+        ws.on('open', function() {
             assert.fail('connect shouldnt be raised here');
         });
-        ws.on('disconnected', function() {
+        ws.on('close', function() {
             done();
         });
     },
@@ -101,7 +101,7 @@ module.exports = {
     'send without data should fail': function(done) {
         server.createServer(++port, function(srv) {
             var ws = new WebSocket('ws://localhost:' + port);
-            ws.on('connected', function() {
+            ws.on('open', function() {
                 try {
                     ws.send();
                 }
@@ -135,7 +135,7 @@ module.exports = {
     'disconnected event is raised when server closes connection': function(done) {
         server.createServer(++port, server.handlers.closeAfterConnect, function(srv) {
             var ws = new WebSocket('ws://localhost:' + port);
-            ws.on('disconnected', function() {
+            ws.on('close', function() {
                 srv.close();
                 done();
             });
@@ -144,7 +144,7 @@ module.exports = {
     'send calls optional callback when flushed': function(done) {
         server.createServer(++port, function(srv) {
             var ws = new WebSocket('ws://localhost:' + port);
-            ws.on('connected', function() {
+            ws.on('open', function() {
                 ws.send('hi', function() {
                     srv.close();
                     ws.terminate();
@@ -156,10 +156,10 @@ module.exports = {
     'send with unencoded message is successfully transmitted to the server': function(done) {
         server.createServer(++port, function(srv) {
             var ws = new WebSocket('ws://localhost:' + port);
-            ws.on('connected', function() {
+            ws.on('open', function() {
                 ws.send('hi');
             });
-            srv.on('data', function(message, flags) {
+            srv.on('message', function(message, flags) {
                 assert.equal(false, flags.masked);
                 assert.equal('hi', message);
                 srv.close();
@@ -171,10 +171,10 @@ module.exports = {
     'send with encoded message is successfully transmitted to the server': function(done) {
         server.createServer(++port, function(srv) {
             var ws = new WebSocket('ws://localhost:' + port);
-            ws.on('connected', function() {
+            ws.on('open', function() {
                 ws.send('hi', {mask: true});
             });
-            srv.on('data', function(message, flags) {
+            srv.on('message', function(message, flags) {
                 assert.ok(flags.masked);
                 assert.equal('hi', message);
                 srv.close();
@@ -188,10 +188,10 @@ module.exports = {
             var ws = new WebSocket('ws://localhost:' + port);
             var array = new Float32Array(5);
             for (var i = 0; i < array.length; ++i) array[i] = i / 2;
-            ws.on('connected', function() {
+            ws.on('open', function() {
                 ws.send(array, {binary: true});
             });
-            srv.on('data', function(message, flags) {
+            srv.on('message', function(message, flags) {
                 assert.ok(flags.binary);
                 assert.equal(false, flags.masked);
                 assert.ok(areArraysEqual(array, new Float32Array(getArrayBuffer(message))));
@@ -206,10 +206,10 @@ module.exports = {
             var ws = new WebSocket('ws://localhost:' + port);
             var array = new Float32Array(5);
             for (var i = 0; i < array.length; ++i) array[i] = i / 2;
-            ws.on('connected', function() {
+            ws.on('open', function() {
                 ws.send(array, {mask: true, binary: true});
             });
-            srv.on('data', function(message, flags) {
+            srv.on('message', function(message, flags) {
                 assert.ok(flags.binary);
                 assert.ok(flags.masked);
                 assert.ok(areArraysEqual(array, new Float32Array(getArrayBuffer(message))));
@@ -223,7 +223,7 @@ module.exports = {
         server.createServer(++port, function(srv) {
             var ws = new WebSocket('ws://localhost:' + port);
             var callbackFired = false;
-            ws.on('connected', function() {
+            ws.on('open', function() {
                 var fileStream = fs.createReadStream('test/fixtures/textfile');
                 fileStream.bufferSize = 100;
                 ws.send(fileStream, {binary: true}, function(error) {
@@ -231,12 +231,12 @@ module.exports = {
                     callbackFired = true;
                 });
             });
-            srv.on('data', function(data, flags) {
+            srv.on('message', function(data, flags) {
                 assert.ok(flags.binary);
                 assert.ok(areArraysEqual(fs.readFileSync('test/fixtures/textfile'), data));
                 ws.terminate();
             });
-            ws.on('disconnected', function() {
+            ws.on('close', function() {
                 assert.ok(callbackFired);
                 srv.close();
                 done();                
@@ -247,7 +247,7 @@ module.exports = {
         server.createServer(++port, function(srv) {
             var ws = new WebSocket('ws://localhost:' + port);
             var callbackFired = false;
-            ws.on('connected', function() {
+            ws.on('open', function() {
                 var fileStream = fs.createReadStream('test/fixtures/textfile');
                 fileStream.setEncoding('utf8');
                 fileStream.bufferSize = 100;
@@ -256,12 +256,12 @@ module.exports = {
                     callbackFired = true;
                 });
             });
-            srv.on('data', function(data, flags) {
+            srv.on('message', function(data, flags) {
                 assert.ok(!flags.binary);
                 assert.ok(areArraysEqual(fs.readFileSync('test/fixtures/textfile', 'utf8'), data));
                 ws.terminate();
             });
-            ws.on('disconnected', function() {
+            ws.on('close', function() {
                 assert.ok(callbackFired);
                 srv.close();
                 done();                
@@ -282,7 +282,7 @@ module.exports = {
         server.createServer(++port, function(srv) {
             var ws = new WebSocket('ws://localhost:' + port);
             var payload = 'HelloWorld';
-            ws.on('connected', function() {
+            ws.on('open', function() {
                 try {
                     ws.stream();
                 }
@@ -297,7 +297,7 @@ module.exports = {
     'ping without message is successfully transmitted to the server': function(done) {
         server.createServer(++port, function(srv) {
             var ws = new WebSocket('ws://localhost:' + port);
-            ws.on('connected', function() {
+            ws.on('open', function() {
                 ws.ping();
             });
             srv.on('ping', function(message) {
@@ -310,7 +310,7 @@ module.exports = {
     'ping with message is successfully transmitted to the server': function(done) {
         server.createServer(++port, function(srv) {
             var ws = new WebSocket('ws://localhost:' + port);
-            ws.on('connected', function() {
+            ws.on('open', function() {
                 ws.ping('hi');
             });
             srv.on('ping', function(message) {
@@ -324,7 +324,7 @@ module.exports = {
     'ping with encoded message is successfully transmitted to the server': function(done) {
         server.createServer(++port, function(srv) {
             var ws = new WebSocket('ws://localhost:' + port);
-            ws.on('connected', function() {
+            ws.on('open', function() {
                 ws.ping('hi', {mask: true});
             });
             srv.on('ping', function(message, flags) {
@@ -339,7 +339,7 @@ module.exports = {
     'pong without message is successfully transmitted to the server': function(done) {
         server.createServer(++port, function(srv) {
             var ws = new WebSocket('ws://localhost:' + port);
-            ws.on('connected', function() {
+            ws.on('open', function() {
                 ws.pong();
             });
             srv.on('pong', function(message) {
@@ -352,7 +352,7 @@ module.exports = {
     'pong with message is successfully transmitted to the server': function(done) {
         server.createServer(++port, function(srv) {
             var ws = new WebSocket('ws://localhost:' + port);
-            ws.on('connected', function() {
+            ws.on('open', function() {
                 ws.pong('hi');
             });
             srv.on('pong', function(message) {
@@ -366,7 +366,7 @@ module.exports = {
     'pong with encoded message is successfully transmitted to the server': function(done) {
         server.createServer(++port, function(srv) {
             var ws = new WebSocket('ws://localhost:' + port);
-            ws.on('connected', function() {
+            ws.on('open', function() {
                 ws.pong('hi', {mask: true});
             });
             srv.on('pong', function(message, flags) {
@@ -381,7 +381,7 @@ module.exports = {
     'close without message is successfully transmitted to the server': function(done) {
         server.createServer(++port, function(srv) {
             var ws = new WebSocket('ws://localhost:' + port);
-            ws.on('connected', function() {
+            ws.on('open', function() {
                 ws.close();
             });
             srv.on('close', function(message, flags) {
@@ -396,7 +396,7 @@ module.exports = {
     'close with message is successfully transmitted to the server': function(done) {
         server.createServer(++port, function(srv) {
             var ws = new WebSocket('ws://localhost:' + port);
-            ws.on('connected', function() {
+            ws.on('open', function() {
                 ws.close('some reason');
             });
             srv.on('close', function(message, flags) {
@@ -411,7 +411,7 @@ module.exports = {
     'close with encoded message is successfully transmitted to the server': function(done) {
         server.createServer(++port, function(srv) {
             var ws = new WebSocket('ws://localhost:' + port);
-            ws.on('connected', function() {
+            ws.on('open', function() {
                 ws.close('some reason', {mask: true});
             });
             srv.on('close', function(message, flags) {
@@ -427,11 +427,11 @@ module.exports = {
         server.createServer(++port, function(srv) {
             var ws = new WebSocket('ws://localhost:' + port);
             var connectedOnce = false;
-            ws.on('connected', function() {
+            ws.on('open', function() {
                 connectedOnce = true;
                 ws.close('some reason', {mask: true});
             });
-            ws.on('disconnected', function() {
+            ws.on('close', function() {
                 assert.ok(connectedOnce);
                 srv.close();
                 ws.terminate();
@@ -444,10 +444,10 @@ module.exports = {
             var ws = new WebSocket('ws://localhost:' + port);
             var array = new Float32Array(5 * 1024 * 1024);
             for (var i = 0; i < array.length; ++i) array[i] = i / 5;
-            ws.on('connected', function() {
+            ws.on('open', function() {
                 ws.send(array, {binary: true});
             });
-            ws.on('data', function(message, flags) {
+            ws.on('message', function(message, flags) {
                 assert.ok(flags.binary);
                 assert.ok(areArraysEqual(array, new Float32Array(getArrayBuffer(message))));
                 ws.terminate();
@@ -461,7 +461,7 @@ module.exports = {
             var ws = new WebSocket('ws://localhost:' + port);
             var buffer = new Buffer(10 * 1024);
             for (var i = 0; i < buffer.length; ++i) buffer[i] = i % 0xff;
-            ws.on('connected', function() {
+            ws.on('open', function() {
                 var i = 0;
                 var blockSize = 800;
                 var bufLen = buffer.length;
@@ -475,7 +475,7 @@ module.exports = {
                     i += 1;
                 });
             });
-            srv.on('data', function(data, flags) {
+            srv.on('message', function(data, flags) {
                 assert.ok(flags.binary);
                 assert.ok(areArraysEqual(buffer, data));
                 ws.terminate();
@@ -488,7 +488,7 @@ module.exports = {
         server.createServer(++port, function(srv) {
             var ws = new WebSocket('ws://localhost:' + port);
             var payload = 'HelloWorld';
-            ws.on('connected', function() {
+            ws.on('open', function() {
                 var i = 0;
                 ws.stream(function(error, send) {
                     assert.ok(!error);
@@ -503,7 +503,7 @@ module.exports = {
                 });
             });
             var receivedIndex = 0;
-            srv.on('data', function(data, flags) {
+            srv.on('message', function(data, flags) {
                 ++receivedIndex;
                 if (receivedIndex == 1) {
                     assert.ok(!flags.binary);
@@ -527,7 +527,7 @@ module.exports = {
         server.createServer(++port, function(srv) {
             var ws = new WebSocket('ws://localhost:' + port);
             var payload = 'HelloWorld';
-            ws.on('connected', function() {
+            ws.on('open', function() {
                 var i = 0;
                 ws.stream(function(error, send) {
                     assert.ok(!error);
@@ -545,7 +545,7 @@ module.exports = {
                 });
             });
             var receivedIndex = 0;
-            srv.on('data', function(data, flags) {
+            srv.on('message', function(data, flags) {
                 ++receivedIndex;
                 if (receivedIndex == 1) {
                     assert.ok(!flags.binary);
@@ -571,7 +571,7 @@ module.exports = {
     'sending stream will cause intermittent send to be delayed in order': function(done) {
         server.createServer(++port, function(srv) {
             var ws = new WebSocket('ws://localhost:' + port);
-            ws.on('connected', function() {
+            ws.on('open', function() {
                 var fileStream = fs.createReadStream('test/fixtures/textfile');
                 fileStream.setEncoding('utf8');
                 fileStream.bufferSize = 100;
@@ -580,7 +580,7 @@ module.exports = {
                 ws.send('baz');
             });
             var receivedIndex = 0;
-            srv.on('data', function(data, flags) {
+            srv.on('message', function(data, flags) {
                 ++receivedIndex;
                 if (receivedIndex == 1) {
                     assert.ok(!flags.binary);
@@ -603,7 +603,7 @@ module.exports = {
     'sending stream will cause intermittent stream to be delayed in order': function(done) {
         server.createServer(++port, function(srv) {
             var ws = new WebSocket('ws://localhost:' + port);
-            ws.on('connected', function() {
+            ws.on('open', function() {
                 var fileStream = fs.createReadStream('test/fixtures/textfile');
                 fileStream.setEncoding('utf8');
                 fileStream.bufferSize = 100;
@@ -616,7 +616,7 @@ module.exports = {
                 });
             });
             var receivedIndex = 0;
-            srv.on('data', function(data, flags) {
+            srv.on('message', function(data, flags) {
                 ++receivedIndex;
                 if (receivedIndex == 1) {
                     assert.ok(!flags.binary);
@@ -636,7 +636,7 @@ module.exports = {
         server.createServer(++port, function(srv) {
             var ws = new WebSocket('ws://localhost:' + port);
             var payload = 'HelloWorld';
-            ws.on('connected', function() {
+            ws.on('open', function() {
                 var i = 0;
                 ws.stream(function(error, send) {
                     assert.ok(!error);
@@ -650,7 +650,7 @@ module.exports = {
                 });
             });
             var receivedIndex = 0;
-            srv.on('data', function(data, flags) {
+            srv.on('message', function(data, flags) {
                 assert.ok(!flags.binary);
                 assert.equal(payload, data);
                 if (++receivedIndex == 2) {
@@ -672,7 +672,7 @@ module.exports = {
     'sending stream will cause intermittent ping to be delivered': function(done) {
         server.createServer(++port, function(srv) {
             var ws = new WebSocket('ws://localhost:' + port);
-            ws.on('connected', function() {
+            ws.on('open', function() {
                 var fileStream = fs.createReadStream('test/fixtures/textfile');
                 fileStream.setEncoding('utf8');
                 fileStream.bufferSize = 100;
@@ -680,7 +680,7 @@ module.exports = {
                 ws.ping('foobar');
             });
             var receivedIndex = 0;
-            srv.on('data', function(data, flags) {
+            srv.on('message', function(data, flags) {
                 assert.ok(!flags.binary);
                 assert.ok(areArraysEqual(fs.readFileSync('test/fixtures/textfile', 'utf8'), data));
                 if (++receivedIndex == 2) {
@@ -703,7 +703,7 @@ module.exports = {
         server.createServer(++port, function(srv) {
             var ws = new WebSocket('ws://localhost:' + port);
             var payload = 'HelloWorld';
-            ws.on('connected', function() {
+            ws.on('open', function() {
                 var i = 0;
                 ws.stream(function(error, send) {
                     assert.ok(!error);
@@ -717,7 +717,7 @@ module.exports = {
                 });
             });
             var receivedIndex = 0;
-            srv.on('data', function(data, flags) {
+            srv.on('message', function(data, flags) {
                 assert.ok(!flags.binary);
                 assert.equal(payload, data);
                 if (++receivedIndex == 2) {
@@ -739,7 +739,7 @@ module.exports = {
     'sending stream will cause intermittent pong to be delivered': function(done) {
         server.createServer(++port, function(srv) {
             var ws = new WebSocket('ws://localhost:' + port);
-            ws.on('connected', function() {
+            ws.on('open', function() {
                 var fileStream = fs.createReadStream('test/fixtures/textfile');
                 fileStream.setEncoding('utf8');
                 fileStream.bufferSize = 100;
@@ -747,7 +747,7 @@ module.exports = {
                 ws.pong('foobar');
             });
             var receivedIndex = 0;
-            srv.on('data', function(data, flags) {
+            srv.on('message', function(data, flags) {
                 assert.ok(!flags.binary);
                 assert.ok(areArraysEqual(fs.readFileSync('test/fixtures/textfile', 'utf8'), data));
                 if (++receivedIndex == 2) {
@@ -771,7 +771,7 @@ module.exports = {
             var ws = new WebSocket('ws://localhost:' + port);
             var payload = 'HelloWorld';
             var errorGiven = false;
-            ws.on('connected', function() {
+            ws.on('open', function() {
                 var i = 0;
                 ws.stream(function(error, send) {
                     if (++i == 1) {
@@ -788,13 +788,13 @@ module.exports = {
                     }
                 });
             });
-            ws.on('disconnected', function() {
+            ws.on('close', function() {
                 assert.ok(errorGiven);
                 srv.close();
                 ws.terminate();
                 done();                
             });
-            srv.on('data', function(data, flags) {
+            srv.on('message', function(data, flags) {
                 assert.ok(!flags.binary);
                 assert.equal(payload, data);
             });
@@ -806,20 +806,20 @@ module.exports = {
     'sending stream will cause intermittent close to be delivered': function(done) {
         server.createServer(++port, function(srv) {
             var ws = new WebSocket('ws://localhost:' + port);
-            ws.on('connected', function() {
+            ws.on('open', function() {
                 var fileStream = fs.createReadStream('test/fixtures/textfile');
                 fileStream.setEncoding('utf8');
                 fileStream.bufferSize = 100;
                 ws.send(fileStream);
                 ws.close('foobar');
             });
-            ws.on('disconnected', function() {
+            ws.on('close', function() {
                 srv.close();
                 ws.terminate();
                 done();                
             });
             ws.on('error', function() { /* That's quite alright -- a send was attempted after close */ });
-            srv.on('data', function(data, flags) {
+            srv.on('message', function(data, flags) {
                 assert.ok(!flags.binary);
                 assert.ok(areArraysEqual(fs.readFileSync('test/fixtures/textfile', 'utf8'), data));
             });
@@ -832,7 +832,7 @@ module.exports = {
         server.createServer(++port, function(srv) {
             var ws = new WebSocket('ws://localhost:' + port);
             var errorGiven = false;
-            ws.on('connected', function() {
+            ws.on('open', function() {
                 var fileStream = fs.createReadStream('test/fixtures/textfile');
                 fileStream.setEncoding('utf8');
                 fileStream.bufferSize = 100;
@@ -842,7 +842,7 @@ module.exports = {
                 ws.close('foobar');
                 ws._state = 'disconnected'; // forced, to provoke an error from the next send
             });
-            ws.on('disconnected', function() {
+            ws.on('close', function() {
                 setTimeout(function() {
                     assert.ok(errorGiven);
                     srv.close();
@@ -856,7 +856,7 @@ module.exports = {
         server.createServer(++port, function(srv) {
             var ws = new WebSocket('ws://localhost:' + port);
             var errorCaught = false;
-            ws.on('connected', function() {
+            ws.on('open', function() {
                 ws._queue = [];
                 ws.emit('error', 'something');
                 assert.ok(typeof ws._queue == 'undefined');
@@ -865,7 +865,7 @@ module.exports = {
             ws.on('error', function() {
                 errorCaught = true;
             });
-            ws.on('disconnected', function() {
+            ws.on('close', function() {
                 assert.ok(errorCaught);
                 srv.close();
                 done();                
