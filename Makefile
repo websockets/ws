@@ -21,4 +21,7 @@ test:
 integrationtest:
 	@$(MAKE) NODE_PATH=lib TESTS="$(ALL_INTEGRATION)" run-integrationtests
 
+autobahn:
+	@NODE_PATH=lib node test/autobahn.js 
+
 .PHONY: test
