@@ -66,7 +66,10 @@ See the test cases.
 
 ## Yet to be done ##
 
-Nothing planned, but certainly something is in the works.
+- Implement close codes as specified in the HyBi spec: "If there is a body, the first two
+  bytes of the body MUST be a 2-byte unsigned integer (in network byte
+  order) representing a status code with value /code/ defined in
+  Section 7.4".
 
 ## License ##
 
