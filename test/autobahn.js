@@ -1,5 +1,5 @@
 var WebSocket = require('../');
-var currentTest = 17;
+var currentTest = 53;
 var testCount = null;
 
 function nextTest(skipReports) {
@@ -17,6 +17,9 @@ function nextTest(skipReports) {
     ws.on('close', function(data) {
         currentTest += 1;
         process.nextTick(nextTest);
+    });
+    ws.on('error', function() {
+        console.log('Error', arguments);
     });
 }
 
