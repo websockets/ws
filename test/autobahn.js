@@ -31,9 +31,7 @@ function nextTest() {
         currentTest += 1;
         process.nextTick(nextTest);
     });
-    ws.on('error', function() {
-        console.log('Error', arguments);
-    });
+    ws.on('error', function() {});
 }
 
 var ws = new WebSocket('ws://localhost:9001/getCaseCount');
