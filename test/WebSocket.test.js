@@ -102,14 +102,14 @@ module.exports = {
         server.createServer(++port, function(srv) {
             var ws = new WebSocket('ws://localhost:' + port);
             ws.on('open', function() {
-                try {
-                    ws.send();
-                }
-                catch (e) {
-                    srv.close();
-                    ws.terminate();
-                    done();
-                }
+                ws.send();
+            });
+            srv.on('message', function(message, flags) {
+                assert.equal(false, flags.masked);
+                assert.equal('', message);
+                srv.close();
+                ws.terminate();
+                done();
             });
         });
     },
@@ -132,7 +132,7 @@ module.exports = {
             });
         });
     },
-    'disconnected event is raised when server closes connection': function(done) {
+    'close event is raised when server closes connection': function(done) {
         server.createServer(++port, server.handlers.closeAfterConnect, function(srv) {
             var ws = new WebSocket('ws://localhost:' + port);
             ws.on('close', function() {
@@ -382,10 +382,9 @@ module.exports = {
         server.createServer(++port, function(srv) {
             var ws = new WebSocket('ws://localhost:' + port);
             ws.on('open', function() {
-                ws.close();
+                ws.close(1000);
             });
-            srv.on('close', function(message, flags) {
-                assert.equal(false, flags.masked);
+            srv.on('close', function(code, message, flags) {
                 assert.equal('', message);
                 srv.close();
                 ws.terminate();
@@ -397,10 +396,10 @@ module.exports = {
         server.createServer(++port, function(srv) {
             var ws = new WebSocket('ws://localhost:' + port);
             ws.on('open', function() {
-                ws.close('some reason');
+                ws.close(1000, 'some reason');
             });
-            srv.on('close', function(message, flags) {
-                assert.equal(false, flags.masked);
+            srv.on('close', function(code, message, flags) {
+                assert.ok(flags.masked);
                 assert.equal('some reason', message);
                 srv.close();
                 ws.terminate();
@@ -412,9 +411,9 @@ module.exports = {
         server.createServer(++port, function(srv) {
             var ws = new WebSocket('ws://localhost:' + port);
             ws.on('open', function() {
-                ws.close('some reason', {mask: true});
+                ws.close(1000, 'some reason', {mask: true});
             });
-            srv.on('close', function(message, flags) {
+            srv.on('close', function(code, message, flags) {
                 assert.ok(flags.masked);
                 assert.equal('some reason', message);
                 srv.close();
@@ -429,7 +428,7 @@ module.exports = {
             var connectedOnce = false;
             ws.on('open', function() {
                 connectedOnce = true;
-                ws.close('some reason', {mask: true});
+                ws.close(1000, 'some reason', {mask: true});
             });
             ws.on('close', function() {
                 assert.ok(connectedOnce);
@@ -776,7 +775,7 @@ module.exports = {
                 ws.stream(function(error, send) {
                     if (++i == 1) {
                         send(payload.substr(0, 5));
-                        ws.close('foobar');
+                        ws.close(1000, 'foobar');
                         ws._state = 'disconnected'; // forced, to provoke an error from the next send
                     }
                     else if(i == 2) {
@@ -798,7 +797,8 @@ module.exports = {
                 assert.ok(!flags.binary);
                 assert.equal(payload, data);
             });
-            srv.on('close', function(data) {
+            srv.on('close', function(code, data) {
+                assert.equal(1000, code);
                 assert.equal('foobar', data);
             });
         });
@@ -811,7 +811,7 @@ module.exports = {
                 fileStream.setEncoding('utf8');
                 fileStream.bufferSize = 100;
                 ws.send(fileStream);
-                ws.close('foobar');
+                ws.close(1000, 'foobar');
             });
             ws.on('close', function() {
                 srv.close();
@@ -823,7 +823,8 @@ module.exports = {
                 assert.ok(!flags.binary);
                 assert.ok(areArraysEqual(fs.readFileSync('test/fixtures/textfile', 'utf8'), data));
             });
-            srv.on('close', function(data) {
+            srv.on('close', function(code, data) {
+                assert.equal(1000, code);
                 assert.equal('foobar', data);
             });
         });
@@ -839,7 +840,7 @@ module.exports = {
                 ws.send(fileStream, function(error) {
                     errorGiven = error != null;
                 });
-                ws.close('foobar');
+                ws.close(1000, 'foobar');
                 ws._state = 'disconnected'; // forced, to provoke an error from the next send
             });
             ws.on('close', function() {
