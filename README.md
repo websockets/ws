@@ -2,6 +2,8 @@
 
 `easy-websocket` aims to be an easy to use websocket client for node.js, up-to-date against current HyBi protocol versions.
 
+Passes the quite extensible Autobahn test suite. See http://einaros.github.com/easy-websocket for the full report.
+
 ## Usage ##
 
 ### Installing ###
