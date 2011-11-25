@@ -64,12 +64,9 @@ See the test cases.
 
 `make test`
 
-## Yet to be done ##
+## Todos ##
 
-- Implement close codes as specified in the HyBi spec: "If there is a body, the first two
-  bytes of the body MUST be a 2-byte unsigned integer (in network byte
-  order) representing a status code with value /code/ defined in
-  Section 7.4".
+Nothing worth bragging about at present.
 
 ## License ##
 
