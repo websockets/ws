@@ -11,5 +11,8 @@ module.export = {
     'validates autobahn string': function() {
         assert.ok(Validation.isValidUTF8(new Buffer('\xf0\x90\x80\x80')));
         assert.ok(Validation.isValidUTF8(new Buffer([0xf0, 0x90, 0x80, 0x80])));
+    },
+    'invalidates erroneous autobahn string': function() {
+        assert.fail(Validation.isValidUTF8(new Buffer([0xce, 0xba, 0xe1, 0xbd])));
     }
 };

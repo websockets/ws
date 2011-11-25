@@ -3,3 +3,5 @@ node_modules
 history/
 cache/
 .*.swp
+.lock-wscript
+build/

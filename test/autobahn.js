@@ -1,18 +1,32 @@
 var WebSocket = require('../');
-var currentTest = 53;
+var currentTest = 82;
+var lastTest = 82;
 var testCount = null;
 
-function nextTest(skipReports) {
-    if (currentTest > testCount) return;
-    if (!skipReports && currentTest % 2 == 0) {
-        updateReports();
-        return;
+process.on('SIGINT', function () {
+    try {
+        var ws = new WebSocket('ws://localhost:9001/updateReports?agent=easy-websocket');
+        ws.on('close', function() {
+            process.exit();
+        });
     }
+    catch(e) {
+        process.exit();        
+    }
+});
+
+function nextTest() {
+    if (currentTest > testCount || currentTest > lastTest) {
+        var ws = new WebSocket('ws://localhost:9001/updateReports?agent=easy-websocket');
+        ws.on('close', function() {
+            process.exit();
+        });
+        return;
+    };
     console.log('== Running test case #' + currentTest + ' ==');
     var ws = new WebSocket('ws://localhost:9001/runCase?case=' + currentTest + '&agent=easy-websocket');
     ws.on('message', function(data, flags) {
-        // console.log(arguments, {binary: flags.binary === true, mask: flags.masked === true});
-        ws.send(data, {binary: flags.binary === true, mask: true});
+        ws.send(flags.buffer, {binary: flags.binary === true, mask: true});
     });
     ws.on('close', function(data) {
         currentTest += 1;
@@ -20,13 +34,6 @@ function nextTest(skipReports) {
     });
     ws.on('error', function() {
         console.log('Error', arguments);
-    });
-}
-
-function updateReports() {
-    var ws = new WebSocket('ws://localhost:9001/updateReports?agent=easy-websocket');
-    ws.on('close', function() {
-        process.nextTick(nextTest.bind(this, true));
     });
 }
 
