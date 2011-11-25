@@ -101,14 +101,14 @@ module.exports = {
   'can parse a ping message': function() {
     var p = new Parser();
     var message = 'Hello';
-    var packet = '89 FE ' + pack(4, message.length) + ' 34 83 a8 68 ' + getHexStringFromBuffer(mask(message, '34 83 a8 68'));
-    
+    var packet = '89 ' + getHybiLengthAsHexString(message.length, true) + ' 34 83 a8 68 ' + getHexStringFromBuffer(mask(message, '34 83 a8 68'));
+
     var gotPing = false;
     p.on('ping', function(data) {
       gotPing = true;
       assert.equal(message, data);
     });
-    
+
     p.add(getBufferFromHexString(packet));
     assert.ok(gotPing);
   },
@@ -133,7 +133,7 @@ module.exports = {
     var packet1 = '01 FE ' + pack(4, msgpiece1.length) + ' 34 83 a8 68 ' + getHexStringFromBuffer(mask(msgpiece1, '34 83 a8 68'));
   
     var pingMessage = 'Hello';
-    var pingPacket = '89 FE ' + pack(4, pingMessage.length) + ' 34 83 a8 68 ' + getHexStringFromBuffer(mask(pingMessage, '34 83 a8 68'));
+    var pingPacket = '89 ' + getHybiLengthAsHexString(pingMessage.length, true) + ' 34 83 a8 68 ' + getHexStringFromBuffer(mask(pingMessage, '34 83 a8 68'));
   
     var msgpiece2 = message.substr(150);
     var packet2 = '80 FE ' + pack(4, msgpiece2.length) + ' 34 83 a8 68 ' + getHexStringFromBuffer(mask(msgpiece2, '34 83 a8 68'));
@@ -164,7 +164,7 @@ module.exports = {
     var packet1 = '01 FE ' + pack(4, msgpiece1.length) + ' 34 83 a8 68 ' + getHexStringFromBuffer(mask(msgpiece1, '34 83 a8 68'));
   
     var pingMessage = 'Hello';
-    var pingPacket = '89 FE ' + pack(4, pingMessage.length) + ' 34 83 a8 68 ' + getHexStringFromBuffer(mask(pingMessage, '34 83 a8 68'));
+    var pingPacket = '89 ' + getHybiLengthAsHexString(pingMessage.length, true) + ' 34 83 a8 68 ' + getHexStringFromBuffer(mask(pingMessage, '34 83 a8 68'));
   
     var msgpiece2 = message.substr(150);
     var packet2 = '80 FE ' + pack(4, msgpiece2.length) + ' 34 83 a8 68 ' + getHexStringFromBuffer(mask(msgpiece2, '34 83 a8 68'));
