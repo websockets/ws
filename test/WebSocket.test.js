@@ -806,7 +806,6 @@ module.exports = {
                     if (++i == 1) {
                         send(payload.substr(0, 5));
                         ws.close(1000, 'foobar');
-                        ws._state = 'disconnected'; // forced, to provoke an error from the next send
                     }
                     else if(i == 2) {
                         send(payload.substr(5, 5), true);
@@ -871,7 +870,6 @@ module.exports = {
                     errorGiven = error != null;
                 });
                 ws.close(1000, 'foobar');
-                ws._state = 'disconnected'; // forced, to provoke an error from the next send
             });
             ws.on('close', function() {
                 setTimeout(function() {
@@ -880,26 +878,6 @@ module.exports = {
                     ws.terminate();
                     done();                
                 }, 1000);
-            });
-        });
-    },
-    'error causes send queue to clear and connection to reset': function(done) {
-        server.createServer(++port, function(srv) {
-            var ws = new WebSocket('ws://localhost:' + port);
-            var errorCaught = false;
-            ws.on('open', function() {
-                ws._queue = [];
-                ws.emit('error', 'something');
-                assert.ok(typeof ws._queue == 'undefined');
-                assert.ok(ws._state == 'disconnected');
-            });
-            ws.on('error', function() {
-                errorCaught = true;
-            });
-            ws.on('close', function() {
-                assert.ok(errorCaught);
-                srv.close();
-                done();                
             });
         });
     },

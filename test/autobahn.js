@@ -2,27 +2,33 @@ var WebSocket = require('../');
 var currentTest = 1;
 var testCount = null;
 
+process.on('uncaughtException', function(err) {
+    console.log('Caught exception: ' + err);
+});
+
 process.on('SIGINT', function () {
     try {
+        console.log('Updating reports and shutting down');
         var ws = new WebSocket('ws://localhost:9001/updateReports?agent=easy-websocket');
         ws.on('close', function() {
             process.exit();
         });
     }
     catch(e) {
-        process.exit();        
+        process.exit();
     }
 });
 
 function nextTest() {
     if (currentTest > testCount) {
+        console.log('Updating reports and shutting down');
         var ws = new WebSocket('ws://localhost:9001/updateReports?agent=easy-websocket');
         ws.on('close', function() {
             process.exit();
         });
         return;
     };
-    console.log('== Running test case #' + currentTest + ' ==');
+    console.log('Running test case ' + currentTest + '/' + testCount);
     var ws = new WebSocket('ws://localhost:9001/runCase?case=' + currentTest + '&agent=easy-websocket');
     ws.on('message', function(data, flags) {
         ws.send(flags.buffer, {binary: flags.binary === true, mask: true});
@@ -31,7 +37,7 @@ function nextTest() {
         currentTest += 1;
         process.nextTick(nextTest);
     });
-    ws.on('error', function() {});
+    ws.on('error', function(e) {});
 }
 
 var ws = new WebSocket('ws://localhost:9001/getCaseCount');
