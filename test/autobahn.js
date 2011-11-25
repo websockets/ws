@@ -1,6 +1,5 @@
 var WebSocket = require('../');
-var currentTest = 82;
-var lastTest = 82;
+var currentTest = 1;
 var testCount = null;
 
 process.on('SIGINT', function () {
@@ -16,7 +15,7 @@ process.on('SIGINT', function () {
 });
 
 function nextTest() {
-    if (currentTest > testCount || currentTest > lastTest) {
+    if (currentTest > testCount) {
         var ws = new WebSocket('ws://localhost:9001/updateReports?agent=easy-websocket');
         ws.on('close', function() {
             process.exit();
