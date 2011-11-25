@@ -72,13 +72,16 @@ function validServer(server, req, socket) {
         sender.send(message, {binary: true});
     });
     receiver.on('ping', function (message, flags) {
+        flags = flags || {};
         server.emit('ping', message, flags);
     });
     receiver.on('pong', function (message, flags) {
+        flags = flags || {};
         server.emit('pong', message, flags);
     });
-    receiver.on('close', function (message, flags) {
-        server.emit('close', message, flags);
+    receiver.on('close', function (code, message, flags) {
+        flags = flags || {};
+        server.emit('close', code, message, flags);
     });
     socket.on('data', function (data) {
         receiver.add(data);

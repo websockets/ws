@@ -378,6 +378,36 @@ module.exports = {
             });
         });
     },
+    'close without invalid first argument throws exception': function(done) {
+        server.createServer(++port, function(srv) {
+            var ws = new WebSocket('ws://localhost:' + port);
+            ws.on('open', function() {
+                try {
+                    ws.close('error');
+                }
+                catch (e) {
+                    srv.close();
+                    ws.terminate();
+                    done();
+                }
+            });
+        });
+    },
+    'close without reserved error code 1004 throws exception': function(done) {
+        server.createServer(++port, function(srv) {
+            var ws = new WebSocket('ws://localhost:' + port);
+            ws.on('open', function() {
+                try {
+                    ws.close(1004);
+                }
+                catch (e) {
+                    srv.close();
+                    ws.terminate();
+                    done();
+                }
+            });
+        });
+    },
     'close without message is successfully transmitted to the server': function(done) {
         server.createServer(++port, function(srv) {
             var ws = new WebSocket('ws://localhost:' + port);

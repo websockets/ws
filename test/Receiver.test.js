@@ -2,7 +2,7 @@
  * Test dependencies.
  */
 
-var assert = require('assert'); 
+var assert = require('assert');
 var Parser = require('../lib/Receiver');
 require('./hybi-common');
 
