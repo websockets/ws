@@ -24,4 +24,7 @@ integrationtest:
 autobahn:
 	@NODE_PATH=lib node test/autobahn.js 
 
+validator:
+	node-waf configure build
+
 .PHONY: test

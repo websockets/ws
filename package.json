@@ -8,7 +8,8 @@
     "url": "git://github.com/einaros/easy-websocket.git"
   },
   "scripts": {
-    "test": "make test"
+    "test": "make test",
+    "preinstall": "make validator"
   },
   "engines": {
     "node": "~0.6.0"
@@ -16,6 +17,6 @@
   "dependencies": {
   },
   "devDependencies": {
-      "expresso": "0.9.x"      
+      "expresso": "0.9.x"
   }
 }
