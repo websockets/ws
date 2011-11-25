@@ -37,14 +37,13 @@ static int isLegalUTF8(const uint8_t *source, const int length)
   const uint8_t *srcptr = source+length;
   switch (length) {
   default: return 0;
-    /* Everything else falls through when "true"... */
-/*  case 6: if ((a = (*--srcptr)) < 0x80 || a > 0xBF) return 0; RFC3629
-makes 5 & 6 bytes UTF-8 illegal
+  /* Everything else falls through when "true"... */
+  /* RFC3629 makes 5 & 6 bytes UTF-8 illegal
+  case 6: if ((a = (*--srcptr)) < 0x80 || a > 0xBF) return 0; 
   case 5: if ((a = (*--srcptr)) < 0x80 || a > 0xBF) return 0; */
   case 4: if ((a = (*--srcptr)) < 0x80 || a > 0xBF) return 0;
   case 3: if ((a = (*--srcptr)) < 0x80 || a > 0xBF) return 0;
   case 2: if ((a = (*--srcptr)) > 0xBF) return 0;
-
     switch (*source) {
       /* no fall-through in this inner switch */
       case 0xE0: if (a < 0xA0) return 0; break;
@@ -67,11 +66,10 @@ int is_valid_utf8 (size_t len, char *value)
     uint32_t ch = 0;
     uint8_t  extrabytes = trailingBytesForUTF8[(uint8_t) value[i]];
 
-    if (extrabytes + i > len)
+    if (extrabytes + i >= len)
       return 0;
 
-    if (isLegalUTF8 ((uint8_t *) (value + i), extrabytes + 1) == 0)
-      return 0;
+    if (isLegalUTF8 ((uint8_t *) (value + i), extrabytes + 1) == 0) return 0;      
 
     switch (extrabytes) {
       case 5 : ch += (uint8_t) value[i++]; ch <<= 6;
