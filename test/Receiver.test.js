@@ -1,17 +1,9 @@
-/**
- * Test dependencies.
- */
-
-var assert = require('assert');
-var Parser = require('../lib/Receiver');
+var assert = require('assert')
+  , Parser = require('../lib/Receiver');
 require('./hybi-common');
 
-/**
- * Tests.
- */
-
-module.exports = {
-  'can parse unmasked text message': function() {
+describe('Receiver', function() {  
+  it('can parse unmasked text message', function() {
     var p = new Parser();
     var packet = '81 05 48 65 6c 6c 6f';
   
@@ -22,9 +14,9 @@ module.exports = {
     });
   
     p.add(getBufferFromHexString(packet));
-    assert.ok(gotData);
-  },
-  'can parse close message': function() {
+    gotData.should.be.ok;
+  })
+  it('can parse close message', function() {
     var p = new Parser();
     var packet = '88 00';
   
@@ -34,9 +26,9 @@ module.exports = {
     });
   
     p.add(getBufferFromHexString(packet));
-    assert.ok(gotClose);
-  },
-  'can parse masked text message': function() {
+    gotClose.should.be.ok;
+  })
+  it('can parse masked text message', function() {
     var p = new Parser();
     var packet = '81 93 34 83 a8 68 01 b9 92 52 4f a1 c6 09 59 e6 8a 52 16 e6 cb 00 5b a1 d5';
   
@@ -47,9 +39,9 @@ module.exports = {
     });
   
     p.add(getBufferFromHexString(packet));
-    assert.ok(gotData);
-  },
-  'can parse a masked text message longer than 125 bytes': function() {
+    gotData.should.be.ok;
+  })
+  it('can parse a masked text message longer than 125 bytes', function() {
     var p = new Parser();
     var message = 'A';
     for (var i = 0; i < 300; ++i) message += (i % 5).toString();
@@ -62,9 +54,9 @@ module.exports = {
     });
   
     p.add(getBufferFromHexString(packet));
-    assert.ok(gotData);
-  },
-  'can parse a really long masked text message': function() {
+    gotData.should.be.ok;
+  })
+  it('can parse a really long masked text message', function() {
     var p = new Parser();
     var message = 'A';
     for (var i = 0; i < 64*1024; ++i) message += (i % 5).toString();
@@ -77,9 +69,9 @@ module.exports = {
     });
   
     p.add(getBufferFromHexString(packet));
-    assert.ok(gotData);
-  },
-  'can parse a fragmented masked text message of 300 bytes': function() {
+    gotData.should.be.ok;
+  })
+  it('can parse a fragmented masked text message of 300 bytes', function() {
     var p = new Parser();
     var message = 'A';
     for (var i = 0; i < 300; ++i) message += (i % 5).toString();
@@ -96,9 +88,9 @@ module.exports = {
   
     p.add(getBufferFromHexString(packet1));
     p.add(getBufferFromHexString(packet2));
-    assert.ok(gotData);
-  },
-  'can parse a ping message': function() {
+    gotData.should.be.ok;
+  })
+  it('can parse a ping message', function() {
     var p = new Parser();
     var message = 'Hello';
     var packet = '89 ' + getHybiLengthAsHexString(message.length, true) + ' 34 83 a8 68 ' + getHexStringFromBuffer(mask(message, '34 83 a8 68'));
@@ -110,9 +102,9 @@ module.exports = {
     });
 
     p.add(getBufferFromHexString(packet));
-    assert.ok(gotPing);
-  },
-  'can parse a ping with no data': function() {
+    gotPing.should.be.ok;
+  })
+  it('can parse a ping with no data', function() {
     var p = new Parser();
     var packet = '89 00';
     
@@ -122,9 +114,9 @@ module.exports = {
     });
     
     p.add(getBufferFromHexString(packet));
-    assert.ok(gotPing);
-  },
-  'can parse a fragmented masked text message of 300 bytes with a ping in the middle': function() {
+    gotPing.should.be.ok;
+  })
+  it('can parse a fragmented masked text message of 300 bytes with a ping in the middle', function() {
     var p = new Parser();
     var message = 'A';
     for (var i = 0; i < 300; ++i) message += (i % 5).toString();
@@ -152,10 +144,10 @@ module.exports = {
     p.add(getBufferFromHexString(packet1));
     p.add(getBufferFromHexString(pingPacket));
     p.add(getBufferFromHexString(packet2));
-    assert.ok(gotData);
-    assert.ok(gotPing);
-  },
-  'can parse a fragmented masked text message of 300 bytes with a ping in the middle, which is delievered over sevaral tcp packets': function() {
+    gotData.should.be.ok;
+    gotPing.should.be.ok;
+  })
+  it('can parse a fragmented masked text message of 300 bytes with a ping in the middle, which is delievered over sevaral tcp packets', function() {
     var p = new Parser();
     var message = 'A';
     for (var i = 0; i < 300; ++i) message += (i % 5).toString();
@@ -187,10 +179,10 @@ module.exports = {
     for (var i = 0; i < buffers.length; ++i) {
       p.add(buffers[i]);
     }
-    assert.ok(gotData);
-    assert.ok(gotPing);
-  },
-  'can parse a 100 byte long masked binary message': function() {
+    gotData.should.be.ok;
+    gotPing.should.be.ok;
+  })
+  it('can parse a 100 byte long masked binary message', function() {
     var p = new Parser();
     var length = 100;
     var message = new Buffer(length);
@@ -205,9 +197,9 @@ module.exports = {
     });
   
     p.add(getBufferFromHexString(packet));
-    assert.ok(gotData);
-  },
-  'can parse a 256 byte long masked binary message': function() {
+    gotData.should.be.ok;
+  })
+  it('can parse a 256 byte long masked binary message', function() {
     var p = new Parser();
     var length = 256;
     var message = new Buffer(length);
@@ -222,9 +214,9 @@ module.exports = {
     });
   
     p.add(getBufferFromHexString(packet));
-    assert.ok(gotData);
-  },
-  'can parse a 200kb long masked binary message': function() {
+    gotData.should.be.ok;
+  })
+  it('can parse a 200kb long masked binary message', function() {
     var p = new Parser();
     var length = 200 * 1024;
     var message = new Buffer(length);
@@ -239,9 +231,9 @@ module.exports = {
     });
   
     p.add(getBufferFromHexString(packet));
-    assert.ok(gotData);
-  },
-  'can parse a 200kb long unmasked binary message': function() {
+    gotData.should.be.ok;
+  })
+  it('can parse a 200kb long unmasked binary message', function() {
     var p = new Parser();
     var length = 200 * 1024;
     var message = new Buffer(length);
@@ -256,7 +248,7 @@ module.exports = {
     });
   
     p.add(getBufferFromHexString(packet));
-    assert.ok(gotData);
-  },
-};
+    gotData.should.be.ok;
+  })
+})
 

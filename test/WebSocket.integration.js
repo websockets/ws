@@ -21,8 +21,8 @@ function areArraysEqual(x, y) {
   return true;
 }
 
-module.exports = {
-  'communicates successfully with echo service': function(done) {
+describe('WebSocket', function() {
+  it('communicates successfully with echo service', function(done) {
     var ws = new WebSocket('ws://echo.websocket.org', {protocolVersion: 8, origin: 'http://websocket.org'});
     var str = Date.now().toString();
     var dataReceived = false;
@@ -38,5 +38,5 @@ module.exports = {
       ws.terminate();
       dataReceived = true;
     });
-  },
-}
+  })
+})
