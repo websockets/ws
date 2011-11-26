@@ -8,9 +8,8 @@ run-tests:
 		$(TESTS)
 
 run-integrationtests:
-	@./node_modules/.bin/expresso \
+	@./node_modules/.bin/mocha \
 		-t 5000 \
-		--serial \
 		$(TESTFLAGS) \
 		$(TESTS)
 
