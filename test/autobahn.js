@@ -3,49 +3,49 @@ var currentTest = 1;
 var testCount = null;
 
 process.on('uncaughtException', function(err) {
-    console.log('Caught exception: ' + err);
+  console.log('Caught exception: ' + err);
 });
 
 process.on('SIGINT', function () {
-    try {
-        console.log('Updating reports and shutting down');
-        var ws = new WebSocket('ws://localhost:9001/updateReports?agent=easy-websocket');
-        ws.on('close', function() {
-            process.exit();
-        });
-    }
-    catch(e) {
-        process.exit();
-    }
+  try {
+    console.log('Updating reports and shutting down');
+    var ws = new WebSocket('ws://localhost:9001/updateReports?agent=easy-websocket');
+    ws.on('close', function() {
+      process.exit();
+    });
+  }
+  catch(e) {
+    process.exit();
+  }
 });
 
 function nextTest() {
-    if (currentTest > testCount) {
-        console.log('Updating reports and shutting down');
-        var ws = new WebSocket('ws://localhost:9001/updateReports?agent=easy-websocket');
-        ws.on('close', function() {
-            process.exit();
-        });
-        return;
-    };
-    console.log('Running test case ' + currentTest + '/' + testCount);
-    var ws = new WebSocket('ws://localhost:9001/runCase?case=' + currentTest + '&agent=easy-websocket');
-    ws.on('message', function(data, flags) {
-        ws.send(flags.buffer, {binary: flags.binary === true, mask: true});
+  if (currentTest > testCount) {
+    console.log('Updating reports and shutting down');
+    var ws = new WebSocket('ws://localhost:9001/updateReports?agent=easy-websocket');
+    ws.on('close', function() {
+      process.exit();
     });
-    ws.on('close', function(data) {
-        currentTest += 1;
-        process.nextTick(nextTest);
-    });
-    ws.on('error', function(e) {});
+    return;
+  };
+  console.log('Running test case ' + currentTest + '/' + testCount);
+  var ws = new WebSocket('ws://localhost:9001/runCase?case=' + currentTest + '&agent=easy-websocket');
+  ws.on('message', function(data, flags) {
+    ws.send(flags.buffer, {binary: flags.binary === true, mask: true});
+  });
+  ws.on('close', function(data) {
+    currentTest += 1;
+    process.nextTick(nextTest);
+  });
+  ws.on('error', function(e) {});
 }
 
 var ws = new WebSocket('ws://localhost:9001/getCaseCount');
 ws.on('message', function(data, flags) {
-    testCount = parseInt(data);
+  testCount = parseInt(data);
 });
 ws.on('close', function() {
-    if (testCount > 0) {
-        nextTest();
-    }
+  if (testCount > 0) {
+    nextTest();
+  }
 });
