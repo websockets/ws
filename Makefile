@@ -2,9 +2,8 @@ ALL_TESTS = $(shell find test/ -name '*.test.js')
 ALL_INTEGRATION = $(shell find test/ -name '*.integration.js')
 
 run-tests:
-	@./node_modules/.bin/expresso \
+	@./node_modules/.bin/mocha \
 		-t 2000 \
-		--serial \
 		$(TESTFLAGS) \
 		$(TESTS)
 
