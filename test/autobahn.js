@@ -1,9 +1,10 @@
 var WebSocket = require('../');
 var currentTest = 1;
+var lastTest = -1;
 var testCount = null;
 
 process.on('uncaughtException', function(err) {
-  console.log('Caught exception: ' + err);
+  console.log('Caught exception: ', err, err.stack);
 });
 
 process.on('SIGINT', function () {
@@ -20,7 +21,7 @@ process.on('SIGINT', function () {
 });
 
 function nextTest() {
-  if (currentTest > testCount) {
+  if (currentTest > testCount || (lastTest != -1 && currentTest > lastTest)) {
     console.log('Updating reports and shutting down');
     var ws = new WebSocket('ws://localhost:9001/updateReports?agent=easy-websocket');
     ws.on('close', function() {
