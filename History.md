@@ -1,3 +1,10 @@
+v0.2.5 - Dec 3rd 2011
+======================
+
+  * Rewrote much of the WebSocket parser, to ensure high speed for highly fragmented messages.
+  * Added a BufferPool, as a start to more efficiently deal with allocations for WebSocket connections. More work to come, in that area.
+  * Updated the Autobahn report, at http://einaros.github.com/easy-websocket, with comparisons against WebSocket-Node 1.0.2 and Chrome 16.
+
 v0.2.0 - Nov 25th 2011
 ======================
 
