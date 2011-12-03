@@ -1,19 +1,19 @@
-# easy-websocket #
+# ws: a node.js websocket.client #
 
-`easy-websocket` aims to be an easy to use websocket client for node.js, up-to-date against current HyBi protocol versions.
+`ws` is a simple to use, blazing fast, websocket client for node.js, up-to-date against current HyBi protocol versions.
 
-Passes the quite extensible Autobahn test suite. See http://einaros.github.com/easy-websocket for the full report.
+Passes the quite extensible Autobahn test suite. See http://einaros.github.com/ws for the full report.
 
 ## Usage ##
 
 ### Installing ###
 
-`npm install easy-websocket`
+`npm install ws`
 
 ### Sending and receiving text data ###
 
 ```js
-var WebSocket = require('easy-websocket');
+var WebSocket = require('ws');
 var ws = new WebSocket('ws://www.host.com/path');
 ws.on('open', function() {
     ws.send('something');
@@ -27,7 +27,7 @@ ws.on('message', function(data, flags) {
 ### Sending binary data ###
 
 ```js
-var WebSocket = require('easy-websocket');
+var WebSocket = require('ws');
 var ws = new WebSocket('ws://www.host.com/path');
 ws.on('open', function() {
     var array = new Float32Array(5);
@@ -41,7 +41,7 @@ Setting `mask`, as done for the send options above, will cause the data to be ma
 ### echo.websocket.org demo ###
 
 ```js
-var WebSocket = require('easy-websocket');
+var WebSocket = require('ws');
 var ws = new WebSocket('ws://echo.websocket.org/', {protocolVersion: 8, origin: 'http://websocket.org'});
 ws.on('open', function() {
     console.log('connected');

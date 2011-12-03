@@ -1,3 +1,8 @@
+v0.2.6 - Dec 3rd 2011
+======================
+
+* Renamed to 'ws'. Big woop, right -- but easy-websocket really just doesn't cut it anymore!
+
 v0.2.5 - Dec 3rd 2011
 ======================
 

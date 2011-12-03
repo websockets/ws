@@ -10,7 +10,7 @@ process.on('uncaughtException', function(err) {
 process.on('SIGINT', function () {
   try {
     console.log('Updating reports and shutting down');
-    var ws = new WebSocket('ws://localhost:9001/updateReports?agent=easy-websocket');
+    var ws = new WebSocket('ws://localhost:9001/updateReports?agent=ws');
     ws.on('close', function() {
       process.exit();
     });
@@ -23,14 +23,14 @@ process.on('SIGINT', function () {
 function nextTest() {
   if (currentTest > testCount || (lastTest != -1 && currentTest > lastTest)) {
     console.log('Updating reports and shutting down');
-    var ws = new WebSocket('ws://localhost:9001/updateReports?agent=easy-websocket');
+    var ws = new WebSocket('ws://localhost:9001/updateReports?agent=ws');
     ws.on('close', function() {
       process.exit();
     });
     return;
   };
   console.log('Running test case ' + currentTest + '/' + testCount);
-  var ws = new WebSocket('ws://localhost:9001/runCase?case=' + currentTest + '&agent=easy-websocket');
+  var ws = new WebSocket('ws://localhost:9001/runCase?case=' + currentTest + '&agent=ws');
   ws.on('message', function(data, flags) {
     ws.send(flags.buffer, {binary: flags.binary === true, mask: true});
   });

@@ -1,3 +1,9 @@
+/*!
+ * ws: a node.js websocket client
+ * Copyright(c) 2011 Einar Otto Stangvik <einaros@gmail.com>
+ * MIT Licensed
+ */
+
 #include <v8.h>
 #include <node.h>
 #include <node_buffer.h>

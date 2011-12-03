@@ -1,11 +1,11 @@
 {
   "author": "Einar Otto Stangvik <einaros@gmail.com> (http://2x.io)",
-  "name": "easy-websocket",
-  "description": "plain and simple websocket client",
-  "version": "0.2.6-pre",
+  "name": "ws",
+  "description": "simple and very fast websocket protocol client for node.js",
+  "version": "0.2.6",
   "repository": {
     "type": "git",
-    "url": "git://github.com/einaros/easy-websocket.git"
+    "url": "git://github.com/einaros/ws.git"
   },
   "scripts": {
     "test": "make test",
