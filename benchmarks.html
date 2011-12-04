@@ -351,8 +351,11 @@
       <div class="head">ws: a node.js websocket.client</div>
       <p>
         following are graphs visualizing the performance tests from the Autobahn test suite. 
-        'ws' shows consistently high velocity across the board, but our long time goal is to optimize
-        even further.
+        'ws' shows consistently high velocity across the board.
+      </p>
+      <p>
+        among the areas I've focused on is transfer and roundtrip speed for small packet and fragment sizes,
+        which is relatively common in your run-of-the-mill web app.
       </p>
     </div>
 		<div id="container1" class="container"></div>
