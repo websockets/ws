@@ -1,0 +1,367 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>WebSocket Client Benchmark</title>
+		<style>
+      body {
+        font: 14px/1.6 "Helvetica Neue", Helvetica, Arial, sans-serif;
+        margin: 0;
+        color: #2C2C2C;
+        text-align: center;
+      }
+      #content {
+        width: 550px;
+        margin-top: 50px;
+        display: inline-block;
+      }
+      .head {
+        font-size: 14pt;
+      }		
+		  .container {
+        width: 800px; 
+        height: 400px; 
+        margin: 0 auto 30px;		    
+		  }
+		</style>
+		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js"></script>
+		<script type="text/javascript" src="js/highcharts.js"></script>
+		<script type="text/javascript" src="js/modules/exporting.js"></script>
+		<script type="text/javascript">		
+			$(document).ready(function() {
+				new Highcharts.Chart({
+					chart: {
+						renderTo: 'container1',
+						defaultSeriesType: 'line'
+					},
+					title: {
+						text: '9.1 Text Message (increasing size)'
+					},
+					subtitle: {
+						text: 'Lower is better'
+					},
+					xAxis: {
+						categories: ['64kB', '256kB', '1MB', '4MB', '8MB', '16MB']
+					},
+					yAxis: {
+						title: {
+							text: 'Milliseconds'
+						}
+					},
+					tooltip: {
+						enabled: true,
+						formatter: function() {
+							return '<b>'+ this.series.name +'</b><br/>'+
+								this.x +': '+ this.y +'ms';
+						}
+					},
+					plotOptions: {
+						line: {
+							dataLabels: {
+								enabled: true
+							},
+							enableMouseTracking: true
+						}
+					},
+					series: [
+					{ 
+					  name: 'Chrome 16',
+					  data: [73, 293, 1324, 8383, 23685, 82441]
+					},
+					{ 
+					  name: 'JettyWebSocketClient 7.5.5',
+					  data: [93, 287, 1134, 4491, 9384, 29096]
+					},
+					{ 
+					  name: 'WebSocket-node Client 1.0.2',
+					  data: [72, 292, 1111, 4404, 8868, 17717]
+					},
+					{ 
+					  name: 'ws 0.2.6',
+					  data: [70, 276, 1096, 4404, 8813, 17662]
+					},
+					]
+				})
+
+        new Highcharts.Chart({
+					chart: {
+						renderTo: 'container2',
+						defaultSeriesType: 'line'
+					},
+					title: {
+						text: '9.2 Binary Message (increasing size)'
+					},
+					subtitle: {
+						text: 'Lower is better'
+					},
+					xAxis: {
+						categories: ['64kB', '256kB', '1MB', '4MB', '8MB', '16MB']
+					},
+					yAxis: {
+						title: {
+							text: 'Milliseconds'
+						}
+					},
+					tooltip: {
+						enabled: true,
+						formatter: function() {
+							return '<b>'+ this.series.name +'</b><br/>'+
+								this.x +': '+ this.y +'ms';
+						}
+					},
+					plotOptions: {
+						line: {
+							dataLabels: {
+								enabled: true
+							},
+							enableMouseTracking: true
+						}
+					},
+					series: [{"name":"Chrome/16.0.912.59","data":[35,149,729,6045,21156,80314]},{"name":"JettyWebsocketClient/7.5.5-SNAPSHOT","data":[652,1104,2700,9483,19701,44206]},{"name":"WebSocket-Node Client v1.0.2","data":[36,130,510,2037,4047,8319]},{"name":"ws v0.2.6","data":[34,133,506,2061,4083,8149]}]
+				})
+
+        new Highcharts.Chart({
+					chart: {
+						renderTo: 'container3',
+						defaultSeriesType: 'line'
+					},
+					title: {
+						text: '9.3 Fragmented Text Message (fixed size, increasing fragment size)'
+					},
+					subtitle: {
+						text: 'Lower is better'
+					},
+					xAxis: {
+						categories: ['64B', '256B', '1kB', '4kB', '16kB', '64kB', '256kB', '1MB', '4MB']
+					},
+					yAxis: {
+						title: {
+							text: 'Milliseconds'
+						}
+					},
+					tooltip: {
+						enabled: true,
+						formatter: function() {
+							return '<b>'+ this.series.name +'</b><br/>'+
+								this.x +': '+ this.y +'ms';
+						}
+					},
+					plotOptions: {
+						line: {
+							dataLabels: {
+								enabled: true
+							},
+							enableMouseTracking: true
+						}
+					},
+					series: [{"name":"Chrome/16.0.912.59","data":[5511,4974,4696,4617,4549,4642,4597,5411,8306]},{"name":"JettyWebsocketClient/7.5.5-SNAPSHOT","data":[null,8781,10293,11882,13578,14842,13491,12983,10603]},{"name":"WebSocket-Node Client v1.0.2","data":[10735,6406,4883,4528,4426,4357,4364,4358,4334]},{"name":"ws v0.2.6","data":[5797,4770,4436,4394,4383,4340,4355,4365,4317]}]
+        });
+
+        new Highcharts.Chart({
+					chart: {
+						renderTo: 'container4',
+						defaultSeriesType: 'line'
+					},
+					title: {
+						text: '9.4 Fragmented Binary Message (fixed size, increasing fragment size)'
+					},
+					subtitle: {
+						text: 'Lower is better'
+					},
+					xAxis: {
+						categories: ['64B', '256B', '1kB', '4kB', '16kB', '64kB', '256kB', '1MB', '4MB']
+					},
+					yAxis: {
+						title: {
+							text: 'Milliseconds'
+						}
+					},
+					tooltip: {
+						enabled: true,
+						formatter: function() {
+							return '<b>'+ this.series.name +'</b><br/>'+
+								this.x +': '+ this.y +'ms';
+						}
+					},
+					plotOptions: {
+						line: {
+							dataLabels: {
+								enabled: true
+							},
+							enableMouseTracking: true
+						}
+					},
+					series: [{"name":"Chrome/16.0.912.59","data":[3059,2459,2264,2191,2192,2161,2216,3000,5856]},{"name":"JettyWebsocketClient/7.5.5-SNAPSHOT","data":[null,5461,2095,1966,1970,1902,8058,3484,2456]},{"name":"WebSocket-Node Client v1.0.2","data":[8022,3921,2403,2046,1932,1908,1919,1916,1901]},{"name":"ws v0.2.6","data":[3317,2350,1972,1927,1875,1888,1881,1876,1884]}]
+        });
+        
+        new Highcharts.Chart({
+					chart: {
+						renderTo: 'container5',
+						defaultSeriesType: 'line'
+					},
+					title: {
+						text: '9.5 Text Message (fixed 1MB size, increasing chop size)'
+					},
+					subtitle: {
+						text: 'Lower is better'
+					},
+					xAxis: {
+						categories: ['64 octets', '128', '256', '512', '1024', '2048']
+					},
+					yAxis: {
+						title: {
+							text: 'Milliseconds'
+						}
+					},
+					tooltip: {
+						enabled: true,
+						formatter: function() {
+							return '<b>'+ this.series.name +'</b><br/>'+
+								this.x +': '+ this.y +'ms';
+						}
+					},
+					plotOptions: {
+						line: {
+							dataLabels: {
+								enabled: true
+							},
+							enableMouseTracking: true
+						}
+					},
+					series: [{"name":"Chrome/16.0.912.59","data":[4345,2922,2177,1717,1593,1449]},{"name":"JettyWebsocketClient/7.5.5-SNAPSHOT","data":[2873,2170,1531,1296,1230,1178]},{"name":"WebSocket-Node Client v1.0.2","data":[2627,1849,1490,1288,1208,1151]},{"name":"ws v0.2.6","data":[2587,1836,1471,1284,1197,1141]}]
+        });
+        
+        new Highcharts.Chart({
+					chart: {
+						renderTo: 'container6',
+						defaultSeriesType: 'line'
+					},
+					title: {
+						text: '9.6 Binary Message (fixed 1MB size, increasing chop size)'
+					},
+					subtitle: {
+						text: 'Lower is better'
+					},
+					xAxis: {
+						categories: ['64 octets', '128', '256', '512', '1024', '2048']
+					},
+					yAxis: {
+						title: {
+							text: 'Milliseconds'
+						}
+					},
+					tooltip: {
+						enabled: true,
+						formatter: function() {
+							return '<b>'+ this.series.name +'</b><br/>'+
+								this.x +': '+ this.y +'ms';
+						}
+					},
+					plotOptions: {
+						line: {
+							dataLabels: {
+								enabled: true
+							},
+							enableMouseTracking: true
+						}
+					},
+					series: [{"name":"Chrome/16.0.912.59","data":[3779,2528,1650,1022,1001,898]},{"name":"JettyWebsocketClient/7.5.5-SNAPSHOT","data":[2702,1389,911,749,680,590]},{"name":"WebSocket-Node Client v1.0.2","data":[2027,1271,892,701,621,560]},{"name":"ws v0.2.6","data":[2010,1253,887,706,612,554]}]
+        });
+        
+        new Highcharts.Chart({
+					chart: {
+						renderTo: 'container7',
+						defaultSeriesType: 'line'
+					},
+					title: {
+						text: '9.7 Text Message Roundtrip Time (fixed number, increasing size)'
+					},
+					subtitle: {
+						text: 'Lower is better'
+					},
+					xAxis: {
+						categories: ['0B', '16B', '64B', '256B', '1024B', '4096B']
+					},
+					yAxis: {
+						title: {
+							text: 'Milliseconds'
+						}
+					},
+					tooltip: {
+						enabled: true,
+						formatter: function() {
+							return '<b>'+ this.series.name +'</b><br/>'+
+								this.x +': '+ this.y +'ms';
+						}
+					},
+					plotOptions: {
+						line: {
+							dataLabels: {
+								enabled: true
+							},
+							enableMouseTracking: true
+						}
+					},
+					series: [{"name":"Chrome/16.0.912.59","data":[372,424,482,713,1589,5139]},{"name":"JettyWebsocketClient/7.5.5-SNAPSHOT","data":[302,310,440,635,1473,5139]},{"name":"WebSocket-Node Client v1.0.2","data":[260,305,360,598,1495,4914]},{"name":"ws v0.2.6","data":[244,292,365,579,1432,4858]}]
+        });
+        
+        new Highcharts.Chart({
+					chart: {
+						renderTo: 'container8',
+						defaultSeriesType: 'line'
+					},
+					title: {
+						text: '9.8 Binary Message Roundtrip Time (fixed number, increasing size)'
+					},
+					subtitle: {
+						text: 'Lower is better'
+					},
+					xAxis: {
+						categories: ['0B', '16B', '64B', '256B', '1024B', '4096B']
+					},
+					yAxis: {
+						title: {
+							text: 'Milliseconds'
+						}
+					},
+					tooltip: {
+						enabled: true,
+						formatter: function() {
+							return '<b>'+ this.series.name +'</b><br/>'+
+								this.x +': '+ this.y +'ms';
+						}
+					},
+					plotOptions: {
+						line: {
+							dataLabels: {
+								enabled: true
+							},
+							enableMouseTracking: true
+						}
+					},
+					series: [{"name":"Chrome/16.0.912.59","data":[372,404,433,588,974,2740]},{"name":"JettyWebsocketClient/7.5.5-SNAPSHOT","data":[373,254,285,399,790,2388]},{"name":"WebSocket-Node Client v1.0.2","data":[258,281,309,462,835,2479]},{"name":"ws v0.2.6","data":[246,274,316,425,828,2447]}]
+        });
+			});				
+		</script>
+		
+	</head>
+	<body>
+  <a href="http://github.com/einaros/ws"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://a248.e.akamai.net/assets.github.com/img/7afbc8b248c68eb468279e8c17986ad46549fb71/687474703a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6461726b626c75655f3132313632312e706e67" alt="Fork me on GitHub"></a>  
+    <div id="content">
+      <div class="head">ws: a node.js websocket.client</div>
+      <p>
+        following are graphs visualizing the performance tests from the Autobahn test suite. 
+        'ws' shows consistently high velocity across the board, but our long time goal is to optimize
+        even further.
+      </p>
+    </div>
+		<div id="container1" class="container"></div>
+		<div id="container2" class="container"></div>
+		<div id="container3" class="container"></div>
+		<div id="container4" class="container"></div>
+		<div id="container5" class="container"></div>
+		<div id="container6" class="container"></div>
+		<div id="container7" class="container"></div>
+		<div id="container8" class="container"></div>
+	</body>
+</html>
