@@ -26,14 +26,14 @@ describe('WebSocket', function() {
   describe('#ctor', function() {
     it('throws exception for invalid url', function(done) {
       try {
-        var ws = new WebSocket('echo.websocket.org');      
+        var ws = new WebSocket('echo.websocket.org');
       }
       catch (e) {
         done();
       }
-    })    
+    })
   })
-  
+
   it('can disconnect before connection is established', function(done) {
     server.createServer(++port, function(srv) {
       var ws = new WebSocket('ws://localhost:' + port);
@@ -131,7 +131,7 @@ describe('WebSocket', function() {
           done();
         });
       });
-    })    
+    })
   })
   describe('#pong', function() {
     it('without message is successfully transmitted to the server', function(done) {
@@ -367,7 +367,7 @@ describe('WebSocket', function() {
         ws.on('close', function() {
           assert.ok(callbackFired);
           srv.close();
-          done();        
+          done();
         });
       });
     })
@@ -392,7 +392,7 @@ describe('WebSocket', function() {
         ws.on('close', function() {
           assert.ok(callbackFired);
           srv.close();
-          done();        
+          done();
         });
       });
     })
@@ -423,7 +423,7 @@ describe('WebSocket', function() {
             assert.equal('baz', data);
             srv.close();
             ws.terminate();
-            done();      
+            done();
           }
         });
       });
@@ -455,7 +455,7 @@ describe('WebSocket', function() {
             assert.equal('foobar', data);
             srv.close();
             ws.terminate();
-            done();      
+            done();
           }
         });
       });
@@ -477,7 +477,7 @@ describe('WebSocket', function() {
           if (++receivedIndex == 2) {
             srv.close();
             ws.terminate();
-            done();      
+            done();
           }
         });
         srv.on('ping', function(data) {
@@ -485,7 +485,7 @@ describe('WebSocket', function() {
           if (++receivedIndex == 2) {
             srv.close();
             ws.terminate();
-            done();      
+            done();
           }
         });
       });
@@ -507,7 +507,7 @@ describe('WebSocket', function() {
           if (++receivedIndex == 2) {
             srv.close();
             ws.terminate();
-            done();      
+            done();
           }
         });
         srv.on('pong', function(data) {
@@ -515,7 +515,7 @@ describe('WebSocket', function() {
           if (++receivedIndex == 2) {
             srv.close();
             ws.terminate();
-            done();      
+            done();
           }
         });
       });
@@ -533,7 +533,7 @@ describe('WebSocket', function() {
         ws.on('close', function() {
           srv.close();
           ws.terminate();
-          done();        
+          done();
         });
         ws.on('error', function() { /* That's quite alright -- a send was attempted after close */ });
         srv.on('message', function(data, flags) {
@@ -545,7 +545,7 @@ describe('WebSocket', function() {
           assert.equal('foobar', data);
         });
       });
-    })    
+    })
   })
   describe('#stream', function() {
     it('very long binary data can be streamed', function(done) {
@@ -599,7 +599,7 @@ describe('WebSocket', function() {
           catch (e) {
             srv.close();
             ws.terminate();
-            done();        
+            done();
           }
         });
       });
@@ -638,7 +638,7 @@ describe('WebSocket', function() {
             assert.equal('baz', data);
             srv.close();
             ws.terminate();
-            done();      
+            done();
           }
         });
       });
@@ -655,7 +655,7 @@ describe('WebSocket', function() {
               send(payload.substr(0, 5));
               var i2 = 0;
               ws.stream(function(error, send) {
-                assert.ok(!error);              
+                assert.ok(!error);
                 if (++i2 == 1) send('foo');
                 else send('bar', true);
               });
@@ -681,7 +681,7 @@ describe('WebSocket', function() {
             setTimeout(function() {
               srv.close();
               ws.terminate();
-              done();      
+              done();
             }, 1000);
           }
           else throw new Error('more messages than we actually sent just arrived');
@@ -712,7 +712,7 @@ describe('WebSocket', function() {
           if (++receivedIndex == 2) {
             srv.close();
             ws.terminate();
-            done();      
+            done();
           }
         });
         srv.on('ping', function(data) {
@@ -720,7 +720,7 @@ describe('WebSocket', function() {
           if (++receivedIndex == 2) {
             srv.close();
             ws.terminate();
-            done();      
+            done();
           }
         });
       });
@@ -749,7 +749,7 @@ describe('WebSocket', function() {
           if (++receivedIndex == 2) {
             srv.close();
             ws.terminate();
-            done();      
+            done();
           }
         });
         srv.on('pong', function(data) {
@@ -757,7 +757,7 @@ describe('WebSocket', function() {
           if (++receivedIndex == 2) {
             srv.close();
             ws.terminate();
-            done();      
+            done();
           }
         });
       });
@@ -787,7 +787,7 @@ describe('WebSocket', function() {
           assert.ok(errorGiven);
           srv.close();
           ws.terminate();
-          done();        
+          done();
         });
         srv.on('message', function(data, flags) {
           assert.ok(!flags.binary);
@@ -819,11 +819,11 @@ describe('WebSocket', function() {
             assert.ok(errorGiven);
             srv.close();
             ws.terminate();
-            done();        
+            done();
           }, 1000);
         });
       });
-    })    
+    })
     it('without invalid first argument throws exception', function(done) {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
@@ -865,7 +865,7 @@ describe('WebSocket', function() {
           srv.close();
           ws.terminate();
           done();
-        });    
+        });
       });
     })
     it('with message is successfully transmitted to the server', function(done) {
@@ -880,7 +880,7 @@ describe('WebSocket', function() {
           srv.close();
           ws.terminate();
           done();
-        });    
+        });
       });
     })
     it('with encoded message is successfully transmitted to the server', function(done) {
@@ -895,7 +895,7 @@ describe('WebSocket', function() {
           srv.close();
           ws.terminate();
           done();
-        });    
+        });
       });
     })
     it('ends connection to the server', function(done) {
