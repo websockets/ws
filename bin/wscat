@@ -101,7 +101,7 @@ else if (program.connect) {
   if (program.origin) options.origin = program.origin;
   var ws = new WebSocket(program.connect, options);
   ws.on('open', function() {
-    wsConsole.print('connected', Console.Colors.Green);
+    wsConsole.print('connected (press CTRL+C to quit)', Console.Colors.Green);
     wsConsole.on('data', function(data) {
       ws.send(data, {mask: true});    
       wsConsole.prompt();
