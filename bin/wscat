@@ -1,0 +1,118 @@
+#!/usr/bin/env node
+
+/**
+ * Module dependencies.
+ */
+
+var WebSocket = require('../')
+  , program = require('commander')
+  , util = require('util')
+  , events = require('events')
+  , tty = require('tty');
+
+/**
+ * InputReader - processes console input
+ */
+
+function InputReader(onData) {
+  tty.setRawMode(true);
+  this.line = '';
+  this.stdin = process.openStdin();
+  this.pause = true;
+  var self = this;
+  this.stdin.on('keypress', function (chunk, key) {
+    if (key && key.ctrl && key.name == 'c') self.emit('break');
+    else if (key && key.name == 'enter') {
+      if (self.line.length > 0) {
+        process.stdout.write('\n');
+        var line = self.line;
+        self.line = '';
+        process.stdout.write(chunk);
+        self.emit('data', line);
+      }
+    }
+    else if (key && key.name == 'backspace') {
+      if (self.line.length > 0) {
+        self.line = self.line.substr(0, self.line.length - 1);
+        process.stdout.write('\033[1D \033[1D');        
+      }
+    }
+    else if (typeof chunk != 'undefined' && !self._pause){
+      self.line += chunk;
+      process.stdout.write(chunk);
+    }
+  });
+}
+util.inherits(InputReader, events.EventEmitter);
+
+InputReader.prototype.prompt = function() {
+  this._pause = false;
+  process.stdout.write('> ');
+}
+
+InputReader.prototype.clearLine = function() {
+  process.stdout.write('\033[2K\033[E');
+}
+
+InputReader.prototype.restore = function() {
+  process.stdout.write('> ' + this.line);
+}
+
+/**
+ * The actual application
+ */
+
+var input = new InputReader();
+program
+  .version('0.2.9')
+  .usage('[options] <url>')
+  .option('-l, --listen <port>', 'listen on port')
+  .option('-c, --connect <url>', 'connect to a websocket server')
+  .option('-p, --protocol <version>', 'optional protocol version')
+  .option('-o, --origin <origin>', 'optional origin')
+  .parse(process.argv);
+
+if (program.listen && program.connect) {
+  console.error('Error: use either --listen or --connect'.yellow);
+  process.exit(-1);
+}
+else if (program.listen) {
+  console.log('Sorry - not implemented yet!');
+}
+else if (program.connect) {
+  var options = {};
+  if (program.protocol) options.protocolVersion = program.protocol;
+  if (program.origin) options.origin = program.origin;
+  var ws = new WebSocket(program.connect, options);
+  ws.on('open', function() {
+    console.log('\033[32mconnected\033[39m');
+    input.prompt();
+    input.on('data', function(data) {
+      ws.send(data, {mask: true});    
+      input.prompt();
+    });
+  });
+  ws.on('close', function() {
+    input.clearLine();
+    console.log('\033[32mdisconnected\033[39m');
+    process.exit();
+  });
+  ws.on('error', function(code, description) {
+    input.clearLine();
+    console.log('\033[33merror: ' + code + ' ' + description + '\033[39m');
+  });
+  ws.on('message', function(data, flags) {
+    input.clearLine();
+    console.log('\033[34m< ' + data + '\033[39m');
+    input.restore();
+  });
+  input.on('break', function() {
+    if (ws) { 
+      ws.close();
+    }
+  });
+}
+else {
+  console.error('Error: use either --listen or --connect'.yellow);
+  process.exit(-1);
+}
