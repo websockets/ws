@@ -1,5 +1,5 @@
 var assert = require('assert')
-  , Validation = require('../build/Release/validation').Validation;
+  , Validation = require('../lib/Validation').Validation;
 require('should');
 
 describe('Validation', function() {

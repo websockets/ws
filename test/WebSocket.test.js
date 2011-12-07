@@ -79,24 +79,28 @@ describe('WebSocket', function() {
     });
   })
   it('can disconnect before connection is established', function(done) {
-    var ws = new WebSocket('ws://echo.websocket.org');
-    ws.terminate();
-    ws.on('open', function() {
-      assert.fail('connect shouldnt be raised here');
-    });
-    ws.on('close', function() {
-      done();
+    server.createServer(++port, function(srv) {
+      var ws = new WebSocket('ws://localhost:' + port);
+      ws.terminate();
+      ws.on('open', function() {
+        assert.fail('connect shouldnt be raised here');
+      });
+      ws.on('close', function() {
+        done();
+      });
     });
   })
   it('send before connect should fail', function(done) {
-    var ws = new WebSocket('ws://echo.websocket.org');
-    try {
-      ws.send('hi');
-    }
-    catch (e) {
-      ws.terminate();
-      done();
-    }
+    server.createServer(++port, function(srv) {
+      var ws = new WebSocket('ws://localhost:' + port);
+      try {
+        ws.send('hi');
+      }
+      catch (e) {
+        ws.terminate();
+        done();
+      }
+    });
   })
   it('send without data should fail', function(done) {
     server.createServer(++port, function(srv) {
@@ -114,14 +118,16 @@ describe('WebSocket', function() {
     });
   })
   it('ping before connect should fail', function(done) {
-    var ws = new WebSocket('ws://echo.websocket.org');
-    try {
-      ws.ping();
-    }
-    catch (e) {
-      ws.terminate();
-      done();
-    }
+    server.createServer(++port, function(srv) {
+      var ws = new WebSocket('ws://localhost:' + port);
+      try {
+        ws.ping();
+      }
+      catch (e) {
+        ws.terminate();
+        done();
+      }
+    });
   })
   it('invalid server key is denied', function(done) {
     server.createServer(++port, server.handlers.invalidKey, function(srv) {
@@ -269,14 +275,16 @@ describe('WebSocket', function() {
     });
   })
   it('stream before connect should fail', function(done) {
-    var ws = new WebSocket('ws://echo.websocket.org');
-    try {
-      ws.stream(function() {});
-    }
-    catch (e) {
-      ws.terminate();
-      done();
-    }
+    server.createServer(++port, function(srv) {
+      var ws = new WebSocket('ws://localhost:' + port);
+      try {
+        ws.stream(function() {});
+      }
+      catch (e) {
+        ws.terminate();
+        done();
+      }
+    });
   })
   it('stream without callback should fail', function(done) {
     server.createServer(++port, function(srv) {
