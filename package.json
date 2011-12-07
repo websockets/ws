@@ -7,6 +7,9 @@
     "type": "git",
     "url": "git://github.com/einaros/ws.git"
   },
+  "bin": {
+    "wscat": "./bin/wscat",
+  },
   "scripts": {
     "test": "make test",
     "preinstall": "make validator"
