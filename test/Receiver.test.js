@@ -1,5 +1,6 @@
 var assert = require('assert')
   , Parser = require('../lib/Receiver');
+require('should');
 require('./hybi-common');
 
 describe('Receiver', function() {  
