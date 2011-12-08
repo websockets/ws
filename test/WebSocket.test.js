@@ -259,14 +259,13 @@ describe('WebSocket', function() {
         }
       });
     })
-    it('without data should fail', function(done) {
+    it('without data should be successful', function(done) {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
         ws.on('open', function() {
           ws.send();
         });
         srv.on('message', function(message, flags) {
-          assert.equal(false, flags.masked);
           assert.equal('', message);
           srv.close();
           ws.terminate();
@@ -293,7 +292,6 @@ describe('WebSocket', function() {
           ws.send('hi');
         });
         srv.on('message', function(message, flags) {
-          assert.equal(false, flags.masked);
           assert.equal('hi', message);
           srv.close();
           ws.terminate();
@@ -326,7 +324,6 @@ describe('WebSocket', function() {
         });
         srv.on('message', function(message, flags) {
           assert.ok(flags.binary);
-          assert.equal(false, flags.masked);
           assert.ok(areArraysEqual(array, new Float32Array(getArrayBuffer(message))));
           srv.close();
           ws.terminate();
