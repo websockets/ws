@@ -1,3 +1,8 @@
+v0.3.1 - Dec 8th 2011
+======================
+
+* Service release, fixing broken tests.
+
 v0.3.0 - Dec 8th 2011
 ======================
 
