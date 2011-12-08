@@ -46,14 +46,14 @@ describe('WebSocketServer', function() {
       gotException.should.be.ok;
     })
   })
-  
+
   describe('#close', function() {
     it('will close all clients', function(done) {
       var wss = new WebSocketServer({port: ++port}, function() {
         var ws = new WebSocket('ws://localhost:' + port);
         ws.on('close', function() {
           if (++closes == 2) done();
-        });        
+        });
       });
       var closes = 0;
       wss.on('connection', function(client) {
@@ -67,7 +67,7 @@ describe('WebSocketServer', function() {
 
   it('starts a server at the given port', function(done) {
     var wss = new WebSocketServer({port: ++port}, function() {
-      var ws = new WebSocket('ws://localhost:' + port);      
+      var ws = new WebSocket('ws://localhost:' + port);
     });
     wss.on('connection', function(client) {
       wss.close();
@@ -82,7 +82,7 @@ describe('WebSocketServer', function() {
         data.should.eql('hello!');
         wss.close();
         done();
-      });            
+      });
     });
     wss.on('connection', function(client) {
       client.send('hello!');
