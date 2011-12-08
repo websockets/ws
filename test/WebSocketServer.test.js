@@ -45,6 +45,10 @@ describe('WebSocketServer', function() {
       }
       gotException.should.be.ok;
     })
+    it('emits an error if http server bind fails', function(done) {
+      var wss = new WebSocketServer({port: 1});
+      wss.on('error', function() { done(); })
+    })
   })
 
   describe('#close', function() {
