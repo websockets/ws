@@ -1,10 +1,12 @@
 v0.3.0 - Dec 8th 2011
 ======================
 
-* Node.js v0.4.x compatibility
-* Code cleanups and efficiency improvements
-* WebSocket server added, although this will still mainly be a client library
-* 'wscat' command line utility added
+* Node.js v0.4.x compatibility.
+* Code cleanups and efficiency improvements.
+* WebSocket server added, although this will still mainly be a client library.
+* WebSocket server certified to pass the Autobahn test suite.
+* Protocol improvements and corrections - such as handling (redundant) masks for empty fragments.
+* 'wscat' command line utility added, which can act as either client or server.
 
 v0.2.6 - Dec 3rd 2011
 ======================
