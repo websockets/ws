@@ -21,7 +21,7 @@
     "commander": "0.5.0"
   },
   "devDependencies": {
-    "mocha": "0.0.x",
+    "mocha": "0.3.x",
     "should": "0.3.2"
   }
 }
