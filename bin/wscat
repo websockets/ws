@@ -15,9 +15,9 @@ var WebSocket = require('../')
  */
 
 function Console(onData) {
+  this.stdin = process.openStdin();
   tty.setRawMode(true);
   this.line = '';
-  this.stdin = process.openStdin();
   this.pause = true;
   var self = this;
   this.stdin.on('keypress', function (chunk, key) {
@@ -34,10 +34,10 @@ function Console(onData) {
     else if (key && key.name == 'backspace') {
       if (self.line.length > 0) {
         self.line = self.line.substr(0, self.line.length - 1);
-        process.stdout.write('\033[1D \033[1D');        
+        process.stdout.write('\033[1D \033[1D');
       }
     }
-    else if (typeof chunk != 'undefined' && !self._pause){
+    else if (typeof chunk != 'undefined' && !self.pause){
       self.line += chunk;
       process.stdout.write(chunk);
     }
@@ -54,22 +54,25 @@ Console.Colors = {
 };
 
 Console.prototype.prompt = function() {
-  this._pause = false;
+  this.pause = false;
+  this.line = '';
   process.stdout.write('> ');
 }
 
 Console.prototype.print = function(msg, color) {
   this.clear();
   color = color || Console.Colors.Default;
-  console.log(color + msg + Console.Colors.Default);
+  process.stdout.write(color + msg + Console.Colors.Default + '\n');
   this.restore();
 }
 
 Console.prototype.clear = function() {
+  if (this.pause) return;
   process.stdout.write('\033[2K\033[E');
 }
 
 Console.prototype.restore = function() {
+  if (this.pause) return;
   process.stdout.write('> ' + this.line);
 }
 
@@ -91,8 +94,54 @@ if (program.listen && program.connect) {
   process.exit(-1);
 }
 else if (program.listen) {
-  console.error('\033[33msorry - not implemented yet!\033[39m');
-  process.exit(-1);
+  var wsConsole = new Console();
+  var options = {};
+  if (program.protocol) options.protocolVersion = program.protocol;
+  if (program.origin) options.origin = program.origin;
+  var ws = null;
+  var wss = new WebSocket.Server({port: program.listen}, function() {
+    wsConsole.print('listening on port ' + program.listen + ' (press CTRL+C to quit)', Console.Colors.Green);
+  });
+  wsConsole.on('break', function() {
+    if (ws) {
+      try {
+        ws.close();
+      }
+      catch (e) {}
+    }
+    process.exit(0);
+  });
+  wsConsole.on('data', function(data) {
+    if (ws) {
+      ws.send(data, {mask: true});
+      wsConsole.prompt();
+    }
+  });
+  wss.on('connection', function(newClient) {
+    if (ws) {
+      // limit to one client
+      newClient.terminate();
+      return;
+    };
+    ws = newClient;
+    wsConsole.prompt();
+    wsConsole.print('client connected', Console.Colors.Green);
+    ws.on('close', function() {
+      wsConsole.print('disconnected', Console.Colors.Green);
+      wsConsole.clear();
+      ws = null;
+    });
+    ws.on('error', function(code, description) {
+      wsConsole.print('error: ' + code + ' ' + description, Console.Colors.Yellow);
+    });
+    ws.on('message', function(data, flags) {
+      wsConsole.print('< ' + data, Console.Colors.Blue);
+    });
+  });
+  wss.on('error', function(error) {
+    wsConsole.print('error: ' + error.toString(), Console.Colors.Yellow);
+    process.exit(-1);
+  });
 }
 else if (program.connect) {
   var wsConsole = new Console();
@@ -102,8 +151,9 @@ else if (program.connect) {
   var ws = new WebSocket(program.connect, options);
   ws.on('open', function() {
     wsConsole.print('connected (press CTRL+C to quit)', Console.Colors.Green);
+    wsConsole.prompt();
     wsConsole.on('data', function(data) {
-      ws.send(data, {mask: true});    
+      ws.send(data, {mask: true});
       wsConsole.prompt();
     });
   });
@@ -114,13 +164,18 @@ else if (program.connect) {
   });
   ws.on('error', function(code, description) {
     wsConsole.print('error: ' + code + ' ' + description, Console.Colors.Yellow);
+    process.exit(-1);
   });
   ws.on('message', function(data, flags) {
     wsConsole.print('< ' + data, Console.Colors.Blue);
   });
   wsConsole.on('break', function() {
-    if (ws) { 
-      ws.close();
+    if (ws) {
+      try {
+        ws.close();
+      }
+      catch(e) {}
+      process.exit();
     }
   });
 }
