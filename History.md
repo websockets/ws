@@ -1,3 +1,11 @@
+v0.3.0 - Dec 8th 2011
+======================
+
+* Node.js v0.4.x compatibility
+* Code cleanups and efficiency improvements
+* WebSocket server added, although this will still mainly be a client library
+* 'wscat' command line utility added
+
 v0.2.6 - Dec 3rd 2011
 ======================
 
