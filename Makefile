@@ -22,6 +22,9 @@ integrationtest:
 autobahn:
 	@NODE_PATH=lib node test/autobahn.js 
 
+autobahn-server:
+	@NODE_PATH=lib node test/autobahn-server.js 
+
 validator:
 	node-waf configure build
 
