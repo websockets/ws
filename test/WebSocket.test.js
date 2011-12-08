@@ -42,6 +42,7 @@ describe('WebSocket', function() {
         assert.fail('connect shouldnt be raised here');
       });
       ws.on('close', function() {
+        srv.close();
         done();
       });
     });
@@ -54,6 +55,7 @@ describe('WebSocket', function() {
         assert.fail('connect shouldnt be raised here');
       });
       ws.on('close', function() {
+        srv.close();
         done();
       });
     });
@@ -71,7 +73,6 @@ describe('WebSocket', function() {
     server.createServer(++port, server.handlers.closeAfterConnect, function(srv) {
       var ws = new WebSocket('ws://localhost:' + port);
       ws.on('close', function() {
-        srv.close();
         done();
       });
     });
@@ -81,10 +82,12 @@ describe('WebSocket', function() {
     it('before connect should fail', function(done) {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
+        ws.on('error', function() {});
         try {
           ws.ping();
         }
         catch (e) {
+          srv.close();
           ws.terminate();
           done();
         }
@@ -245,11 +248,13 @@ describe('WebSocket', function() {
     it('before connect should fail', function(done) {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
+        ws.on('error', function() {});
         try {
           ws.send('hi');
         }
         catch (e) {
           ws.terminate();
+          srv.close();
           done();
         }
       });
@@ -579,11 +584,13 @@ describe('WebSocket', function() {
     it('stream before connect should fail', function(done) {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
+        ws.on('error', function() {});
         try {
           ws.stream(function() {});
         }
         catch (e) {
           ws.terminate();
+          srv.close();
           done();
         }
       });

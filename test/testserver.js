@@ -21,7 +21,10 @@ module.exports = {
       res.end('okay');
     });
     var srv = new Server(webServer);
-    webServer.on('upgrade', (handler || validServer).bind(null, srv));
+    webServer.on('upgrade', function(req, socket) {
+      webServer._socket = socket;
+      (handler || validServer)(srv, req, socket);
+    });
     webServer.listen(port, '127.0.0.1', function() { cb(srv); });
   }
 };
@@ -161,4 +164,5 @@ util.inherits(Server, events.EventEmitter);
 
 Server.prototype.close = function() {
   this.webServer.close();
+  if (this._socket) this._socket.end();
 }
