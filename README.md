@@ -1,8 +1,10 @@
-# ws: a node.js websocket.client #
+# ws: a node.js websocket implementation #
 
-`ws` is a simple to use, blazing fast, websocket client for node.js, up-to-date against current HyBi protocol versions.
+`ws` is a simple to use, blazing fast, websocket implementation for node.js, up-to-date against current HyBi protocol versions.
 
-Passes the quite extensible Autobahn test suite. See http://einaros.github.com/ws for the full report.
+Passes the quite extensible Autobahn test suite. See http://einaros.github.com/ws for the full reports.
+
+Also comes with a command line utility, 'wscat', which can either act as a server (--listen), or client (--conect). use it to debug simple websocket services.
 
 ## Usage ##
 
