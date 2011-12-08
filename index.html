@@ -1,6 +1,6 @@
 <html>
 <head>
-  <title>ws: a node.js websocket.client</title>
+  <title>ws: a node.js websocket implementation</title>
   <style>
     body {
       font: 14px/1.6 "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -9,9 +9,14 @@
       text-align: center;
     }
     #content {
-      width: 550px;
+      width: 580px;
       margin-top: 50px;
       display: inline-block;
+      text-align: left;
+    }
+    #content p {
+      border-left: 4px solid #cfcfcf;
+      padding-left: 5px;
     }
     .head {
       font-size: 14pt;
@@ -25,18 +30,24 @@
 <body>
   <a href="http://github.com/einaros/ws"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://a248.e.akamai.net/assets.github.com/img/7afbc8b248c68eb468279e8c17986ad46549fb71/687474703a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6461726b626c75655f3132313632312e706e67" alt="Fork me on GitHub"></a>  
   <div id="content">
-    <div class="head">ws: a node.js websocket client</div>
+    <div class="head">ws: a node.js websocket implementation</div>
     <p>
-      'ws' is easy to use, blazing fast and up-to-date against current HyBi protocol drafts.
+      <b>npm install ws</b>
     </p>
     <p>
-      it passes the extensible Autobahn test suite: <a href="report.html">report</a>.
+      it is easy to use, blazing fast and up-to-date against current HyBi protocol drafts.
+    </p>
+    <p>
+      it passes the extensible Autobahn test suite: <a href="clients/index.html">client report</a>, <a href="servers/index.html">server report</a>.
     </p>
     <p>
       it benchmarks very well: <a href="benchmarks.html">benchmarks</a>.
     </p>
-    <p>example use:</p>
     <p>
+      it comes with a command line utility, 'wscat', which can either act as a server (--listen), or client (--conect). use it to debug simple websocket services.
+    </p>
+    <p>
+      example client use:
       <script src="https://gist.github.com/1431539.js?file=gistfile1.js"></script>
     </p>
   </div>
