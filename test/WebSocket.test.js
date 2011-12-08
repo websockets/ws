@@ -922,4 +922,62 @@ describe('WebSocket', function() {
       });
     })
   })
+  describe('API emulation', function() {
+    it('should not throw errors when getting and setting', function(done) {
+      server.createServer(++port, function(srv) {
+        var ws = new WebSocket('ws://localhost:' + port);
+        var listener = function () {};
+
+        ws.onmessage = listener;
+        ws.onerror = listener;
+        ws.onclose = listener;
+        ws.onopen = listener;
+
+        assert.ok(ws.onopen === listener);
+        assert.ok(ws.onmessage === listener);
+        assert.ok(ws.onclose === listener);
+        assert.ok(ws.onerror === listener);
+
+        srv.close();
+        ws.terminate();
+        done();
+      });
+    });
+    it('should work the same as the EventEmitter api', function(done) {
+      server.createServer(++port, function(srv) {
+        var ws = new WebSocket('ws://localhost:' + port);
+        var listener = function() {};
+        var message = 0;
+        var close = 0;
+        var open = 0;
+
+        ws.onmessage = function() {
+          ++message;
+        };
+
+        ws.onopen = function() {
+          ++open;
+        }
+
+        ws.onclose = function() {
+          ++close;
+        }
+
+        ws.on('open', function() {
+          ws.send('foo');
+        })
+        ws.on('close', function() {
+          process.nextTick(function() {
+            assert.ok(message === 1);
+            assert.ok(open === 1);
+            assert.ok(close === 1);
+
+            srv.close();
+            ws.terminate();
+            done();
+          });
+        })
+      });
+    });
+  })
 })
