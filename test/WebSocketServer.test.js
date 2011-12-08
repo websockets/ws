@@ -49,7 +49,12 @@ describe('WebSocketServer', function() {
   
   describe('#close', function() {
     it('will close all clients', function(done) {
-      var wss = new WebSocketServer({port: ++port});
+      var wss = new WebSocketServer({port: ++port}, function() {
+        var ws = new WebSocket('ws://localhost:' + port);
+        ws.on('close', function() {
+          if (++closes == 2) done();
+        });        
+      });
       var closes = 0;
       wss.on('connection', function(client) {
         client.on('close', function() {
@@ -57,36 +62,30 @@ describe('WebSocketServer', function() {
         });
         wss.close();
       });
-      wss.on('listening', function() {
-        var ws = new WebSocket('ws://localhost:' + port);
-        ws.on('close', function() {
-          if (++closes == 2) done();
-        });
-      });
     })
   })
 
   it('starts a server at the given port', function(done) {
-    var wss = new WebSocketServer({port: ++port});
-    wss.on('connection', function(client) {
-      done();
+    var wss = new WebSocketServer({port: ++port}, function() {
+      var ws = new WebSocket('ws://localhost:' + port);      
     });
-    wss.on('listening', function() {
-      var ws = new WebSocket('ws://localhost:' + port);
+    wss.on('connection', function(client) {
+      wss.close();
+      done();
     });
   })
 
   it('server can send data', function(done) {
-    var wss = new WebSocketServer({port: ++port});
-    wss.on('connection', function(client) {
-      client.send('hello!');
-    });
-    wss.on('listening', function() {
+    var wss = new WebSocketServer({port: ++port}, function() {
       var ws = new WebSocket('ws://localhost:' + port);
       ws.on('message', function(data, flags) {
         data.should.eql('hello!');
+        wss.close();
         done();
-      });      
+      });            
+    });
+    wss.on('connection', function(client) {
+      client.send('hello!');
     });
   })
 })
