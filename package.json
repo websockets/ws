@@ -22,6 +22,8 @@
   },
   "devDependencies": {
     "mocha": "0.3.x",
-    "should": "0.3.2"
+    "should": "0.3.2",
+    "benchmark": "0.3.x",
+    "tinycolor": "0.x"
   }
 }
