@@ -95,8 +95,11 @@ suite.add('binary data (200 kB)', function () {
 
 framePacket = new Buffer(200*1024);
 framePacket.fill(99);
-suite.add('frameData (200 kB)', function () {
+suite.add('frameData, unmasked (200 kB)', function () {
   sender.frameData(0x2, framePacket, true, false);
+});
+suite.add('frameData, masked (200 kB)', function () {
+  sender.frameData(0x2, framePacket, true, true);
 });
 
 /**
