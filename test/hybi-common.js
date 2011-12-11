@@ -87,7 +87,7 @@ unpack = function(buffer) {
  */
 
 pack = function(length, number) {
-  return padl(number.toString(16), length, '0').replace(/(\d\d)/g, '$1 ').trim();
+  return padl(number.toString(16), length, '0').replace(/([0-9a-f][0-9a-f])/gi, '$1 ').trim();
 }
 
 /**
