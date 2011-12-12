@@ -1,6 +1,12 @@
 v0.3.2 - Dec 11th 2011
 ======================
 
+* Compile fix for Linux
+* Rewrote parts of WebSocket.js, to avoid try/catch and thus avoid optimizer bailouts.
+
+v0.3.2 - Dec 11th 2011
+======================
+
 * Further performance updates, including the additions of a native BufferUtil module, which deals with several of the cpu intensive WebSocket operations.
 
 v0.3.1 - Dec 8th 2011
