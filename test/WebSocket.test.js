@@ -73,6 +73,7 @@ describe('WebSocket', function() {
     server.createServer(++port, server.handlers.closeAfterConnect, function(srv) {
       var ws = new WebSocket('ws://localhost:' + port);
       ws.on('close', function() {
+        srv.close();
         done();
       });
     });

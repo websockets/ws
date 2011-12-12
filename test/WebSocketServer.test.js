@@ -79,7 +79,7 @@ describe('WebSocketServer', function() {
     });
   })
 
-  it('server can send data', function(done) {
+  it('can send data', function(done) {
     var wss = new WebSocketServer({port: ++port}, function() {
       var ws = new WebSocket('ws://localhost:' + port);
       ws.on('message', function(data, flags) {
@@ -92,4 +92,47 @@ describe('WebSocketServer', function() {
       client.send('hello!');
     });
   })
+
+  describe('#clients', function() {
+    it('returns a list of connected clients', function(done) {
+      var wss = new WebSocketServer({port: ++port}, function() {
+        wss.clients.length.should.eql(0);
+        var ws = new WebSocket('ws://localhost:' + port);
+      });
+      wss.on('connection', function(client) {
+        wss.clients.length.should.eql(1);
+        wss.close();
+        done();
+      });
+    })
+    it('is updated when client terminates the connection', function(done) {
+      var ws;
+      var wss = new WebSocketServer({port: ++port}, function() {
+        ws = new WebSocket('ws://localhost:' + port);
+      });
+      wss.on('connection', function(client) {
+        client.on('close', function() {
+          wss.clients.length.should.eql(0);
+          wss.close();
+          done();
+        });
+        ws.terminate();
+      });
+    })
+    it('is updated when client closes the connection', function(done) {
+      var ws;
+      var wss = new WebSocketServer({port: ++port}, function() {
+        ws = new WebSocket('ws://localhost:' + port);
+      });
+      wss.on('connection', function(client) {
+        client.on('close', function() {
+          wss.clients.length.should.eql(0);
+          wss.close();
+          done();
+        });
+        ws.close();
+      });
+    })
+  })
 })
+
