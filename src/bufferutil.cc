@@ -9,7 +9,7 @@
 #include <node_buffer.h>
 #include <node_object_wrap.h>
 #include <stdlib.h>
-#include <strings.h>
+#include <string.h>
 #include <wchar.h>
 #include <stdio.h>
 
