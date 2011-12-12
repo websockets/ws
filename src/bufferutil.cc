@@ -71,26 +71,26 @@ protected:
     for (i = 0; i < length; ++i) {
       buffer[i] ^= mask[i % 4];
     }
-    return scope.Close(True());
-   }
+    return True();
+  }
    
-   static Handle<Value> Mask(const Arguments& args)
-   {
-     HandleScope scope;
-     Local<Object> buffer_obj = args[0]->ToObject();
-     unsigned char* buffer = (unsigned char*)Buffer::Data(buffer_obj);
-     size_t length = Buffer::Length(buffer_obj);
-     Local<Object> mask_obj = args[1]->ToObject();
-     unsigned char *mask = (unsigned char*)Buffer::Data(mask_obj);
-     Local<Object> output_obj = args[2]->ToObject();
-     unsigned char* output = (unsigned char*)Buffer::Data(output_obj);
-     int dataOffset = args[3]->Int32Value();
-     int i;
-     for (i = 0; i < length; ++i) {
-       output[dataOffset + i] = buffer[i] ^ mask[i % 4];
-     }
-     return scope.Close(True());
+  static Handle<Value> Mask(const Arguments& args)
+  {
+    HandleScope scope;
+    Local<Object> buffer_obj = args[0]->ToObject();
+    unsigned char* buffer = (unsigned char*)Buffer::Data(buffer_obj);
+    size_t length = Buffer::Length(buffer_obj);
+    Local<Object> mask_obj = args[1]->ToObject();
+    unsigned char *mask = (unsigned char*)Buffer::Data(mask_obj);
+    Local<Object> output_obj = args[2]->ToObject();
+    unsigned char* output = (unsigned char*)Buffer::Data(output_obj);
+    int dataOffset = args[3]->Int32Value();
+    int i;
+    for (i = 0; i < length; ++i) {
+      output[dataOffset + i] = buffer[i] ^ mask[i % 4];
     }
+    return True();
+  }
 };
 
 extern "C" void init (Handle<Object> target)
