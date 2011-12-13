@@ -1,7 +1,16 @@
-v0.3.2 - Dec 11th 2011
+v0.3.5 - Dec 13th 2011
 ======================
 
-* Compile fix for Linux
+* Optimized Sender.js, Receiver.js and bufferutil.cc:
+ * Apply loop-unrolling-like small block copies rather than use node.js Buffer#copy() (which is slow).
+ * Mask blocks of data, instead of single bytes.
+ * Keep pre-made send buffer for small transfers.
+* Leak fixes and code cleanups.
+
+v0.3.3 - Dec 12th 2011
+======================
+
+* Compile fix for Linux.
 * Rewrote parts of WebSocket.js, to avoid try/catch and thus avoid optimizer bailouts.
 
 v0.3.2 - Dec 11th 2011
