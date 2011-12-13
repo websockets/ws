@@ -47,12 +47,12 @@ protected:
     Local<Object> bufferObj = args[0]->ToObject();
     char* buffer = Buffer::Data(bufferObj);
     Local<Array> array = Local<Array>::Cast(args[1]);
-    int arrayLength = array->Length();
-    int offset = 0;
-    int i;
+    uint arrayLength = array->Length();
+    uint offset = 0;
+    uint i;
     for (i = 0; i < arrayLength; ++i) {
       Local<Object> src = array->Get(i)->ToObject();
-      int length = Buffer::Length(src);
+      uint length = Buffer::Length(src);
       memcpy(buffer + offset, Buffer::Data(src), length);
       offset += length;
     }
@@ -63,12 +63,12 @@ protected:
   {
     HandleScope scope;
     Local<Object> buffer_obj = args[0]->ToObject();
-    size_t length = Buffer::Length(buffer_obj);
+    uint length = Buffer::Length(buffer_obj);
     Local<Object> mask_obj = args[1]->ToObject();
-    unsigned int *mask = (unsigned int*)Buffer::Data(mask_obj);
-    unsigned int* from = (unsigned int*)Buffer::Data(buffer_obj);
-    size_t len32 = length / 4;
-    unsigned int i;
+    uint *mask = (uint*)Buffer::Data(mask_obj);
+    uint* from = (uint*)Buffer::Data(buffer_obj);
+    uint len32 = length / 4;
+    uint i;
     for (i = 0; i < len32; ++i) *(from + i) ^= *mask;  
     from += i;
     switch (length % 4) {
@@ -85,14 +85,14 @@ protected:
     HandleScope scope;
     Local<Object> buffer_obj = args[0]->ToObject();
     Local<Object> mask_obj = args[1]->ToObject();
-    unsigned int *mask = (unsigned int*)Buffer::Data(mask_obj);
+    uint *mask = (uint*)Buffer::Data(mask_obj);
     Local<Object> output_obj = args[2]->ToObject();
-    size_t dataOffset = args[3]->Int32Value();
-    size_t length = args[4]->Int32Value();
-    unsigned int* to = (unsigned int*)(Buffer::Data(output_obj) + dataOffset);
-    unsigned int* from = (unsigned int*)Buffer::Data(buffer_obj);
-    size_t len32 = length / 4;
-    unsigned int i;
+    uint dataOffset = args[3]->Int32Value();
+    uint length = args[4]->Int32Value();
+    uint* to = (uint*)(Buffer::Data(output_obj) + dataOffset);
+    uint* from = (uint*)Buffer::Data(buffer_obj);
+    uint len32 = length / 4;
+    uint i;
     for (i = 0; i < len32; ++i) *(to + i) = *(from + i) ^ *mask;  
     to += i;
     from += i;
