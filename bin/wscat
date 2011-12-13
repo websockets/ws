@@ -87,7 +87,7 @@ Console.prototype.restore = function() {
  */
 
 program
-  .version('0.3.4')
+  .version('0.3.5')
   .usage('[options] <url>')
   .option('-l, --listen <port>', 'listen on port')
   .option('-c, --connect <url>', 'connect to a websocket server')
