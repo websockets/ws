@@ -63,13 +63,17 @@ protected:
   {
     HandleScope scope;
     Local<Object> buffer_obj = args[0]->ToObject();
-    unsigned char* buffer = (unsigned char*)Buffer::Data(buffer_obj);
     size_t length = Buffer::Length(buffer_obj);
     Local<Object> mask_obj = args[1]->ToObject();
     unsigned char *mask = (unsigned char*)Buffer::Data(mask_obj);
-    int i;
-    for (i = 0; i < length; ++i) {
-      buffer[i] ^= mask[i % 4];
+    register unsigned char* from = (unsigned char*)Buffer::Data(buffer_obj) + length; 
+    register int n = (length + 3) / 4;
+    switch (length % 4) {
+      case 0: do { *(--from) ^= mask[3];
+      case 3:      *(--from) ^= mask[2];
+      case 2:      *(--from) ^= mask[1];
+      case 1:      *(--from) ^= mask[0];
+              } while(--n > 0);
     }
     return True();
   }
@@ -78,22 +82,20 @@ protected:
   {
     HandleScope scope;
     Local<Object> buffer_obj = args[0]->ToObject();
-    unsigned char* buffer = (unsigned char*)Buffer::Data(buffer_obj);
     Local<Object> mask_obj = args[1]->ToObject();
     unsigned char *mask = (unsigned char*)Buffer::Data(mask_obj);
     Local<Object> output_obj = args[2]->ToObject();
-    unsigned char* output = (unsigned char*)Buffer::Data(output_obj);
     size_t dataOffset = args[3]->Int32Value();
     size_t length = args[4]->Int32Value();
-    int i;
-    for (i = 0; i + 3 < length; i += 4) {
-      output[dataOffset + i] = buffer[i] ^ mask[0];
-      output[dataOffset + i + 1] = buffer[i + 1] ^ mask[1];
-      output[dataOffset + i + 2] = buffer[i + 2] ^ mask[2];
-      output[dataOffset + i + 3] = buffer[i + 3] ^ mask[3];
-    }
-    for (; i < length; ++i) {
-      output[dataOffset + i] = buffer[i] ^ mask[i % 4];
+    register unsigned char* to = (unsigned char*)Buffer::Data(output_obj) + dataOffset + length;
+    register unsigned char* from = (unsigned char*)Buffer::Data(buffer_obj) + length; 
+    register int n = (length + 3) / 4;
+    switch (length % 4) {
+      case 0: do { *(--to) = *(--from) ^ mask[3];
+      case 3:      *(--to) = *(--from) ^ mask[2];
+      case 2:      *(--to) = *(--from) ^ mask[1];
+      case 1:      *(--to) = *(--from) ^ mask[0];
+              } while(--n > 0);
     }
     return True();
   }
