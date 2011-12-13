@@ -2,7 +2,7 @@
   "author": "Einar Otto Stangvik <einaros@gmail.com> (http://2x.io)",
   "name": "ws",
   "description": "simple and very fast websocket protocol client for node.js",
-  "version": "0.3.5",
+  "version": "0.3.5-2",
   "repository": {
     "type": "git",
     "url": "git://github.com/einaros/ws.git"
