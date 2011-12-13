@@ -1,9 +1,9 @@
-v0.3.5 - Dec 13th 2011
+v0.3.5-2 - Dec 13th 2011
 ======================
 
 * Optimized Sender.js, Receiver.js and bufferutil.cc:
  * Apply loop-unrolling-like small block copies rather than use node.js Buffer#copy() (which is slow).
- * Mask blocks of data, instead of single bytes.
+ * Mask blocks of data using loop-unrolling (Duff style), instead of single bytes.
  * Keep pre-made send buffer for small transfers.
 * Leak fixes and code cleanups.
 
