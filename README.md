@@ -87,7 +87,8 @@ See the test cases.
 
 ## Todos ##
 
-Nothing worth bragging about at present.
+* Expose Sender and Receiver configuration options through WebSocket, and test that properly.
+* Cleanup configuration for Sender, and add similar bits to Receiver.
 
 ## License ##
 
