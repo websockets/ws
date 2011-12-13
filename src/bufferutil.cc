@@ -67,7 +67,7 @@ protected:
     Local<Object> mask_obj = args[1]->ToObject();
     unsigned char *mask = (unsigned char*)Buffer::Data(mask_obj);
     register unsigned char* from = (unsigned char*)Buffer::Data(buffer_obj) + length; 
-    register int n = (length + 3) / 4;
+    register size_t n = (length + 3) / 4;
     switch (length % 4) {
       case 0: do { *(--from) ^= mask[3];
       case 3:      *(--from) ^= mask[2];
@@ -89,7 +89,7 @@ protected:
     size_t length = args[4]->Int32Value();
     register unsigned char* to = (unsigned char*)Buffer::Data(output_obj) + dataOffset + length;
     register unsigned char* from = (unsigned char*)Buffer::Data(buffer_obj) + length; 
-    register int n = (length + 3) / 4;
+    register size_t n = (length + 3) / 4;
     switch (length % 4) {
       case 0: do { *(--to) = *(--from) ^ mask[3];
       case 3:      *(--to) = *(--from) ^ mask[2];
