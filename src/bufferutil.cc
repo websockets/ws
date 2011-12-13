@@ -65,15 +65,17 @@ protected:
     Local<Object> buffer_obj = args[0]->ToObject();
     size_t length = Buffer::Length(buffer_obj);
     Local<Object> mask_obj = args[1]->ToObject();
-    unsigned char *mask = (unsigned char*)Buffer::Data(mask_obj);
-    register unsigned char* from = (unsigned char*)Buffer::Data(buffer_obj) + length; 
-    register size_t n = (length + 3) / 4;
+    unsigned int *mask = (unsigned int*)Buffer::Data(mask_obj);
+    unsigned int* from = (unsigned int*)Buffer::Data(buffer_obj);
+    size_t len32 = length / 4;
+    unsigned int i;
+    for (i = 0; i < len32; ++i) *(from + i) ^= *mask;  
+    from += i;
     switch (length % 4) {
-      case 0: do { *(--from) ^= mask[3];
-      case 3:      *(--from) ^= mask[2];
-      case 2:      *(--from) ^= mask[1];
-      case 1:      *(--from) ^= mask[0];
-              } while(--n > 0);
+      case 3: *((unsigned char*)from+2) = *((unsigned char*)from+2) ^ ((unsigned char*)mask)[2];
+      case 2: *((unsigned char*)from+1) = *((unsigned char*)from+1) ^ ((unsigned char*)mask)[1];
+      case 1: *((unsigned char*)from  ) = *((unsigned char*)from  ) ^ ((unsigned char*)mask)[0];
+      case 0:;
     }
     return True();
   }
@@ -83,19 +85,22 @@ protected:
     HandleScope scope;
     Local<Object> buffer_obj = args[0]->ToObject();
     Local<Object> mask_obj = args[1]->ToObject();
-    unsigned char *mask = (unsigned char*)Buffer::Data(mask_obj);
+    unsigned int *mask = (unsigned int*)Buffer::Data(mask_obj);
     Local<Object> output_obj = args[2]->ToObject();
     size_t dataOffset = args[3]->Int32Value();
     size_t length = args[4]->Int32Value();
-    register unsigned char* to = (unsigned char*)Buffer::Data(output_obj) + dataOffset + length;
-    register unsigned char* from = (unsigned char*)Buffer::Data(buffer_obj) + length; 
-    register size_t n = (length + 3) / 4;
+    unsigned int* to = (unsigned int*)(Buffer::Data(output_obj) + dataOffset);
+    unsigned int* from = (unsigned int*)Buffer::Data(buffer_obj);
+    size_t len32 = length / 4;
+    unsigned int i;
+    for (i = 0; i < len32; ++i) *(to + i) = *(from + i) ^ *mask;  
+    to += i;
+    from += i;
     switch (length % 4) {
-      case 0: do { *(--to) = *(--from) ^ mask[3];
-      case 3:      *(--to) = *(--from) ^ mask[2];
-      case 2:      *(--to) = *(--from) ^ mask[1];
-      case 1:      *(--to) = *(--from) ^ mask[0];
-              } while(--n > 0);
+      case 3: *((unsigned char*)to+2) = *((unsigned char*)from+2) ^ *((unsigned char*)mask+2);
+      case 2: *((unsigned char*)to+1) = *((unsigned char*)from+1) ^ *((unsigned char*)mask+1);
+      case 1: *((unsigned char*)to  ) = *((unsigned char*)from  ) ^ *((unsigned char*)mask);
+      case 0:;
     }
     return True();
   }
