@@ -1,4 +1,5 @@
 var assert = require('assert')
+  , http = require('http')
   , WebSocket = require('../')
   , WebSocketServer = WebSocket.Server
   , fs = require('fs');
@@ -49,6 +50,11 @@ describe('WebSocketServer', function() {
       var wss = new WebSocketServer({port: 1});
       wss.on('error', function() { done(); })
     })
+    it('uses passed server object', function () {
+      var srv = http.createServer()
+        , wss = new WebSocketServer({server: srv});
+      wss._server.should.equal(srv);
+    });
   })
 
   describe('#close', function() {
@@ -76,6 +82,19 @@ describe('WebSocketServer', function() {
     wss.on('connection', function(client) {
       wss.close();
       done();
+    });
+  })
+
+  it('works with a http server', function (done) {
+    var srv = http.createServer();
+    srv.listen(++port, function () {
+      var wss = new WebSocketServer({server: srv});
+      var ws = new WebSocket('ws://localhost:' + port);
+
+      wss.on('connection', function(client) {
+        wss.close();
+        done();
+      });
     });
   })
 
