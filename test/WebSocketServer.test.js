@@ -232,6 +232,28 @@ describe('WebSocketServer', function() {
     });
   })
 
+  it('tracks the client protocol', function(done) {
+    var wss = new WebSocketServer({port: ++port}, function() {
+      var ws = new WebSocket('ws://localhost:' + port, {protocol: 'hi'});
+    });
+    wss.on('connection', function(client) {
+      client.protocol.should.eql('hi'); 
+        wss.close();
+        done();
+    });
+  })
+
+  it('tracks the client protocolVersion', function(done) {
+    var wss = new WebSocketServer({port: ++port}, function() {
+      var ws = new WebSocket('ws://localhost:' + port, {protocolVersion: 8});
+    });
+    wss.on('connection', function(client) {
+      client.protocolVersion.should.eql(8); 
+        wss.close();
+        done();
+    });
+  })
+
   describe('#clients', function() {
     it('returns a list of connected clients', function(done) {
       var wss = new WebSocketServer({port: ++port}, function() {
