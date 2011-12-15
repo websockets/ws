@@ -3,6 +3,7 @@ v0.3.6 - Dec 15th 2011
 
 * Added option to let WebSocket.Server use an already existing http server [mmalecki]
 * Migrating various option structures to use options.js module [einaros]
+* Added a few more tests, options and handshake verifications to ensure that faulty connections are dealt with [einaros]
 
 v0.3.5 - Dec 13th 2011
 ======================
