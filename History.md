@@ -1,4 +1,10 @@
-v0.3.5-3 - Dec 13th 2011
+v0.3.6 - Dec 15th 2011
+======================
+
+* Added option to let WebSocket.Server use an already existing http server [mmalecki]
+* Migrating various option structures to use options.js module [einaros]
+
+v0.3.5 - Dec 13th 2011
 ======================
 
 * Optimized Sender.js, Receiver.js and bufferutil.cc:
