@@ -4,7 +4,14 @@
 
 Passes the quite extensible Autobahn test suite. See http://einaros.github.com/ws for the full reports.
 
-Also comes with a command line utility, 'wscat', which can either act as a server (--listen), or client (--conect). use it to debug simple websocket services.
+The module also comes with a command line utility, `wscat`, which can either act as a server (--listen), or client (--connect); Use it to debug simple websocket services.
+
+## Protocol support ##
+
+* **HyBi drafts 07-12** (Use the option `protocolVersion: 8`, or argument `-p 8` for wscat)
+* **HyBi drafts 13-17** (Current default, alternatively option `protocolVersion: 13`, or argument `-p 13` for wscat)
+
+See the echo.websocket.org example below for how to use the `protocolVersion` option.
 
 ## Usage ##
 
@@ -60,6 +67,16 @@ ws.on('message', function(data, flags) {
 });
 ```
 
+### wscat against echo.websocket.org ###
+
+    $ npm install -g ws
+    $ wscat -c ws://echo.websocket.org -p 8
+    connected (press CTRL+C to quit)
+    > hi there
+    < hi there
+    > are you a happy parrot?
+    < are you a happy parrot?
+
 ### Other examples ###
 
 See the test cases.
@@ -70,7 +87,8 @@ See the test cases.
 
 ## Todos ##
 
-Nothing worth bragging about at present.
+* Expose Sender and Receiver configuration options through WebSocket, and test that properly.
+* Cleanup configuration for Sender, and add similar bits to Receiver.
 
 ## License ##
 

@@ -1,3 +1,31 @@
+v0.3.6 - Dec 15th 2011
+======================
+
+* Added option to let WebSocket.Server use an already existing http server [mmalecki]
+* Migrating various option structures to use options.js module [einaros]
+* Added a few more tests, options and handshake verifications to ensure that faulty connections are dealt with [einaros]
+* Code cleanups in Sender and Receiver, to ensure even faster parsing [einaros]
+
+v0.3.5 - Dec 13th 2011
+======================
+
+* Optimized Sender.js, Receiver.js and bufferutil.cc:
+ * Apply loop-unrolling-like small block copies rather than use node.js Buffer#copy() (which is slow).
+ * Mask blocks of data using combination of 32bit xor and loop-unrolling, instead of single bytes.
+ * Keep pre-made send buffer for small transfers.
+* Leak fixes and code cleanups.
+
+v0.3.3 - Dec 12th 2011
+======================
+
+* Compile fix for Linux.
+* Rewrote parts of WebSocket.js, to avoid try/catch and thus avoid optimizer bailouts.
+
+v0.3.2 - Dec 11th 2011
+======================
+
+* Further performance updates, including the additions of a native BufferUtil module, which deals with several of the cpu intensive WebSocket operations.
+
 v0.3.1 - Dec 8th 2011
 ======================
 

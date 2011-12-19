@@ -1,3 +1,9 @@
+/*!
+ * ws: a node.js websocket client
+ * Copyright(c) 2011 Einar Otto Stangvik <einaros@gmail.com>
+ * MIT Licensed
+ */
+
 /**
  * Returns a Buffer from a "ff 00 ff"-type hex string.
  */

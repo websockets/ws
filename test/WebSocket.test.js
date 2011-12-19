@@ -73,6 +73,7 @@ describe('WebSocket', function() {
     server.createServer(++port, server.handlers.closeAfterConnect, function(srv) {
       var ws = new WebSocket('ws://localhost:' + port);
       ws.on('close', function() {
+        srv.close();
         done();
       });
     });
@@ -257,6 +258,18 @@ describe('WebSocket', function() {
           srv.close();
           done();
         }
+      });
+    })
+    it('before connect should pass error through callback, if present', function(done) {
+      server.createServer(++port, function(srv) {
+        var ws = new WebSocket('ws://localhost:' + port);
+        ws.on('error', function() {});
+        ws.send('hi', function(error) {
+          assert.ok(error instanceof Error);
+          ws.terminate();
+          srv.close();
+          done();            
+        });
       });
     })
     it('without data should be successful', function(done) {
@@ -578,21 +591,19 @@ describe('WebSocket', function() {
         });
       });
     })
-    it('stream before connect should fail', function(done) {
+    it('before connect should pass error through callback', function(done) {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
         ws.on('error', function() {});
-        try {
-          ws.stream(function() {});
-        }
-        catch (e) {
+        ws.stream(function(error) {
+          assert.ok(error instanceof Error);
           ws.terminate();
           srv.close();
-          done();
-        }
+          done();            
+        });
       });
     })
-    it('stream without callback should fail', function(done) {
+    it('without callback should fail', function(done) {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
         var payload = 'HelloWorld';
