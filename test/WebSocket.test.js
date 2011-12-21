@@ -23,7 +23,6 @@ function areArraysEqual(x, y) {
 }
 
 describe('WebSocket', function() {
-  /*
   describe('#ctor', function() {
     it('throws exception for invalid url', function(done) {
       try {
@@ -552,7 +551,7 @@ describe('WebSocket', function() {
           ws.terminate();
           done();
         });
-        ws.on('error', function() { /* That's quite alright -- a send was attempted after close * / });
+        ws.on('error', function() { /* That's quite alright -- a send was attempted after close */ });
         srv.on('message', function(data, flags) {
           assert.ok(!flags.binary);
           assert.ok(areArraysEqual(fs.readFileSync('test/fixtures/textfile', 'utf8'), data));
@@ -931,7 +930,7 @@ describe('WebSocket', function() {
         });
       });
     })
-  }) */
+  })
   describe('API emulation', function() {
     it('should not throw errors when getting and setting', function(done) {
       server.createServer(++port, function(srv) {
@@ -964,6 +963,7 @@ describe('WebSocket', function() {
         ws.onmessage = function(data) {
           assert.ok(!!data.data);
           ++message;
+          ws.close();
         };
 
         ws.onopen = function() {
