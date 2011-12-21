@@ -81,7 +81,6 @@ describe('WebSocket', function() {
 
   describe('#ping', function() {
     it('before connect should fail', function(done) {
-
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
         ws.on('error', function() {});
