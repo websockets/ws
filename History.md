@@ -1,4 +1,10 @@
-v0.3.6 - Dec 15th 2011
+v0.3.7 - Dec 22nd 2011
+======================
+
+* Added a browser based API which uses EventEmitters internally [3rd-Eden]
+* Expose request information from upgrade event for websocket server clients [mmalecki]
+
+v0.3.6 - Dec 19th 2011
 ======================
 
 * Added option to let WebSocket.Server use an already existing http server [mmalecki]
