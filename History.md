@@ -1,4 +1,4 @@
-v0.3.7 - Dec 22nd 2011
+v0.3.7 - Dec 25nd 2011
 ======================
 
 * Added a browser based API which uses EventEmitters internally [3rd-Eden]
