@@ -2,7 +2,7 @@ v0.3.8 - Dec 26nd 2011
 ======================
 
 * Made it possible to listen on specific paths, which is especially good to have for precreated http servers [einaros]
-* Extensive WebSocketServer cleanup, including changing all internal properties to unconfigurable, unenumerable properties [einaros]
+* Extensive WebSocket / WebSocketServer cleanup, including changing all internal properties to unconfigurable, unenumerable properties [einaros]
 
 v0.3.7 - Dec 25nd 2011
 ======================
