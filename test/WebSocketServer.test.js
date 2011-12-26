@@ -2,8 +2,8 @@ var assert = require('assert')
   , http = require('http')
   , WebSocket = require('../')
   , WebSocketServer = WebSocket.Server
-  , fs = require('fs');
-require('should');
+  , fs = require('fs')
+  , should = require('should');
 
 var port = 20000;
 
@@ -36,7 +36,8 @@ describe('WebSocketServer', function() {
       }
       gotException.should.be.ok;
     })
-    it('throws an error if no port is specified', function() {
+
+    it('throws an error if no port or server is specified', function() {
       var gotException = false;
       try {
         var wss = new WebSocketServer({});
@@ -46,15 +47,78 @@ describe('WebSocketServer', function() {
       }
       gotException.should.be.ok;
     })
+
     it('emits an error if http server bind fails', function(done) {
       var wss = new WebSocketServer({port: 1});
       wss.on('error', function() { done(); })
     })
+
     it('uses passed server object', function () {
       var srv = http.createServer()
         , wss = new WebSocketServer({server: srv});
       wss._server.should.equal(srv);
     });
+
+    it('starts a server on a given port', function(done) {
+      var wss = new WebSocketServer({port: ++port}, function() {
+        var ws = new WebSocket('ws://localhost:' + port);
+      });
+      wss.on('connection', function(client) {
+        wss.close();
+        done();
+      });
+    })
+
+    it('works with a precreated http server', function (done) {
+      var srv = http.createServer();
+      srv.listen(++port, function () {
+        var wss = new WebSocketServer({server: srv});
+        var ws = new WebSocket('ws://localhost:' + port);
+
+        wss.on('connection', function(client) {
+          wss.close();
+          done();
+        });
+      });
+    })
+
+    it('can have two different instances listening on the same http server with two different paths', function(done) {
+      var srv = http.createServer();
+      srv.listen(++port, function () {
+        var wss1 = new WebSocketServer({server: srv, path: '/wss1'})
+          , wss2 = new WebSocketServer({server: srv, path: '/wss2'});
+        var doneCount = 0;
+        wss1.on('connection', function(client) {
+          wss1.close();
+          if (++doneCount == 2) {
+            srv.close();
+            done();
+          }
+        });
+        wss2.on('connection', function(client) {
+          wss2.close();
+          if (++doneCount == 2) {
+            srv.close();
+            done();
+          }
+        });
+        var ws1 = new WebSocket('ws://localhost:' + port + '/wss1');
+        var ws2 = new WebSocket('ws://localhost:' + port + '/wss2?foo=1');
+      });
+    })
+    
+    it('cannot have two different instances listening on the same http server with two different paths', function(done) {
+      var srv = http.createServer();
+      srv.listen(++port, function () {
+        var wss1 = new WebSocketServer({server: srv, path: '/wss1'});
+        try {
+          var wss2 = new WebSocketServer({server: srv, path: '/wss1'});          
+        }
+        catch (e) {
+          done();
+        }
+      });
+    })
   })
 
   describe('#close', function() {
@@ -73,29 +137,40 @@ describe('WebSocketServer', function() {
         wss.close();
       });
     })
-  })
+    
+    it('does not close a precreated server', function(done) {
+      var srv = http.createServer();
+      var realClose = srv.close;
+      srv.close = function() {
+        should.fail('must not close pre-created server');
+      }
+      srv.listen(++port, function () {
+        var wss = new WebSocketServer({server: srv});
+        var ws = new WebSocket('ws://localhost:' + port);
+        wss.on('connection', function(client) {
+          wss.close();
+          srv.close = realClose;
+          srv.close();
+          done();
+        });
+      });
+    })
 
-  it('starts a server at the given port', function(done) {
-    var wss = new WebSocketServer({port: ++port}, function() {
-      var ws = new WebSocket('ws://localhost:' + port);
-    });
-    wss.on('connection', function(client) {
-      wss.close();
-      done();
-    });
-  })
-
-  it('works with a http server', function (done) {
-    var srv = http.createServer();
-    srv.listen(++port, function () {
-      var wss = new WebSocketServer({server: srv});
-      var ws = new WebSocket('ws://localhost:' + port);
-
-      wss.on('connection', function(client) {
-        wss.close();
+    it('cleans up websocket data on a precreated server', function(done) {
+      var srv = http.createServer();
+      srv.listen(++port, function () {
+        var wss1 = new WebSocketServer({server: srv, path: '/wss1'})
+          , wss2 = new WebSocketServer({server: srv, path: '/wss2'});
+        (typeof srv._webSocketPaths).should.eql('object');
+        Object.keys(srv._webSocketPaths).length.should.eql(2);
+        wss1.close();
+        Object.keys(srv._webSocketPaths).length.should.eql(1);
+        wss2.close();
+        (typeof srv._webSocketPaths).should.eql('undefined');
+        srv.close();
         done();
       });
-    });
+    })
   })
 
   it('does not accept connections with no sec-websocket-key', function(done) {
@@ -232,23 +307,23 @@ describe('WebSocketServer', function() {
     });
   })
 
-  it('tracks the client protocol', function(done) {
+  it('tracks and exposes the client protocol', function(done) {
     var wss = new WebSocketServer({port: ++port}, function() {
       var ws = new WebSocket('ws://localhost:' + port, {protocol: 'hi'});
     });
     wss.on('connection', function(client) {
-      client.protocol.should.eql('hi'); 
+      client.protocol.should.eql('hi');
         wss.close();
         done();
     });
   })
 
-  it('tracks the client protocolVersion', function(done) {
+  it('tracks and exposes the client protocolVersion', function(done) {
     var wss = new WebSocketServer({port: ++port}, function() {
       var ws = new WebSocket('ws://localhost:' + port, {protocolVersion: 8});
     });
     wss.on('connection', function(client) {
-      client.protocolVersion.should.eql(8); 
+      client.protocolVersion.should.eql(8);
         wss.close();
         done();
     });
@@ -266,6 +341,7 @@ describe('WebSocketServer', function() {
         done();
       });
     })
+    
     it('is updated when client terminates the connection', function(done) {
       var ws;
       var wss = new WebSocketServer({port: ++port}, function() {
@@ -280,6 +356,7 @@ describe('WebSocketServer', function() {
         ws.terminate();
       });
     })
+    
     it('is updated when client closes the connection', function(done) {
       var ws;
       var wss = new WebSocketServer({port: ++port}, function() {
