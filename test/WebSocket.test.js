@@ -47,6 +47,7 @@ describe('WebSocket', function() {
       });
     });
   })
+
   it('can close before connection is established', function(done) {
     server.createServer(++port, function(srv) {
       var ws = new WebSocket('ws://localhost:' + port);
@@ -60,6 +61,7 @@ describe('WebSocket', function() {
       });
     });
   })
+
   it('invalid server key is denied', function(done) {
     server.createServer(++port, server.handlers.invalidKey, function(srv) {
       var ws = new WebSocket('ws://localhost:' + port);
@@ -69,6 +71,7 @@ describe('WebSocket', function() {
       });
     });
   })
+
   it('close event is raised when server closes connection', function(done) {
     server.createServer(++port, server.handlers.closeAfterConnect, function(srv) {
       var ws = new WebSocket('ws://localhost:' + port);
@@ -94,6 +97,7 @@ describe('WebSocket', function() {
         }
       });
     })
+
     it('without message is successfully transmitted to the server', function(done) {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
@@ -107,6 +111,7 @@ describe('WebSocket', function() {
         });
       });
     })
+
     it('with message is successfully transmitted to the server', function(done) {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
@@ -121,6 +126,7 @@ describe('WebSocket', function() {
         });
       });
     })
+
     it('with encoded message is successfully transmitted to the server', function(done) {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
@@ -137,6 +143,7 @@ describe('WebSocket', function() {
       });
     })
   })
+
   describe('#pong', function() {
     it('without message is successfully transmitted to the server', function(done) {
       server.createServer(++port, function(srv) {
@@ -151,6 +158,7 @@ describe('WebSocket', function() {
         });
       });
     })
+
     it('with message is successfully transmitted to the server', function(done) {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
@@ -165,6 +173,7 @@ describe('WebSocket', function() {
         });
       });
     })
+
     it('with encoded message is successfully transmitted to the server', function(done) {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
@@ -181,6 +190,7 @@ describe('WebSocket', function() {
       });
     })
   })
+
   describe('#send', function() {
     it('very long binary data can be sent and received (with echoing server)', function(done) {
       server.createServer(++port, function(srv) {
@@ -199,6 +209,7 @@ describe('WebSocket', function() {
         });
       });
     })
+
     it('can send and receive text data', function(done) {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
@@ -213,6 +224,7 @@ describe('WebSocket', function() {
         });
       });
     })
+
     it('send and receive binary data as an array', function(done) {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
@@ -230,6 +242,7 @@ describe('WebSocket', function() {
         });
       });
     })
+
     it('binary data can be sent and received as buffer', function(done) {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
@@ -246,6 +259,7 @@ describe('WebSocket', function() {
         });
       });
     })
+
     it('before connect should fail', function(done) {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
@@ -260,6 +274,7 @@ describe('WebSocket', function() {
         }
       });
     })
+
     it('before connect should pass error through callback, if present', function(done) {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
@@ -272,6 +287,7 @@ describe('WebSocket', function() {
         });
       });
     })
+
     it('without data should be successful', function(done) {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
@@ -286,6 +302,7 @@ describe('WebSocket', function() {
         });
       });
     })
+
     it('calls optional callback when flushed', function(done) {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
@@ -298,6 +315,7 @@ describe('WebSocket', function() {
         });
       });
     })
+
     it('with unencoded message is successfully transmitted to the server', function(done) {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
@@ -312,6 +330,7 @@ describe('WebSocket', function() {
         });
       });
     })
+
     it('with encoded message is successfully transmitted to the server', function(done) {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
@@ -327,6 +346,7 @@ describe('WebSocket', function() {
         });
       });
     })
+
     it('with unencoded binary message is successfully transmitted to the server', function(done) {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
@@ -344,6 +364,7 @@ describe('WebSocket', function() {
         });
       });
     })
+
     it('with encoded binary message is successfully transmitted to the server', function(done) {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
@@ -362,6 +383,7 @@ describe('WebSocket', function() {
         });
       });
     })
+
     it('with binary stream will send fragmented data', function(done) {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
@@ -386,6 +408,7 @@ describe('WebSocket', function() {
         });
       });
     })
+
     it('with text stream will send fragmented data', function(done) {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
@@ -411,6 +434,7 @@ describe('WebSocket', function() {
         });
       });
     })
+
     it('will cause intermittent send to be delayed in order', function(done) {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
@@ -443,6 +467,7 @@ describe('WebSocket', function() {
         });
       });
     })
+
     it('will cause intermittent stream to be delayed in order', function(done) {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
@@ -475,6 +500,7 @@ describe('WebSocket', function() {
         });
       });
     })
+
     it('will cause intermittent ping to be delivered', function(done) {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
@@ -505,6 +531,7 @@ describe('WebSocket', function() {
         });
       });
     })
+
     it('will cause intermittent pong to be delivered', function(done) {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
@@ -535,6 +562,7 @@ describe('WebSocket', function() {
         });
       });
     })
+
     it('will cause intermittent close to be delivered', function(done) {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
@@ -562,6 +590,7 @@ describe('WebSocket', function() {
       });
     })
   })
+
   describe('#stream', function() {
     it('very long binary data can be streamed', function(done) {
       server.createServer(++port, function(srv) {
@@ -591,6 +620,7 @@ describe('WebSocket', function() {
         });
       });
     })
+
     it('before connect should pass error through callback', function(done) {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
@@ -603,6 +633,7 @@ describe('WebSocket', function() {
         });
       });
     })
+
     it('without callback should fail', function(done) {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
@@ -619,6 +650,7 @@ describe('WebSocket', function() {
         });
       });
     })
+
     it('will cause intermittent send to be delayed in order', function(done) {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
@@ -658,6 +690,7 @@ describe('WebSocket', function() {
         });
       });
     })
+
     it('will cause intermittent stream to be delayed in order', function(done) {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
@@ -703,6 +736,7 @@ describe('WebSocket', function() {
         });
       });
     })
+
     it('will cause intermittent ping to be delivered', function(done) {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
@@ -740,6 +774,7 @@ describe('WebSocket', function() {
         });
       });
     })
+
     it('will cause intermittent pong to be delivered', function(done) {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
@@ -777,6 +812,7 @@ describe('WebSocket', function() {
         });
       });
     })
+
     it('will cause intermittent close to be delivered', function(done) {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
@@ -815,6 +851,7 @@ describe('WebSocket', function() {
       });
     })
   })
+
   describe('#close', function() {
     it('will raise error callback, if any, if called during send stream', function(done) {
       server.createServer(++port, function(srv) {
@@ -839,6 +876,7 @@ describe('WebSocket', function() {
         });
       });
     })
+
     it('without invalid first argument throws exception', function(done) {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
@@ -854,6 +892,7 @@ describe('WebSocket', function() {
         });
       });
     })
+
     it('without reserved error code 1004 throws exception', function(done) {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
@@ -869,6 +908,7 @@ describe('WebSocket', function() {
         });
       });
     })
+
     it('without message is successfully transmitted to the server', function(done) {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
@@ -883,6 +923,7 @@ describe('WebSocket', function() {
         });
       });
     })
+
     it('with message is successfully transmitted to the server', function(done) {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
@@ -898,6 +939,7 @@ describe('WebSocket', function() {
         });
       });
     })
+
     it('with encoded message is successfully transmitted to the server', function(done) {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
@@ -913,6 +955,7 @@ describe('WebSocket', function() {
         });
       });
     })
+
     it('ends connection to the server', function(done) {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
@@ -930,6 +973,7 @@ describe('WebSocket', function() {
       });
     })
   })
+
   describe('API emulation', function() {
     it('should not throw errors when getting and setting', function(done) {
       server.createServer(++port, function(srv) {
@@ -951,6 +995,7 @@ describe('WebSocket', function() {
         done();
       });
     });
+
     it('should work the same as the EventEmitter api', function(done) {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
