@@ -90,6 +90,7 @@ See the test cases.
 * Expose Sender and Receiver configuration options through WebSocket, and test that properly.
 * Cleanup configuration for Sender, and add similar bits to Receiver.
 * Either expose a configurable setting indicating favoring speed or memory use, or do a timer based shrink of Receiver's pools.
+* Consider rewriting add() without copy: slice the buffer, then copy to overflow.
 
 ## License ##
 
