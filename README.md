@@ -1,6 +1,6 @@
 # ws: a node.js websocket implementation #
 
-`ws` is a simple to use, blazing fast, websocket implementation for node.js, up-to-date against current HyBi protocol versions.
+`ws` is a simple to use, blazing fast, websocket implementation for node.js, up-to-date against RFC-6455.
 
 Passes the quite extensible Autobahn test suite. See http://einaros.github.com/ws for the full reports.
 
