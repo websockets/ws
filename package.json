@@ -2,14 +2,15 @@
   "author": "Einar Otto Stangvik <einaros@gmail.com> (http://2x.io)",
   "name": "ws",
   "description": "simple and very fast websocket protocol client for node.js",
-  "version": "0.3.7",
+  "version": "0.3.8-pre",
   "repository": {
     "type": "git",
     "url": "git://github.com/einaros/ws.git"
   },
   "contributors": [
     { "name": "Einar Otto Stangvik", "email": "einaros@gmail.com" },
-    { "name": "Maciej Małecki", "email": "maciej.malecki@notimplemented.org" }
+    { "name": "Maciej Małecki", "email": "maciej.malecki@notimplemented.org" },
+    { "name": "Arnout Kazemier", "email": "info@3rd-eden.com" }
   ],
   "bin": {
     "wscat": "./bin/wscat"
