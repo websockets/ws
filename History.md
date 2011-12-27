@@ -5,6 +5,7 @@ v0.3.8 - Dec 27th 2011
 * Extensive WebSocket / WebSocketServer cleanup, including changing all internal properties to unconfigurable, unenumerable properties [einaros]
 * Receiver modifications to ensure even better performance with fragmented sends [einaros]
 * Fixed issue in sender.js, which would cause SlowBuffer instances (such as returned from the crypto library's randomBytes) to be copied (and thus be dead slow) [einaros]
+* Removed redundant buffer copy in sender.js, which should improve server performance [einaros]
 
 v0.3.7 - Dec 25nd 2011
 ======================
