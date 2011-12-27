@@ -46,7 +46,7 @@ describe('BufferPool', function() {
     it('shinks the pool', function() {
       var db = new BufferPool(1000);
       var buf = db.get(2000);
-      db.reset();
+      db.reset(true);
       db.size.should.eql(1000);
     })
     it('shrinks the pool according to the shrinkStrategy', function() {
@@ -56,7 +56,7 @@ describe('BufferPool', function() {
         return 0;
       });
       var buf = db.get(2000);
-      db.reset();
+      db.reset(true);
       db.size.should.eql(0);
     })
   })
