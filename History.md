@@ -4,6 +4,7 @@ v0.3.8 - in progress
 * Made it possible to listen on specific paths, which is especially good to have for precreated http servers [einaros]
 * Extensive WebSocket / WebSocketServer cleanup, including changing all internal properties to unconfigurable, unenumerable properties [einaros]
 * Receiver modifications to ensure even better performance with fragmented sends [einaros]
+* Fixed issue in sender.js, which would cause SlowBuffer instances (such as returned from the crypto library's randomBytes) to be copied (and thus be dead slow) [einaros]
 
 v0.3.7 - Dec 25nd 2011
 ======================
