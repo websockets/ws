@@ -1,4 +1,4 @@
-v0.3.8 - in progress
+v0.3.8 - Dec 27th 2011
 ======================
 
 * Made it possible to listen on specific paths, which is especially good to have for precreated http servers [einaros]
