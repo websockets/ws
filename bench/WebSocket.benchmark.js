@@ -22,11 +22,13 @@ require('./util');
 suite.on('start', function () {
   receiver = new Receiver();
   sender = new Sender();
+  sender._socket = { write: function() {} };
 });
 
 suite.on('cycle', function () {
   receiver = new Receiver();
   sender = new Sender();
+  sender._socket = { write: function() {} };
 });
 
 /**
@@ -95,11 +97,11 @@ suite.add('binary data (200 kB)', function () {
 
 framePacket = new Buffer(200*1024);
 framePacket.fill(99);
-suite.add('frameData, unmasked (200 kB)', function () {
-  sender.frameData(0x2, framePacket, true, false);
+suite.add('frameAndSend, unmasked (200 kB)', function () {
+  sender.frameAndSend(0x2, framePacket, true, false);
 });
-suite.add('frameData, masked (200 kB)', function () {
-  sender.frameData(0x2, framePacket, true, true);
+suite.add('frameAndSend, masked (200 kB)', function () {
+  sender.frameAndSend(0x2, framePacket, true, true);
 });
 
 /**
