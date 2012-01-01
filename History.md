@@ -5,6 +5,8 @@ v0.3.9 - Jan 1st 2012
 * WSS support [kazuyukitanimura]
 * readyState exposed [justinlatimer, tricknotes]
 * url property exposed [justinlatimer]
+* Removed old 'state' property [einaros]
+* Test cleanup [einaros]
 
 v0.3.8 - Dec 27th 2011
 ======================

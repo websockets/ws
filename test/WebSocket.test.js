@@ -35,7 +35,7 @@ describe('WebSocket', function() {
   })
   
   describe('properties', function() {
-    it('#url exposes the', function(done) {
+    it('#url exposes the server url', function(done) {
       server.createServer(++port, function(srv) {
         var url = 'ws://localhost:' + port;
         var ws = new WebSocket(url);
