@@ -1,3 +1,10 @@
+v0.3.9 - Dec 27th 2011
+======================
+
+* Improved protocol framing performance [einaros]
+* WSS support [kazuyukitanimura]
+* 
+
 v0.3.8 - Dec 27th 2011
 ======================
 

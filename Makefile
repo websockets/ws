@@ -1,6 +1,9 @@
 ALL_TESTS = $(shell find test/ -name '*.test.js')
 ALL_INTEGRATION = $(shell find test/ -name '*.integration.js')
 
+all:
+	node-waf configure build
+
 run-tests:
 	@./node_modules/.bin/mocha \
 		-t 2000 \
@@ -28,7 +31,4 @@ autobahn:
 autobahn-server:
 	@NODE_PATH=lib node test/autobahn-server.js 
 
-validator:
-	node-waf configure build
-
-.PHONY: test
+.PHONY: all

@@ -33,6 +33,88 @@ describe('WebSocket', function() {
       }
     })
   })
+  
+  describe('properties', function() {
+    it('#url exposes the', function(done) {
+      server.createServer(++port, function(srv) {
+        var url = 'ws://localhost:' + port;
+        var ws = new WebSocket(url);
+        assert.equal(url, ws.url);
+        ws.terminate();
+        ws.on('close', function() {
+          srv.close();
+          done();
+        });
+      });
+    })
+
+    describe('#readyState', function() {
+      it('defaults to connecting', function(done) {
+        server.createServer(++port, function(srv) {
+          var ws = new WebSocket('ws://localhost:' + port);
+          assert.equal(WebSocket.CONNECTING, ws.readyState);
+          ws.terminate();
+          ws.on('close', function() {
+            srv.close();
+            done();
+          });
+        });
+      });
+      
+      it('set to connected once connection is established', function(done) {
+        server.createServer(++port, function(srv) {
+          var ws = new WebSocket('ws://localhost:' + port);
+          ws.on('open', function() {
+            assert.equal(WebSocket.OPEN, ws.readyState);
+            srv.close();
+            done();
+          });
+        });
+      });
+     
+      it('set to closed once connection is closed', function(done) {
+        server.createServer(++port, function(srv) {
+          var ws = new WebSocket('ws://localhost:' + port);
+          ws.close(1001);
+          ws.on('close', function() {
+            assert.equal(WebSocket.CLOSED, ws.readyState);
+            srv.close();
+            done();
+          });
+        });
+      });
+      
+      it('set to closed once connection is terminated', function(done) {
+        server.createServer(++port, function(srv) {
+          var ws = new WebSocket('ws://localhost:' + port);
+          ws.terminate();
+          ws.on('close', function() {
+            assert.equal(WebSocket.CLOSED, ws.readyState);
+            srv.close();
+            done();
+          });
+        });
+      });
+    })
+
+    var readyStates = {
+      CONNECTING: 0,
+      OPEN: 1,
+      CLOSING: 2,
+      CLOSED: 3
+    };
+    Object.keys(readyStates).forEach(function(state) {
+      describe('.' + state, function() {
+        it('is enumerable and immutable property', function() {
+          var propertyDescripter = Object.getOwnPropertyDescriptor(WebSocket, state)
+          assert.equal(readyStates[state], propertyDescripter.value);
+          assert.equal(false, propertyDescripter.writable);
+          assert.equal(true, propertyDescripter.enumerable);
+          assert.equal(false, propertyDescripter.configurable);
+        });
+      });
+    });
+  })
 
   it('can disconnect before connection is established', function(done) {
     server.createServer(++port, function(srv) {

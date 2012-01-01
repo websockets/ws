@@ -307,26 +307,39 @@ describe('WebSocketServer', function() {
     });
   })
 
-  it('tracks and exposes the client protocol', function(done) {
-    var wss = new WebSocketServer({port: ++port}, function() {
-      var ws = new WebSocket('ws://localhost:' + port, {protocol: 'hi'});
-    });
-    wss.on('connection', function(client) {
-      client.protocol.should.eql('hi');
+  describe('properties', function() {
+    it('protocol is exposed', function(done) {
+      var wss = new WebSocketServer({port: ++port}, function() {
+        var ws = new WebSocket('ws://localhost:' + port, {protocol: 'hi'});
+      });
+      wss.on('connection', function(client) {
+        client.protocol.should.eql('hi');
         wss.close();
         done();
-    });
-  })
+      });
+    })
 
-  it('tracks and exposes the client protocolVersion', function(done) {
-    var wss = new WebSocketServer({port: ++port}, function() {
-      var ws = new WebSocket('ws://localhost:' + port, {protocolVersion: 8});
-    });
-    wss.on('connection', function(client) {
-      client.protocolVersion.should.eql(8);
+    it('protocolVersion is exposed', function(done) {
+      var wss = new WebSocketServer({port: ++port}, function() {
+        var ws = new WebSocket('ws://localhost:' + port, {protocolVersion: 8});
+      });
+      wss.on('connection', function(client) {
+        client.protocolVersion.should.eql(8);
         wss.close();
         done();
-    });
+      });
+    })
+
+    it('upgradeReq is the original request object', function(done) {
+      var wss = new WebSocketServer({port: ++port}, function() {
+        var ws = new WebSocket('ws://localhost:' + port, {protocolVersion: 8});
+      });
+      wss.on('connection', function(client) {
+        client.upgradeReq.httpVersion.should.eql('1.1');
+        wss.close();
+        done();
+      });
+    })
   })
 
   describe('#clients', function() {
