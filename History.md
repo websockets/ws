@@ -3,7 +3,8 @@ v0.3.9 - Dec 27th 2011
 
 * Improved protocol framing performance [einaros]
 * WSS support [kazuyukitanimura]
-* 
+* readyState exposed [justinlatimer, tricknotes]
+* url property exposed [justinlatimer]
 
 v0.3.8 - Dec 27th 2011
 ======================
