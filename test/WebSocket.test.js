@@ -1,7 +1,10 @@
 var assert = require('assert')
+  , https = require('https')
   , WebSocket = require('../')
+  , WebSocketServer = require('../').Server
   , fs = require('fs')
-  , server = require('./testserver');
+  , server = require('./testserver')
+  , crypto = require('crypto');
 
 var port = 20000;
 
@@ -33,7 +36,7 @@ describe('WebSocket', function() {
       }
     })
   })
-  
+
   describe('properties', function() {
     it('#url exposes the server url', function(done) {
       server.createServer(++port, function(srv) {
@@ -60,7 +63,7 @@ describe('WebSocket', function() {
           });
         });
       });
-      
+
       it('set to connected once connection is established', function(done) {
         server.createServer(++port, function(srv) {
           var ws = new WebSocket('ws://localhost:' + port);
@@ -71,7 +74,7 @@ describe('WebSocket', function() {
           });
         });
       });
-     
+
       it('set to closed once connection is closed', function(done) {
         server.createServer(++port, function(srv) {
           var ws = new WebSocket('ws://localhost:' + port);
@@ -83,7 +86,7 @@ describe('WebSocket', function() {
           });
         });
       });
-      
+
       it('set to closed once connection is terminated', function(done) {
         server.createServer(++port, function(srv) {
           var ws = new WebSocket('ws://localhost:' + port);
@@ -103,6 +106,7 @@ describe('WebSocket', function() {
       CLOSING: 2,
       CLOSED: 3
     };
+
     Object.keys(readyStates).forEach(function(state) {
       describe('.' + state, function() {
         it('is enumerable and immutable property', function() {
@@ -1117,5 +1121,110 @@ describe('WebSocket', function() {
         })
       });
     });
+  })
+
+  describe('ssl', function() {
+    it('can connect to secure websocket server', function(done) {
+      var options = {
+        key: fs.readFileSync('test/fixtures/key.pem'),
+        cert: fs.readFileSync('test/fixtures/certificate.pem')
+      };
+      var app = https.createServer(options, function (req, res) {
+        res.writeHead(200);
+        res.end();
+      });
+      var wss = new WebSocketServer({server: app});
+      app.listen(++port, function() {
+        var ws = new WebSocket('wss://localhost:' + port);
+      });
+      wss.on('connection', function(ws) {
+        app.close();
+        ws.terminate();
+        wss.close();
+        done();
+      });
+    })
+
+    it('cannot connect to secure websocket server via ws://', function(done) {
+      var options = {
+        key: fs.readFileSync('test/fixtures/key.pem'),
+        cert: fs.readFileSync('test/fixtures/certificate.pem')
+      };
+      var app = https.createServer(options, function (req, res) {
+        res.writeHead(200);
+        res.end();
+      });
+      var wss = new WebSocketServer({server: app});
+      app.listen(++port, function() {
+        var ws = new WebSocket('ws://localhost:' + port);
+        ws.on('error', function() {
+          app.close();
+          ws.terminate();
+          wss.close();
+          done();
+        });
+      });
+    });
+
+    it('can send and receive text data', function(done) {
+      var options = {
+        key: fs.readFileSync('test/fixtures/key.pem'),
+        cert: fs.readFileSync('test/fixtures/certificate.pem')
+      };
+      var app = https.createServer(options, function (req, res) {
+        res.writeHead(200);
+        res.end();
+      });
+      var wss = new WebSocketServer({server: app});
+      app.listen(++port, function() {
+        var ws = new WebSocket('wss://localhost:' + port);
+        ws.on('open', function() {
+          ws.send('foobar');
+        });
+      });
+      wss.on('connection', function(ws) {
+        ws.on('message', function(message, flags) {
+          message.should.eql('foobar');
+          app.close();
+          ws.terminate();
+          wss.close();
+          done();
+        });
+      });
+    })
+
+    it('can send and receive very long binary data', function(done) {
+      var options = {
+        key: fs.readFileSync('test/fixtures/key.pem'),
+        cert: fs.readFileSync('test/fixtures/certificate.pem')
+      }
+      var app = https.createServer(options, function (req, res) {
+        res.writeHead(200);
+        res.end();
+      });
+      crypto.randomBytes(5 * 1024 * 1024, function(ex, buf) {
+        if (ex) throw ex;
+        var wss = new WebSocketServer({server: app});
+        app.listen(++port, function() {
+          var ws = new WebSocket('wss://localhost:' + port);
+          ws.on('open', function() {
+            ws.send(buf, {binary: true});
+          });
+          ws.on('message', function(message, flags) {
+            flags.binary.should.be.ok;
+            areArraysEqual(buf, message).should.be.ok;
+            app.close();
+            ws.terminate();
+            wss.close();
+            done();
+          });
+        });
+        wss.on('connection', function(ws) {
+          ws.on('message', function(message, flags) {
+            ws.send(message, {binary: true});
+          });
+        });
+      });
+    })
   })
 })
