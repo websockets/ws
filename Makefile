@@ -31,4 +31,4 @@ autobahn:
 autobahn-server:
 	@NODE_PATH=lib node test/autobahn-server.js 
 
-.PHONY: all
+.PHONY: test
