@@ -33,6 +33,75 @@ describe('WebSocket', function() {
       }
     })
   })
+  
+  describe('#properties', function() {
+    it('populates url property', function(done) {
+      server.createServer(++port, function(srv) {
+        var url = 'ws://localhost:' + port;
+        var ws = new WebSocket(url);
+        assert.equal(url, ws.url);
+        ws.terminate();
+        ws.on('close', function() {
+          srv.close();
+          done();
+        });
+      });
+    });
+    
+    describe('#readyState', function() {
+      var CONNECTING = 0;
+      var OPEN = 1;
+      var CLOSING = 2;
+      var CLOSED = 3;
+      
+      it('defaults to connecting', function(done) {
+        server.createServer(++port, function(srv) {
+          var ws = new WebSocket('ws://localhost:' + port);
+          assert.equal(CONNECTING, ws.readyState);
+          ws.terminate();
+          ws.on('close', function() {
+            srv.close();
+            done();
+          });
+        });
+      });
+      
+      it('set to connected once connection is established', function(done) {
+        server.createServer(++port, function(srv) {
+          var ws = new WebSocket('ws://localhost:' + port);
+          ws.on('open', function() {
+            assert.equal(OPEN, ws.readyState);
+            srv.close();
+            done();
+          });
+        });
+      });
+     
+      it('set to closed once connection is closed', function(done) {
+        server.createServer(++port, function(srv) {
+          var ws = new WebSocket('ws://localhost:' + port);
+          ws.close(1001);
+          ws.on('close', function() {
+            assert.equal(CLOSED, ws.readyState);
+            srv.close();
+            done();
+          });
+        });
+      });
+      
+      it('set to closed once connection is terminated', function(done) {
+        server.createServer(++port, function(srv) {
+          var ws = new WebSocket('ws://localhost:' + port);
+          ws.terminate();
+          ws.on('close', function() {
+            assert.equal(CLOSED, ws.readyState);
+            srv.close();
+            done();
+          });
+        });
+      });
+    });
+  });
 
   it('can disconnect before connection is established', function(done) {
     server.createServer(++port, function(srv) {
