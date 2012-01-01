@@ -1,4 +1,4 @@
-v0.3.9 - Dec 27th 2011
+v0.3.9 - Jan 1st 2012
 ======================
 
 * Improved protocol framing performance [einaros]
