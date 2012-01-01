@@ -33,6 +33,21 @@ describe('WebSocket', function() {
       }
     })
   })
+  
+  describe('#properties', function() {
+    it('populates url property', function(done) {
+      server.createServer(++port, function(srv) {
+        var url = 'ws://localhost:' + port;
+        var ws = new WebSocket(url);
+        assert.equal(url, ws.url);
+        ws.terminate();
+        ws.on('close', function() {
+          srv.close();
+          done();
+        });
+      });
+    });
+  });
 
   it('can disconnect before connection is established', function(done) {
     server.createServer(++port, function(srv) {
