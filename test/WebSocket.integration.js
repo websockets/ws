@@ -38,5 +38,5 @@ describe('WebSocket', function() {
       ws.terminate();
       dataReceived = true;
     });
-  })
-})
+  });
+});

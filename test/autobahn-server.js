@@ -25,5 +25,5 @@ wss.on('connection', function(ws) {
   });
   ws.on('error', function() {
     console.log('error', arguments);
-  })
+  });
 });

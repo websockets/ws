@@ -34,8 +34,8 @@ describe('WebSocket', function() {
       catch (e) {
         done();
       }
-    })
-  })
+    });
+  });
 
   describe('properties', function() {
     it('#url exposes the server url', function(done) {
@@ -49,7 +49,7 @@ describe('WebSocket', function() {
           done();
         });
       });
-    })
+    });
 
     describe('#readyState', function() {
       it('defaults to connecting', function(done) {
@@ -98,7 +98,7 @@ describe('WebSocket', function() {
           });
         });
       });
-    })
+    });
 
     var readyStates = {
       CONNECTING: 0,
@@ -118,7 +118,7 @@ describe('WebSocket', function() {
         });
       });
     });
-  })
+  });
 
   it('can disconnect before connection is established', function(done) {
     server.createServer(++port, function(srv) {
@@ -132,7 +132,7 @@ describe('WebSocket', function() {
         done();
       });
     });
-  })
+  });
 
   it('can close before connection is established', function(done) {
     server.createServer(++port, function(srv) {
@@ -146,7 +146,7 @@ describe('WebSocket', function() {
         done();
       });
     });
-  })
+  });
 
   it('invalid server key is denied', function(done) {
     server.createServer(++port, server.handlers.invalidKey, function(srv) {
@@ -156,7 +156,7 @@ describe('WebSocket', function() {
         done();
       });
     });
-  })
+  });
 
   it('close event is raised when server closes connection', function(done) {
     server.createServer(++port, server.handlers.closeAfterConnect, function(srv) {
@@ -166,7 +166,7 @@ describe('WebSocket', function() {
         done();
       });
     });
-  })
+  });
 
   describe('#ping', function() {
     it('before connect should fail', function(done) {
@@ -182,7 +182,7 @@ describe('WebSocket', function() {
           done();
         }
       });
-    })
+    });
 
     it('without message is successfully transmitted to the server', function(done) {
       server.createServer(++port, function(srv) {
@@ -196,7 +196,7 @@ describe('WebSocket', function() {
           done();
         });
       });
-    })
+    });
 
     it('with message is successfully transmitted to the server', function(done) {
       server.createServer(++port, function(srv) {
@@ -211,7 +211,7 @@ describe('WebSocket', function() {
           done();
         });
       });
-    })
+    });
 
     it('with encoded message is successfully transmitted to the server', function(done) {
       server.createServer(++port, function(srv) {
@@ -227,8 +227,8 @@ describe('WebSocket', function() {
           done();
         });
       });
-    })
-  })
+    });
+  });
 
   describe('#pong', function() {
     it('without message is successfully transmitted to the server', function(done) {
@@ -243,7 +243,7 @@ describe('WebSocket', function() {
           done();
         });
       });
-    })
+    });
 
     it('with message is successfully transmitted to the server', function(done) {
       server.createServer(++port, function(srv) {
@@ -258,7 +258,7 @@ describe('WebSocket', function() {
           done();
         });
       });
-    })
+    });
 
     it('with encoded message is successfully transmitted to the server', function(done) {
       server.createServer(++port, function(srv) {
@@ -274,8 +274,8 @@ describe('WebSocket', function() {
           done();
         });
       });
-    })
-  })
+    });
+  });
 
   describe('#send', function() {
     it('very long binary data can be sent and received (with echoing server)', function(done) {
@@ -294,7 +294,7 @@ describe('WebSocket', function() {
           done();
         });
       });
-    })
+    });
 
     it('can send and receive text data', function(done) {
       server.createServer(++port, function(srv) {
@@ -309,7 +309,7 @@ describe('WebSocket', function() {
           done();
         });
       });
-    })
+    });
 
     it('send and receive binary data as an array', function(done) {
       server.createServer(++port, function(srv) {
@@ -327,7 +327,7 @@ describe('WebSocket', function() {
           done();
         });
       });
-    })
+    });
 
     it('binary data can be sent and received as buffer', function(done) {
       server.createServer(++port, function(srv) {
@@ -344,7 +344,7 @@ describe('WebSocket', function() {
           done();
         });
       });
-    })
+    });
 
     it('before connect should fail', function(done) {
       server.createServer(++port, function(srv) {
@@ -359,7 +359,7 @@ describe('WebSocket', function() {
           done();
         }
       });
-    })
+    });
 
     it('before connect should pass error through callback, if present', function(done) {
       server.createServer(++port, function(srv) {
@@ -372,7 +372,7 @@ describe('WebSocket', function() {
           done();
         });
       });
-    })
+    });
 
     it('without data should be successful', function(done) {
       server.createServer(++port, function(srv) {
@@ -387,7 +387,7 @@ describe('WebSocket', function() {
           done();
         });
       });
-    })
+    });
 
     it('calls optional callback when flushed', function(done) {
       server.createServer(++port, function(srv) {
@@ -400,7 +400,7 @@ describe('WebSocket', function() {
           });
         });
       });
-    })
+    });
 
     it('with unencoded message is successfully transmitted to the server', function(done) {
       server.createServer(++port, function(srv) {
@@ -415,7 +415,7 @@ describe('WebSocket', function() {
           done();
         });
       });
-    })
+    });
 
     it('with encoded message is successfully transmitted to the server', function(done) {
       server.createServer(++port, function(srv) {
@@ -431,7 +431,7 @@ describe('WebSocket', function() {
           done();
         });
       });
-    })
+    });
 
     it('with unencoded binary message is successfully transmitted to the server', function(done) {
       server.createServer(++port, function(srv) {
@@ -449,7 +449,7 @@ describe('WebSocket', function() {
           done();
         });
       });
-    })
+    });
 
     it('with encoded binary message is successfully transmitted to the server', function(done) {
       server.createServer(++port, function(srv) {
@@ -468,7 +468,7 @@ describe('WebSocket', function() {
           done();
         });
       });
-    })
+    });
 
     it('with binary stream will send fragmented data', function(done) {
       server.createServer(++port, function(srv) {
@@ -493,7 +493,7 @@ describe('WebSocket', function() {
           done();
         });
       });
-    })
+    });
 
     it('with text stream will send fragmented data', function(done) {
       server.createServer(++port, function(srv) {
@@ -519,7 +519,7 @@ describe('WebSocket', function() {
           done();
         });
       });
-    })
+    });
 
     it('will cause intermittent send to be delayed in order', function(done) {
       server.createServer(++port, function(srv) {
@@ -552,7 +552,7 @@ describe('WebSocket', function() {
           }
         });
       });
-    })
+    });
 
     it('will cause intermittent stream to be delayed in order', function(done) {
       server.createServer(++port, function(srv) {
@@ -585,7 +585,7 @@ describe('WebSocket', function() {
           }
         });
       });
-    })
+    });
 
     it('will cause intermittent ping to be delivered', function(done) {
       server.createServer(++port, function(srv) {
@@ -616,7 +616,7 @@ describe('WebSocket', function() {
           }
         });
       });
-    })
+    });
 
     it('will cause intermittent pong to be delivered', function(done) {
       server.createServer(++port, function(srv) {
@@ -647,7 +647,7 @@ describe('WebSocket', function() {
           }
         });
       });
-    })
+    });
 
     it('will cause intermittent close to be delivered', function(done) {
       server.createServer(++port, function(srv) {
@@ -674,8 +674,8 @@ describe('WebSocket', function() {
           assert.equal('foobar', data);
         });
       });
-    })
-  })
+    });
+  });
 
   describe('#stream', function() {
     it('very long binary data can be streamed', function(done) {
@@ -705,7 +705,7 @@ describe('WebSocket', function() {
           done();
         });
       });
-    })
+    });
 
     it('before connect should pass error through callback', function(done) {
       server.createServer(++port, function(srv) {
@@ -718,7 +718,7 @@ describe('WebSocket', function() {
           done();
         });
       });
-    })
+    });
 
     it('without callback should fail', function(done) {
       server.createServer(++port, function(srv) {
@@ -735,7 +735,7 @@ describe('WebSocket', function() {
           }
         });
       });
-    })
+    });
 
     it('will cause intermittent send to be delayed in order', function(done) {
       server.createServer(++port, function(srv) {
@@ -775,7 +775,7 @@ describe('WebSocket', function() {
           }
         });
       });
-    })
+    });
 
     it('will cause intermittent stream to be delayed in order', function(done) {
       server.createServer(++port, function(srv) {
@@ -821,7 +821,7 @@ describe('WebSocket', function() {
           else throw new Error('more messages than we actually sent just arrived');
         });
       });
-    })
+    });
 
     it('will cause intermittent ping to be delivered', function(done) {
       server.createServer(++port, function(srv) {
@@ -859,7 +859,7 @@ describe('WebSocket', function() {
           }
         });
       });
-    })
+    });
 
     it('will cause intermittent pong to be delivered', function(done) {
       server.createServer(++port, function(srv) {
@@ -897,7 +897,7 @@ describe('WebSocket', function() {
           }
         });
       });
-    })
+    });
 
     it('will cause intermittent close to be delivered', function(done) {
       server.createServer(++port, function(srv) {
@@ -935,8 +935,8 @@ describe('WebSocket', function() {
           assert.equal('foobar', data);
         });
       });
-    })
-  })
+    });
+  });
 
   describe('#close', function() {
     it('will raise error callback, if any, if called during send stream', function(done) {
@@ -961,7 +961,7 @@ describe('WebSocket', function() {
           }, 1000);
         });
       });
-    })
+    });
 
     it('without invalid first argument throws exception', function(done) {
       server.createServer(++port, function(srv) {
@@ -977,7 +977,7 @@ describe('WebSocket', function() {
           }
         });
       });
-    })
+    });
 
     it('without reserved error code 1004 throws exception', function(done) {
       server.createServer(++port, function(srv) {
@@ -993,7 +993,7 @@ describe('WebSocket', function() {
           }
         });
       });
-    })
+    });
 
     it('without message is successfully transmitted to the server', function(done) {
       server.createServer(++port, function(srv) {
@@ -1008,7 +1008,7 @@ describe('WebSocket', function() {
           done();
         });
       });
-    })
+    });
 
     it('with message is successfully transmitted to the server', function(done) {
       server.createServer(++port, function(srv) {
@@ -1024,7 +1024,7 @@ describe('WebSocket', function() {
           done();
         });
       });
-    })
+    });
 
     it('with encoded message is successfully transmitted to the server', function(done) {
       server.createServer(++port, function(srv) {
@@ -1040,7 +1040,7 @@ describe('WebSocket', function() {
           done();
         });
       });
-    })
+    });
 
     it('ends connection to the server', function(done) {
       server.createServer(++port, function(srv) {
@@ -1057,8 +1057,8 @@ describe('WebSocket', function() {
           done();
         });
       });
-    })
-  })
+    });
+  });
 
   describe('API emulation', function() {
     it('should not throw errors when getting and setting', function(done) {
@@ -1118,10 +1118,10 @@ describe('WebSocket', function() {
             ws.terminate();
             done();
           });
-        })
+        });
       });
     });
-  })
+  });
 
   describe('ssl', function() {
     it('can connect to secure websocket server', function(done) {
@@ -1143,7 +1143,7 @@ describe('WebSocket', function() {
         wss.close();
         done();
       });
-    })
+    });
 
     it('cannot connect to secure websocket server via ws://', function(done) {
       var options = {
@@ -1191,7 +1191,7 @@ describe('WebSocket', function() {
           done();
         });
       });
-    })
+    });
 
     it('can send and receive very long binary data', function(done) {
       var options = {
@@ -1225,6 +1225,6 @@ describe('WebSocket', function() {
           });
         });
       });
-    })
-  })
-})
+    });
+  });
+});

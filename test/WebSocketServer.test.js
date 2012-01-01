@@ -35,7 +35,7 @@ describe('WebSocketServer', function() {
         gotException = true;
       }
       gotException.should.be.ok;
-    })
+    });
 
     it('throws an error if no port or server is specified', function() {
       var gotException = false;
@@ -46,12 +46,12 @@ describe('WebSocketServer', function() {
         gotException = true;
       }
       gotException.should.be.ok;
-    })
+    });
 
     it('emits an error if http server bind fails', function(done) {
       var wss = new WebSocketServer({port: 1});
-      wss.on('error', function() { done(); })
-    })
+      wss.on('error', function() { done(); });
+    });
 
     it('uses passed server object', function () {
       var srv = http.createServer()
@@ -67,7 +67,7 @@ describe('WebSocketServer', function() {
         wss.close();
         done();
       });
-    })
+    });
 
     it('works with a precreated http server', function (done) {
       var srv = http.createServer();
@@ -80,7 +80,7 @@ describe('WebSocketServer', function() {
           done();
         });
       });
-    })
+    });
 
     it('can have two different instances listening on the same http server with two different paths', function(done) {
       var srv = http.createServer();
@@ -105,7 +105,7 @@ describe('WebSocketServer', function() {
         var ws1 = new WebSocket('ws://localhost:' + port + '/wss1');
         var ws2 = new WebSocket('ws://localhost:' + port + '/wss2?foo=1');
       });
-    })
+    });
     
     it('cannot have two different instances listening on the same http server with two different paths', function(done) {
       var srv = http.createServer();
@@ -118,8 +118,8 @@ describe('WebSocketServer', function() {
           done();
         }
       });
-    })
-  })
+    });
+  });
 
   describe('#close', function() {
     it('will close all clients', function(done) {
@@ -136,7 +136,7 @@ describe('WebSocketServer', function() {
         });
         wss.close();
       });
-    })
+    });
     
     it('does not close a precreated server', function(done) {
       var srv = http.createServer();
@@ -154,7 +154,7 @@ describe('WebSocketServer', function() {
           done();
         });
       });
-    })
+    });
 
     it('cleans up websocket data on a precreated server', function(done) {
       var srv = http.createServer();
@@ -170,8 +170,8 @@ describe('WebSocketServer', function() {
         srv.close();
         done();
       });
-    })
-  })
+    });
+  });
 
   it('does not accept connections with no sec-websocket-key', function(done) {
     var wss = new WebSocketServer({port: ++port}, function() {
@@ -192,7 +192,7 @@ describe('WebSocketServer', function() {
       });
     });
     wss.on('error', function() {});
-  })
+  });
 
   it('does not accept connections with no sec-websocket-version', function(done) {
     var wss = new WebSocketServer({port: ++port}, function() {
@@ -214,7 +214,7 @@ describe('WebSocketServer', function() {
       });
     });
     wss.on('error', function() {});
-  })
+  });
 
   it('does not accept connections with invalid sec-websocket-version', function(done) {
     var wss = new WebSocketServer({port: ++port}, function() {
@@ -237,7 +237,7 @@ describe('WebSocketServer', function() {
       });
     });
     wss.on('error', function() {});
-  })
+  });
 
   it('does not accept connections with invalid sec-websocket-origin (8)', function(done) {
     var wss = new WebSocketServer({port: ++port, verifyOrigin: function(o) {
@@ -264,7 +264,7 @@ describe('WebSocketServer', function() {
       });
     });
     wss.on('error', function() {});
-  })
+  });
 
   it('does not accept connections with invalid origin', function(done) {
     var wss = new WebSocketServer({port: ++port, verifyOrigin: function(o) {
@@ -291,7 +291,7 @@ describe('WebSocketServer', function() {
       });
     });
     wss.on('error', function() {});
-  })
+  });
 
   it('can send data', function(done) {
     var wss = new WebSocketServer({port: ++port}, function() {
@@ -305,7 +305,7 @@ describe('WebSocketServer', function() {
     wss.on('connection', function(client) {
       client.send('hello!');
     });
-  })
+  });
 
   describe('properties', function() {
     it('protocol is exposed', function(done) {
@@ -317,7 +317,7 @@ describe('WebSocketServer', function() {
         wss.close();
         done();
       });
-    })
+    });
 
     it('protocolVersion is exposed', function(done) {
       var wss = new WebSocketServer({port: ++port}, function() {
@@ -328,7 +328,7 @@ describe('WebSocketServer', function() {
         wss.close();
         done();
       });
-    })
+    });
 
     it('upgradeReq is the original request object', function(done) {
       var wss = new WebSocketServer({port: ++port}, function() {
@@ -339,8 +339,8 @@ describe('WebSocketServer', function() {
         wss.close();
         done();
       });
-    })
-  })
+    });
+  });
 
   describe('#clients', function() {
     it('returns a list of connected clients', function(done) {
@@ -353,7 +353,7 @@ describe('WebSocketServer', function() {
         wss.close();
         done();
       });
-    })
+    });
     
     it('is updated when client terminates the connection', function(done) {
       var ws;
@@ -368,7 +368,7 @@ describe('WebSocketServer', function() {
         });
         ws.terminate();
       });
-    })
+    });
     
     it('is updated when client closes the connection', function(done) {
       var ws;
@@ -383,7 +383,7 @@ describe('WebSocketServer', function() {
         });
         ws.close();
       });
-    })
-  })
-})
+    });
+  });
+});
 

@@ -16,7 +16,7 @@ describe('Receiver', function() {
   
     p.add(getBufferFromHexString(packet));
     gotData.should.be.ok;
-  })
+  });
   it('can parse close message', function() {
     var p = new Parser();
     var packet = '88 00';
@@ -28,7 +28,7 @@ describe('Receiver', function() {
   
     p.add(getBufferFromHexString(packet));
     gotClose.should.be.ok;
-  })
+  });
   it('can parse masked text message', function() {
     var p = new Parser();
     var packet = '81 93 34 83 a8 68 01 b9 92 52 4f a1 c6 09 59 e6 8a 52 16 e6 cb 00 5b a1 d5';
@@ -41,7 +41,7 @@ describe('Receiver', function() {
   
     p.add(getBufferFromHexString(packet));
     gotData.should.be.ok;
-  })
+  });
   it('can parse a masked text message longer than 125 bytes', function() {
     var p = new Parser();
     var message = 'A';
@@ -56,7 +56,7 @@ describe('Receiver', function() {
   
     p.add(getBufferFromHexString(packet));
     gotData.should.be.ok;
-  })
+  });
   it('can parse a really long masked text message', function() {
     var p = new Parser();
     var message = 'A';
@@ -71,7 +71,7 @@ describe('Receiver', function() {
   
     p.add(getBufferFromHexString(packet));
     gotData.should.be.ok;
-  })
+  });
   it('can parse a fragmented masked text message of 300 bytes', function() {
     var p = new Parser();
     var message = 'A';
@@ -90,7 +90,7 @@ describe('Receiver', function() {
     p.add(getBufferFromHexString(packet1));
     p.add(getBufferFromHexString(packet2));
     gotData.should.be.ok;
-  })
+  });
   it('can parse a ping message', function() {
     var p = new Parser();
     var message = 'Hello';
@@ -104,7 +104,7 @@ describe('Receiver', function() {
 
     p.add(getBufferFromHexString(packet));
     gotPing.should.be.ok;
-  })
+  });
   it('can parse a ping with no data', function() {
     var p = new Parser();
     var packet = '89 00';
@@ -116,7 +116,7 @@ describe('Receiver', function() {
     
     p.add(getBufferFromHexString(packet));
     gotPing.should.be.ok;
-  })
+  });
   it('can parse a fragmented masked text message of 300 bytes with a ping in the middle', function() {
     var p = new Parser();
     var message = 'A';
@@ -147,7 +147,7 @@ describe('Receiver', function() {
     p.add(getBufferFromHexString(packet2));
     gotData.should.be.ok;
     gotPing.should.be.ok;
-  })
+  });
   it('can parse a fragmented masked text message of 300 bytes with a ping in the middle, which is delievered over sevaral tcp packets', function() {
     var p = new Parser();
     var message = 'A';
@@ -182,7 +182,7 @@ describe('Receiver', function() {
     }
     gotData.should.be.ok;
     gotPing.should.be.ok;
-  })
+  });
   it('can parse a 100 byte long masked binary message', function() {
     var p = new Parser();
     var length = 100;
@@ -199,7 +199,7 @@ describe('Receiver', function() {
   
     p.add(getBufferFromHexString(packet));
     gotData.should.be.ok;
-  })
+  });
   it('can parse a 256 byte long masked binary message', function() {
     var p = new Parser();
     var length = 256;
@@ -216,7 +216,7 @@ describe('Receiver', function() {
   
     p.add(getBufferFromHexString(packet));
     gotData.should.be.ok;
-  })
+  });
   it('can parse a 200kb long masked binary message', function() {
     var p = new Parser();
     var length = 200 * 1024;
@@ -233,7 +233,7 @@ describe('Receiver', function() {
   
     p.add(getBufferFromHexString(packet));
     gotData.should.be.ok;
-  })
+  });
   it('can parse a 200kb long unmasked binary message', function() {
     var p = new Parser();
     var length = 200 * 1024;
@@ -250,6 +250,6 @@ describe('Receiver', function() {
   
     p.add(getBufferFromHexString(packet));
     gotData.should.be.ok;
-  })
-})
+  });
+});
 
