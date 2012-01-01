@@ -49,15 +49,10 @@ describe('WebSocket', function() {
     });
     
     describe('#readyState', function() {
-      var CONNECTING = 0;
-      var OPEN = 1;
-      var CLOSING = 2;
-      var CLOSED = 3;
-      
       it('defaults to connecting', function(done) {
         server.createServer(++port, function(srv) {
           var ws = new WebSocket('ws://localhost:' + port);
-          assert.equal(CONNECTING, ws.readyState);
+          assert.equal(WebSocket.CONNECTING, ws.readyState);
           ws.terminate();
           ws.on('close', function() {
             srv.close();
@@ -70,7 +65,7 @@ describe('WebSocket', function() {
         server.createServer(++port, function(srv) {
           var ws = new WebSocket('ws://localhost:' + port);
           ws.on('open', function() {
-            assert.equal(OPEN, ws.readyState);
+            assert.equal(WebSocket.OPEN, ws.readyState);
             srv.close();
             done();
           });
@@ -82,7 +77,7 @@ describe('WebSocket', function() {
           var ws = new WebSocket('ws://localhost:' + port);
           ws.close(1001);
           ws.on('close', function() {
-            assert.equal(CLOSED, ws.readyState);
+            assert.equal(WebSocket.CLOSED, ws.readyState);
             srv.close();
             done();
           });
@@ -94,13 +89,34 @@ describe('WebSocket', function() {
           var ws = new WebSocket('ws://localhost:' + port);
           ws.terminate();
           ws.on('close', function() {
-            assert.equal(CLOSED, ws.readyState);
+            assert.equal(WebSocket.CLOSED, ws.readyState);
             srv.close();
             done();
           });
         });
       });
     });
+  });
+
+  describe('.properties', function() {
+    var readyStates = {
+      CONNECTING: 0,
+      OPEN: 1,
+      CLOSING: 2,
+      CLOSED: 3
+    };
+    var state;
+    for (state in readyStates) {
+      describe('.' + state, function() {
+        it('is enumerable and immutable property', function() {
+          var propertyDescripter = Object.getOwnPropertyDescriptor(WebSocket, state)
+          assert.equal(readyStates[state], propertyDescripter.value);
+          assert.equal(false, propertyDescripter.writable);
+          assert.equal(true, propertyDescripter.enumerable);
+          assert.equal(false, propertyDescripter.configurable);
+        });
+      });
+    }
   });
 
   it('can disconnect before connection is established', function(done) {
