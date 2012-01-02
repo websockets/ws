@@ -11,6 +11,7 @@
  */
 
 var WebSocket = require('../')
+  , fs = require('fs')
   , program = require('commander')
   , util = require('util')
   , events = require('events')
@@ -86,8 +87,9 @@ Console.prototype.restore = function() {
  * The actual application
  */
 
+var version = JSON.parse(fs.readFileSync(__dirname + '/../package.json', 'utf8')).version;
 program
-  .version('0.4.0')
+  .version(version)
   .usage('[options] <url>')
   .option('-l, --listen <port>', 'listen on port')
   .option('-c, --connect <url>', 'connect to a websocket server')
