@@ -11,7 +11,7 @@
     "wscat": "./bin/wscat"
   },
   "scripts": {
-    "test": "make test",
+    "test": "./node_modules/.bin/mocha -t 2000 test/*.test.*",
     "preinstall": "make"
   },
   "engines": {
