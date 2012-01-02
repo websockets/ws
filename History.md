@@ -1,3 +1,9 @@
+v0.4.0 - Jan 2nd 2012
+=====================
+
+* Windows compatibility [einaros]
+* Windows compatible test script [einaros]
+
 v0.3.9 - Jan 1st 2012
 ======================
 
