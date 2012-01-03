@@ -64,7 +64,7 @@ describe('WebSocket', function() {
         });
       });
 
-      it('set to connected once connection is established', function(done) {
+      it('set to open once connection is established', function(done) {
         server.createServer(++port, function(srv) {
           var ws = new WebSocket('ws://localhost:' + port);
           ws.on('open', function() {
