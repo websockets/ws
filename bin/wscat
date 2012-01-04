@@ -11,43 +11,33 @@
  */
 
 var WebSocket = require('../')
+  , fs = require('fs')
   , program = require('commander')
   , util = require('util')
   , events = require('events')
-  , tty = require('tty');
+  , readline = require('readline');
 
 /**
  * InputReader - processes console input
  */
 
-function Console(onData) {
-  this.stdin = process.openStdin();
-  tty.setRawMode(true);
-  this.line = '';
-  this.pause = true;
+function Console() {
+  this.stdin = process.stdin;
+  this.stdout = process.stdout;
+
+  this.readlineInterface = readline.createInterface(this.stdin, this.stdout);
+
   var self = this;
-  this.stdin.on('keypress', function (chunk, key) {
-    if (key && key.ctrl && key.name == 'c') self.emit('break');
-    else if (key && key.name == 'enter') {
-      if (self.line.length > 0) {
-        process.stdout.write('\n');
-        var line = self.line;
-        self.line = '';
-        process.stdout.write(chunk);
-        self.emit('data', line);
-      }
-    }
-    else if (key && key.name == 'backspace') {
-      if (self.line.length > 0) {
-        self.line = self.line.substr(0, self.line.length - 1);
-        process.stdout.write('\033[1D \033[1D');
-      }
-    }
-    else if (typeof chunk != 'undefined' && !self.pause){
-      self.line += chunk;
-      process.stdout.write(chunk);
-    }
+  this.readlineInterface.on('line', function(data) {
+    self.emit('line', data);
   });
+  this.readlineInterface.on('close', function() {
+    self.emit('close');
+  });
+
+  this._resetInput = function() {
+    self.clear();
+  }
 }
 util.inherits(Console, events.EventEmitter);
 
@@ -60,34 +50,35 @@ Console.Colors = {
 };
 
 Console.prototype.prompt = function() {
-  this.pause = false;
-  this.line = '';
-  process.stdout.write('> ');
+  this.readlineInterface.prompt();
 }
 
 Console.prototype.print = function(msg, color) {
   this.clear();
   color = color || Console.Colors.Default;
-  process.stdout.write(color + msg + Console.Colors.Default + '\n');
-  this.restore();
+  this.stdout.write(color + msg + Console.Colors.Default + '\n');
+  this.prompt();
 }
 
 Console.prototype.clear = function() {
-  if (this.pause) return;
-  process.stdout.write('\033[2K\033[E');
+  this.stdout.write('\033[2K\033[E');
 }
 
-Console.prototype.restore = function() {
-  if (this.pause) return;
-  process.stdout.write('> ' + this.line);
+Console.prototype.pause = function() {
+  this.stdin.on('keypress', this._resetInput);
+}
+
+Console.prototype.resume = function() {
+  this.stdin.removeListener('keypress', this._resetInput);
 }
 
 /**
  * The actual application
  */
 
+var version = JSON.parse(fs.readFileSync(__dirname + '/../package.json', 'utf8')).version;
 program
-  .version('0.4.0')
+  .version(version)
   .usage('[options] <url>')
   .option('-l, --listen <port>', 'listen on port')
   .option('-c, --connect <url>', 'connect to a websocket server')
@@ -101,14 +92,16 @@ if (program.listen && program.connect) {
 }
 else if (program.listen) {
   var wsConsole = new Console();
+  wsConsole.pause();
   var options = {};
   if (program.protocol) options.protocolVersion = program.protocol;
   if (program.origin) options.origin = program.origin;
   var ws = null;
   var wss = new WebSocket.Server({port: program.listen}, function() {
     wsConsole.print('listening on port ' + program.listen + ' (press CTRL+C to quit)', Console.Colors.Green);
+    wsConsole.clear();
   });
-  wsConsole.on('break', function() {
+  wsConsole.on('close', function() {
     if (ws) {
       try {
         ws.close();
@@ -117,7 +110,7 @@ else if (program.listen) {
     }
     process.exit(0);
   });
-  wsConsole.on('data', function(data) {
+  wsConsole.on('line', function(data) {
     if (ws) {
       ws.send(data, {mask: true});
       wsConsole.prompt();
@@ -130,11 +123,13 @@ else if (program.listen) {
       return;
     };
     ws = newClient;
+    wsConsole.resume();
     wsConsole.prompt();
     wsConsole.print('client connected', Console.Colors.Green);
     ws.on('close', function() {
       wsConsole.print('disconnected', Console.Colors.Green);
       wsConsole.clear();
+      wsConsole.pause();
       ws = null;
     });
     ws.on('error', function(code, description) {
@@ -157,8 +152,7 @@ else if (program.connect) {
   var ws = new WebSocket(program.connect, options);
   ws.on('open', function() {
     wsConsole.print('connected (press CTRL+C to quit)', Console.Colors.Green);
-    wsConsole.prompt();
-    wsConsole.on('data', function(data) {
+    wsConsole.on('line', function(data) {
       ws.send(data, {mask: true});
       wsConsole.prompt();
     });
@@ -175,7 +169,7 @@ else if (program.connect) {
   ws.on('message', function(data, flags) {
     wsConsole.print('< ' + data, Console.Colors.Blue);
   });
-  wsConsole.on('break', function() {
+  wsConsole.on('close', function() {
     if (ws) {
       try {
         ws.close();
