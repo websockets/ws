@@ -1,3 +1,11 @@
+v0.4.1 - In development
+=====================
+
+* Use readline in wscat [tricknotes]
+* Refactor _state away, in favor of the new _readyState [tricknotes]
+* travis-ci integration [einaros]
+* Fixed race condition in testsuite, causing a few tests to fail (without actually indicating errors) on travis [einaros]
+
 v0.4.0 - Jan 2nd 2012
 =====================
 
