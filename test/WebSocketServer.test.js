@@ -77,6 +77,7 @@ describe('WebSocketServer', function() {
 
         wss.on('connection', function(client) {
           wss.close();
+          srv.close();
           done();
         });
       });
@@ -115,6 +116,8 @@ describe('WebSocketServer', function() {
           var wss2 = new WebSocketServer({server: srv, path: '/wss1'});          
         }
         catch (e) {
+          wss1.close();
+          srv.close();
           done();
         }
       });
