@@ -1,5 +1,4 @@
-var assert = require('assert')
-  , http = require('http')
+var http = require('http')
   , WebSocket = require('../')
   , WebSocketServer = WebSocket.Server
   , fs = require('fs')
@@ -108,7 +107,7 @@ describe('WebSocketServer', function() {
       });
     });
     
-    it('cannot have two different instances listening on the same http server with two different paths', function(done) {
+    it('cannot have two different instances listening on the same http server with the same path', function(done) {
       var srv = http.createServer();
       srv.listen(++port, function () {
         var wss1 = new WebSocketServer({server: srv, path: '/wss1'});
