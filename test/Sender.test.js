@@ -1,5 +1,4 @@
-var assert = require('assert')
-  , Sender = require('../lib/Sender');
+var Sender = require('../lib/Sender');
 require('should');
 
 describe('Sender', function() {  

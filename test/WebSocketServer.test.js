@@ -1,5 +1,4 @@
-var assert = require('assert')
-  , http = require('http')
+var http = require('http')
   , WebSocket = require('../')
   , WebSocketServer = WebSocket.Server
   , fs = require('fs')
