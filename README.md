@@ -2,7 +2,9 @@
  
 # ws: a node.js websocket implementation #
 
-`ws` is a simple to use, blazing fast, websocket implementation for node.js, up-to-date against RFC-6455.
+`ws` is a simple to use websocket implementation, up-to-date against RFC-6455. 
+
+It is probably also the fastest websocket library running on node.js (http://hobbycoding.posterous.com/the-fastest-websocket-module-for-nodejs). 
 
 Passes the quite extensible Autobahn test suite. See http://einaros.github.com/ws for the full reports.
 
