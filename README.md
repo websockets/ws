@@ -51,6 +51,19 @@ ws.on('open', function() {
 
 Setting `mask`, as done for the send options above, will cause the data to be masked according to the websocket protocol. The same option applies for text data.
 
+### Server example ###
+
+```js
+var WebSocketServer = require('ws').Server
+  , wss = new WebSocketServer({port: 8080});
+wss.on('connection', function(ws) {
+    ws.on('message', function(message) {
+        console.log('received: %s', message);
+    });
+    ws.send('something');
+});
+```
+
 ### echo.websocket.org demo ###
 
 ```js
