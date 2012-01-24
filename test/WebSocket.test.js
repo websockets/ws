@@ -120,8 +120,35 @@ describe('WebSocket', function() {
     });
   });
 
-  it('can disconnect before connection is established', function(done) {
-    server.createServer(++port, function(srv) {
+  describe('events', function() {
+    it('emits a ping event', function(done) {
+      var wss = new WebSocketServer({port: ++port});
+      wss.on('connection', function(client) {
+        client.ping();
+      });
+      var ws = new WebSocket('ws://localhost:' + port);
+      ws.on('ping', function() {
+        ws.terminate();
+        wss.close();
+        done();
+      });
+    });
+
+    it('emits a pong event', function(done) {
+      var wss = new WebSocketServer({port: ++port});
+      wss.on('connection', function(client) {
+        client.pong();
+      });
+      var ws = new WebSocket('ws://localhost:' + port);
+      ws.on('pong', function() {
+        ws.terminate();
+        wss.close();
+        done();
+      });
+    });
+  });
+
+  it('can disconnect before connection is established', function(done) {server.createServer(++port, function(srv) {
       var ws = new WebSocket('ws://localhost:' + port);
       ws.terminate();
       ws.on('open', function() {
