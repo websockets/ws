@@ -6,6 +6,8 @@ v0.4.1 - In development
 * travis-ci integration [einaros]
 * Fixed race condition in testsuite, causing a few tests to fail (without actually indicating errors) on travis [einaros]
 * Expose pong event [paddybyers]
+* Enabled running of WebSocketServer in noServer-mode, meaning that upgrades are passed in manually. [einaros]
+* Reworked connection procedure for WebSocketServer, and cleaned up tests. [einaros]
 
 v0.4.0 - Jan 2nd 2012
 =====================
