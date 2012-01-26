@@ -411,15 +411,16 @@ describe('WebSocketServer', function() {
       srv.listen(++port, function () {
         var wss = new WebSocketServer({noServer: true});
         srv.on('upgrade', function(req, socket, upgradeHead) {
-          wss.handleUpgrade(req, socket, upgradeHead);
+          var client = wss.handleUpgrade(req, socket, upgradeHead);
+          client.send('hello');
         });
         var ws = new WebSocket('ws://localhost:' + port);
-
-        wss.on('connection', function(client) {
+        ws.on('message', function(message) {
+          message.should.eql('hello');
           wss.close();
           srv.close();
-          done();
-        });
+          done();          
+        })
       });
     });
   });
