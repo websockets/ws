@@ -111,13 +111,13 @@ describe('WebSocketServer', function() {
         var ws2 = new WebSocket('ws://localhost:' + port + '/wss2?foo=1');
       });
     });
-    
+
     it('cannot have two different instances listening on the same http server with the same path', function(done) {
       var srv = http.createServer();
       srv.listen(++port, function () {
         var wss1 = new WebSocketServer({server: srv, path: '/wss1'});
         try {
-          var wss2 = new WebSocketServer({server: srv, path: '/wss1'});          
+          var wss2 = new WebSocketServer({server: srv, path: '/wss1'});
         }
         catch (e) {
           wss1.close();
@@ -144,7 +144,7 @@ describe('WebSocketServer', function() {
         wss.close();
       });
     });
-    
+
     it('does not close a precreated server', function(done) {
       var srv = http.createServer();
       var realClose = srv.close;
@@ -299,7 +299,7 @@ describe('WebSocketServer', function() {
         });
       });
       wss.on('error', function() {});
-    });    
+    });
   });
 
   it('can send data', function(done) {
@@ -363,7 +363,7 @@ describe('WebSocketServer', function() {
         done();
       });
     });
-    
+
     it('is updated when client terminates the connection', function(done) {
       var ws;
       var wss = new WebSocketServer({port: ++port}, function() {
@@ -378,7 +378,7 @@ describe('WebSocketServer', function() {
         ws.terminate();
       });
     });
-    
+
     it('is updated when client closes the connection', function(done) {
       var ws;
       var wss = new WebSocketServer({port: ++port}, function() {
@@ -419,7 +419,7 @@ describe('WebSocketServer', function() {
           message.should.eql('hello');
           wss.close();
           srv.close();
-          done();          
+          done();
         })
       });
     });
