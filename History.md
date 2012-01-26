@@ -1,4 +1,4 @@
-v0.4.1 - In development
+v0.4.1 - Jan 25th 2012
 =====================
 
 * Use readline in wscat [tricknotes]
