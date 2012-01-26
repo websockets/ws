@@ -47,15 +47,20 @@ describe('WebSocketServer', function() {
       gotException.should.be.ok;
     });
 
+    it('does not throw an error if no port or server is specified, when the noServer option is true', function() {
+      var gotException = false;
+      try {
+        var wss = new WebSocketServer({noServer: true});
+      }
+      catch (e) {
+        gotException = true;
+      }
+      gotException.should.eql(false);
+    });
+
     it('emits an error if http server bind fails', function(done) {
       var wss = new WebSocketServer({port: 1});
       wss.on('error', function() { done(); });
-    });
-
-    it('uses passed server object', function () {
-      var srv = http.createServer()
-        , wss = new WebSocketServer({server: srv});
-      wss._server.should.equal(srv);
     });
 
     it('starts a server on a given port', function(done) {
@@ -68,7 +73,7 @@ describe('WebSocketServer', function() {
       });
     });
 
-    it('works with a precreated http server', function (done) {
+    it('uses a precreated http server', function (done) {
       var srv = http.createServer();
       srv.listen(++port, function () {
         var wss = new WebSocketServer({server: srv});
@@ -175,124 +180,126 @@ describe('WebSocketServer', function() {
     });
   });
 
-  it('does not accept connections with no sec-websocket-key', function(done) {
-    var wss = new WebSocketServer({port: ++port}, function() {
-      var options = {
-        port: port,
-        host: '127.0.0.1',
-        headers: {
-          'Connection': 'Upgrade',
-          'Upgrade': 'websocket'
-        }
-      };
-      var req = http.request(options);
-      req.end();
-      req.on('response', function(res) {
-        res.statusCode.should.eql(400);
-        wss.close();
-        done();
+  describe('connection establishing', function() {
+    it('does not accept connections with no sec-websocket-key', function(done) {
+      var wss = new WebSocketServer({port: ++port}, function() {
+        var options = {
+          port: port,
+          host: '127.0.0.1',
+          headers: {
+            'Connection': 'Upgrade',
+            'Upgrade': 'websocket'
+          }
+        };
+        var req = http.request(options);
+        req.end();
+        req.on('response', function(res) {
+          res.statusCode.should.eql(400);
+          wss.close();
+          done();
+        });
       });
+      wss.on('error', function() {});
     });
-    wss.on('error', function() {});
-  });
 
-  it('does not accept connections with no sec-websocket-version', function(done) {
-    var wss = new WebSocketServer({port: ++port}, function() {
-      var options = {
-        port: port,
-        host: '127.0.0.1',
-        headers: {
-          'Connection': 'Upgrade',
-          'Upgrade': 'websocket',
-          'Sec-WebSocket-Key': 'dGhlIHNhbXBsZSBub25jZQ=='
-        }
-      };
-      var req = http.request(options);
-      req.end();
-      req.on('response', function(res) {
-        res.statusCode.should.eql(400);
-        wss.close();
-        done();
+    it('does not accept connections with no sec-websocket-version', function(done) {
+      var wss = new WebSocketServer({port: ++port}, function() {
+        var options = {
+          port: port,
+          host: '127.0.0.1',
+          headers: {
+            'Connection': 'Upgrade',
+            'Upgrade': 'websocket',
+            'Sec-WebSocket-Key': 'dGhlIHNhbXBsZSBub25jZQ=='
+          }
+        };
+        var req = http.request(options);
+        req.end();
+        req.on('response', function(res) {
+          res.statusCode.should.eql(400);
+          wss.close();
+          done();
+        });
       });
+      wss.on('error', function() {});
     });
-    wss.on('error', function() {});
-  });
 
-  it('does not accept connections with invalid sec-websocket-version', function(done) {
-    var wss = new WebSocketServer({port: ++port}, function() {
-      var options = {
-        port: port,
-        host: '127.0.0.1',
-        headers: {
-          'Connection': 'Upgrade',
-          'Upgrade': 'websocket',
-          'Sec-WebSocket-Key': 'dGhlIHNhbXBsZSBub25jZQ==',
-          'Sec-WebSocket-Version': 12
-        }
-      };
-      var req = http.request(options);
-      req.end();
-      req.on('response', function(res) {
-        res.statusCode.should.eql(400);
-        wss.close();
-        done();
+    it('does not accept connections with invalid sec-websocket-version', function(done) {
+      var wss = new WebSocketServer({port: ++port}, function() {
+        var options = {
+          port: port,
+          host: '127.0.0.1',
+          headers: {
+            'Connection': 'Upgrade',
+            'Upgrade': 'websocket',
+            'Sec-WebSocket-Key': 'dGhlIHNhbXBsZSBub25jZQ==',
+            'Sec-WebSocket-Version': 12
+          }
+        };
+        var req = http.request(options);
+        req.end();
+        req.on('response', function(res) {
+          res.statusCode.should.eql(400);
+          wss.close();
+          done();
+        });
       });
+      wss.on('error', function() {});
     });
-    wss.on('error', function() {});
-  });
 
-  it('does not accept connections with invalid sec-websocket-origin (8)', function(done) {
-    var wss = new WebSocketServer({port: ++port, verifyOrigin: function(o) {
-      o.should.eql('http://foobar.com');
-      return false;
-    }}, function() {
-      var options = {
-        port: port,
-        host: '127.0.0.1',
-        headers: {
-          'Connection': 'Upgrade',
-          'Upgrade': 'websocket',
-          'Sec-WebSocket-Key': 'dGhlIHNhbXBsZSBub25jZQ==',
-          'Sec-WebSocket-Version': 8,
-          'Sec-WebSocket-Origin': 'http://foobar.com'
-        }
-      };
-      var req = http.request(options);
-      req.end();
-      req.on('response', function(res) {
-        res.statusCode.should.eql(401);
-        wss.close();
-        done();
+    it('does not accept connections with invalid sec-websocket-origin (8)', function(done) {
+      var wss = new WebSocketServer({port: ++port, verifyOrigin: function(o) {
+        o.should.eql('http://foobar.com');
+        return false;
+      }}, function() {
+        var options = {
+          port: port,
+          host: '127.0.0.1',
+          headers: {
+            'Connection': 'Upgrade',
+            'Upgrade': 'websocket',
+            'Sec-WebSocket-Key': 'dGhlIHNhbXBsZSBub25jZQ==',
+            'Sec-WebSocket-Version': 8,
+            'Sec-WebSocket-Origin': 'http://foobar.com'
+          }
+        };
+        var req = http.request(options);
+        req.end();
+        req.on('response', function(res) {
+          res.statusCode.should.eql(401);
+          wss.close();
+          done();
+        });
       });
+      wss.on('error', function() {});
     });
-    wss.on('error', function() {});
-  });
 
-  it('does not accept connections with invalid origin', function(done) {
-    var wss = new WebSocketServer({port: ++port, verifyOrigin: function(o) {
-      o.should.eql('http://foobar.com');
-      return false;
-    }}, function() {
-      var options = {
-        port: port,
-        host: '127.0.0.1',
-        headers: {
-          'Connection': 'Upgrade',
-          'Upgrade': 'websocket',
-          'Sec-WebSocket-Key': 'dGhlIHNhbXBsZSBub25jZQ==',
-          'Sec-WebSocket-Version': 13,
-          'Origin': 'http://foobar.com'
-        }
-      };
-      var req = http.request(options);
-      req.end();
-      req.on('response', function(res) {
-        res.statusCode.should.eql(401);
-        wss.close();
-        done();
+    it('does not accept connections with invalid origin', function(done) {
+      var wss = new WebSocketServer({port: ++port, verifyOrigin: function(o) {
+        o.should.eql('http://foobar.com');
+        return false;
+      }}, function() {
+        var options = {
+          port: port,
+          host: '127.0.0.1',
+          headers: {
+            'Connection': 'Upgrade',
+            'Upgrade': 'websocket',
+            'Sec-WebSocket-Key': 'dGhlIHNhbXBsZSBub25jZQ==',
+            'Sec-WebSocket-Version': 13,
+            'Origin': 'http://foobar.com'
+          }
+        };
+        var req = http.request(options);
+        req.end();
+        req.on('response', function(res) {
+          res.statusCode.should.eql(401);
+          wss.close();
+          done();
+        });
       });
-    });
-    wss.on('error', function() {});
+      wss.on('error', function() {});
+    });    
   });
 
   it('can send data', function(done) {
@@ -309,7 +316,7 @@ describe('WebSocketServer', function() {
     });
   });
 
-  describe('properties', function() {
+  describe('client properties', function() {
     it('protocol is exposed', function(done) {
       var wss = new WebSocketServer({port: ++port}, function() {
         var ws = new WebSocket('ws://localhost:' + port, {protocol: 'hi'});
@@ -387,5 +394,34 @@ describe('WebSocketServer', function() {
       });
     });
   });
-});
 
+  describe('#options', function() {
+    it('exposes options passed to constructor', function(done) {
+      var wss = new WebSocketServer({port: ++port}, function() {
+        wss.options.port.should.eql(port);
+        wss.close();
+        done();
+      });
+    });
+  });
+
+  describe('#handleUpgrade', function() {
+    it('can be used for a pre-existing server', function (done) {
+      var srv = http.createServer();
+      srv.listen(++port, function () {
+        var wss = new WebSocketServer({noServer: true});
+        srv.on('upgrade', function(req, socket, upgradeHead) {
+          wss.handleUpgrade(req, socket, upgradeHead);
+        });
+        var ws = new WebSocket('ws://localhost:' + port);
+
+        wss.on('connection', function(client) {
+          wss.close();
+          srv.close();
+          done();
+        });
+      });
+    });
+  });
+
+});
