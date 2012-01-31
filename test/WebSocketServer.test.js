@@ -1,4 +1,5 @@
 var http = require('http')
+  , https = require('https')
   , WebSocket = require('../')
   , WebSocketServer = WebSocket.Server
   , fs = require('fs')
@@ -199,6 +200,9 @@ describe('WebSocketServer', function() {
           done();
         });
       });
+      wss.on('connection', function(ws) {
+        done(new Error('connection must not be established'));
+      });
       wss.on('error', function() {});
     });
 
@@ -220,6 +224,9 @@ describe('WebSocketServer', function() {
           wss.close();
           done();
         });
+      });
+      wss.on('connection', function(ws) {
+        done(new Error('connection must not be established'));
       });
       wss.on('error', function() {});
     });
@@ -244,12 +251,14 @@ describe('WebSocketServer', function() {
           done();
         });
       });
+      wss.on('connection', function(ws) {
+        done(new Error('connection must not be established'));
+      });
       wss.on('error', function() {});
     });
 
-    it('does not accept connections with invalid sec-websocket-origin (8)', function(done) {
-      var wss = new WebSocketServer({port: ++port, verifyOrigin: function(o) {
-        o.should.eql('http://foobar.com');
+    it('client can be denied', function(done) {
+      var wss = new WebSocketServer({port: ++port, verifyClient: function(o) {
         return false;
       }}, function() {
         var options = {
@@ -267,17 +276,21 @@ describe('WebSocketServer', function() {
         req.end();
         req.on('response', function(res) {
           res.statusCode.should.eql(401);
-          wss.close();
-          done();
+          process.nextTick(function() {
+            wss.close();
+            done();
+          });
         });
+      });
+      wss.on('connection', function(ws) {
+        done(new Error('connection must not be established'));
       });
       wss.on('error', function() {});
     });
 
-    it('does not accept connections with invalid origin', function(done) {
-      var wss = new WebSocketServer({port: ++port, verifyOrigin: function(o) {
-        o.should.eql('http://foobar.com');
-        return false;
+    it('client can be accepted', function(done) {
+      var wss = new WebSocketServer({port: ++port, verifyClient: function(o) {
+        return true;
       }}, function() {
         var options = {
           port: port,
@@ -294,11 +307,94 @@ describe('WebSocketServer', function() {
         req.end();
         req.on('response', function(res) {
           res.statusCode.should.eql(401);
+        });
+      });
+      wss.on('connection', function(ws) {
+          ws.terminate();
+          wss.close();
+          done();
+      });
+      wss.on('error', function() {});
+    });
+
+    it('verifyClient gets client origin', function(done) {
+      var wss = new WebSocketServer({port: ++port, verifyClient: function(info) {
+        info.origin.should.eql('http://foobarbaz.com');
+        return false;
+      }}, function() {
+        var options = {
+          port: port,
+          host: '127.0.0.1',
+          headers: {
+            'Connection': 'Upgrade',
+            'Upgrade': 'websocket',
+            'Sec-WebSocket-Key': 'dGhlIHNhbXBsZSBub25jZQ==',
+            'Sec-WebSocket-Version': 13,
+            'Origin': 'http://foobarbaz.com'
+          }
+        };
+        var req = http.request(options);
+        req.end();
+        req.on('response', function(res) {
           wss.close();
           done();
         });
       });
       wss.on('error', function() {});
+    });
+
+    it('verifyClient has secure:true for ssl connections', function(done) {
+      var options = {
+        key: fs.readFileSync('test/fixtures/key.pem'),
+        cert: fs.readFileSync('test/fixtures/certificate.pem')
+      };
+      var app = https.createServer(options, function (req, res) {
+        res.writeHead(200);
+        res.end();
+      });
+      var success = false;
+      var wss = new WebSocketServer({
+        server: app, 
+        verifyClient: function(info) {
+          success = info.secure === true;
+          return true;
+        }
+      });
+      app.listen(++port, function() {
+        var ws = new WebSocket('wss://localhost:' + port);
+      });
+      wss.on('connection', function(ws) {
+        app.close();
+        ws.terminate();
+        wss.close();
+        success.should.be.ok;
+        done();
+      });
+    });
+
+    it('verifyClient has secure:false for non-ssl connections', function(done) {
+      var app = http.createServer(function (req, res) {
+        res.writeHead(200);
+        res.end();
+      });
+      var success = false;
+      var wss = new WebSocketServer({
+        server: app, 
+        verifyClient: function(info) {
+          success = info.secure === false;
+          return true;
+        }
+      });
+      app.listen(++port, function() {
+        var ws = new WebSocket('ws://localhost:' + port);
+      });
+      wss.on('connection', function(ws) {
+        app.close();
+        ws.terminate();
+        wss.close();
+        success.should.be.ok;
+        done();
+      });
     });
   });
 
