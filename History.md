@@ -3,6 +3,7 @@ v0.4.2 - In development
 
 * Breaking change: WebSocketServer's verifyOrigin option has been renamed to verifyClient. [einaros]
 * verifyClient now receives { origin: 'origin header', secure: true/false }, where 'secure' will be true for ssl connections. [einaros]
+* Split benchmark, in preparation for more thorough case. [einaros]
 
 v0.4.1 - Jan 25th 2012
 =====================
