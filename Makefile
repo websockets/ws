@@ -23,7 +23,8 @@ integrationtest:
 	@$(MAKE) NODE_PATH=lib TESTS="$(ALL_INTEGRATION)" run-integrationtests
 
 benchmark:
-	@node bench/WebSocket.benchmark.js
+	@node bench/sender.benchmark.js
+	@node bench/parser.benchmark.js
 
 autobahn:
 	@NODE_PATH=lib node test/autobahn.js 
