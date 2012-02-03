@@ -1,11 +1,11 @@
 var assert = require('assert')
-  , Parser = require('../lib/Receiver');
+  , Receiver = require('../lib/Receiver');
 require('should');
 require('./hybi-common');
 
 describe('Receiver', function() {  
   it('can parse unmasked text message', function() {
-    var p = new Parser();
+    var p = new Receiver();
     var packet = '81 05 48 65 6c 6c 6f';
   
     var gotData = false;
@@ -18,7 +18,7 @@ describe('Receiver', function() {
     gotData.should.be.ok;
   });
   it('can parse close message', function() {
-    var p = new Parser();
+    var p = new Receiver();
     var packet = '88 00';
   
     var gotClose = false;
@@ -30,7 +30,7 @@ describe('Receiver', function() {
     gotClose.should.be.ok;
   });
   it('can parse masked text message', function() {
-    var p = new Parser();
+    var p = new Receiver();
     var packet = '81 93 34 83 a8 68 01 b9 92 52 4f a1 c6 09 59 e6 8a 52 16 e6 cb 00 5b a1 d5';
   
     var gotData = false;
@@ -43,7 +43,7 @@ describe('Receiver', function() {
     gotData.should.be.ok;
   });
   it('can parse a masked text message longer than 125 bytes', function() {
-    var p = new Parser();
+    var p = new Receiver();
     var message = 'A';
     for (var i = 0; i < 300; ++i) message += (i % 5).toString();
     var packet = '81 FE ' + pack(4, message.length) + ' 34 83 a8 68 ' + getHexStringFromBuffer(mask(message, '34 83 a8 68'));
@@ -58,7 +58,7 @@ describe('Receiver', function() {
     gotData.should.be.ok;
   });
   it('can parse a really long masked text message', function() {
-    var p = new Parser();
+    var p = new Receiver();
     var message = 'A';
     for (var i = 0; i < 64*1024; ++i) message += (i % 5).toString();
     var packet = '81 FF ' + pack(16, message.length) + ' 34 83 a8 68 ' + getHexStringFromBuffer(mask(message, '34 83 a8 68'));
@@ -73,7 +73,7 @@ describe('Receiver', function() {
     gotData.should.be.ok;
   });
   it('can parse a fragmented masked text message of 300 bytes', function() {
-    var p = new Parser();
+    var p = new Receiver();
     var message = 'A';
     for (var i = 0; i < 300; ++i) message += (i % 5).toString();
     var msgpiece1 = message.substr(0, 150);
@@ -92,7 +92,7 @@ describe('Receiver', function() {
     gotData.should.be.ok;
   });
   it('can parse a ping message', function() {
-    var p = new Parser();
+    var p = new Receiver();
     var message = 'Hello';
     var packet = '89 ' + getHybiLengthAsHexString(message.length, true) + ' 34 83 a8 68 ' + getHexStringFromBuffer(mask(message, '34 83 a8 68'));
 
@@ -106,7 +106,7 @@ describe('Receiver', function() {
     gotPing.should.be.ok;
   });
   it('can parse a ping with no data', function() {
-    var p = new Parser();
+    var p = new Receiver();
     var packet = '89 00';
     
     var gotPing = false;
@@ -118,7 +118,7 @@ describe('Receiver', function() {
     gotPing.should.be.ok;
   });
   it('can parse a fragmented masked text message of 300 bytes with a ping in the middle', function() {
-    var p = new Parser();
+    var p = new Receiver();
     var message = 'A';
     for (var i = 0; i < 300; ++i) message += (i % 5).toString();
   
@@ -149,7 +149,7 @@ describe('Receiver', function() {
     gotPing.should.be.ok;
   });
   it('can parse a fragmented masked text message of 300 bytes with a ping in the middle, which is delievered over sevaral tcp packets', function() {
-    var p = new Parser();
+    var p = new Receiver();
     var message = 'A';
     for (var i = 0; i < 300; ++i) message += (i % 5).toString();
   
@@ -184,7 +184,7 @@ describe('Receiver', function() {
     gotPing.should.be.ok;
   });
   it('can parse a 100 byte long masked binary message', function() {
-    var p = new Parser();
+    var p = new Receiver();
     var length = 100;
     var message = new Buffer(length);
     for (var i = 0; i < length; ++i) message[i] = i % 256;
@@ -201,7 +201,7 @@ describe('Receiver', function() {
     gotData.should.be.ok;
   });
   it('can parse a 256 byte long masked binary message', function() {
-    var p = new Parser();
+    var p = new Receiver();
     var length = 256;
     var message = new Buffer(length);
     for (var i = 0; i < length; ++i) message[i] = i % 256;
@@ -218,7 +218,7 @@ describe('Receiver', function() {
     gotData.should.be.ok;
   });
   it('can parse a 200kb long masked binary message', function() {
-    var p = new Parser();
+    var p = new Receiver();
     var length = 200 * 1024;
     var message = new Buffer(length);
     for (var i = 0; i < length; ++i) message[i] = i % 256;
@@ -235,7 +235,7 @@ describe('Receiver', function() {
     gotData.should.be.ok;
   });
   it('can parse a 200kb long unmasked binary message', function() {
-    var p = new Parser();
+    var p = new Receiver();
     var length = 200 * 1024;
     var message = new Buffer(length);
     for (var i = 0; i < length; ++i) message[i] = i % 256;
