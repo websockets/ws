@@ -12,6 +12,7 @@ The module also comes with a command line utility, `wscat`, which can either act
 
 ## Protocol support ##
 
+* **Hixie drafts 76** (Old and terribly outdated, but still in use by Safari and Opera. Server only for now.)
 * **HyBi drafts 07-12** (Use the option `protocolVersion: 8`, or argument `-p 8` for wscat)
 * **HyBi drafts 13-17** (Current default, alternatively option `protocolVersion: 13`, or argument `-p 13` for wscat)
 
@@ -107,7 +108,7 @@ See the test cases.
 * Expose Sender and Receiver configuration options through WebSocket, and test that properly.
 * Cleanup configuration for Sender, and add similar bits to Receiver.
 * Either expose a configurable setting indicating favoring speed or memory use, or do a timer based shrink of Receiver's pools.
-* Consider rewriting add() without copy: slice the buffer, then copy to overflow.
+* Make necessary changes to also support the even older hixie-75? Or at least write a few more tests for Hixie-76 to verify that fragmented nonce transfers really work.
 
 ## License ##
 
