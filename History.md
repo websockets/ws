@@ -1,3 +1,8 @@
+v0.4.3 - Feb 4th 2012
+=====================
+
+* Prioritized update: Corrected issue which would cause sockets to stay open longer than necessary, and resource leakage because of this. [einaros]
+
 v0.4.2 - Feb 4th 2012
 =====================
 
