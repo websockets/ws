@@ -3,17 +3,17 @@ var assert = require('assert')
 require('should');
 require('./hybi-common');
 
-describe('Receiver', function() {  
+describe('Receiver', function() {
   it('can parse text message', function() {
     var p = new Receiver();
     var packet = '00 48 65 6c 6c 6f ff';
-  
+
     var gotData = false;
     p.on('text', function(data) {
       gotData = true;
       assert.equal('Hello', data);
     });
-  
+
     p.add(getBufferFromHexString(packet));
     gotData.should.be.ok;
   });
@@ -21,14 +21,14 @@ describe('Receiver', function() {
   it('can parse multiple text messages', function() {
     var p = new Receiver();
     var packet = '00 48 65 6c 6c 6f ff 00 48 65 6c 6c 6f ff';
-  
+
     var gotData = false;
     var messages = [];
     p.on('text', function(data) {
       gotData = true;
       messages.push(data);
     });
-  
+
     p.add(getBufferFromHexString(packet));
     gotData.should.be.ok;
     for (var i = 0; i < 2; ++i) {
@@ -46,14 +46,14 @@ describe('Receiver', function() {
       '6c 6c 6f',
       'ff'
     ];
-  
+
     var gotData = false;
     var messages = [];
     p.on('text', function(data) {
       gotData = true;
       messages.push(data);
     });
-  
+
     for (var i = 0; i < packets.length; ++i) {
       p.add(getBufferFromHexString(packets[i]));
     }
@@ -73,14 +73,14 @@ describe('Receiver', function() {
       '6c 6c 6f',
       'ff'
     ];
-  
+
     var gotData = false;
     var messages = [];
     p.on('text', function(data) {
       gotData = true;
       messages.push(data);
     });
-  
+
     for (var i = 0; i < packets.length; ++i) {
       p.add(getBufferFromHexString(packets[i]));
     }
@@ -104,7 +104,7 @@ describe('Receiver', function() {
       '6c 6c 6f',
       'ff'
     ];
-  
+
     var gotData = false;
     var gotError = false;
     var messages = [];
@@ -112,10 +112,10 @@ describe('Receiver', function() {
       gotData = true;
       messages.push(data);
     });
-    p.on('error', function() {
-      gotError = true;
+    p.on('error', function(reason, code) {
+      gotError = code == true;
     });
-  
+
     for (var i = 0; i < packets.length && !gotError; ++i) {
       p.add(getBufferFromHexString(packets[i]));
     }
