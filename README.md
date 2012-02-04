@@ -12,7 +12,7 @@ The module also comes with a command line utility, `wscat`, which can either act
 
 ## Protocol support ##
 
-* **Hixie drafts 76** (Old and terribly outdated, but still in use by Safari and Opera. Server only for now.)
+* **Hixie draft 76** (Old and deprecated, but still in use by Safari and Opera. Added to ws version 0.4.2, but server only. Can be disabled by setting the `disableHixie` option to true.)
 * **HyBi drafts 07-12** (Use the option `protocolVersion: 8`, or argument `-p 8` for wscat)
 * **HyBi drafts 13-17** (Current default, alternatively option `protocolVersion: 13`, or argument `-p 13` for wscat)
 
