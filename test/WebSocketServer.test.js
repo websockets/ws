@@ -519,6 +519,35 @@ describe('WebSocketServer', function() {
   });
 
   describe('hixie mode', function() {
+    it('can be disabled', function(done) {
+      var wss = new WebSocketServer({port: ++port, disableHixie: true}, function() {
+        var options = {
+          port: port,
+          host: '127.0.0.1',
+          headers: {
+            'Connection': 'Upgrade',
+            'Upgrade': 'WebSocket',
+            'Sec-WebSocket-Key1': '3e6b263  4 17 80',
+            'Sec-WebSocket-Key2': '17  9 G`ZD9   2 2b 7X 3 /r90'
+          }
+        };
+        var req = http.request(options);
+        req.write('WjN}|M(6');
+        req.end();
+        req.on('response', function(res) {
+          res.statusCode.should.eql(401);
+          process.nextTick(function() {
+            wss.close();
+            done();
+          });
+        });
+      });
+      wss.on('connection', function(ws) {
+        done(new Error('connection must not be established'));
+      });
+      wss.on('error', function() {});
+    });
+
     describe('connection establishing', function() {
       it('does not accept connections with no sec-websocket-key1', function(done) {
         var wss = new WebSocketServer({port: ++port}, function() {
