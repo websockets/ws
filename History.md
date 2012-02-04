@@ -1,10 +1,12 @@
-v0.4.2 - In development
+v0.4.2 - Feb 4th 2012
 =====================
 
 * Breaking change: WebSocketServer's verifyOrigin option has been renamed to verifyClient. [einaros]
 * verifyClient now receives { origin: 'origin header', secure: true/false }, where 'secure' will be true for ssl connections. [einaros]
 * Split benchmark, in preparation for more thorough case. [einaros]
-* Introduced outdated hixie-76 draft support for server, since Safari (iPhone / iPad / OS X) and Opera still aren't up to date. [einaros]
+* Introduced hixie-76 draft support for server, since Safari (iPhone / iPad / OS X) and Opera still aren't updated to use Hybi. [einaros]
+* Expose 'supports' object from WebSocket, to indicate e.g. the underlying transport's support for binary data. [einaros]
+* Test and code cleanups. [einaros]
 
 v0.4.1 - Jan 25th 2012
 =====================
