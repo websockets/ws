@@ -1,14 +1,12 @@
 [![Build Status](https://secure.travis-ci.org/einaros/ws.png)](http://travis-ci.org/einaros/ws)
  
-# ws: a node.js websocket implementation #
+# ws: a node.js websocket library #
 
-`ws` is a simple to use websocket implementation, up-to-date against RFC-6455. 
-
-It is probably also the fastest websocket library running on node.js (http://hobbycoding.posterous.com/the-fastest-websocket-module-for-nodejs). 
+`ws` is a simple to use websocket implementation, up-to-date against RFC-6455, and [probably the fastest WebSocket library for node.js](http://hobbycoding.posterous.com/the-fastest-websocket-module-for-nodejs).
 
 Passes the quite extensible Autobahn test suite. See http://einaros.github.com/ws for the full reports.
 
-The module also comes with a command line utility, `wscat`, which can either act as a server (--listen), or client (--connect); Use it to debug simple websocket services.
+Comes with a command line utility, `wscat`, which can either act as a server (--listen), or client (--connect); Use it to debug simple websocket services.
 
 ## Protocol support ##
 
@@ -16,7 +14,7 @@ The module also comes with a command line utility, `wscat`, which can either act
 * **HyBi drafts 07-12** (Use the option `protocolVersion: 8`, or argument `-p 8` for wscat)
 * **HyBi drafts 13-17** (Current default, alternatively option `protocolVersion: 13`, or argument `-p 13` for wscat)
 
-See the echo.websocket.org example below for how to use the `protocolVersion` option.
+_See the echo.websocket.org example below for how to use the `protocolVersion` option._
 
 ## Usage ##
 
@@ -102,6 +100,24 @@ See the test cases.
 ### Running the tests ###
 
 `make test`
+
+## API Docs ##
+
+_Note: This api documentation is currently incomplete. For a better understanding of the api, see the test set._
+
+### WebSocket
+
+`supports.binary`
+
+> Returns true or false based on whether the underlying protocol (hixie, hybi, etc) has binary support.
+Example:
+
+```js
+var wss = new WebSocketServer({port: 8080});
+wss.on('connection', function(client) {
+  if (client.supports.binary) ...
+});
+```
 
 ## Todos ##
 
