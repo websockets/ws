@@ -1,3 +1,8 @@
+v0.4.4 - in development
+=====================
+
+* Pass original request object to verifyClient, for cookie or authentication verifications. [einaros]
+
 v0.4.3 - Feb 4th 2012
 =====================
 

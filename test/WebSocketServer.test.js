@@ -391,8 +391,10 @@ describe('WebSocketServer', function() {
       });
 
       it('verifyClient gets client origin', function(done) {
+        var verifyClientCalled = false;
         var wss = new WebSocketServer({port: ++port, verifyClient: function(info) {
           info.origin.should.eql('http://foobarbaz.com');
+          verifyClientCalled = true;
           return false;
         }}, function() {
           var options = {
@@ -409,6 +411,36 @@ describe('WebSocketServer', function() {
           var req = http.request(options);
           req.end();
           req.on('response', function(res) {
+            verifyClientCalled.should.be.ok;
+            wss.close();
+            done();
+          });
+        });
+        wss.on('error', function() {});
+      });
+
+      it('verifyClient gets original request', function(done) {
+        var verifyClientCalled = false;
+        var wss = new WebSocketServer({port: ++port, verifyClient: function(info) {
+          info.req.headers['sec-websocket-key'].should.eql('dGhlIHNhbXBsZSBub25jZQ==');
+          verifyClientCalled = true;
+          return false;
+        }}, function() {
+          var options = {
+            port: port,
+            host: '127.0.0.1',
+            headers: {
+              'Connection': 'Upgrade',
+              'Upgrade': 'websocket',
+              'Sec-WebSocket-Key': 'dGhlIHNhbXBsZSBub25jZQ==',
+              'Sec-WebSocket-Version': 13,
+              'Origin': 'http://foobarbaz.com'
+            }
+          };
+          var req = http.request(options);
+          req.end();
+          req.on('response', function(res) {
+            verifyClientCalled.should.be.ok;
             wss.close();
             done();
           });
@@ -494,13 +526,13 @@ describe('WebSocketServer', function() {
             data.should.eql('Hello');
             ws.terminate();
             wss.close();
-            done();            
+            done();
           });
         });
         wss.on('error', function() {});
       });
     });
-  
+
     describe('messaging', function() {
       it('can send data', function(done) {
         var wss = new WebSocketServer({port: ++port}, function() {
@@ -514,7 +546,7 @@ describe('WebSocketServer', function() {
         wss.on('connection', function(client) {
           client.send('hello!');
         });
-      });    
+      });
     });
   });
 
@@ -681,8 +713,10 @@ describe('WebSocketServer', function() {
       });
 
       it('verifyClient gets client origin', function(done) {
+        var verifyClientCalled = false;
         var wss = new WebSocketServer({port: ++port, verifyClient: function(info) {
           info.origin.should.eql('http://foobarbaz.com');
+          verifyClientCalled = true;
           return false;
         }}, function() {
           var options = {
@@ -700,6 +734,37 @@ describe('WebSocketServer', function() {
           req.write('WjN}|M(6');
           req.end();
           req.on('response', function(res) {
+            verifyClientCalled.should.be.ok;
+            wss.close();
+            done();
+          });
+        });
+        wss.on('error', function() {});
+      });
+
+      it('verifyClient gets original request', function(done) {
+        var verifyClientCalled = false;
+        var wss = new WebSocketServer({port: ++port, verifyClient: function(info) {
+          info.req.headers['sec-websocket-key1'].should.eql('3e6b263  4 17 80');
+          verifyClientCalled = true;
+          return false;
+        }}, function() {
+          var options = {
+            port: port,
+            host: '127.0.0.1',
+            headers: {
+              'Connection': 'Upgrade',
+              'Upgrade': 'WebSocket',
+              'Origin': 'http://foobarbaz.com',
+              'Sec-WebSocket-Key1': '3e6b263  4 17 80',
+              'Sec-WebSocket-Key2': '17  9 G`ZD9   2 2b 7X 3 /r90'
+            }
+          };
+          var req = http.request(options);
+          req.write('WjN}|M(6');
+          req.end();
+          req.on('response', function(res) {
+            verifyClientCalled.should.be.ok;
             wss.close();
             done();
           });
@@ -732,7 +797,7 @@ describe('WebSocketServer', function() {
             data.should.eql('Hello');
             ws.terminate();
             wss.close();
-            done();            
+            done();
           });
         });
         wss.on('error', function() {});
