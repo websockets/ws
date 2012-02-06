@@ -1104,7 +1104,7 @@ describe('WebSocket', function() {
     });
   });
 
-  describe('API emulation', function() {
+  describe('W3C API emulation', function() {
     it('should not throw errors when getting and setting', function(done) {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
@@ -1134,8 +1134,8 @@ describe('WebSocket', function() {
         var close = 0;
         var open = 0;
 
-        ws.onmessage = function(data) {
-          assert.ok(!!data.data);
+        ws.onmessage = function(messageEvent) {
+          assert.ok(!!messageEvent.data);
           ++message;
           ws.close();
         };
@@ -1165,6 +1165,22 @@ describe('WebSocket', function() {
         });
       });
     });
+
+    it('should receive text data wrapped in a MessageEvent when using addEventListener', function(done) {
+      server.createServer(++port, function(srv) {
+        var ws = new WebSocket('ws://localhost:' + port);
+        ws.addEventListener('open', function() {
+          ws.send('hi');
+        });
+        ws.addEventListener('message', function(messageEvent) {
+          assert.equal('hi', messageEvent.data);
+          ws.terminate();
+          srv.close();
+          done();
+        });
+      });
+    });
+
   });
 
   describe('ssl', function() {
