@@ -1,8 +1,9 @@
-v0.4.4 - in development
+v0.4.4 - Feb 6th 2012
 =====================
 
 * Pass original request object to verifyClient, for cookie or authentication verifications. [einaros]
 * Implemented addEventListener and slightly improved the emulation API by adding a MessageEvent with a readonly data attribute. [aslakhellesoy]
+* Rewrite parts of hybi receiver to avoid stack overflows for large amounts of packets bundled in the same buffer / packet. [einaros]
 
 v0.4.3 - Feb 4th 2012
 =====================
