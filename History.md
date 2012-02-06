@@ -2,6 +2,7 @@ v0.4.4 - in development
 =====================
 
 * Pass original request object to verifyClient, for cookie or authentication verifications. [einaros]
+* Implemented addEventListener and slightly improved the emulation API by adding a MessageEvent with a readonly data attribute. [aslakhellesoy]
 
 v0.4.3 - Feb 4th 2012
 =====================
