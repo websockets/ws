@@ -1,5 +1,5 @@
 [![Build Status](https://secure.travis-ci.org/einaros/ws.png)](http://travis-ci.org/einaros/ws)
- 
+
 # ws: a node.js websocket library #
 
 `ws` is a simple to use websocket implementation, up-to-date against RFC-6455, and [probably the fastest WebSocket library for node.js](http://hobbycoding.posterous.com/the-fastest-websocket-module-for-nodejs).
@@ -35,7 +35,7 @@ ws.on('message', function(data, flags) {
     // flags.masked will be set if the data was masked
 });
 ```
-    
+
 ### Sending binary data ###
 
 ```js
@@ -95,7 +95,9 @@ ws.on('message', function(data, flags) {
 
 ### Other examples ###
 
-See the test cases.
+For a full example with a browser client communicating with a ws server, see the examples folder.
+
+Otherwise, see the test cases.
 
 ### Running the tests ###
 
