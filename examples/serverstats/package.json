@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "repository": {
     "type": "git",
-    "url": "git://github.com/einaros/sse.js.git"
+    "url": "git://github.com/einaros/ws.git"
   },
   "engines": {
     "node": "~0.6.8"
