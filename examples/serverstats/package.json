@@ -1,0 +1,17 @@
+{
+  "author": "",
+  "name": "serverstats",
+  "version": "0.0.0",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/einaros/sse.js.git"
+  },
+  "engines": {
+    "node": "~0.6.8"
+  },
+  "dependencies": {
+    "express": "latest"
+  },
+  "devDependencies": {},
+  "optionalDependencies": {}
+}
