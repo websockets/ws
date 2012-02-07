@@ -1,3 +1,8 @@
+v0.4.5 - Feb 7th 2012
+=====================
+
+* Corrected regression bug in handling of connections with the initial frame delivered across both http upgrade head and a standalone packet. This would lead to a race condition, which in some cases could cause message corruption. [einaros]
+
 v0.4.4 - Feb 6th 2012
 =====================
 
