@@ -534,17 +534,25 @@ describe('WebSocketServer', function() {
     });
 
     describe('messaging', function() {
-      it('can send data', function(done) {
+      it('can send and receive data', function(done) {
+        var data = new Array(65*1024);
+        for (var i = 0; i < data.length; ++i) {
+          data[i] = String.fromCharCode(65 + ~~(25 * Math.random()));
+        }
+        data = data.join('');
         var wss = new WebSocketServer({port: ++port}, function() {
           var ws = new WebSocket('ws://localhost:' + port);
-          ws.on('message', function(data, flags) {
-            data.should.eql('hello!');
-            wss.close();
-            done();
+          ws.on('message', function(message, flags) {
+            ws.send(message);
           });
         });
         wss.on('connection', function(client) {
-          client.send('hello!');
+          client.on('message', function(message) {
+            message.should.eql(data);
+            wss.close();
+            done();
+          });
+          client.send(data);
         });
       });
     });
@@ -802,7 +810,6 @@ describe('WebSocketServer', function() {
         });
         wss.on('error', function() {});
       });
-
     });
   });
 
