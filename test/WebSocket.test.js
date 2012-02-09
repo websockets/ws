@@ -40,6 +40,20 @@ describe('WebSocket', function() {
   });
 
   describe('properties', function() {
+    it('#bytesReceived exposes number of bytes received', function(done) {
+      var wss = new WebSocketServer({port: ++port}, function() {
+        var ws = new WebSocket('ws://localhost:' + port);
+        ws.on('message', function() {
+          ws.bytesReceived.should.eql(8);
+          wss.close();
+          done();
+        });
+      });
+      wss.on('connection', function(ws) {
+        ws.send('foobar');
+      });
+    });
+
     it('#url exposes the server url', function(done) {
       server.createServer(++port, function(srv) {
         var url = 'ws://localhost:' + port;
