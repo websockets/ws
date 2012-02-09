@@ -40,9 +40,9 @@ wss.on('connection', function(ws) {
           return;
         }
         fs.writeFile(path + '/' + currentFile.name, data, function(error) {
-          currentFile = null;
           console.log('received %d bytes long file, %s', data.length, currentFile.path);
           ws.send(JSON.stringify({event: 'complete', path: currentFile.path}));
+          currentFile = null;
         });
       });
     }
