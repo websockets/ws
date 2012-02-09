@@ -1,3 +1,9 @@
+v0.4.7 - In development
+=====================
+
+* Exposed bytesReceived from websocket client object, which makes it possible to implement bandwidth sampling. [einaros]
+* Updated browser based file upload example to include and output per websocket channel bandwidth sampling. [einaros]
+
 v0.4.6 - Feb 9th 2012
 =====================
 
