@@ -8,15 +8,13 @@ app.use(express.static(__dirname + '/public'));
 
 function makePathForFile(filePath, prefix, cb) {
   if (typeof cb !== 'function') throw new Error('callback is required');
-  filePath = path.dirname(path.normalize(filePath));
-  filePath = filePath.replace(/^(\/|\\)+/, '');
+  filePath = path.dirname(path.normalize(filePath)).replace(/^(\/|\\)+/, '');
   var pieces = filePath.split('/');
   var incrementalPath = prefix;
   function step(error) {
     if (error) return cb(error);
     if (pieces.length == 0) return cb(null, incrementalPath);
-    var piece = pieces.shift();
-    incrementalPath += '/' + piece;
+    incrementalPath += '/' + pieces.shift();
     path.exists(incrementalPath, function(exists) {
       if (!exists) fs.mkdir(incrementalPath, step);
       else process.nextTick(step);
@@ -27,22 +25,26 @@ function makePathForFile(filePath, prefix, cb) {
 
 var wss = new WebSocketServer({server: app});
 wss.on('connection', function(ws) {
+  var currentFile = null;
   ws.on('message', function(data, flags) {
-    if (flags.binary) {
-      makePathForFile(ws.currentFile.path, __dirname + '/uploaded', function(error, path) {
-        if (error) {
-          console.log(error);
-          ws.send(JSON.stringify({event: 'error', path: ws.currentFile.path, message: error.message}));
-          return;
-        }
-        fs.writeFile(path + '/' + ws.currentFile.name, data, function(error) {
-          console.log('received %d bytes long file, %s', data.length, ws.currentFile.path);
-          ws.send(JSON.stringify({event: 'complete', path: ws.currentFile.path}));
-        });
-      });
+    if (!flags.binary) {
+      currentFile = JSON.parse(data);
+      // note: a real-world app would want to sanity check the data
     }
     else {
-      ws.currentFile = JSON.parse(data);
+      if (currentFile == null) return;
+      makePathForFile(currentFile.path, __dirname + '/uploaded', function(error, path) {
+        if (error) {
+          console.log(error);
+          ws.send(JSON.stringify({event: 'error', path: currentFile.path, message: error.message}));
+          return;
+        }
+        fs.writeFile(path + '/' + currentFile.name, data, function(error) {
+          currentFile = null;
+          console.log('received %d bytes long file, %s', data.length, currentFile.path);
+          ws.send(JSON.stringify({event: 'complete', path: currentFile.path}));
+        });
+      });
     }
   });
   ws.on('close', function() {
