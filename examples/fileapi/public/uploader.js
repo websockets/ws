@@ -18,12 +18,12 @@ function Uploader(url, cb) {
       self.sending = null;
       var callback = self.sendCallback;
       self.sendCallback = null;
+      if (callback) callback();
+      if (self.sendQueue.length === 0 && self.ondone) self.ondone(null);
       if (self.sendQueue.length > 0) {
         var args = self.sendQueue.pop();
         setTimeout(function() { self.sendFile.apply(self, args); }, 0);
       }
-      if (callback) callback();
-      if (self.sendQueue.length === 0 && self.ondone) self.ondone();
     }
     else if (data.event == 'error') {
       self.sendQueue = [];
@@ -32,12 +32,13 @@ function Uploader(url, cb) {
       self.sendCallback = null;
       var error = new Error('Server reported send error for file ' + data.path);
       if (callback) callback(error);
-      else throw error;
+      if (self.ondone) self.ondone(error);
     }
   }
 }
 
 Uploader.prototype.sendFile = function(file, cb) {
+  if (this.ws.readyState != WebSocket.OPEN) throw new Error('Not connected');
   if (this.sending) {
     this.sendQueue.push(arguments);
     return;
@@ -47,4 +48,8 @@ Uploader.prototype.sendFile = function(file, cb) {
   this.sendCallback = cb;
   this.ws.send(JSON.stringify(fileData));
   this.ws.send(file);
+}
+
+Uploader.prototype.close = function() {
+  this.ws.close();
 }

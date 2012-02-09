@@ -26,6 +26,7 @@ function onFilesSelected(e) {
     });
   }
   uploader.ondone = function() {
+    uploader.close();
     progress.innerHTML = '100% done, ' + totalFiles + ' files sent.';
   }
 }
