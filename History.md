@@ -1,3 +1,10 @@
+v0.4.6 - Feb 9th 2012
+=====================
+
+* Added browser based file upload example. [einaros]
+* Added server-to-browser status push example. [einaros]
+* Exposed pause() and resume() on WebSocket object, to enable client stream shaping. [einaros]
+
 v0.4.5 - Feb 7th 2012
 =====================
 
