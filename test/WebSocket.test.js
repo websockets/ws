@@ -115,12 +115,20 @@ describe('WebSocket', function() {
       });
     });
 
+    /*
+     * Ready state constants
+     */
+
     var readyStates = {
       CONNECTING: 0,
       OPEN: 1,
       CLOSING: 2,
       CLOSED: 3
     };
+
+    /*
+     * Ready state constant tests
+     */
 
     Object.keys(readyStates).forEach(function(state) {
       describe('.' + state, function() {
