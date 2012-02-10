@@ -27,7 +27,7 @@ util.inherits(BandwidthSampler, events.EventEmitter);
 function makePathForFile(filePath, prefix, cb) {
   if (typeof cb !== 'function') throw new Error('callback is required');
   filePath = path.dirname(path.normalize(filePath)).replace(/^(\/|\\)+/, '');
-  var pieces = filePath.split('/');
+  var pieces = filePath.split(/(\\|\/)/);
   var incrementalPath = prefix;
   function step(error) {
     if (error) return cb(error);
