@@ -1,3 +1,4 @@
+import sys
 import subprocess
 
 srcdir = '.'
@@ -5,6 +6,8 @@ blddir = 'build'
 VERSION = '0.4.7'
 
 def node_arch():
+  if sys.platform != 'darwin':
+    return
   cmd = [ 'node', '-e', 'console.log(process.arch)' ]
   p = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   out = p.communicate()[0].split('\n')[0]
@@ -16,9 +19,9 @@ def set_options(opt):
 def configure(conf):
   conf.check_tool('compiler_cxx')
   conf.check_tool('node_addon')
+  flags = ['-O3']
   arch = node_arch()
   arch_mappings = {'ia32': 'i386', 'x64': 'x86_64'}
-  flags = ['-O3']
   if arch in arch_mappings:
     arch = arch_mappings[arch]
     flags += ['-arch', arch]
