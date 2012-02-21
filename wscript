@@ -2,7 +2,7 @@ import subprocess
 
 srcdir = '.'
 blddir = 'build'
-VERSION = '0.4.6'
+VERSION = '0.4.7'
 
 def node_arch():
   cmd = [ 'node', '-e', 'console.log(process.arch)' ]
