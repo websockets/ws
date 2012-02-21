@@ -4,6 +4,9 @@ ALL_INTEGRATION = $(shell find test/ -name '*.integration.js')
 all:
 	node-waf configure build
 
+clean:
+	node-waf clean
+
 run-tests:
 	@./node_modules/.bin/mocha \
 		-t 2000 \
@@ -27,9 +30,9 @@ benchmark:
 	@node bench/parser.benchmark.js
 
 autobahn:
-	@NODE_PATH=lib node test/autobahn.js 
+	@NODE_PATH=lib node test/autobahn.js
 
 autobahn-server:
-	@NODE_PATH=lib node test/autobahn-server.js 
+	@NODE_PATH=lib node test/autobahn-server.js
 
 .PHONY: test

@@ -1,8 +1,9 @@
-v0.4.7 - In development
+v0.4.7 - Feb 21st 2012
 =====================
 
 * Exposed bytesReceived from websocket client object, which makes it possible to implement bandwidth sampling. [einaros]
 * Updated browser based file upload example to include and output per websocket channel bandwidth sampling. [einaros]
+* Changed build scripts to check which architecture is currently in use. Required after the node.js changes to have prebuilt packages target ia32 by default. [einaros]
 
 v0.4.6 - Feb 9th 2012
 =====================
