@@ -502,6 +502,64 @@ describe('WebSocketServer', function() {
         });
       });
 
+      it('client can be denied asynchronously', function(done) {
+        var wss = new WebSocketServer({port: ++port, verifyClient: function(o, cb) {
+          cb(false);
+        }}, function() {
+          var options = {
+            port: port,
+            host: '127.0.0.1',
+            headers: {
+              'Connection': 'Upgrade',
+              'Upgrade': 'websocket',
+              'Sec-WebSocket-Key': 'dGhlIHNhbXBsZSBub25jZQ==',
+              'Sec-WebSocket-Version': 8,
+              'Sec-WebSocket-Origin': 'http://foobar.com'
+            }
+          };
+          var req = http.request(options);
+          req.end();
+          req.on('response', function(res) {
+            res.statusCode.should.eql(401);
+            process.nextTick(function() {
+              wss.close();
+              done();
+            });
+          });
+        });
+        wss.on('connection', function(ws) {
+          done(new Error('connection must not be established'));
+        });
+        wss.on('error', function() {});
+      });
+
+      it('client can be accepted asynchronously', function(done) {
+        var wss = new WebSocketServer({port: ++port, verifyClient: function(o, cb) {
+          cb(true);
+        }}, function() {
+          var options = {
+            port: port,
+            host: '127.0.0.1',
+            headers: {
+              'Connection': 'Upgrade',
+              'Upgrade': 'websocket',
+              'Sec-WebSocket-Key': 'dGhlIHNhbXBsZSBub25jZQ==',
+              'Sec-WebSocket-Version': 13,
+              'Origin': 'http://foobar.com'
+            }
+          };
+          var req = http.request(options);
+          req.end();
+        });
+        wss.on('connection', function(ws) {
+          ws.terminate();
+          wss.close();
+          done();
+        });
+        wss.on('error', function() {});
+      });
+
+
       it('handles messages passed along with the upgrade request (upgrade head)', function(done) {
         var wss = new WebSocketServer({port: ++port, verifyClient: function(o) {
           return true;
