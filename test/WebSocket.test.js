@@ -287,6 +287,17 @@ describe('WebSocket', function() {
       });
     });
 
+    it('before connect can silently fail', function(done) {
+      server.createServer(++port, function(srv) {
+        var ws = new WebSocket('ws://localhost:' + port);
+        ws.on('error', function() {});
+        ws.ping('', {}, true);
+        srv.close();
+        ws.terminate();
+        done();
+      });
+    });
+
     it('without message is successfully transmitted to the server', function(done) {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
@@ -334,6 +345,32 @@ describe('WebSocket', function() {
   });
 
   describe('#pong', function() {
+    it('before connect should fail', function(done) {
+      server.createServer(++port, function(srv) {
+        var ws = new WebSocket('ws://localhost:' + port);
+        ws.on('error', function() {});
+        try {
+          ws.pong();
+        }
+        catch (e) {
+          srv.close();
+          ws.terminate();
+          done();
+        }
+      });
+    });
+
+    it('before connect can silently fail', function(done) {
+      server.createServer(++port, function(srv) {
+        var ws = new WebSocket('ws://localhost:' + port);
+        ws.on('error', function() {});
+        ws.pong('', {}, true);
+        srv.close();
+        ws.terminate();
+        done();
+      });
+    });
+
     it('without message is successfully transmitted to the server', function(done) {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
