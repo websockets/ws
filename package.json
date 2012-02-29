@@ -25,6 +25,7 @@
     "mocha": "0.8.x",
     "should": "0.4.2",
     "benchmark": "0.3.x",
-    "tinycolor": "0.x"
+    "tinycolor": "0.x",
+    "ansi": "latest"
   }
 }
