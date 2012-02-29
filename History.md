@@ -1,3 +1,9 @@
+v0.4.8 - Feb 29th 2012
+=====================
+
+* Allow verifyClient to run asynchronously [karlsequin]
+* Various bugfixes and cleanups. [einaros]
+
 v0.4.7 - Feb 21st 2012
 =====================
 
