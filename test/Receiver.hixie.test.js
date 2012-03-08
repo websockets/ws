@@ -1,6 +1,6 @@
 var assert = require('assert')
+  , expect = require('expect.js')
   , Receiver = require('../lib/Receiver.hixie');
-require('should');
 require('./hybi-common');
 
 describe('Receiver', function() {
@@ -15,7 +15,7 @@ describe('Receiver', function() {
     });
 
     p.add(getBufferFromHexString(packet));
-    gotData.should.be.ok;
+    expect(gotData).to.equal(true);
   });
 
   it('can parse multiple text messages', function() {
@@ -30,9 +30,9 @@ describe('Receiver', function() {
     });
 
     p.add(getBufferFromHexString(packet));
-    gotData.should.be.ok;
+    expect(gotData).to.equal(true);
     for (var i = 0; i < 2; ++i) {
-      messages[i].should.eql('Hello');
+      expect(messages[i]).to.equal('Hello');
     }
   });
 
@@ -57,49 +57,18 @@ describe('Receiver', function() {
     for (var i = 0; i < packets.length; ++i) {
       p.add(getBufferFromHexString(packets[i]));
     }
-    gotData.should.be.ok;
+    expect(gotData).to.equal(true);
     for (var i = 0; i < 2; ++i) {
-      messages[i].should.eql('Hello');
+      expect(messages[i]).to.equal('Hello');
     }
-  });
-
-  it('ignores empty messages', function() {
-    var p = new Receiver();
-    var packets = [
-      '00 ff',
-      '00 ff 00',
-      'ff 00 ff 00 ff',
-      '00',
-      '6c 6c 6f',
-      'ff'
-    ];
-
-    var gotData = false;
-    var messages = [];
-    p.on('text', function(data) {
-      gotData = true;
-      messages.push(data);
-    });
-
-    for (var i = 0; i < packets.length; ++i) {
-      p.add(getBufferFromHexString(packets[i]));
-    }
-    gotData.should.be.ok;
-    messages[0].should.eql('');
-    messages[1].should.eql('');
-    messages[2].should.eql('');
-    messages[3].should.eql('');
-    messages[4].should.eql('');
-    messages[5].should.eql('llo');
-    messages.length.should.eql(6);
   });
 
   it('emits an error if a payload doesnt start with 0x00', function() {
     var p = new Receiver();
     var packets = [
-      '00 ff',
-      '00 ff ff',
-      'ff 00 ff 00 ff',
+      '00 6c ff',
+      '00 6c ff ff',
+      'ff 00 6c ff 00 6c ff',
       '00',
       '6c 6c 6f',
       'ff'
@@ -119,9 +88,31 @@ describe('Receiver', function() {
     for (var i = 0; i < packets.length && !gotError; ++i) {
       p.add(getBufferFromHexString(packets[i]));
     }
-    gotError.should.be.ok;
-    messages[0].should.eql('');
-    messages[1].should.eql('');
-    messages.length.should.eql(2);
+    expect(gotError).to.equal(true);
+    expect(messages[0]).to.equal('l');
+    expect(messages[1]).to.equal('l');
+    expect(messages.length).to.equal(2);
+  });
+
+  it('can parse close messages', function() {
+    var p = new Receiver();
+    var packets = [
+      '00 ff'
+    ];
+
+    var gotClose = false;
+    var gotError = false;
+    p.on('close', function() {
+      gotClose = true;
+    });
+    p.on('error', function(reason, code) {
+      gotError = code == true;
+    });
+
+    for (var i = 0; i < packets.length && !gotError; ++i) {
+      p.add(getBufferFromHexString(packets[i]));
+    }
+    expect(gotClose).to.equal(true);
+    expect(gotError).to.equal(false);
   });
 });

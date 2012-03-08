@@ -21,6 +21,17 @@ describe('Sender', function() {
       });
     });
 
+    it('silently ignores empty messages (which would be close frames)', function(done) {
+      var socket = {
+        write: function(data, encoding, cb) {
+          done(new Error('should not write this empty message'));
+        }
+      };
+      var sender = new Sender(socket, {});
+      sender.send('', {}, function() {});
+      done();
+    });
+
     it('throws an exception for binary data', function(done) {
       var socket = {
         write: function(data, encoding, cb) {
