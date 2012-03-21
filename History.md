@@ -1,3 +1,8 @@
+v0.4.9 - Mar 21st 2012
+=====================
+
+* Various hixie bugfixes (such as proper close frame handling). [einaros]
+
 v0.4.8 - Feb 29th 2012
 =====================
 
