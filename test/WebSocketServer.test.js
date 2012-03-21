@@ -504,7 +504,9 @@ describe('WebSocketServer', function() {
 
       it('client can be denied asynchronously', function(done) {
         var wss = new WebSocketServer({port: ++port, verifyClient: function(o, cb) {
-          cb(false);
+          process.nextTick(function() {
+            cb(false);
+          });
         }}, function() {
           var options = {
             port: port,
@@ -535,7 +537,9 @@ describe('WebSocketServer', function() {
 
       it('client can be accepted asynchronously', function(done) {
         var wss = new WebSocketServer({port: ++port, verifyClient: function(o, cb) {
-          cb(true);
+          process.nextTick(function() {
+            cb(true);
+          });
         }}, function() {
           var options = {
             port: port,
