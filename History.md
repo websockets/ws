@@ -1,3 +1,8 @@
+v0.4.10 - Mar 22th 2012
+=====================
+
+* Final hixie close frame fixes. [nicokaiser]
+
 v0.4.9 - Mar 21st 2012
 =====================
 
