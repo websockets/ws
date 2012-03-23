@@ -36,6 +36,20 @@ describe('Receiver', function() {
     }
   });
 
+  it('can parse empty message', function() {
+    var p = new Receiver();
+    var packet = '00 ff';
+
+    var gotData = false;
+    p.on('text', function(data) {
+      gotData = true;
+      assert.equal('', data);
+    });
+
+    p.add(getBufferFromHexString(packet));
+    expect(gotData).to.equal(true);
+  });
+
   it('can parse text messages delivered over multiple frames', function() {
     var p = new Receiver();
     var packets = [
@@ -97,7 +111,7 @@ describe('Receiver', function() {
   it('can parse close messages', function() {
     var p = new Receiver();
     var packets = [
-      '00 ff'
+      'ff 00'
     ];
 
     var gotClose = false;
