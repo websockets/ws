@@ -1,3 +1,11 @@
+v0.4.11 - Mar 24th 2012
+=====================
+
+* node v0.7 compatibillity release
+* gyp support [TooTallNate]
+* commander dependency update [jwueller]
+* loadbalancer support [nicokaiser]
+
 v0.4.10 - Mar 22th 2012
 =====================
 
