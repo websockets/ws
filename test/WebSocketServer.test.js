@@ -194,6 +194,18 @@ describe('WebSocketServer', function() {
       });
     });
 
+    it('can be disabled', function(done) {
+      var wss = new WebSocketServer({port: ++port, clientTracking: false}, function() {
+        wss.clients.length.should.eql(0);
+        var ws = new WebSocket('ws://localhost:' + port);
+      });
+      wss.on('connection', function(client) {
+        wss.clients.length.should.eql(0);
+        wss.close();
+        done();
+      });
+    });
+
     it('is updated when client terminates the connection', function(done) {
       var ws;
       var wss = new WebSocketServer({port: ++port}, function() {
