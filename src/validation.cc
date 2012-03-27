@@ -9,7 +9,6 @@
 #include <node_buffer.h>
 #include <node_object_wrap.h>
 #include <stdlib.h>
-#include <strings.h>
 #include <wchar.h>
 #include <stdio.h>
 
@@ -45,7 +44,7 @@ static int isLegalUTF8(const uint8_t *source, const int length)
   default: return 0;
   /* Everything else falls through when "true"... */
   /* RFC3629 makes 5 & 6 bytes UTF-8 illegal
-  case 6: if ((a = (*--srcptr)) < 0x80 || a > 0xBF) return 0; 
+  case 6: if ((a = (*--srcptr)) < 0x80 || a > 0xBF) return 0;
   case 5: if ((a = (*--srcptr)) < 0x80 || a > 0xBF) return 0; */
   case 4: if ((a = (*--srcptr)) < 0x80 || a > 0xBF) return 0;
   case 3: if ((a = (*--srcptr)) < 0x80 || a > 0xBF) return 0;
@@ -75,7 +74,7 @@ int is_valid_utf8 (size_t len, char *value)
     if (extrabytes + i >= len)
       return 0;
 
-    if (isLegalUTF8 ((uint8_t *) (value + i), extrabytes + 1) == 0) return 0;      
+    if (isLegalUTF8 ((uint8_t *) (value + i), extrabytes + 1) == 0) return 0;
 
     switch (extrabytes) {
       case 5 : ch += (uint8_t) value[i++]; ch <<= 6;
@@ -102,7 +101,7 @@ int is_valid_utf8 (size_t len, char *value)
 class Validation : public ObjectWrap
 {
 public:
-  
+
   static void Initialize(v8::Handle<v8::Object> target)
   {
     HandleScope scope;
@@ -111,9 +110,9 @@ public:
     NODE_SET_METHOD(t->GetFunction(), "isValidUTF8", Validation::IsValidUTF8);
     target->Set(String::NewSymbol("Validation"), t->GetFunction());
   }
-  
+
 protected:
-  
+
   static Handle<Value> New(const Arguments& args)
   {
     HandleScope scope;
@@ -121,7 +120,7 @@ protected:
     validation->Wrap(args.This());
     return args.This();
   }
-  
+
   static Handle<Value> IsValidUTF8(const Arguments& args)
   {
     HandleScope scope;
@@ -130,9 +129,9 @@ protected:
     }
     Local<Object> buffer_obj = args[0]->ToObject();
     char *buffer_data = Buffer::Data(buffer_obj);
-    size_t buffer_length = Buffer::Length(buffer_obj);    
+    size_t buffer_length = Buffer::Length(buffer_obj);
     return is_valid_utf8(buffer_length, buffer_data) == 1 ? scope.Close(True()) : scope.Close(False());
-   }  
+   }
 };
 
 extern "C" void init (Handle<Object> target)
