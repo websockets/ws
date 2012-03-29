@@ -33,13 +33,13 @@ When the Upgrade was successfully, the `callback` will be called with a `ws.WebS
 
 ### Event: 'error'
 
-`function(error) { }`
+`function (error) { }`
 
 If the underlying server emits an error, it will be forwarded here.
 
 ### Event: 'connection'
 
-`function(socket) { }`
+`function (socket) { }`
 
 When a new WebSocket connection is established. `socket` is an object of type `ws.WebSocket`.
 
