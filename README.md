@@ -105,7 +105,7 @@ Otherwise, see the test cases.
 
 ## API Docs ##
 
-See the docs/ directory for Node.js-like docs for the ws classes.
+See the doc/ directory for Node.js-like docs for the ws classes.
 
 
 ## Todos ##
