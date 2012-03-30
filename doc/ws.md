@@ -105,19 +105,9 @@ Streams data through calls to a user supplied function. `options` can be an obje
 
 Immediately shuts down the connection
 
-
 ### websocket.onopen
-
-Emulates the W3C Browser based WebSocket interface using function members.
-
 ### websocket.onerror
-
-Emulates the W3C Browser based WebSocket interface using function members.
-
 ### websocket.onclose
-
-Emulates the W3C Browser based WebSocket interface using function members.
-
 ### websocket.onmessage
 
 Emulates the W3C Browser based WebSocket interface using function members.
