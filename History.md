@@ -1,3 +1,10 @@
+v0.4.12 - Mar 30th 2012
+=====================
+
+* various memory leak / possible memory leak cleanups [einaros]
+* api documentation [nicokaiser]
+* add option to disable client tracking [nicokaiser]
+
 v0.4.11 - Mar 24th 2012
 =====================
 
