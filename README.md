@@ -105,21 +105,8 @@ Otherwise, see the test cases.
 
 ## API Docs ##
 
-_Note: This api documentation is currently incomplete. For a better understanding of the api, see the test set._
+See the doc/ directory for Node.js-like docs for the ws classes.
 
-### WebSocket
-
-`supports.binary`
-
-> Returns true or false based on whether the underlying protocol (hixie, hybi, etc) has binary support.
-Example:
-
-```js
-var wss = new WebSocketServer({port: 8080});
-wss.on('connection', function(client) {
-  if (client.supports.binary) ...
-});
-```
 
 ## Todos ##
 
