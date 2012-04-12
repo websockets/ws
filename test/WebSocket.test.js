@@ -146,12 +146,10 @@ describe('WebSocket', function() {
 
     Object.keys(readyStates).forEach(function(state) {
       describe('.' + state, function() {
-        it('is enumerable and immutable property', function() {
+        it('is enumerable property', function() {
           var propertyDescripter = Object.getOwnPropertyDescriptor(WebSocket, state)
           assert.equal(readyStates[state], propertyDescripter.value);
-          assert.equal(false, propertyDescripter.writable);
           assert.equal(true, propertyDescripter.enumerable);
-          assert.equal(false, propertyDescripter.configurable);
         });
       });
     });
