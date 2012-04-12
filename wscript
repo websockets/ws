@@ -3,7 +3,7 @@ import subprocess
 
 srcdir = '.'
 blddir = 'build'
-VERSION = '0.4.12'
+VERSION = '0.4.13'
 
 def node_arch():
   if sys.platform != 'darwin':

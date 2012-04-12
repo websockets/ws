@@ -1,3 +1,9 @@
+v0.4.13 - Apr 12th 2012
+=====================
+
+* circumvent node 0.6+ related memory leak caused by Object.defineProperty [nicokaiser]
+* improved error handling, improving stability in massive load use cases [nicokaiser]
+
 v0.4.12 - Mar 30th 2012
 =====================
 
