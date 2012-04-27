@@ -2,10 +2,10 @@ ALL_TESTS = $(shell find test/ -name '*.test.js')
 ALL_INTEGRATION = $(shell find test/ -name '*.integration.js')
 
 all:
-	node-waf configure build
+	node-gyp configure build
 
 clean:
-	node-waf clean
+	node-gyp clean
 
 run-tests:
 	@./node_modules/.bin/mocha \
