@@ -88,6 +88,35 @@ describe('WebSocketServer', function() {
       });
     });
 
+    it('uses a precreated http server listening on unix socket', function (done) {
+      var srv = http.createServer();
+      var sockPath = '/tmp/ws_socket_'+new Date().getTime()+'.'+Math.floor(Math.random() * 1000);
+      srv.listen(sockPath, function () {
+        var wss = new WebSocketServer({server: srv});
+        var ws = new WebSocket('ws+unix://'+sockPath);
+
+        wss.on('connection', function(client) {
+          wss.close();
+          srv.close();
+          done();
+        });
+      });
+    });
+
+    it('emits path specific connection event', function (done) {
+      var srv = http.createServer();
+      srv.listen(++port, function () {
+        var wss = new WebSocketServer({server: srv});
+        var ws = new WebSocket('ws://localhost:' + port+'/endpointName');
+
+        wss.on('connection/endpointName', function(client) {
+          wss.close();
+          srv.close();
+          done();
+        });
+      });
+    });
+
     it('can have two different instances listening on the same http server with two different paths', function(done) {
       var srv = http.createServer();
       srv.listen(++port, function () {
