@@ -11,10 +11,14 @@
     "wscat": "./bin/wscat"
   },
   "scripts": {
-    "test": "make test"
+    "test": "make test",
+    "install": "node install.js"
   },
   "engines": {
     "node": ">=0.4.0"
+  },
+  "config": {
+    "native" : false
   },
   "dependencies": {
     "commander": "0.5.x",
