@@ -2,7 +2,7 @@
   "author": "Einar Otto Stangvik <einaros@gmail.com> (http://2x.io)",
   "name": "ws",
   "description": "simple to use, blazing fast and thoroughly tested websocket client, server and console for node.js, up-to-date against RFC-6455",
-  "version": "0.4.13",
+  "version": "0.4.14",
   "repository": {
     "type": "git",
     "url": "git://github.com/einaros/ws.git"
@@ -11,8 +11,7 @@
     "wscat": "./bin/wscat"
   },
   "scripts": {
-    "test": "make test",
-    "preinstall": "make"
+    "test": "make test"
   },
   "engines": {
     "node": ">=0.4.0"

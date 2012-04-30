@@ -1,3 +1,11 @@
+v0.4.14 - Apr 30th 2012
+=====================
+* use node-gyp instead of node-waf [TooTallNate]
+* remove old windows compatibility makefile, and silently fall back to native modules [einaros]
+* ensure connection status [nicokaiser]
+* websocket client updated to use port 443 by default for wss:// connections [einaros]
+* support unix sockets [kschzt]
+
 v0.4.13 - Apr 12th 2012
 =====================
 
