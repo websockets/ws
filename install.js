@@ -17,7 +17,9 @@ if(build_native) {
   gyp.stderr.on('data', function(data) {
     process.stdout.write(data);
   });
-  gyp.on('exit', function(code) {});
+  gyp.on('exit', function(code) {
+    process.exit(code);
+  });
 }
 else {
   process.stdout.write("================================================================================\n");
