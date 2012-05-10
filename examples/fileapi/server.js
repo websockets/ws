@@ -4,7 +4,7 @@ var WebSocketServer = require('../../').Server
   , http = require('http')
   , util = require('util')
   , path = require('path')
-  , app = express()
+  , app = express.createServer()
   , events = require('events')
   , ansi = require('ansi')
   , cursor = ansi(process.stdout);
@@ -45,10 +45,8 @@ function makePathForFile(filePath, prefix, cb) {
 cursor.eraseData(2).goto(1, 1);
 app.use(express.static(__dirname + '/public'));
 
-var server = http.createServer(app);
-
 var clientId = 0;
-var wss = new WebSocketServer({server: server});
+var wss = new WebSocketServer({server: app});
 wss.on('connection', function(ws) {
   var thisId = ++clientId;
   cursor.goto(1, 4 + thisId).eraseLine();
@@ -100,6 +98,6 @@ fs.mkdir(__dirname + '/uploaded', function(error) {
   // ignore errors, most likely means directory exists
   console.log('Uploaded files will be saved to %s/uploaded.', __dirname);
   console.log('Remember to wipe this directory if you upload lots and lots.');
-  server.listen(8080);
+  app.listen(8080);
   console.log('Listening on http://localhost:8080');
 });
