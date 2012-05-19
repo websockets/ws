@@ -31,6 +31,21 @@ describe('Sender', function() {
       sender.send('', {}, function() {});
     });
 
+    it('frames and sends a buffer', function(done) {
+      var received;
+      var socket = {
+        write: function(data, encoding, cb) {
+          received = data;
+          process.nextTick(cb);
+        }
+      };
+      var sender = new Sender(socket, {});
+      sender.send(new Buffer('foobar'), {}, function() {
+        received.toString('utf8').should.eql('\u0000foobar\ufffd');
+        done();
+      });
+    });
+
     it('throws an exception for binary data', function(done) {
       var socket = {
         write: function(data, encoding, cb) {
