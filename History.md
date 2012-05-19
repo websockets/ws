@@ -2,6 +2,9 @@ v0.4.15 - IN DEVELOPMENT
 =====================
 * Enable fauxe streaming for hixie tansport. [einaros]
 * Allow hixie sender to deal with buffers. [einaros/pigne]
+* Allow error code 1011. [einaros]
+* Fix framing for empty packets (empty pings and pongs might break). [einaros]
+* Improve error and close handling, to avoid connections lingering in CLOSING state. [einaros]
 
 v0.4.14 - Apr 30th 2012
 =====================
