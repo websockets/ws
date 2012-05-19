@@ -1,3 +1,8 @@
+v0.4.15 - IN DEVELOPMENT
+=====================
+* Enable fauxe streaming for hixie tansport. [einaros]
+* Allow hixie sender to deal with buffers. [einaros/pigne]
+
 v0.4.14 - Apr 30th 2012
 =====================
 * use node-gyp instead of node-waf [TooTallNate]
