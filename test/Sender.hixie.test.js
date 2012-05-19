@@ -58,6 +58,25 @@ describe('Sender', function() {
       });
       sender.send(new Buffer(100), {binary: true}, function() {});
     });
+
+    it('can fauxe stream data', function(done) {
+      var received = [];
+      var socket = {
+        write: function(data, encoding, cb) {
+          received.push(data);
+          process.nextTick(cb);
+        }
+      };
+      var sender = new Sender(socket, {});
+      sender.send(new Buffer('foobar'), { fin: false }, function() {});
+      sender.send('bazbar', { fin: false }, function() {});
+      sender.send(new Buffer('end'), { fin: true }, function() {
+        received[0].toString('utf8').should.eql('\u0000foobar');
+        received[1].toString('utf8').should.eql('bazbar');
+        received[2].toString('utf8').should.eql('end\ufffd');
+        done();
+      });
+    });
   });
 
   describe('#close', function() {
@@ -72,6 +91,24 @@ describe('Sender', function() {
       var sender = new Sender(socket, {});
       sender.close(null, null, null, function() {
         received.toString('utf8').should.eql('\ufffd\u0000');
+        done();
+      });
+    });
+
+    it('sends a message end marker if fauxe streaming has started, before hixie close frame', function(done) {
+      var received = [];
+      var socket = {
+        write: function(data, encoding, cb) {
+          received.push(data);
+          if (cb) process.nextTick(cb);
+        }
+      };
+      var sender = new Sender(socket, {});
+      sender.send(new Buffer('foobar'), { fin: false }, function() {});
+      sender.close(null, null, null, function() {
+        received[0].toString('utf8').should.eql('\u0000foobar');
+        received[1].toString('utf8').should.eql('\ufffd');
+        received[2].toString('utf8').should.eql('\ufffd\u0000');
         done();
       });
     });
