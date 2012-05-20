@@ -1,4 +1,4 @@
-v0.4.15 - IN DEVELOPMENT
+v0.4.15 - May 20th 2012
 =====================
 * Enable fauxe streaming for hixie tansport. [einaros]
 * Allow hixie sender to deal with buffers. [einaros/pigne]
