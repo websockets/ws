@@ -10,7 +10,7 @@ if(build_native) {
   process.stdout.write("=                                                                              =\n");
   process.stdout.write("================================================================================\n");
 
-  var gyp = spawn('node-gyp', ['rebuild']);
+  var gyp = exec('node-gyp rebuild', {cwd: __dirname});
   gyp.stdout.on('data', function(data) {
     process.stdout.write(data);
   });
