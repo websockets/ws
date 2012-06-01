@@ -1,3 +1,7 @@
+v0.4.16 - June 1st 2012
+=====================
+* Build fix for Windows. [einaros]
+
 v0.4.15 - May 20th 2012
 =====================
 * Enable fauxe streaming for hixie tansport. [einaros]
