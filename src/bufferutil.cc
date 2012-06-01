@@ -19,7 +19,7 @@ using namespace node;
 class BufferUtil : public ObjectWrap
 {
 public:
-  
+
   static void Initialize(v8::Handle<v8::Object> target)
   {
     HandleScope scope;
@@ -30,9 +30,9 @@ public:
     NODE_SET_METHOD(t->GetFunction(), "merge", BufferUtil::Merge);
     target->Set(String::NewSymbol("BufferUtil"), t->GetFunction());
   }
-  
+
 protected:
-  
+
   static Handle<Value> New(const Arguments& args)
   {
     HandleScope scope;
@@ -47,12 +47,12 @@ protected:
     Local<Object> bufferObj = args[0]->ToObject();
     char* buffer = Buffer::Data(bufferObj);
     Local<Array> array = Local<Array>::Cast(args[1]);
-    uint arrayLength = array->Length();
-    uint offset = 0;
-    uint i;
+    unsigned int arrayLength = array->Length();
+    unsigned int offset = 0;
+    unsigned int i;
     for (i = 0; i < arrayLength; ++i) {
       Local<Object> src = array->Get(i)->ToObject();
-      uint length = Buffer::Length(src);
+      unsigned int length = Buffer::Length(src);
       memcpy(buffer + offset, Buffer::Data(src), length);
       offset += length;
     }
@@ -63,13 +63,13 @@ protected:
   {
     HandleScope scope;
     Local<Object> buffer_obj = args[0]->ToObject();
-    uint length = Buffer::Length(buffer_obj);
+    unsigned int length = Buffer::Length(buffer_obj);
     Local<Object> mask_obj = args[1]->ToObject();
-    uint *mask = (uint*)Buffer::Data(mask_obj);
-    uint* from = (uint*)Buffer::Data(buffer_obj);
-    uint len32 = length / 4;
-    uint i;
-    for (i = 0; i < len32; ++i) *(from + i) ^= *mask;  
+    unsigned int *mask = (unsigned int*)Buffer::Data(mask_obj);
+    unsigned int* from = (unsigned int*)Buffer::Data(buffer_obj);
+    unsigned int len32 = length / 4;
+    unsigned int i;
+    for (i = 0; i < len32; ++i) *(from + i) ^= *mask;
     from += i;
     switch (length % 4) {
       case 3: *((unsigned char*)from+2) = *((unsigned char*)from+2) ^ ((unsigned char*)mask)[2];
@@ -79,21 +79,21 @@ protected:
     }
     return True();
   }
-   
+
   static Handle<Value> Mask(const Arguments& args)
   {
     HandleScope scope;
     Local<Object> buffer_obj = args[0]->ToObject();
     Local<Object> mask_obj = args[1]->ToObject();
-    uint *mask = (uint*)Buffer::Data(mask_obj);
+    unsigned int *mask = (unsigned int*)Buffer::Data(mask_obj);
     Local<Object> output_obj = args[2]->ToObject();
-    uint dataOffset = args[3]->Int32Value();
-    uint length = args[4]->Int32Value();
-    uint* to = (uint*)(Buffer::Data(output_obj) + dataOffset);
-    uint* from = (uint*)Buffer::Data(buffer_obj);
-    uint len32 = length / 4;
-    uint i;
-    for (i = 0; i < len32; ++i) *(to + i) = *(from + i) ^ *mask;  
+    unsigned int dataOffset = args[3]->Int32Value();
+    unsigned int length = args[4]->Int32Value();
+    unsigned int* to = (unsigned int*)(Buffer::Data(output_obj) + dataOffset);
+    unsigned int* from = (unsigned int*)Buffer::Data(buffer_obj);
+    unsigned int len32 = length / 4;
+    unsigned int i;
+    for (i = 0; i < len32; ++i) *(to + i) = *(from + i) ^ *mask;
     to += i;
     from += i;
     switch (length % 4) {
