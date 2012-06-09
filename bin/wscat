@@ -133,7 +133,7 @@ else if (program.listen) {
       ws = null;
     });
     ws.on('error', function(code, description) {
-      wsConsole.print('error: ' + code + ' ' + description, Console.Colors.Yellow);
+      wsConsole.print('error: ' + code + (description ? ' ' + description : ''), Console.Colors.Yellow);
     });
     ws.on('message', function(data, flags) {
       wsConsole.print('< ' + data, Console.Colors.Blue);
@@ -163,7 +163,7 @@ else if (program.connect) {
     process.exit();
   });
   ws.on('error', function(code, description) {
-    wsConsole.print('error: ' + code + ' ' + description, Console.Colors.Yellow);
+    wsConsole.print('error: ' + code + (description ? ' ' + description : ''), Console.Colors.Yellow);
     process.exit(-1);
   });
   ws.on('message', function(data, flags) {
