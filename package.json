@@ -25,9 +25,9 @@
     "options": "latest"
   },
   "devDependencies": {
-    "mocha": "0.8.x",
-    "should": "0.6.3",
-    "expect.js": "0.1.2",
+    "mocha": "1.1.x",
+    "should": "0.6.x",
+    "expect.js": "0.1.x",
     "benchmark": "0.3.x",
     "tinycolor": "0.x",
     "ansi": "latest"
