@@ -1,3 +1,11 @@
+v0.4.17 - IN DEVELOPMENT
+=====================
+* Improve error handling during connection handshaking [einaros]
+* Ensure that errors are caught also after connection teardown [nicokaiser]
+* Update 'mocha' version to 1.1.0. [einaros]
+* Stop showing 'undefined' for some error logs. [tricknotes]
+* Update 'should' version to 0.6.3 [tricknotes]
+
 v0.4.16 - June 1st 2012
 =====================
 * Build fix for Windows. [einaros]
