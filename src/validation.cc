@@ -67,7 +67,7 @@ static int isLegalUTF8(const uint8_t *source, const int length)
 int is_valid_utf8 (size_t len, char *value)
 {
   /* is the string valid UTF-8? */
-  for (int i = 0; i < len; i++) {
+  for (unsigned int i = 0; i < len; i++) {
     uint32_t ch = 0;
     uint8_t  extrabytes = trailingBytesForUTF8[(uint8_t) value[i]];
 
@@ -139,3 +139,5 @@ extern "C" void init (Handle<Object> target)
   HandleScope scope;
   Validation::Initialize(target);
 }
+
+NODE_MODULE(validation, init)

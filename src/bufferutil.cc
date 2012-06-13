@@ -111,3 +111,5 @@ extern "C" void init (Handle<Object> target)
   HandleScope scope;
   BufferUtil::Initialize(target);
 }
+
+NODE_MODULE(bufferutil, init)
