@@ -1,4 +1,4 @@
-v0.4.17 - IN DEVELOPMENT
+v0.4.17 - June 13th 2012
 =====================
 * Improve error handling during connection handshaking [einaros]
 * Ensure that errors are caught also after connection teardown [nicokaiser]
