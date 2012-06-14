@@ -10,7 +10,7 @@
     "node": ">0.4.0"
   },
   "dependencies": {
-    "express": "2.x"
+    "express": "~3.0.0"
   },
   "devDependencies": {},
   "optionalDependencies": {}

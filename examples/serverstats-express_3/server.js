@@ -1,11 +1,14 @@
 var WebSocketServer = require('../../').Server
   , http = require('http')
   , express = require('express')
-  , app = express.createServer();
+  , app = express();
 
-app.listen(8080);
+app.use(express.static(__dirname + '/public'));
 
-var wss = new WebSocketServer({server: app});
+var server = http.createServer(app);
+server.listen(8080);
+
+var wss = new WebSocketServer({server: server});
 wss.on('connection', function(ws) {
   var id = setInterval(function() {
     ws.send(JSON.stringify(process.memoryUsage()));
