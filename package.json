@@ -22,6 +22,7 @@
   },
   "dependencies": {
     "commander": "0.5.x",
+    "tinycolor": "0.x",
     "options": "latest"
   },
   "devDependencies": {
@@ -29,7 +30,6 @@
     "should": "0.6.x",
     "expect.js": "0.1.x",
     "benchmark": "0.3.x",
-    "tinycolor": "0.x",
     "ansi": "latest"
   }
 }
