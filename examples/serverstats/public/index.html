@@ -12,12 +12,13 @@
     </style>
     <script>
       function updateStats(memuse) {
-        document.querySelector('div#rss').innerText = memuse.rss;
-        document.querySelector('div#heapTotal').innerText = memuse.heapTotal;
-        document.querySelector('div#heapUsed').innerText = memuse.heapUsed;
+        document.getElementById('rss').innerHTML = memuse.rss;
+        document.getElementById('heapTotal').innerHTML = memuse.heapTotal;
+        document.getElementById('heapUsed').innerHTML = memuse.heapUsed;
       }
 
-      var ws = new WebSocket("ws://localhost:8080");
+      var host = window.document.location.host.replace(/:.*/, '');
+      var ws = new WebSocket('ws://' + host + ':8080');
       ws.onmessage = function (event) {
         updateStats(JSON.parse(event.data));
       };
