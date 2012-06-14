@@ -1,3 +1,9 @@
+v0.4.18 - June 14th 2012
+=====================
+* Fixed incorrect md5 digest encoding in Hixie handshake [nicokaiser]
+* Added example of use with Express 3 [einaros]
+* Change installation procedure to not require --ws:native to build native extensions. They will now build if a compiler is available. [einaros]
+
 v0.4.17 - June 13th 2012
 =====================
 * Improve error handling during connection handshaking [einaros]
