@@ -97,6 +97,8 @@ ws.on('message', function(data, flags) {
 
 For a full example with a browser client communicating with a ws server, see the examples folder.
 
+Note that the usage together with Express 3.0 is quite different from Express 2.x. The difference is expressed in the two different serverstats-examples.
+
 Otherwise, see the test cases.
 
 ### Running the tests ###
