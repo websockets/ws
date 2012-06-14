@@ -63,6 +63,30 @@ wss.on('connection', function(ws) {
 });
 ```
 
+### Error handling best practices ###
+
+```js
+// If the WebSocket is closed before the following send is attempted
+ws.send('something');
+
+// Errors (both immediate and async write errors) can be detected in an optional callback.
+// The callback is also the only way of being notified that data has actually been sent.
+ws.send('something', function(error) {
+    // if error is null, the send has been completed,
+    // otherwise the error object will indicate what failed.
+});
+
+// Immediate errors can also be handled with try/catch-blocks, but **note**
+// that since sends are inherently asynchronous, socket write failures will *not*
+// be captured when this technique is used.
+try {
+    ws.send('something');
+}
+catch (e) {
+    // handle error
+}
+```
+
 ### echo.websocket.org demo ###
 
 ```js
@@ -108,14 +132,6 @@ Otherwise, see the test cases.
 ## API Docs ##
 
 See the doc/ directory for Node.js-like docs for the ws classes.
-
-
-## Todos ##
-
-* Expose Sender and Receiver configuration options through WebSocket, and test that properly.
-* Cleanup configuration for Sender, and add similar bits to Receiver.
-* Either expose a configurable setting indicating favoring speed or memory use, or do a timer based shrink of Receiver's pools.
-* Make necessary changes to also support the even older hixie-75? Or at least write a few more tests for Hixie-76 to verify that fragmented nonce transfers really work.
 
 ## License ##
 
