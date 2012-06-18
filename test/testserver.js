@@ -9,7 +9,7 @@ module.exports = {
   handlers: {
     valid: validServer,
     invalidKey: invalidRequestHandler,
-    closeAfterConnect: closeAfterConnectHandler    
+    closeAfterConnect: closeAfterConnectHandler
   },
   createServer: function(port, handler, cb) {
     if (handler && !cb) {
@@ -34,7 +34,7 @@ module.exports = {
  */
 
 function validServer(server, req, socket) {
-  if (typeof req.headers.upgrade === 'undefined' || 
+  if (typeof req.headers.upgrade === 'undefined' ||
     req.headers.upgrade.toLowerCase() !== 'websocket') {
     throw new Error('invalid headers');
     return;
@@ -44,11 +44,11 @@ function validServer(server, req, socket) {
     socket.end();
     throw new Error('websocket key is missing');
   }
-    
+
   // calc key
-  var key = req.headers['sec-websocket-key'];  
-  var shasum = crypto.createHash('sha1');  
-  shasum.update(key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11");  
+  var key = req.headers['sec-websocket-key'];
+  var shasum = crypto.createHash('sha1');
+  shasum.update(key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11");
   key = shasum.digest('base64');
 
   var headers = [
@@ -64,28 +64,28 @@ function validServer(server, req, socket) {
 
   var sender = new Sender(socket);
   var receiver = new Receiver();
-  receiver.on('text', function (message, flags) {
+  receiver.ontext = function (message, flags) {
     server.emit('message', message, flags);
     sender.send(message);
-  });
-  receiver.on('binary', function (message, flags) {
+  };
+  receiver.onbinary = function (message, flags) {
     flags = flags || {};
     flags.binary = true;
     server.emit('message', message, flags);
     sender.send(message, {binary: true});
-  });
-  receiver.on('ping', function (message, flags) {
+  };
+  receiver.onping = function (message, flags) {
     flags = flags || {};
     server.emit('ping', message, flags);
-  });
-  receiver.on('pong', function (message, flags) {
+  };
+  receiver.onpong = function (message, flags) {
     flags = flags || {};
     server.emit('pong', message, flags);
-  });
-  receiver.on('close', function (code, message, flags) {
+  };
+  receiver.onclose = function (code, message, flags) {
     flags = flags || {};
     server.emit('close', code, message, flags);
-  });
+  };
   socket.on('data', function (data) {
     receiver.add(data);
   });
@@ -95,7 +95,7 @@ function validServer(server, req, socket) {
 }
 
 function invalidRequestHandler(server, req, socket) {
-  if (typeof req.headers.upgrade === 'undefined' || 
+  if (typeof req.headers.upgrade === 'undefined' ||
     req.headers.upgrade.toLowerCase() !== 'websocket') {
     throw new Error('invalid headers');
     return;
@@ -105,11 +105,11 @@ function invalidRequestHandler(server, req, socket) {
     socket.end();
     throw new Error('websocket key is missing');
   }
-    
+
   // calc key
-  var key = req.headers['sec-websocket-key'];  
-  var shasum = crypto.createHash('sha1');  
-  shasum.update(key + "bogus");  
+  var key = req.headers['sec-websocket-key'];
+  var shasum = crypto.createHash('sha1');
+  shasum.update(key + "bogus");
   key = shasum.digest('base64');
 
   var headers = [
@@ -124,7 +124,7 @@ function invalidRequestHandler(server, req, socket) {
 }
 
 function closeAfterConnectHandler(server, req, socket) {
-  if (typeof req.headers.upgrade === 'undefined' || 
+  if (typeof req.headers.upgrade === 'undefined' ||
     req.headers.upgrade.toLowerCase() !== 'websocket') {
     throw new Error('invalid headers');
     return;
@@ -134,11 +134,11 @@ function closeAfterConnectHandler(server, req, socket) {
     socket.end();
     throw new Error('websocket key is missing');
   }
-    
+
   // calc key
-  var key = req.headers['sec-websocket-key'];  
-  var shasum = crypto.createHash('sha1');  
-  shasum.update(key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11");  
+  var key = req.headers['sec-websocket-key'];
+  var shasum = crypto.createHash('sha1');
+  shasum.update(key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11");
   key = shasum.digest('base64');
 
   var headers = [

@@ -9,10 +9,10 @@ describe('Receiver', function() {
     var packet = '00 48 65 6c 6c 6f ff';
 
     var gotData = false;
-    p.on('text', function(data) {
+    p.ontext = function(data) {
       gotData = true;
       assert.equal('Hello', data);
-    });
+    };
 
     p.add(getBufferFromHexString(packet));
     expect(gotData).to.equal(true);
@@ -24,10 +24,10 @@ describe('Receiver', function() {
 
     var gotData = false;
     var messages = [];
-    p.on('text', function(data) {
+    p.ontext = function(data) {
       gotData = true;
       messages.push(data);
-    });
+    };
 
     p.add(getBufferFromHexString(packet));
     expect(gotData).to.equal(true);
@@ -41,10 +41,10 @@ describe('Receiver', function() {
     var packet = '00 ff';
 
     var gotData = false;
-    p.on('text', function(data) {
+    p.ontext = function(data) {
       gotData = true;
       assert.equal('', data);
-    });
+    };
 
     p.add(getBufferFromHexString(packet));
     expect(gotData).to.equal(true);
@@ -63,10 +63,10 @@ describe('Receiver', function() {
 
     var gotData = false;
     var messages = [];
-    p.on('text', function(data) {
+    p.ontext = function(data) {
       gotData = true;
       messages.push(data);
-    });
+    };
 
     for (var i = 0; i < packets.length; ++i) {
       p.add(getBufferFromHexString(packets[i]));
@@ -91,13 +91,13 @@ describe('Receiver', function() {
     var gotData = false;
     var gotError = false;
     var messages = [];
-    p.on('text', function(data) {
+    p.ontext = function(data) {
       gotData = true;
       messages.push(data);
-    });
-    p.on('error', function(reason, code) {
+    };
+    p.onerror = function(reason, code) {
       gotError = code == true;
-    });
+    };
 
     for (var i = 0; i < packets.length && !gotError; ++i) {
       p.add(getBufferFromHexString(packets[i]));
@@ -116,12 +116,12 @@ describe('Receiver', function() {
 
     var gotClose = false;
     var gotError = false;
-    p.on('close', function() {
+    p.onclose = function() {
       gotClose = true;
-    });
-    p.on('error', function(reason, code) {
+    };
+    p.onerror = function(reason, code) {
       gotError = code == true;
-    });
+    };
 
     for (var i = 0; i < packets.length && !gotError; ++i) {
       p.add(getBufferFromHexString(packets[i]));
