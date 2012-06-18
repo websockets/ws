@@ -1,3 +1,9 @@
+v0.4.19 - in development
+=====================
+* Change sender to merge buffers for relatively small payloads, may improve perf in some cases [einaros]
+* Avoid EventEmitter for Receiver classes. As above this may improve perf. [einaros]
+* Renamed fallback files from the somewhat misleading '*Windows'. [einaros]
+
 v0.4.18 - June 14th 2012
 =====================
 * Fixed incorrect md5 digest encoding in Hixie handshake [nicokaiser]
