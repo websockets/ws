@@ -16,10 +16,11 @@ gyp.stderr.on('data', function(data) {
 });
 gyp.on('exit', function(code) {
   if (code !== 0) {
-    console.log('[ws v%s]'.blue + ' Native extension compilation failed.'.red, version);
-    console.log('[ws v%s]'.blue + ' On Windows, native extensions require Visual Studio and Python.'.red, version);
-    console.log('[ws v%s]'.blue + ' On Unix, native extensions require Python, make and a C++ compiler.'.red, version);
-    console.log('[ws v%s]'.blue + ' Start npm with --ws:verbose to show compilation output (if any).'.red, version);
+    console.log('[ws v%s]'.blue + ' Native code compile failed (but the module will still work):'.yellow, version);
+    console.log('[ws v%s]'.blue + ' The native extensions are faster, but not required.'.yellow, version);
+    console.log('[ws v%s]'.blue + ' On Windows, native extensions require Visual Studio and Python.'.yellow, version);
+    console.log('[ws v%s]'.blue + ' On Unix, native extensions require Python, make and a C++ compiler.'.yellow, version);
+    console.log('[ws v%s]'.blue + ' Start npm with --ws:verbose to show compilation output (if any).'.yellow, version);
   }
   else {
     console.log('[ws v%s]'.blue + ' Native extension compilation successful!'.green, version);
