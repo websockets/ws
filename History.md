@@ -1,4 +1,4 @@
-v0.4.19 - in development
+v0.4.19 - June 19th, 2012
 =====================
 * Change sender to merge buffers for relatively small payloads, may improve perf in some cases [einaros]
 * Avoid EventEmitter for Receiver classes. As above this may improve perf. [einaros]
