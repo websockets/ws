@@ -21,12 +21,12 @@
     "verbose" : false
   },
   "dependencies": {
-    "commander": "0.5.x",
+    "commander": "~0.6.1",
     "tinycolor": "0.x",
     "options": "latest"
   },
   "devDependencies": {
-    "mocha": "1.1.x",
+    "mocha": "~1.2.2",
     "should": "0.6.x",
     "expect.js": "0.1.x",
     "benchmark": "0.3.x",
