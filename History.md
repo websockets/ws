@@ -1,3 +1,7 @@
+v0.4.20 - June 26th, 2012
+=====================
+* node v0.8.0 compatibility release.
+
 v0.4.19 - June 19th, 2012
 =====================
 * Change sender to merge buffers for relatively small payloads, may improve perf in some cases [einaros]
