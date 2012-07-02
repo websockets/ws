@@ -1,24 +1,18 @@
 {
-  "author": "Einar Otto Stangvik <einaros@gmail.com> (http://2x.io)",
-  "name": "ws",
-  "description": "simple to use, blazing fast and thoroughly tested websocket client, server and console for node.js, up-to-date against RFC-6455",
-  "version": "0.4.19",
+  "author": "Eric Zhang",
+  "name": "binaryws",
+  "description": "Streaming optimized version of `ws`",
+  "version": "0.0.0",
   "repository": {
     "type": "git",
-    "url": "git://github.com/einaros/ws.git"
-  },
-  "bin": {
-    "wscat": "./bin/wscat"
+    "url": "git://github.com/binaryjs/binaryws.git"
   },
   "scripts": {
     "test": "make test",
     "install": "node install.js"
   },
   "engines": {
-    "node": ">=0.4.0"
-  },
-  "config": {
-    "verbose" : false
+    "node": ">=0.6.0"
   },
   "dependencies": {
     "commander": "~0.6.1",
