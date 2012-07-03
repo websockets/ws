@@ -37,6 +37,12 @@ When the Upgrade was successfully, the `callback` will be called with a `ws.WebS
 
 If the underlying server emits an error, it will be forwarded here.
 
+### Event: 'headers'
+
+`function (headers) { }`
+
+Emitted with the object of HTTP headers that are going to be written to the `Stream` as part of the handshake.
+
 ### Event: 'connection'
 
 `function (socket) { }`
