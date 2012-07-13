@@ -1,7 +1,7 @@
 {
   "author": "Eric Zhang",
   "name": "streamws",
-  "description": "Streaming optimized version of `ws`",
+  "description": "Lightly modified version of einaros/ws. TCP writes now return true/false to top",
   "version": "0.0.0",
   "repository": {
     "type": "git",
