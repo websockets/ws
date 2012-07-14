@@ -1,3 +1,9 @@
+v0.4.21 - July 14th, 2012
+=====================
+* Emit error if server reponds with anything other than status code 101. [einaros]
+* Added 'headers' event to server. [rauchg]
+* path.exists moved to fs.exists. [blakmatrix]
+
 v0.4.20 - June 26th, 2012
 =====================
 * node v0.8.0 compatibility release.
