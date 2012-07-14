@@ -9,7 +9,8 @@ module.exports = {
   handlers: {
     valid: validServer,
     invalidKey: invalidRequestHandler,
-    closeAfterConnect: closeAfterConnectHandler
+    closeAfterConnect: closeAfterConnectHandler,
+    return401: return401
   },
   createServer: function(port, handler, cb) {
     if (handler && !cb) {
@@ -146,6 +147,17 @@ function closeAfterConnectHandler(server, req, socket) {
     , 'Upgrade: websocket'
     , 'Connection: Upgrade'
     , 'Sec-WebSocket-Accept: ' + key
+  ];
+
+  socket.write(headers.concat('', '').join('\r\n'));
+  socket.end();
+}
+
+
+function return401(server, req, socket) {
+  var headers = [
+      'HTTP/1.1 401 Unauthorized'
+    , 'Content-type: text/html'
   ];
 
   socket.write(headers.concat('', '').join('\r\n'));

@@ -184,7 +184,8 @@ describe('WebSocket', function() {
   });
 
   describe('connection establishing', function() {
-    it('can disconnect before connection is established', function(done) {server.createServer(++port, function(srv) {
+    it('can disconnect before connection is established', function(done) {
+      server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
         ws.terminate();
         ws.on('open', function() {
@@ -225,6 +226,19 @@ describe('WebSocket', function() {
       server.createServer(++port, server.handlers.closeAfterConnect, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
         ws.on('close', function() {
+          srv.close();
+          done();
+        });
+      });
+    });
+
+    it('error is emitted if server aborts connection', function(done) {
+      server.createServer(++port, server.handlers.return401, function(srv) {
+        var ws = new WebSocket('ws://localhost:' + port);
+        ws.on('open', function() {
+          assert.fail('connect shouldnt be raised here');
+        });
+        ws.on('error', function() {
           srv.close();
           done();
         });
