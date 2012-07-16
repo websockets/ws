@@ -2,4 +2,4 @@ language: node_js
 npm_args: --ws:native
 node_js:
   - 0.6
-  - 0.7
+  - 0.8
