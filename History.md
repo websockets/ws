@@ -1,3 +1,7 @@
+v0.5.0 - IN DEVELOPMENT
+=====================
+* added w3c compatible CloseEvent for onclose / addEventListener("close", ...). [einaros]
+
 v0.4.21 - July 14th, 2012
 =====================
 * Emit error if server reponds with anything other than status code 101. [einaros]
