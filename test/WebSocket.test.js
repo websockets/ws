@@ -1289,6 +1289,38 @@ describe('WebSocket', function() {
       });
     });
 
+    it('should receive valid CloseEvent when server closes with code 1000', function(done) {
+      var wss = new WebSocketServer({port: ++port}, function() {
+        var ws = new WebSocket('ws://localhost:' + port);
+        ws.addEventListener('close', function(closeEvent) {
+          assert.equal(true, closeEvent.wasClean);
+          assert.equal(1000, closeEvent.code);
+          ws.terminate();
+          wss.close();
+          done();
+        });
+      });
+      wss.on('connection', function(client) {
+        client.close(1000);
+      });
+    });
+
+    it('should receive vaild CloseEvent when server closes with code 1001', function(done) {
+      var wss = new WebSocketServer({port: ++port}, function() {
+        var ws = new WebSocket('ws://localhost:' + port);
+        ws.addEventListener('close', function(closeEvent) {
+          assert.equal(false, closeEvent.wasClean);
+          assert.equal(1001, closeEvent.code);
+          assert.equal('some daft reason', closeEvent.reason);
+          ws.terminate();
+          wss.close();
+          done();
+        });
+      });
+      wss.on('connection', function(client) {
+        client.close(1001, 'some daft reason');
+      });
+    });
   });
 
   describe('ssl', function() {
