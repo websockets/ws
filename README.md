@@ -4,7 +4,7 @@
 
 `ws` is a simple to use websocket implementation, up-to-date against RFC-6455, and [probably the fastest WebSocket library for node.js](http://hobbycoding.posterous.com/the-fastest-websocket-module-for-nodejs).
 
-Passes the quite extensible Autobahn test suite. See http://einaros.github.com/ws for the full reports.
+Passes the quite extensive Autobahn test suite. See http://einaros.github.com/ws for the full reports.
 
 Comes with a command line utility, `wscat`, which can either act as a server (--listen), or client (--connect); Use it to debug simple websocket services.
 
