@@ -11,8 +11,7 @@
     "wscat": "./bin/wscat"
   },
   "scripts": {
-    "test": "make test",
-    "install": "node install.js"
+    "test": "make test"
   },
   "engines": {
     "node": ">=0.4.0"
