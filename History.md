@@ -1,6 +1,9 @@
-v0.5.0 - IN DEVELOPMENT
+v0.4.22 - October 3rd, 2012
 =====================
+* clear failsafe cleanup timeout once cleanup is called [AndreasMadsen]
 * added w3c compatible CloseEvent for onclose / addEventListener("close", ...). [einaros]
+* fix the sub protocol header handler [sonnyp]
+* fix unhandled exception if socket closes and 'error' is emitted [jmatthewsr-ms]
 
 v0.4.21 - July 14th, 2012
 =====================
