@@ -1,3 +1,8 @@
+v0.4.23 - November 19th, 2012
+=====================
+* Service release - last before major upgrade.
+* Changes default host from 127.0.0.1 to 0.0.0.0. [einaros]
+
 v0.4.22 - October 3rd, 2012
 =====================
 * clear failsafe cleanup timeout once cleanup is called [AndreasMadsen]
