@@ -46,6 +46,24 @@ describe('Sender', function() {
       });
     });
 
+    it('frames and sends a binary message', function(done) {
+      var message = 'Hello world';
+      var received;
+      var socket = {
+        write: function(data, encoding, cb) {
+          received = data;
+          process.nextTick(cb);
+        }
+      };
+      var sender = new Sender(socket, {});
+      sender.send(message, {binary: true}, function() {
+        received.toString('hex').should.eql(
+	// 0x80 0x0b H e l l o <sp> w o r l d
+	'800b48656c6c6f20776f726c64');
+        done();
+      });
+    });
+/*
     it('throws an exception for binary data', function(done) {
       var socket = {
         write: function(data, encoding, cb) {
@@ -58,7 +76,7 @@ describe('Sender', function() {
       });
       sender.send(new Buffer(100), {binary: true}, function() {});
     });
-
+*/
     it('can fauxe stream data', function(done) {
       var received = [];
       var socket = {

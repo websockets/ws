@@ -129,4 +129,30 @@ describe('Receiver', function() {
     expect(gotClose).to.equal(true);
     expect(gotError).to.equal(false);
   });
+
+  it('can parse binary messages delivered over multiple frames', function() {
+    var p = new Receiver();
+    var packets = [
+      '80 05 48',
+      '65 6c 6c',
+      '6f 80 80 05 48',
+      '65',
+      '6c 6c 6f'
+    ];
+
+    var gotData = false;
+    var messages = [];
+    p.ontext = function(data) {
+      gotData = true;
+      messages.push(data);
+    };
+
+    for (var i = 0; i < packets.length; ++i) {
+      p.add(getBufferFromHexString(packets[i]));
+    }
+    expect(gotData).to.equal(true);
+    for (var i = 0; i < 2; ++i) {
+      expect(messages[i]).to.equal('Hello');
+    }
+  });
 });
