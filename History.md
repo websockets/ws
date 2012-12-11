@@ -1,3 +1,8 @@
+v0.4.24 - December 6th, 2012
+=====================
+* Yet another intermediate release, to  not delay minor features any longer.
+* Native support installation issues further circumvented. [einaros]
+
 v0.4.23 - November 19th, 2012
 =====================
 * Service release - last before major upgrade.
