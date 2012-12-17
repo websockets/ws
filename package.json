@@ -12,7 +12,7 @@
   },
   "scripts": {
     "test": "make test",
-    "install": "node install.js"
+    "install": "node-gyp rebuild || (exit 0)"
   },
   "engines": {
     "node": ">=0.4.0"
