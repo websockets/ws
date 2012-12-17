@@ -1,5 +1,12 @@
 v0.4.24 - December 6th, 2012
 =====================
+* Removed install.js. [shtylman]
+* Added browser field to package.json. [shtylman]
+* Support overwriting host header. [Raynos]
+* Emit 'listening' also with custom http server. [sebiq]
+
+v0.4.24 - December 6th, 2012
+=====================
 * Yet another intermediate release, to  not delay minor features any longer.
 * Native support installation issues further circumvented. [einaros]
 
