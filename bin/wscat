@@ -84,6 +84,7 @@ program
   .option('-c, --connect <url>', 'connect to a websocket server')
   .option('-p, --protocol <version>', 'optional protocol version')
   .option('-o, --origin <origin>', 'optional origin')
+  .option('--host <host>', 'optional host')
   .option('-s, --subprotocol <protocol>', 'optional subprotocol')
   .parse(process.argv);
 
@@ -152,6 +153,7 @@ else if (program.connect) {
   if (program.protocol) options.protocolVersion = program.protocol;
   if (program.origin) options.origin = program.origin;
   if (program.subprotocol) options.protocol = program.subprotocol;
+  if (program.host) options.host = program.host;
   var ws = new WebSocket(program.connect, options);
   ws.on('open', function() {
     wsConsole.print('connected (press CTRL+C to quit)', Console.Colors.Green);
