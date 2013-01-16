@@ -2,7 +2,7 @@
   "author": "Eric Zhang",
   "name": "streamws",
   "description": "Lightly modified version of einaros/ws. TCP writes now return true/false to top",
-  "version": "0.0.1",
+  "version": "0.0.0",
   "repository": {
     "type": "git",
     "url": "git://github.com/binaryjs/streamws.git"
