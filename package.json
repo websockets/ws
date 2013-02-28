@@ -29,7 +29,5 @@
     "benchmark": "0.3.x",
     "ansi": "latest"
   },
-  "browser": {
-    "./index.js": "./lib/browser.js"
-  }
+  "browser": "./lib/browser.js"
 }
