@@ -1344,6 +1344,41 @@ describe('WebSocket', function() {
         done();
       });
     });
+	
+	it('can connect to secure websocket server with client side certificate', function(done) {
+      var options = {
+        key: fs.readFileSync('test/fixtures/key.pem'),
+        cert: fs.readFileSync('test/fixtures/certificate.pem'),
+        ca: [fs.readFileSync('test/fixtures/ca1-cert.pem')],
+        requestCert: true
+      };
+      var clientOptions = {
+        key: fs.readFileSync('test/fixtures/agent1-key.pem'),
+        cert: fs.readFileSync('test/fixtures/agent1-cert.pem')
+      };
+      var app = https.createServer(options, function (req, res) {
+        res.writeHead(200);
+        res.end();
+      });
+      var success = false;
+      var wss = new WebSocketServer({
+        server: app,
+        verifyClient: function(info) {
+          success = !!info.req.client.authorized;
+          return true;
+        }
+      });
+      app.listen(++port, function() {
+        var ws = new WebSocket('wss://localhost:' + port, clientOptions);
+      });
+      wss.on('connection', function(ws) {
+        app.close();
+        ws.terminate();
+        wss.close();
+        success.should.be.ok;
+        done();
+      });
+    });
 
     it('cannot connect to secure websocket server via ws://', function(done) {
       var options = {

@@ -63,6 +63,13 @@ This class represents a WebSocket connection. It is an `EventEmitter`.
     -- the following only apply if `address` is a String
   * `host` String
   * `origin` String
+  * `pfx` String|Buffer
+  * `key` String|Buffer
+  * `passphrase` String
+  * `cert` String|Buffer
+  * `ca` Array
+  * `ciphers` String
+  * `rejectUnauthorized` Boolean
 
 Instantiating with an `address` creates a new WebSocket client object. If `address` is an Array (request, socket, rest), it is instantiated as a Server client (e.g. called from the `ws.Server`).
 
