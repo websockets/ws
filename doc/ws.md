@@ -56,6 +56,14 @@ This class represents a WebSocket connection. It is an `EventEmitter`.
 
 ### new ws.WebSocket(address, [options])
 
+* `address` String|Array
+* `options` Object
+  * `protocol` String
+  * `protocolVersion` Number|String  
+    -- the following only apply if `address` is a String
+  * `host` String
+  * `origin` String
+
 Instantiating with an `address` creates a new WebSocket client object. If `address` is an Array (request, socket, rest), it is instantiated as a Server client (e.g. called from the `ws.Server`).
 
 ### websocket.bytesReceived
