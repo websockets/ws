@@ -146,10 +146,21 @@ describe('WebSocket', function() {
 
     Object.keys(readyStates).forEach(function(state) {
       describe('.' + state, function() {
-        it('is enumerable property', function() {
+        it('is enumerable property of class', function() {
           var propertyDescripter = Object.getOwnPropertyDescriptor(WebSocket, state)
           assert.equal(readyStates[state], propertyDescripter.value);
           assert.equal(true, propertyDescripter.enumerable);
+        });
+      });
+    });
+
+    server.createServer(++port, function(srv) {
+      var ws = new WebSocket('ws://localhost:' + port);
+      Object.keys(readyStates).forEach(function(state) {
+        describe('.' + state, function() {
+          it('is property of instance', function() {
+            assert.equal(readyStates[state], ws[state]);
+          });
         });
       });
     });
