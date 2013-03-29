@@ -498,6 +498,24 @@ describe('WebSocket', function() {
       });
     });
 
+    it('ArrayBuffer is auto-detected without binary flag', function(done) {
+      server.createServer(++port, function(srv) {
+        var ws = new WebSocket('ws://localhost:' + port);
+        var array = new Float32Array(5);
+        for (var i = 0; i < array.length; ++i) array[i] = i / 2;
+        ws.on('open', function() {
+          ws.send(array.buffer);
+        });
+        ws.onmessage = function (event) {
+          assert.ok(event.type = 'Binary');
+          assert.ok(areArraysEqual(array, new Float32Array(getArrayBuffer(event.data))));
+          ws.terminate();
+          srv.close();
+          done();
+        };
+      });
+    });
+
     it('before connect should fail', function(done) {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
