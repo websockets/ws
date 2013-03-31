@@ -80,6 +80,38 @@ describe('WebSocket', function() {
       });
     });
 
+    describe('#bufferedAmount', function() {
+      it('defaults to zero', function(done) {
+        server.createServer(++port, function(srv) {
+          var url = 'ws://localhost:' + port;
+          var ws = new WebSocket(url);
+          assert.equal(0, ws.bufferedAmount);
+          ws.terminate();
+          ws.on('close', function() {
+            srv.close();
+            done();
+          });
+        });
+      });
+
+      it('stress kernel write buffer', function(done) {
+        var wss = new WebSocketServer({port: ++port}, function() {
+          var ws = new WebSocket('ws://localhost:' + port);
+        });
+        wss.on('connection', function(ws) {
+          while (true) {
+            if (ws.bufferedAmount > 0) break;
+            ws.send((new Array(10000)).join('hello'));
+          }
+          ws.terminate();
+          ws.on('close', function() {
+            wss.close();
+            done();
+          });
+        });
+      });
+    });
+
     describe('#readyState', function() {
       it('defaults to connecting', function(done) {
         server.createServer(++port, function(srv) {
