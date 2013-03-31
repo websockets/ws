@@ -516,6 +516,23 @@ describe('WebSocket', function() {
       });
     });
 
+    it('Buffer is auto-detected without binary flag', function(done) {
+      server.createServer(++port, function(srv) {
+        var ws = new WebSocket('ws://localhost:' + port);
+        var buf = new Buffer('foobar');
+        ws.on('open', function() {
+          ws.send(buf);
+        });
+        ws.onmessage = function (event) {
+          assert.ok(event.type = 'Binary');
+          assert.ok(areArraysEqual(event.data, buf));
+          ws.terminate();
+          srv.close();
+          done();
+        };
+      });
+    });
+
     it('before connect should fail', function(done) {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
