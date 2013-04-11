@@ -19,7 +19,9 @@ This class is a WebSocket server. It is an `EventEmitter`.
 
 Construct a new server object.
 
-Either `port` or `server` must be provided, otherwise you might enable `noServer` if you want to pass the requests directly.
+Either `port` or `server` must be provided, otherwise you might enable
+`noServer` if you want to pass the requests directly. Please note that the
+`callback` is only used when you supply the a `port` number in the options.
 
 ### server.close([code], [data])
 
