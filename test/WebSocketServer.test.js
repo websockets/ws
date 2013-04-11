@@ -5,7 +5,7 @@ var http = require('http')
   , fs = require('fs')
   , should = require('should');
 
-var port = 20000;
+var port = 8000;
 
 function getArrayBuffer(buf) {
   var l = buf.length;
