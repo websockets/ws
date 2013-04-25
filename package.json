@@ -20,7 +20,7 @@
   "dependencies": {
     "commander": "~0.6.1",
     "tinycolor": "0.x",
-    "options": ">=0.0.4"
+    "options": ">=0.0.5"
   },
   "devDependencies": {
     "mocha": "~1.2.1",
