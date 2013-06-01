@@ -509,14 +509,15 @@ describe('WebSocket', function() {
     it('send and receive binary data as an array', function(done) {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
-        var array = new Float32Array(5);
+        var array = new Float32Array(6);
         for (var i = 0; i < array.length; ++i) array[i] = i / 2;
+        var partial = array.subarray(2, 5);
         ws.on('open', function() {
-          ws.send(array, {binary: true});
+          ws.send(partial, {binary: true});
         });
         ws.on('message', function(message, flags) {
           assert.ok(flags.binary);
-          assert.ok(areArraysEqual(array, new Float32Array(getArrayBuffer(message))));
+          assert.ok(areArraysEqual(partial, new Float32Array(getArrayBuffer(message))));
           ws.terminate();
           srv.close();
           done();
