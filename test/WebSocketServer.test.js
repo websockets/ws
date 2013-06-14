@@ -116,6 +116,17 @@ describe('WebSocketServer', function() {
         });
       });
     });
+    
+    it('emits request object as second argument of the connection event', function (done) {
+      var wss = new WebSocketServer({port: ++port}, function() {
+        var ws = new WebSocket('ws://localhost:' + port);
+      });
+      wss.on('connection', function(client, request) {
+        (typeof request).should.eql('object');
+        wss.close();
+        done();
+      });
+    });
 
     it('can have two different instances listening on the same http server with two different paths', function(done) {
       var srv = http.createServer();
