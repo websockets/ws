@@ -47,9 +47,9 @@ Emitted with the object of HTTP headers that are going to be written to the `Str
 
 ### Event: 'connection'
 
-`function (socket) { }`
+`function (socket, request) { }`
 
-When a new WebSocket connection is established. `socket` is an object of type `ws.WebSocket`.
+When a new WebSocket connection is established. `socket` is an object of type `ws.WebSocket`. `request` is the client http request that initiated the WebSocket.
 
 
 ## Class: ws.WebSocket
