@@ -1383,7 +1383,7 @@ describe('WebSocket', function() {
       });
     });
 
-    it('should receive vaild CloseEvent when server closes with code 1001', function(done) {
+    it('should receive valid CloseEvent when server closes with code 1001', function(done) {
       var wss = new WebSocketServer({port: ++port}, function() {
         var ws = new WebSocket('ws://localhost:' + port);
         ws.addEventListener('close', function(closeEvent) {
@@ -1397,6 +1397,32 @@ describe('WebSocket', function() {
       });
       wss.on('connection', function(client) {
         client.close(1001, 'some daft reason');
+      });
+    });
+
+    it('should have target set on Events', function(done) {
+      var wss = new WebSocketServer({port: ++port}, function() {
+        var ws = new WebSocket('ws://localhost:' + port);
+        ws.addEventListener('open', function(openEvent) {
+          assert.equal(ws, openEvent.target);
+        });
+        ws.addEventListener('message', function(messageEvent) {
+          assert.equal(ws, messageEvent.target);
+          wss.close();
+        });
+        ws.addEventListener('close', function(closeEvent) {
+          assert.equal(ws, closeEvent.target);
+          ws.emit('error', new Error('forced'));
+        });
+        ws.addEventListener('error', function(errorEvent) {
+          assert.equal(errorEvent.message, 'forced');
+          assert.equal(ws, errorEvent.target);
+          ws.terminate();
+          done();
+        });
+      });
+      wss.on('connection', function(client) {
+        client.send('hi')
       });
     });
   });
