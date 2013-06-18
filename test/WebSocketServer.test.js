@@ -633,6 +633,98 @@ describe('WebSocketServer', function() {
         });
         wss.on('error', function() {});
       });
+
+      it('selects the first protocol by default', function(done) {
+        var wss = new WebSocketServer({port: ++port}, function() {
+          var ws = new WebSocket('ws://localhost:' + port, {protocol: 'prot1, prot2'});
+          ws.on('open', function(client) {
+              ws.protocol.should.eql('prot1');
+              wss.close();
+              done();
+          });
+        });
+      });
+
+      it('selects the last protocol via protocol handler', function(done) {
+        var wss = new WebSocketServer({port: ++port, handleProtocols: function(ps, cb) {
+            cb(true, ps[ps.length-1]); }}, function() {
+          var ws = new WebSocket('ws://localhost:' + port, {protocol: 'prot1, prot2'});
+          ws.on('open', function(client) {
+              ws.protocol.should.eql('prot2');
+              wss.close();
+              done();
+          });
+        });
+      });
+
+      it('client detects invalid server protocol', function(done) {
+        var wss = new WebSocketServer({port: ++port, handleProtocols: function(ps, cb) {
+            cb(true, 'prot3'); }}, function() {
+          var ws = new WebSocket('ws://localhost:' + port, {protocol: 'prot1, prot2'});
+          ws.on('open', function(client) {
+              done(new Error('connection must not be established'));
+          });
+          ws.on('error', function() {
+              done();
+          });
+        });
+      });
+
+      it('client detects no server protocol', function(done) {
+        var wss = new WebSocketServer({port: ++port, handleProtocols: function(ps, cb) {
+            cb(true); }}, function() {
+          var ws = new WebSocket('ws://localhost:' + port, {protocol: 'prot1, prot2'});
+          ws.on('open', function(client) {
+              done(new Error('connection must not be established'));
+          });
+          ws.on('error', function() {
+              done();
+          });
+        });
+      });
+
+      it('client refuses server protocols', function(done) {
+        var wss = new WebSocketServer({port: ++port, handleProtocols: function(ps, cb) {
+            cb(false); }}, function() {
+          var ws = new WebSocket('ws://localhost:' + port, {protocol: 'prot1, prot2'});
+          ws.on('open', function(client) {
+              done(new Error('connection must not be established'));
+          });
+          ws.on('error', function() {
+              done();
+          });
+        });
+      });
+
+      it('server detects invalid protocol handler', function(done) {
+        var wss = new WebSocketServer({port: ++port, handleProtocols: function(ps, cb) {
+            // not calling callback is an error and shouldn't timeout
+        }}, function() {
+          var options = {
+            port: port,
+            host: '127.0.0.1',
+            headers: {
+              'Connection': 'Upgrade',
+              'Upgrade': 'websocket',
+              'Sec-WebSocket-Key': 'dGhlIHNhbXBsZSBub25jZQ==',
+              'Sec-WebSocket-Version': 13,
+              'Sec-WebSocket-Origin': 'http://foobar.com'
+            }
+          };
+          options.port = port;
+          var req = http.request(options);
+          req.end();
+          req.on('response', function(res) {
+            res.statusCode.should.eql(501);
+            wss.close();
+            done();
+          });
+        });
+        wss.on('connection', function(ws) {
+          done(new Error('connection must not be established'));
+        });
+        wss.on('error', function() {});
+      });
     });
 
     describe('messaging', function() {
