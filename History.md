@@ -1,3 +1,28 @@
+v0.4.27 - June 27th, 2013
+=====================
+* Frames are no longer masked in `wscat`. [slaskis]
+* Don't retrain reference to large slab buffers. [jmatthewsr-msi]
+* Don't use Buffer.byteLength for ArrayBuffer's. [Anthony Pesch]
+* Fix browser field in package.json. [shtylman]
+* Client-side certificate support & documentation improvements. [Lukas Berns]
+* WebSocket readyState's is added to the prototype for spec compatiblity. [BallBearing]
+* Use Object.defineProperty. [arlolra]
+* Autodetect ArrayBuffers as binary when sending. [BallBearing]
+* Check instanceof Buffer for binary data. [arlolra]
+* Emit the close event before destroying the internal socket. [3rd-Eden]
+* Don't setup multiply timeouts for one connection. [AndreasMadsen]
+* Allow support for binding to ethereal port. [wpreul]
+* Fix broken terminate reference. [3rd-Eden]
+* Misc node 0.10 test fixes and documentation improvements. [3rd-Eden]
+* Ensure ssl options are propagated to request. [einaros]
+* Add 'Host' and 'Origin' to request header. [Lars-Magnus Skog]
+* Subprotocol support. [kanaka]
+* Honor ArrayBufferView's byteOffset when sending. [Anthony Pesch]
+* Added target attribute for events. [arlolra]
+
+v0.4.26 - Skipped
+=====================
+
 v0.4.25 - December 17th, 2012
 =====================
 * Removed install.js. [shtylman]
