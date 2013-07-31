@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <wchar.h>
 #include <stdio.h>
+#include "nan.h"
 
 using namespace v8;
 using namespace node;
@@ -107,37 +108,38 @@ public:
     HandleScope scope;
     Local<FunctionTemplate> t = FunctionTemplate::New(New);
     t->InstanceTemplate()->SetInternalFieldCount(1);
-    NODE_SET_METHOD(t->GetFunction(), "isValidUTF8", Validation::IsValidUTF8);
+    NODE_SET_METHOD(t, "isValidUTF8", Validation::IsValidUTF8);
     target->Set(String::NewSymbol("Validation"), t->GetFunction());
   }
 
 protected:
 
-  static Handle<Value> New(const Arguments& args)
+  static NAN_METHOD(New)
   {
-    HandleScope scope;
+    NanScope();
     Validation* validation = new Validation();
     validation->Wrap(args.This());
-    return args.This();
+    NanReturnValue(args.This());
   }
 
-  static Handle<Value> IsValidUTF8(const Arguments& args)
+  static NAN_METHOD(IsValidUTF8)
   {
-    HandleScope scope;
+    NanScope();
     if (!Buffer::HasInstance(args[0])) {
-      return ThrowException(Exception::Error(String::New("First argument needs to be a buffer")));
+      return NanThrowTypeError("First argument needs to be a buffer");
     }
     Local<Object> buffer_obj = args[0]->ToObject();
     char *buffer_data = Buffer::Data(buffer_obj);
     size_t buffer_length = Buffer::Length(buffer_obj);
-    return is_valid_utf8(buffer_length, buffer_data) == 1 ? scope.Close(True()) : scope.Close(False());
-   }
+    NanReturnValue(is_valid_utf8(buffer_length, buffer_data) == 1 ? True() : False());
+  }
 };
 
 extern "C" void init (Handle<Object> target)
 {
-  HandleScope scope;
+  NanScope();
   Validation::Initialize(target);
 }
 
 NODE_MODULE(validation, init)
+

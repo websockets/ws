@@ -12,6 +12,7 @@
 #include <string.h>
 #include <wchar.h>
 #include <stdio.h>
+#include "nan.h"
 
 using namespace v8;
 using namespace node;
@@ -22,52 +23,52 @@ public:
 
   static void Initialize(v8::Handle<v8::Object> target)
   {
-    HandleScope scope;
+    NanScope();
     Local<FunctionTemplate> t = FunctionTemplate::New(New);
     t->InstanceTemplate()->SetInternalFieldCount(1);
-    NODE_SET_METHOD(t->GetFunction(), "unmask", BufferUtil::Unmask);
-    NODE_SET_METHOD(t->GetFunction(), "mask", BufferUtil::Mask);
-    NODE_SET_METHOD(t->GetFunction(), "merge", BufferUtil::Merge);
+    NODE_SET_METHOD(t, "unmask", BufferUtil::Unmask);
+    NODE_SET_METHOD(t, "mask", BufferUtil::Mask);
+    NODE_SET_METHOD(t, "merge", BufferUtil::Merge);
     target->Set(String::NewSymbol("BufferUtil"), t->GetFunction());
   }
 
 protected:
 
-  static Handle<Value> New(const Arguments& args)
+  static NAN_METHOD(New)
   {
-    HandleScope scope;
+    NanScope();
     BufferUtil* bufferUtil = new BufferUtil();
     bufferUtil->Wrap(args.This());
-    return args.This();
+    NanReturnValue(args.This());
   }
 
-  static Handle<Value> Merge(const Arguments& args)
+  static NAN_METHOD(Merge)
   {
-    HandleScope scope;
+    NanScope();
     Local<Object> bufferObj = args[0]->ToObject();
     char* buffer = Buffer::Data(bufferObj);
     Local<Array> array = Local<Array>::Cast(args[1]);
     unsigned int arrayLength = array->Length();
-    unsigned int offset = 0;
+    size_t offset = 0;
     unsigned int i;
     for (i = 0; i < arrayLength; ++i) {
       Local<Object> src = array->Get(i)->ToObject();
-      unsigned int length = Buffer::Length(src);
+      size_t length = Buffer::Length(src);
       memcpy(buffer + offset, Buffer::Data(src), length);
       offset += length;
     }
-    return scope.Close(True());
+    NanReturnValue(True());
   }
 
-  static Handle<Value> Unmask(const Arguments& args)
+  static NAN_METHOD(Unmask)
   {
-    HandleScope scope;
+    NanScope();
     Local<Object> buffer_obj = args[0]->ToObject();
-    unsigned int length = Buffer::Length(buffer_obj);
+    size_t length = Buffer::Length(buffer_obj);
     Local<Object> mask_obj = args[1]->ToObject();
     unsigned int *mask = (unsigned int*)Buffer::Data(mask_obj);
     unsigned int* from = (unsigned int*)Buffer::Data(buffer_obj);
-    unsigned int len32 = length / 4;
+    size_t len32 = length / 4;
     unsigned int i;
     for (i = 0; i < len32; ++i) *(from + i) ^= *mask;
     from += i;
@@ -77,12 +78,12 @@ protected:
       case 1: *((unsigned char*)from  ) = *((unsigned char*)from  ) ^ ((unsigned char*)mask)[0];
       case 0:;
     }
-    return True();
+    NanReturnValue(True());
   }
 
-  static Handle<Value> Mask(const Arguments& args)
+  static NAN_METHOD(Mask)
   {
-    HandleScope scope;
+    NanScope();
     Local<Object> buffer_obj = args[0]->ToObject();
     Local<Object> mask_obj = args[1]->ToObject();
     unsigned int *mask = (unsigned int*)Buffer::Data(mask_obj);
@@ -102,14 +103,15 @@ protected:
       case 1: *((unsigned char*)to  ) = *((unsigned char*)from  ) ^ *((unsigned char*)mask);
       case 0:;
     }
-    return True();
+    NanReturnValue(True());
   }
 };
 
 extern "C" void init (Handle<Object> target)
 {
-  HandleScope scope;
+  NanScope();
   BufferUtil::Initialize(target);
 }
 
 NODE_MODULE(bufferutil, init)
+
