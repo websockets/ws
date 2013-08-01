@@ -13,11 +13,13 @@ var port = 20000;
 function getArrayBuffer(buf) {
   var l = buf.length;
   var arrayBuf = new ArrayBuffer(l);
-  for (var i = 0; i < l; ++i) {
-    arrayBuf[i] = buf[i];
+  var uint8View = new Uint8Array(arrayBuf);
+  for (var i = 0; i < l; i++) {
+    uint8View[i] = buf[i];
   }
-  return arrayBuf;
+  return uint8View.buffer;
 }
+
 
 function areArraysEqual(x, y) {
   if (x.length != y.length) return false;
