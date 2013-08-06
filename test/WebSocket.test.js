@@ -121,7 +121,7 @@ describe('WebSocket', function() {
         var ws = new WebSocket('ws://' + auth + '@localhost:' + port);
         srv.on('upgrade', function (req, socket, head) {
           assert(req.headers.authorization, 'auth header exists');
-          assert.equal(req.headers.authorization, new Buffer('Basic ' + auth).toString('base64'));
+          assert.equal(req.headers.authorization, 'Basic ' + new Buffer(auth).toString('base64'));
           ws.terminate();
           ws.on('close', function () {
             srv.close();
