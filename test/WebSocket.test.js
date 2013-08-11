@@ -114,6 +114,27 @@ describe('WebSocket', function() {
       });
     });
 
+    describe('#basic auth', function() {
+      it('request has an authorization header', function (done) {
+        var auth = 'test:testpass';
+        var srv = http.createServer(function (req, res) {});
+        var wss = new WebSocketServer({server: srv});
+        srv.listen(++port);
+        var ws = new WebSocket('ws://' + auth + '@localhost:' + port);
+        srv.on('upgrade', function (req, socket, head) {
+          assert(req.headers.authorization, 'auth header exists');
+          assert.equal(req.headers.authorization, 'Basic ' + new Buffer(auth).toString('base64'));
+          ws.terminate();
+          ws.on('close', function () {
+            srv.close();
+            wss.close();
+            done();
+          });
+        });
+
+      });
+    });
+
     describe('#readyState', function() {
       it('defaults to connecting', function(done) {
         server.createServer(++port, function(srv) {
@@ -1451,7 +1472,7 @@ describe('WebSocket', function() {
         done();
       });
     });
-	
+
 	it('can connect to secure websocket server with client side certificate', function(done) {
       var options = {
         key: fs.readFileSync('test/fixtures/key.pem'),
