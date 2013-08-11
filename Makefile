@@ -10,12 +10,14 @@ clean:
 run-tests:
 	@./node_modules/.bin/mocha \
 		-t 2000 \
+		-s 2400 \
 		$(TESTFLAGS) \
 		$(TESTS)
 
 run-integrationtests:
 	@./node_modules/.bin/mocha \
 		-t 5000 \
+		-s 6000 \
 		$(TESTFLAGS) \
 		$(TESTS)
 
