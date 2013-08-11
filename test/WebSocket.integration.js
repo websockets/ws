@@ -7,10 +7,12 @@ var port = 20000;
 function getArrayBuffer(buf) {
   var l = buf.length;
   var arrayBuf = new ArrayBuffer(l);
-  for (var i = 0; i < l; ++i) {
-    arrayBuf[i] = buf[i];
+  var uint8View = new Uint8Array(arrayBuf);
+
+  for (var i = 0; i < l; i++) {
+    uint8View[i] = buf[i];
   }
-  return arrayBuf;
+  return uint8View.buffer;
 }
 
 function areArraysEqual(x, y) {
@@ -23,7 +25,7 @@ function areArraysEqual(x, y) {
 
 describe('WebSocket', function() {
   it('communicates successfully with echo service', function(done) {
-    var ws = new WebSocket('ws://echo.websocket.org', {protocolVersion: 8, origin: 'http://websocket.org'});
+    var ws = new WebSocket('ws://echo.websocket.org/', {protocolVersion: 13, origin: 'http://websocket.org'});
     var str = Date.now().toString();
     var dataReceived = false;
     ws.on('open', function() {
