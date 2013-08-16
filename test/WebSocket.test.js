@@ -1519,7 +1519,7 @@ describe('WebSocket', function() {
       });
       var wss = new WebSocketServer({server: app});
       app.listen(++port, function() {
-        var ws = new WebSocket('ws://localhost:' + port);
+        var ws = new WebSocket('ws://localhost:' + port, { rejectUnauthorized :false });
         ws.on('error', function() {
           app.close();
           ws.terminate();
