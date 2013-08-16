@@ -1,3 +1,10 @@
+v0.4.28 - August 16th, 2013
+=====================
+* Node 0.11 support. [kkoopa]
+* Authorization headers are sent when basic auth is used in the url [jcrugzz]
+* Origin header will now include the port number [Jason Plum]
+* Race condition fixed where data was received before the readyState was updated. [saschagehlich]
+
 v0.4.27 - June 27th, 2013
 =====================
 * Frames are no longer masked in `wscat`. [slaskis]
