@@ -23,9 +23,9 @@
     "options": ">=0.0.5"
   },
   "devDependencies": {
-    "mocha": "~1.2.1",
-    "should": "0.6.x",
-    "expect.js": "0.1.x",
+    "mocha": "1.12.0",
+    "should": "1.2.x",
+    "expect.js": "0.2.x",
     "benchmark": "0.3.x",
     "ansi": "latest"
   },
