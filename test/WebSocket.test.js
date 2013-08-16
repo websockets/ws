@@ -1630,4 +1630,32 @@ describe('WebSocket', function() {
       });
     });
   });
+
+  describe('host and origin headers', function() {
+
+	it('includes the host header with port number', function(done) {
+		var srv = http.createServer();
+		srv.listen(++port, function(){
+			srv.on('upgrade', function(req, socket, upgradeHeade) {
+				assert.equal('localhost:' + port, req.headers['host']);
+				srv.close();
+				done();
+			});
+			var ws = new WebSocket('ws://localhost:' + port);
+		});
+	});
+
+	it('includes the origin header with port number', function(done) {
+		var srv = http.createServer();
+		srv.listen(++port, function() { 
+			srv.on('upgrade', function(req, socket, upgradeHeade) {
+				assert.equal('localhost:' + port, req.headers['origin']);
+				srv.close();
+				done();
+			});
+			var ws = new WebSocket('ws://localhost:' + port);
+		});
+	});
+  });
+
 });
