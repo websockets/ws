@@ -41,6 +41,20 @@ describe('WebSocket', function() {
     });
   });
 
+  describe('options', function() {
+    it('should accept an `agent` option', function(done) {
+      var wss = new WebSocketServer({port: ++port}, function() {
+        var agent = {
+          addRequest: function() {
+            wss.close();
+            done();
+          }
+        };
+        var ws = new WebSocket('ws://localhost:' + port, { agent: agent });
+      });
+    });
+  });
+
   describe('properties', function() {
     it('#bytesReceived exposes number of bytes received', function(done) {
       var wss = new WebSocketServer({port: ++port}, function() {
