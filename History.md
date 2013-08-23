@@ -1,3 +1,10 @@
+v0.4.29 - August 23th, 2013
+=====================
+* Small clean up of the Node 0.11 support by using NAN from the NPM registry [kkoopa]
+* Support for custom `Agent`'s through the options. [gramakri] & [TooTallNate]
+* Support for custom headers through the options [3rd-Eden]
+* Added a `gypfile` flag to the package.json for compiled module discovery [wolfeidau]
+
 v0.4.28 - August 16th, 2013
 =====================
 * Node 0.11 support. [kkoopa]
