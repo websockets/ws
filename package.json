@@ -39,5 +39,6 @@
     "benchmark": "0.3.x",
     "ansi": "latest"
   },
-  "browser": "./lib/browser.js"
+  "browser": "./lib/browser.js",
+  "gypfile": true
 }
