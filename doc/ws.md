@@ -61,6 +61,8 @@ This class represents a WebSocket connection. It is an `EventEmitter`.
 * `address` String|Array
 * `options` Object
   * `protocol` String
+  * `agent` Agent
+  * `headers` Object
   * `protocolVersion` Number|String  
     -- the following only apply if `address` is a String
   * `host` String
