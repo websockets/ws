@@ -63,6 +63,18 @@ wss.on('connection', function(ws) {
 });
 ```
 
+### Server sending broadcast data ###
+
+```js
+var WebSocketServer = require('ws').Server
+  , wss = new WebSocketServer({port: 8080});
+  
+wss.broadcast = function(data) {
+	for(var i in this.clients)
+		this.clients[i].send(data);
+};
+```
+
 ### Error handling best practices ###
 
 ```js
