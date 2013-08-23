@@ -128,7 +128,7 @@ describe('WebSocket', function() {
       });
     });
 
-    describe('#basic auth', function() {
+    describe('Custom headers', function() {
       it('request has an authorization header', function (done) {
         var auth = 'test:testpass';
         var srv = http.createServer(function (req, res) {});
@@ -145,7 +145,30 @@ describe('WebSocket', function() {
             done();
           });
         });
+      });
 
+      it('accepts custom headers', function (done) {
+        var srv = http.createServer(function (req, res) {});
+        var wss = new WebSocketServer({server: srv});
+        srv.listen(++port);
+
+        var ws = new WebSocket('ws://localhost:' + port, {
+          headers: {
+            'Cookie': 'foo=bar'
+          }
+        });
+
+        srv.on('upgrade', function (req, socket, head) {
+          assert(req.headers.cookie, 'auth header exists');
+          assert.equal(req.headers.cookie, 'foo=bar');
+
+          ws.terminate();
+          ws.on('close', function () {
+            srv.close();
+            wss.close();
+            done();
+          });
+        });
       });
     });
 
@@ -1661,7 +1684,7 @@ describe('WebSocket', function() {
 
 	it('includes the origin header with port number', function(done) {
 		var srv = http.createServer();
-		srv.listen(++port, function() { 
+		srv.listen(++port, function() {
 			srv.on('upgrade', function(req, socket, upgradeHeade) {
 				assert.equal('localhost:' + port, req.headers['origin']);
 				srv.close();
