@@ -53,6 +53,18 @@ describe('WebSocket', function() {
         var ws = new WebSocket('ws://localhost:' + port, { agent: agent });
       });
     });
+    // GH-227
+    it('should accept the `options` object as the 3rd argument', function(done) {
+      var wss = new WebSocketServer({port: ++port}, function() {
+        var agent = {
+          addRequest: function() {
+            wss.close();
+            done();
+          }
+        };
+        var ws = new WebSocket('ws://localhost:' + port, [], { agent: agent });
+      });
+    });
   });
 
   describe('properties', function() {
