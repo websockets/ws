@@ -53,6 +53,18 @@ describe('WebSocket', function() {
         var ws = new WebSocket('ws://localhost:' + port, { agent: agent });
       });
     });
+    // GH-227
+    it('should accept the `options` object as the 3rd argument', function(done) {
+      var wss = new WebSocketServer({port: ++port}, function() {
+        var agent = {
+          addRequest: function() {
+            wss.close();
+            done();
+          }
+        };
+        var ws = new WebSocket('ws://localhost:' + port, [], { agent: agent });
+      });
+    });
   });
 
   describe('properties', function() {
@@ -1510,7 +1522,7 @@ describe('WebSocket', function() {
       });
     });
 
-	it('can connect to secure websocket server with client side certificate', function(done) {
+    it('can connect to secure websocket server with client side certificate', function(done) {
       var options = {
         key: fs.readFileSync('test/fixtures/key.pem'),
         cert: fs.readFileSync('test/fixtures/certificate.pem'),
@@ -1669,30 +1681,29 @@ describe('WebSocket', function() {
   });
 
   describe('host and origin headers', function() {
+    it('includes the host header with port number', function(done) {
+      var srv = http.createServer();
+      srv.listen(++port, function(){
+        srv.on('upgrade', function(req, socket, upgradeHeade) {
+          assert.equal('localhost:' + port, req.headers['host']);
+          srv.close();
+          done();
+        });
+        var ws = new WebSocket('ws://localhost:' + port);
+      });
+    });
 
-	it('includes the host header with port number', function(done) {
-		var srv = http.createServer();
-		srv.listen(++port, function(){
-			srv.on('upgrade', function(req, socket, upgradeHeade) {
-				assert.equal('localhost:' + port, req.headers['host']);
-				srv.close();
-				done();
-			});
-			var ws = new WebSocket('ws://localhost:' + port);
-		});
-	});
-
-	it('includes the origin header with port number', function(done) {
-		var srv = http.createServer();
-		srv.listen(++port, function() {
-			srv.on('upgrade', function(req, socket, upgradeHeade) {
-				assert.equal('localhost:' + port, req.headers['origin']);
-				srv.close();
-				done();
-			});
-			var ws = new WebSocket('ws://localhost:' + port);
-		});
-	});
+    it('includes the origin header with port number', function(done) {
+      var srv = http.createServer();
+      srv.listen(++port, function() {
+        srv.on('upgrade', function(req, socket, upgradeHeade) {
+          assert.equal('localhost:' + port, req.headers['origin']);
+          srv.close();
+          done();
+        });
+        var ws = new WebSocket('ws://localhost:' + port);
+      });
+    });
   });
 
 });
