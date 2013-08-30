@@ -122,6 +122,21 @@ describe('WebSocket', function() {
         });
       });
 
+      it('defaults to zero upon "open"', function(done) {
+        server.createServer(++port, function(srv) {
+          var url = 'ws://localhost:' + port;
+          var ws = new WebSocket(url);
+          ws.onopen = function() {
+            assert.equal(0, ws.bufferedAmount);
+            ws.terminate();
+            ws.on('close', function() {
+              srv.close();
+              done();
+            });
+          };
+        });
+      });
+
       it('stress kernel write buffer', function(done) {
         var wss = new WebSocketServer({port: ++port}, function() {
           var ws = new WebSocket('ws://localhost:' + port);
