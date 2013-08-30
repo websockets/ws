@@ -1,3 +1,11 @@
+v0.4.30 - August 30th, 2013
+=====================
+
+* BufferedAmount could be undefined, default to 0 [TooTallNate]
+* Support protocols as second argument and options as third [TooTallNate]
+* Proper browserify shim [mcollina]
+* Broadcasting example in README [stefanocudini]
+
 v0.4.29 - August 23th, 2013
 =====================
 * Small clean up of the Node 0.11 support by using NAN from the NPM registry [kkoopa]
