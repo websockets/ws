@@ -40,5 +40,10 @@
     "ansi": "latest"
   },
   "browser": "./lib/browser.js",
+  "component": {
+    "scripts": {
+      "ws/index.js": "./lib/browser.js"
+    }
+  },
   "gypfile": true
 }
