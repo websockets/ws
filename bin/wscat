@@ -100,7 +100,7 @@ else if (program.listen) {
   if (program.protocol) options.protocolVersion = program.protocol;
   if (program.origin) options.origin = program.origin;
   if (program.subprotocol) options.protocol = program.subprotocol;
-  options.rejectUnauthorized = program.check;
+  if (!program.check) options.rejectUnauthorized = program.check;
   var ws = null;
   var wss = new WebSocket.Server({port: program.listen}, function() {
     wsConsole.print('listening on port ' + program.listen + ' (press CTRL+C to quit)', Console.Colors.Green);
@@ -156,7 +156,7 @@ else if (program.connect) {
   if (program.origin) options.origin = program.origin;
   if (program.subprotocol) options.protocol = program.subprotocol;
   if (program.host) options.host = program.host;
-  options.rejectUnauthorized = program.check;
+  if (!program.check) options.rejectUnauthorized = program.check;
   var ws = new WebSocket(program.connect, options);
   ws.on('open', function() {
     wsConsole.print('connected (press CTRL+C to quit)', Console.Colors.Green);
