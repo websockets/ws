@@ -159,6 +159,16 @@ describe('WebSocketServer', function() {
   });
 
   describe('#close', function() {
+    it('does not thrown when called twice', function(done) {
+      var wss = new WebSocketServer({port: ++port}, function() {
+        wss.close();
+        wss.close();
+        wss.close();
+
+        done();
+      });
+    });
+
     it('will close all clients', function(done) {
       var wss = new WebSocketServer({port: ++port}, function() {
         var ws = new WebSocket('ws://localhost:' + port);
