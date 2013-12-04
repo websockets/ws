@@ -161,6 +161,7 @@ function return401(server, req, socket) {
   ];
 
   socket.write(headers.concat('', '').join('\r\n'));
+  socket.write('Not allowed!');
   socket.end();
 }
 
