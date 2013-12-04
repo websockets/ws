@@ -381,23 +381,23 @@ describe('WebSocket', function() {
         ws.on('open', function() {
           assert.fail('connect shouldnt be raised here');
         });
-        ws.on('error', function(err) {
-          assert.ok(err instanceof Error);
-          assert(err.request, 'error has the request');
-          assert(err.response, 'error has the response');
-          assert.equal(err.response.statusCode, 401);
+        ws.on('unexpected-response', function(req, res) {
+          assert.equal(res.statusCode, 401);
 
           var data = '';
 
-          err.response.on('data', function (v) {
+          res.on('data', function (v) {
             data += v;
           });
 
-          err.response.on('end', function () {
+          res.on('end', function () {
             assert.equal(data, 'Not allowed!');
             srv.close();
             done();
           });
+        });
+        ws.on('error', function () {
+          assert.fail('error shouldnt be raised here');
         });
       });
     });
@@ -408,18 +408,18 @@ describe('WebSocket', function() {
         ws.on('open', function() {
           assert.fail('connect shouldnt be raised here');
         });
-        ws.on('error', function(err) {
-          assert.ok(err instanceof Error);
-          assert(err.request, 'error has the request');
-          assert(err.response, 'error has the response');
-          assert.equal(err.response.statusCode, 401);
+        ws.on('unexpected-response', function(req, res) {
+          assert.equal(res.statusCode, 401);
 
-          err.request.abort();
-
-          err.response.on('end', function () {
+          res.on('end', function () {
             srv.close();
             done();
           });
+
+          req.abort();
+        });
+        ws.on('error', function () {
+          assert.fail('error shouldnt be raised here');
         });
       });
     });
