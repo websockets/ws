@@ -105,7 +105,7 @@ public:
 
   static void Initialize(v8::Handle<v8::Object> target)
   {
-    HandleScope scope;
+    NanScope();
     Local<FunctionTemplate> t = FunctionTemplate::New(New);
     t->InstanceTemplate()->SetInternalFieldCount(1);
     NODE_SET_METHOD(t, "isValidUTF8", Validation::IsValidUTF8);
