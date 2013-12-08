@@ -374,6 +374,55 @@ describe('WebSocket', function() {
         });
       });
     });
+
+    it('unexpected response can be read when sent by server', function(done) {
+      server.createServer(++port, server.handlers.return401, function(srv) {
+        var ws = new WebSocket('ws://localhost:' + port);
+        ws.on('open', function() {
+          assert.fail('connect shouldnt be raised here');
+        });
+        ws.on('unexpected-response', function(req, res) {
+          assert.equal(res.statusCode, 401);
+
+          var data = '';
+
+          res.on('data', function (v) {
+            data += v;
+          });
+
+          res.on('end', function () {
+            assert.equal(data, 'Not allowed!');
+            srv.close();
+            done();
+          });
+        });
+        ws.on('error', function () {
+          assert.fail('error shouldnt be raised here');
+        });
+      });
+    });
+
+    it('request can be aborted when unexpected response is sent by server', function(done) {
+      server.createServer(++port, server.handlers.return401, function(srv) {
+        var ws = new WebSocket('ws://localhost:' + port);
+        ws.on('open', function() {
+          assert.fail('connect shouldnt be raised here');
+        });
+        ws.on('unexpected-response', function(req, res) {
+          assert.equal(res.statusCode, 401);
+
+          res.on('end', function () {
+            srv.close();
+            done();
+          });
+
+          req.abort();
+        });
+        ws.on('error', function () {
+          assert.fail('error shouldnt be raised here');
+        });
+      });
+    });
   });
 
   describe('#pause and #resume', function() {
