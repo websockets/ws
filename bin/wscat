@@ -107,8 +107,8 @@ program
   .option('--host <host>', 'optional host')
   .option('-s, --subprotocol <protocol>', 'optional subprotocol')
   .option('-n, --no-check', 'Do not check for unauthorized certificates')
-  .option('-H, --header <header:value>', 'Set an HTTP header. Repeat the option to set multiple headers.', appender(), [])
-  .option('--auth <username:password>', 'add basic HTTP authentication headers (--connect only)')
+  .option('-H, --header <header:value>', 'Set an HTTP header. Repeat to set multiple. (--connect only)', appender(), [])
+  .option('--auth <username:password>', 'Add basic HTTP authentication header. (--connect only)')
   .parse(process.argv);
 
 if (program.listen && program.connect) {
