@@ -72,6 +72,26 @@ Console.prototype.resume = function() {
   this.stdin.removeListener('keypress', this._resetInput);
 }
 
+function appender(xs) {
+  xs = xs || [];
+  return function (x) {
+    xs.push(x);
+    return xs;
+  }
+}
+
+function into(obj, kvals) {
+  kvals.forEach(function (kv) {
+    obj[kv[0]] = kv[1];
+  });
+  return obj;
+}
+
+function splitOnce(sep, str) { // sep can be either String or RegExp
+  var tokens = str.split(sep);
+  return [tokens[0], str.replace(sep, '').substr(tokens[0].length)];
+}
+
 /**
  * The actual application
  */
@@ -87,6 +107,8 @@ program
   .option('--host <host>', 'optional host')
   .option('-s, --subprotocol <protocol>', 'optional subprotocol')
   .option('-n, --no-check', 'Do not check for unauthorized certificates')
+  .option('-H, --header <header:value>', 'Set an HTTP header. Repeat to set multiple. (--connect only)', appender(), [])
+  .option('--auth <username:password>', 'Add basic HTTP authentication header. (--connect only)')
   .parse(process.argv);
 
 if (program.listen && program.connect) {
@@ -157,6 +179,13 @@ else if (program.connect) {
   if (program.subprotocol) options.protocol = program.subprotocol;
   if (program.host) options.host = program.host;
   if (!program.check) options.rejectUnauthorized = program.check;
+  var headers = into({}, (program.header || []).map(function (s) {
+                                                      return splitOnce(':', s)
+                                                    }));
+  if (program.auth) {
+    headers['Authorization'] = 'Basic ' + new Buffer(program.auth).toString('base64');
+  }
+  options.headers = headers;
   var ws = new WebSocket(program.connect, options);
   ws.on('open', function() {
     wsConsole.print('connected (press CTRL+C to quit)', Console.Colors.Green);
