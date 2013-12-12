@@ -87,6 +87,7 @@ program
   .option('--host <host>', 'optional host')
   .option('-s, --subprotocol <protocol>', 'optional subprotocol')
   .option('-n, --no-check', 'Do not check for unauthorized certificates')
+  .option('--auth <username:password>', 'add basic HTTP authentication headers (--connect only)')
   .parse(process.argv);
 
 if (program.listen && program.connect) {
@@ -152,11 +153,16 @@ else if (program.listen) {
 else if (program.connect) {
   var wsConsole = new Console();
   var options = {};
+  var headers = {};
   if (program.protocol) options.protocolVersion = program.protocol;
   if (program.origin) options.origin = program.origin;
   if (program.subprotocol) options.protocol = program.subprotocol;
   if (program.host) options.host = program.host;
   if (!program.check) options.rejectUnauthorized = program.check;
+  if (program.auth) {
+    headers['Authorization'] = 'Basic ' + new Buffer(program.auth).toString('base64');
+  }
+  options.headers = headers;
   var ws = new WebSocket(program.connect, options);
   ws.on('open', function() {
     wsConsole.print('connected (press CTRL+C to quit)', Console.Colors.Green);
