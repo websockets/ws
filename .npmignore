@@ -4,3 +4,8 @@ node_modules
 .lock-*
 build
 
+bench
+doc
+examples
+test
+
