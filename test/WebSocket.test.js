@@ -748,6 +748,24 @@ describe('WebSocket', function() {
       });
     });
 
+    it('does not override the `fin` option', function (done) {
+      const wss = new WebSocketServer({ port: ++port }, () => {
+        const ws = new WebSocket(`ws://localhost:${port}`);
+
+        ws.on('open', () => {
+          ws.send('fragment', { fin: false });
+          ws.send('fragment', { fin: true });
+        });
+      });
+
+      wss.on('connection', (ws) => {
+        ws.on('message', (msg) => {
+          assert.strictEqual(msg, 'fragmentfragment');
+          wss.close(done);
+        });
+      });
+    });
+
     it('send and receive binary data as an array', function(done) {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
