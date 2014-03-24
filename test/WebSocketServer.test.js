@@ -589,7 +589,7 @@ describe('WebSocketServer', function() {
       it('client can be denied asynchronously with custom response code', function(done) {
         var wss = new WebSocketServer({port: ++port, verifyClient: function(o, cb) {
           process.nextTick(function() {
-            cb(false, 404, 'Not Found');
+            cb(false, 404);
           });
         }}, function() {
           var options = {
