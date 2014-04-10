@@ -122,7 +122,7 @@ ws.on('message', function(data, flags) {
 ### wscat against echo.websocket.org ###
 
     $ npm install -g ws
-    $ wscat -c ws://echo.websocket.org -p 8
+    $ wscat -c ws://echo.websocket.org 
     connected (press CTRL+C to quit)
     > hi there
     < hi there
