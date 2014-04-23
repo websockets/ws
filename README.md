@@ -128,6 +128,10 @@ ws.on('message', function(data, flags) {
     < hi there
     > are you a happy parrot?
     < are you a happy parrot?
+    > /ping echo
+    pong echo
+    > /close
+    disconnected
 
 ### Other examples ###
 
