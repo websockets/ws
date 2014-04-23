@@ -62,7 +62,7 @@ Console.prototype.print = function(msg, color) {
 }
 
 Console.prototype.clear = function() {
-  this.stdout.write('\033[2K\033[E');
+  this.stdout.write('\033[2K\033[2D');
 }
 
 Console.prototype.pause = function() {
