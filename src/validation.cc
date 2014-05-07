@@ -106,10 +106,10 @@ public:
   static void Initialize(v8::Handle<v8::Object> target)
   {
     NanScope();
-    Local<FunctionTemplate> t = FunctionTemplate::New(New);
+    Local<FunctionTemplate> t = NanNew<FunctionTemplate>(New);
     t->InstanceTemplate()->SetInternalFieldCount(1);
     NODE_SET_METHOD(t, "isValidUTF8", Validation::IsValidUTF8);
-    target->Set(String::NewSymbol("Validation"), t->GetFunction());
+    target->Set(NanSymbol("Validation"), t->GetFunction());
   }
 
 protected:
@@ -131,7 +131,7 @@ protected:
     Local<Object> buffer_obj = args[0]->ToObject();
     char *buffer_data = Buffer::Data(buffer_obj);
     size_t buffer_length = Buffer::Length(buffer_obj);
-    NanReturnValue(is_valid_utf8(buffer_length, buffer_data) == 1 ? True() : False());
+    NanReturnValue(is_valid_utf8(buffer_length, buffer_data) == 1 ? NanTrue() : NanFalse());
   }
 };
 
