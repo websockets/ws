@@ -28,7 +28,7 @@
   },
   "dependencies": {
     "commander": "~2.1.0",
-    "nan": "~0.8.0",
+    "nan": "~1.0.0",
     "tinycolor": "0.x",
     "options": ">=0.0.5"
   },

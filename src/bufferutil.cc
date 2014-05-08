@@ -24,12 +24,12 @@ public:
   static void Initialize(v8::Handle<v8::Object> target)
   {
     NanScope();
-    Local<FunctionTemplate> t = FunctionTemplate::New(New);
+    Local<FunctionTemplate> t = NanNew<FunctionTemplate>(New);
     t->InstanceTemplate()->SetInternalFieldCount(1);
     NODE_SET_METHOD(t, "unmask", BufferUtil::Unmask);
     NODE_SET_METHOD(t, "mask", BufferUtil::Mask);
     NODE_SET_METHOD(t, "merge", BufferUtil::Merge);
-    target->Set(String::NewSymbol("BufferUtil"), t->GetFunction());
+    target->Set(NanSymbol("BufferUtil"), t->GetFunction());
   }
 
 protected:
@@ -57,7 +57,7 @@ protected:
       memcpy(buffer + offset, Buffer::Data(src), length);
       offset += length;
     }
-    NanReturnValue(True());
+    NanReturnValue(NanTrue());
   }
 
   static NAN_METHOD(Unmask)
@@ -78,7 +78,7 @@ protected:
       case 1: *((unsigned char*)from  ) = *((unsigned char*)from  ) ^ ((unsigned char*)mask)[0];
       case 0:;
     }
-    NanReturnValue(True());
+    NanReturnValue(NanTrue());
   }
 
   static NAN_METHOD(Mask)
@@ -103,7 +103,7 @@ protected:
       case 1: *((unsigned char*)to  ) = *((unsigned char*)from  ) ^ *((unsigned char*)mask);
       case 0:;
     }
-    NanReturnValue(True());
+    NanReturnValue(NanTrue());
   }
 };
 
