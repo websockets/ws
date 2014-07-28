@@ -60,8 +60,12 @@ describe('WebSocketServer', function() {
     });
 
     it('emits an error if http server bind fails', function(done) {
-      var wss = new WebSocketServer({port: 1});
-      wss.on('error', function() { done(); });
+      var wss1 = new WebSocketServer({port: 50003});
+      var wss2 = new WebSocketServer({port: 50003});
+      wss2.on('error', function() {
+        wss1.close();
+        done();
+      });
     });
 
     it('starts a server on a given port', function(done) {
