@@ -739,6 +739,36 @@ describe('WebSocketServer', function() {
         });
       });
 
+      it('server detects unauthorized protocol handler', function(done) {
+        var wss = new WebSocketServer({port: ++port, handleProtocols: function(ps, cb) {
+          cb(false);
+        }}, function() {
+          var options = {
+            port: port,
+            host: '127.0.0.1',
+            headers: {
+              'Connection': 'Upgrade',
+              'Upgrade': 'websocket',
+              'Sec-WebSocket-Key': 'dGhlIHNhbXBsZSBub25jZQ==',
+              'Sec-WebSocket-Version': 13,
+              'Sec-WebSocket-Origin': 'http://foobar.com'
+            }
+          };
+          options.port = port;
+          var req = http.request(options);
+          req.end();
+          req.on('response', function(res) {
+            res.statusCode.should.eql(401);
+            wss.close();
+            done();
+          });
+        });
+        wss.on('connection', function(ws) {
+          done(new Error('connection must not be established'));
+        });
+        wss.on('error', function() {});
+      });
+
       it('server detects invalid protocol handler', function(done) {
         var wss = new WebSocketServer({port: ++port, handleProtocols: function(ps, cb) {
             // not calling callback is an error and shouldn't timeout
