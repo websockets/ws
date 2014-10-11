@@ -46,6 +46,7 @@ Console.Colors = {
   Green: '\033[32m',
   Yellow: '\033[33m',
   Blue: '\033[34m',
+  Cyan: '\033[36m',
   Default: '\033[39m'
 };
 
@@ -61,7 +62,7 @@ Console.prototype.print = function(msg, color) {
 }
 
 Console.prototype.clear = function() {
-  this.stdout.write('\033[2K\033[E');
+  this.stdout.write('\033[2K\033[2D');
 }
 
 Console.prototype.pause = function() {
@@ -91,6 +92,34 @@ function splitOnce(sep, str) { // sep can be either String or RegExp
   var tokens = str.split(sep);
   return [tokens[0], str.replace(sep, '').substr(tokens[0].length)];
 }
+
+function splitCommand(str) {
+  var match = str.match(/\/(\w+)(?:\s*)(.*)/);
+  return match && match.slice(1);
+}
+
+/**
+ * Commands are executed in the context of the websocket instance.
+ */
+var commands = {
+  ping: function(data, options) {
+    this.ping(data, options);
+  },
+  pong: function(data, options) {
+    this.pong(data, options);
+  },
+  close: function(data) {
+    if (data) {
+      var reason = splitOnce(/\s+/, data);
+      this.close(parseInt(reason[0]), reason[1]);
+    } else {
+      this.close();
+    }
+  },
+  terminate: function() {
+    this.terminate();
+  }
+};
 
 /**
  * The actual application
@@ -139,7 +168,16 @@ else if (program.listen) {
   });
   wsConsole.on('line', function(data) {
     if (ws) {
-      ws.send(data, {mask: false});
+      var cmd = splitCommand(data);
+      if (cmd) {
+        if (cmd[0] in commands) {
+          commands[cmd[0]].call(ws, cmd[1], {mask: false});
+        } else {
+          wsConsole.print('bad command \'' + cmd[0] + '\'', Console.Colors.Yellow);
+        }
+      } else {
+          ws.send(data, {mask: false});
+      }
       wsConsole.prompt();
     }
   });
@@ -161,6 +199,12 @@ else if (program.listen) {
     });
     ws.on('error', function(code, description) {
       wsConsole.print('error: ' + code + (description ? ' ' + description : ''), Console.Colors.Yellow);
+    });
+    ws.on('ping', function(data, flags) {
+      wsConsole.print('ping ' + (data || ''), Console.Colors.Cyan);
+    });
+    ws.on('pong', function(data, flags) {
+      wsConsole.print('pong ' + (data || ''), Console.Colors.Cyan);
     });
     ws.on('message', function(data, flags) {
       wsConsole.print('< ' + data, Console.Colors.Blue);
@@ -190,7 +234,16 @@ else if (program.connect) {
   ws.on('open', function() {
     wsConsole.print('connected (press CTRL+C to quit)', Console.Colors.Green);
     wsConsole.on('line', function(data) {
-      ws.send(data, {mask: true});
+      var cmd = splitCommand(data);
+      if (cmd) {
+        if (cmd[0] in commands) {
+          commands[cmd[0]].call(ws, cmd[1], {mask: true});
+        } else {
+          wsConsole.print('bad command \'' + cmd[0] + '\'', Console.Colors.Yellow);
+        }
+      } else {
+          ws.send(data, {mask: true});
+      }
       wsConsole.prompt();
     });
   });
@@ -202,6 +255,12 @@ else if (program.connect) {
   ws.on('error', function(code, description) {
     wsConsole.print('error: ' + code + (description ? ' ' + description : ''), Console.Colors.Yellow);
     process.exit(-1);
+  });
+  ws.on('ping', function(data, flags) {
+    wsConsole.print('ping ' + (data || ''), Console.Colors.Cyan);
+  });
+  ws.on('pong', function(data, flags) {
+    wsConsole.print('pong ' + (data || ''), Console.Colors.Cyan);
   });
   ws.on('message', function(data, flags) {
     wsConsole.print('< ' + data, Console.Colors.Blue);
