@@ -102,60 +102,6 @@ describe('WebSocketServer', function() {
         });
       });
     });
-
-    it('emits path specific connection event', function (done) {
-      var srv = http.createServer();
-      srv.listen(++port, function () {
-        var wss = new WebSocketServer({server: srv});
-        var ws = new WebSocket('ws://localhost:' + port+'/endpointName');
-
-        wss.on('connection/endpointName', function(client) {
-          wss.close();
-          srv.close();
-          done();
-        });
-      });
-    });
-
-    it('can have two different instances listening on the same http server with two different paths', function(done) {
-      var srv = http.createServer();
-      srv.listen(++port, function () {
-        var wss1 = new WebSocketServer({server: srv, path: '/wss1'})
-          , wss2 = new WebSocketServer({server: srv, path: '/wss2'});
-        var doneCount = 0;
-        wss1.on('connection', function(client) {
-          wss1.close();
-          if (++doneCount == 2) {
-            srv.close();
-            done();
-          }
-        });
-        wss2.on('connection', function(client) {
-          wss2.close();
-          if (++doneCount == 2) {
-            srv.close();
-            done();
-          }
-        });
-        var ws1 = new WebSocket('ws://localhost:' + port + '/wss1');
-        var ws2 = new WebSocket('ws://localhost:' + port + '/wss2?foo=1');
-      });
-    });
-
-    it('cannot have two different instances listening on the same http server with the same path', function(done) {
-      var srv = http.createServer();
-      srv.listen(++port, function () {
-        var wss1 = new WebSocketServer({server: srv, path: '/wss1'});
-        try {
-          var wss2 = new WebSocketServer({server: srv, path: '/wss1'});
-        }
-        catch (e) {
-          wss1.close();
-          srv.close();
-          done();
-        }
-      });
-    });
   });
 
   describe('#close', function() {
@@ -200,22 +146,6 @@ describe('WebSocketServer', function() {
           srv.close();
           done();
         });
-      });
-    });
-
-    it('cleans up websocket data on a precreated server', function(done) {
-      var srv = http.createServer();
-      srv.listen(++port, function () {
-        var wss1 = new WebSocketServer({server: srv, path: '/wss1'})
-          , wss2 = new WebSocketServer({server: srv, path: '/wss2'});
-        (typeof srv._webSocketPaths).should.eql('object');
-        Object.keys(srv._webSocketPaths).length.should.eql(2);
-        wss1.close();
-        Object.keys(srv._webSocketPaths).length.should.eql(1);
-        wss2.close();
-        (typeof srv._webSocketPaths).should.eql('undefined');
-        srv.close();
-        done();
       });
     });
   });

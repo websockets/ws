@@ -12,7 +12,6 @@ This class is a WebSocket server. It is an `EventEmitter`.
   * `server` http.Server
   * `verifyClient` Function
   * `handleProtocols` Function
-  * `path` String
   * `noServer` Boolean
   * `disableHixie` Boolean
   * `clientTracking` Boolean
