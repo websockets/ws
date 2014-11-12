@@ -12,7 +12,6 @@ This class is a WebSocket server. It is an `EventEmitter`.
   * `server` http.Server
   * `verifyClient` Function
   * `handleProtocols` Function
-  * `path` String
   * `noServer` Boolean
   * `disableHixie` Boolean
   * `clientTracking` Boolean
@@ -29,7 +28,7 @@ Either `port` or `server` must be provided, otherwise you might enable
 `verifyClient` can be used in two different ways. If it is provided with two arguments then those are:
 * `info` Object:
   * `origin` String: The value in the Origin header indicated by the client.
-  * `req` http.ClientRequest: The client HTTP GET request.
+  * `req` http.IncomingMessage: The client HTTP GET request.
   * `secure` Boolean: `true` if `req.connection.authorized` or `req.connection.encypted` is set.
 * `cb` Function: A callback that must be called by the user upon inspection of the `info` fields. Arguments in this callback are:
   * `result` Boolean: Whether the user accepts or not the handshake.
@@ -55,7 +54,7 @@ If `handleProtocols` is not set then the handshake is accepted regardless the va
 
 ### server.close()
 
-Close the server and terminate all clients
+Close the server and terminate all clients.
 
 ### server.handleUpgrade(request, socket, upgradeHead, callback)
 
@@ -121,7 +120,11 @@ The WebSocket protocol version used for this connection, `8`, `13` or `hixie-76`
 
 ### websocket.url
 
-The URL of the WebSocket server (only for clients)
+The URL of the WebSocket server (only for clients).
+
+### websocket.upgradeReq
+
+The received `http.IncomingMessage` containing the HTTP GET request (only for servers).
 
 ### websocket.supports
 
@@ -129,24 +132,24 @@ Describes the feature of the used protocol version. E.g. `supports.binary` is a 
 
 ### websocket.close([code], [data])
 
-Gracefully closes the connection, after sending a description message
+Gracefully closes the connection, after sending a description message.
 
 ### websocket.pause()
 
-Pause the client stream
+Pause the client stream.
 
 ### websocket.ping([data], [options], [dontFailWhenClosed])
 
-Sends a ping. `data` is sent, `options` is an object with members `mask` and `binary`. `dontFailWhenClosed` indicates whether or not to throw if the connection isnt open.
+Sends a ping. `data` is sent, `options` is an object with members `mask` and `binary`. `dontFailWhenClosed` indicates whether or not to throw if the connection is not open.
 
 ### websocket.pong([data], [options], [dontFailWhenClosed])
 
-Sends a pong. `data` is sent, `options` is an object with members `mask` and `binary`. `dontFailWhenClosed` indicates whether or not to throw if the connection isnt open.
+Sends a pong. `data` is sent, `options` is an object with members `mask` and `binary`. `dontFailWhenClosed` indicates whether or not to throw if the connection is not open.
 
 
 ### websocket.resume()
 
-Resume the client stream
+Resume the client stream.
 
 ### websocket.send(data, [options], [callback])
 
@@ -158,7 +161,7 @@ Streams data through calls to a user supplied function. `options` can be an obje
 
 ### websocket.terminate()
 
-Immediately shuts down the connection
+Immediately shuts down the connection.
 
 ### websocket.onopen
 ### websocket.onerror
