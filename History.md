@@ -1,3 +1,13 @@
+v0.5 - November 20th 2013
+=====================
+
+* Fixed a file descriptor leak.
+* Removed wscat as cli client from ws and released as separate module (wscat)
+* Fixed memory leak caused by EventEmitters.
+* Protocol errors now return a 401 error instead of 404 which is more suitable.
+* Code refactor to support strict mode.
+* Updated dependencies to latest versions
+
 v0.4.31 - September 23th, 2013
 =====================
 
