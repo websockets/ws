@@ -23,7 +23,8 @@
   },
   "dependencies": {
     "nan": "~1.0.0",
-    "options": ">=0.0.5"
+    "options": ">=0.0.5",
+    "ultron": "1.0.x"
   },
   "devDependencies": {
     "mocha": "1.12.0",
