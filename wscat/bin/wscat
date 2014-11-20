@@ -99,7 +99,7 @@ function splitOnce(sep, str) { // sep can be either String or RegExp
 /**
  * The actual application
  */
-var version = require('/package.json').version;
+var version = require('../package.json').version;
 
 program
   .version(version)
@@ -218,6 +218,5 @@ if (program.listen && program.connect) {
     process.exit();
   });
 } else {
-  console.error('\033[33merror: use either --listen or --connect\033[39m');
-  process.exit(-1);
+  program.help();
 }
