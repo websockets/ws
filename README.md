@@ -1,28 +1,29 @@
-[![Build Status](https://secure.travis-ci.org/einaros/ws.png)](http://travis-ci.org/einaros/ws)
+# ws: a node.js websocket library
 
-# ws: a node.js websocket library #
+[![Build Status](https://secure.travis-ci.org/einaros/ws.png)](http://travis-ci.org/einaros/ws)
 
 `ws` is a simple to use websocket implementation, up-to-date against RFC-6455, and [probably the fastest WebSocket library for node.js](http://web.archive.org/web/20130314230536/http://hobbycoding.posterous.com/the-fastest-websocket-module-for-nodejs).
 
-Passes the quite extensive Autobahn test suite. See http://einaros.github.com/ws for the full reports.
+Passes the quite extensive Autobahn test suite. See http://einaros.github.com/ws
+for the full reports.
 
-Comes with a command line utility, `wscat`, which can either act as a server (--listen), or client (--connect); Use it to debug simple websocket services.
+## Protocol support
 
-## Protocol support ##
-
-* **Hixie draft 76** (Old and deprecated, but still in use by Safari and Opera. Added to ws version 0.4.2, but server only. Can be disabled by setting the `disableHixie` option to true.)
-* **HyBi drafts 07-12** (Use the option `protocolVersion: 8`, or argument `-p 8` for wscat)
-* **HyBi drafts 13-17** (Current default, alternatively option `protocolVersion: 13`, or argument `-p 13` for wscat)
+* **Hixie draft 76** (Old and deprecated, but still in use by Safari and Opera.
+  Added to ws version 0.4.2, but server only. Can be disabled by setting the
+  `disableHixie` option to true.)
+* **HyBi drafts 07-12** (Use the option `protocolVersion: 8`)
+* **HyBi drafts 13-17** (Current default, alternatively option `protocolVersion: 13`)
 
 _See the echo.websocket.org example below for how to use the `protocolVersion` option._
 
-## Usage ##
+### Installing
 
-### Installing ###
+```
+npm install ---save ws
+```
 
-`npm install ws`
-
-### Sending and receiving text data ###
+### Sending and receiving text data
 
 ```js
 var WebSocket = require('ws');
@@ -36,7 +37,7 @@ ws.on('message', function(data, flags) {
 });
 ```
 
-### Sending binary data ###
+### Sending binary data
 
 ```js
 var WebSocket = require('ws');
@@ -48,34 +49,39 @@ ws.on('open', function() {
 });
 ```
 
-Setting `mask`, as done for the send options above, will cause the data to be masked according to the websocket protocol. The same option applies for text data.
+Setting `mask`, as done for the send options above, will cause the data to be
+masked according to the WebSocket protocol. The same option applies for text
+data.
 
-### Server example ###
+### Server example
 
 ```js
 var WebSocketServer = require('ws').Server
   , wss = new WebSocketServer({port: 8080});
+
 wss.on('connection', function(ws) {
-    ws.on('message', function(message) {
-        console.log('received: %s', message);
-    });
-    ws.send('something');
+  ws.on('message', function(message) {
+    console.log('received: %s', message);
+  });
+
+  ws.send('something');
 });
 ```
 
-### Server sending broadcast data ###
+### Server sending broadcast data
 
 ```js
 var WebSocketServer = require('ws').Server
-  , wss = new WebSocketServer({port: 8080});
-  
-wss.broadcast = function(data) {
-	for(var i in this.clients)
-		this.clients[i].send(data);
+  , wss = new WebSocketServer({ port: 8080 });
+
+wss.broadcast = function broadcast(data) {
+  for(var i in this.clients) {
+    this.clients[i].send(data);
+  }
 };
 ```
 
-### Error handling best practices ###
+### Error handling best practices
 
 ```js
 // If the WebSocket is closed before the following send is attempted
@@ -84,59 +90,65 @@ ws.send('something');
 // Errors (both immediate and async write errors) can be detected in an optional callback.
 // The callback is also the only way of being notified that data has actually been sent.
 ws.send('something', function(error) {
-    // if error is null, the send has been completed,
-    // otherwise the error object will indicate what failed.
+  // if error is null, the send has been completed,
+  // otherwise the error object will indicate what failed.
 });
 
 // Immediate errors can also be handled with try/catch-blocks, but **note**
 // that since sends are inherently asynchronous, socket write failures will *not*
 // be captured when this technique is used.
-try {
-    ws.send('something');
-}
-catch (e) {
-    // handle error
-}
+try { ws.send('something'); }
+catch (e) { /* handle error */ }
 ```
 
-### echo.websocket.org demo ###
+### echo.websocket.org demo
 
 ```js
 var WebSocket = require('ws');
-var ws = new WebSocket('ws://echo.websocket.org/', {protocolVersion: 8, origin: 'http://websocket.org'});
-ws.on('open', function() {
-    console.log('connected');
+var ws = new WebSocket('ws://echo.websocket.org/', {
+  protocolVersion: 8, 
+  origin: 'http://websocket.org'
+});
+
+ws.on('open', function open() {
+  console.log('connected');
+  ws.send(Date.now().toString(), {mask: true});
+});
+
+ws.on('close', function close() {
+  console.log('disconnected');
+});
+
+ws.on('message', function message(data, flags) {
+  console.log('Roundtrip time: ' + (Date.now() - parseInt(data)) + 'ms', flags);
+
+  setTimeout(function() {
     ws.send(Date.now().toString(), {mask: true});
-});
-ws.on('close', function() {
-    console.log('disconnected');
-});
-ws.on('message', function(data, flags) {
-    console.log('Roundtrip time: ' + (Date.now() - parseInt(data)) + 'ms', flags);
-    setTimeout(function() {
-        ws.send(Date.now().toString(), {mask: true});
-    }, 500);
+  }, 500);
 });
 ```
 
+### Other examples
 
-### Other examples ###
+For a full example with a browser client communicating with a ws server, see the
+examples folder.
 
-For a full example with a browser client communicating with a ws server, see the examples folder.
-
-Note that the usage together with Express 3.0 is quite different from Express 2.x. The difference is expressed in the two different serverstats-examples.
+Note that the usage together with Express 3.0 is quite different from Express
+2.x. The difference is expressed in the two different serverstats-examples.
 
 Otherwise, see the test cases.
 
-### Running the tests ###
+### Running the tests
 
-`make test`
+```
+make test
+```
 
-## API Docs ##
+## API Docs
 
 See the doc/ directory for Node.js-like docs for the ws classes.
 
-## License ##
+## License
 
 (The MIT License)
 
