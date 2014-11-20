@@ -3,12 +3,7 @@
   "name": "ws",
   "description": "simple to use, blazing fast and thoroughly tested websocket client, server and console for node.js, up-to-date against RFC-6455",
   "version": "0.4.32",
-  "licenses": [
-    {
-      "type": "MIT",
-      "url": "https://raw.githubusercontent.com/einaros/ws/master/README.md"
-    }
-  ],
+  "license": "MIT",
   "keywords": [
     "Hixie",
     "HyBi",
