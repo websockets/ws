@@ -26,9 +26,6 @@
     "test": "make test",
     "install": "(node-gyp rebuild 2> builderror.log) || (exit 0)"
   },
-  "engines": {
-    "node": ">=0.4.0"
-  },
   "dependencies": {
     "nan": "~1.0.0",
     "options": ">=0.0.5"
