@@ -2,7 +2,8 @@
 
 [![Build Status](https://secure.travis-ci.org/einaros/ws.png)](http://travis-ci.org/einaros/ws)
 
-`ws` is a simple to use websocket implementation, up-to-date against RFC-6455, and [probably the fastest WebSocket library for node.js](http://web.archive.org/web/20130314230536/http://hobbycoding.posterous.com/the-fastest-websocket-module-for-nodejs).
+`ws` is a simple to use WebSocket implementation, up-to-date against RFC-6455,
+and [probably the fastest WebSocket library for node.js][archive].
 
 Passes the quite extensive Autobahn test suite. See http://einaros.github.com/ws
 for the full reports.
@@ -15,8 +16,6 @@ for the full reports.
 * **HyBi drafts 07-12** (Use the option `protocolVersion: 8`)
 * **HyBi drafts 13-17** (Current default, alternatively option `protocolVersion: 13`)
 
-_See the echo.websocket.org example below for how to use the `protocolVersion` option._
-
 ### Installing
 
 ```
@@ -28,12 +27,14 @@ npm install ---save ws
 ```js
 var WebSocket = require('ws');
 var ws = new WebSocket('ws://www.host.com/path');
-ws.on('open', function() {
-    ws.send('something');
+
+ws.on('open', function open() {
+  ws.send('something');
 });
+
 ws.on('message', function(data, flags) {
-    // flags.binary will be set if a binary data is received
-    // flags.masked will be set if the data was masked
+  // flags.binary will be set if a binary data is received.
+  // flags.masked will be set if the data was masked.
 });
 ```
 
@@ -42,10 +43,15 @@ ws.on('message', function(data, flags) {
 ```js
 var WebSocket = require('ws');
 var ws = new WebSocket('ws://www.host.com/path');
-ws.on('open', function() {
-    var array = new Float32Array(5);
-    for (var i = 0; i < array.length; ++i) array[i] = i / 2;
-    ws.send(array, {binary: true, mask: true});
+
+ws.on('open', function open() {
+  var array = new Float32Array(5);
+
+  for (var i = 0; i < array.length; ++i) {
+    array[i] = i / 2;
+  }
+
+  ws.send(array, { binary: true, mask: true });
 });
 ```
 
@@ -57,10 +63,10 @@ data.
 
 ```js
 var WebSocketServer = require('ws').Server
-  , wss = new WebSocketServer({port: 8080});
+  , wss = new WebSocketServer({ port: 8080 });
 
-wss.on('connection', function(ws) {
-  ws.on('message', function(message) {
+wss.on('connection', function connection(ws) {
+  ws.on('message', function incoming(message) {
     console.log('received: %s', message);
   });
 
@@ -87,16 +93,17 @@ wss.broadcast = function broadcast(data) {
 // If the WebSocket is closed before the following send is attempted
 ws.send('something');
 
-// Errors (both immediate and async write errors) can be detected in an optional callback.
-// The callback is also the only way of being notified that data has actually been sent.
-ws.send('something', function(error) {
+// Errors (both immediate and async write errors) can be detected in an optional
+//callback. The callback is also the only way of being notified that data has
+//actually been sent.
+ws.send('something', function ack(error) {
   // if error is null, the send has been completed,
   // otherwise the error object will indicate what failed.
 });
 
-// Immediate errors can also be handled with try/catch-blocks, but **note**
-// that since sends are inherently asynchronous, socket write failures will *not*
-// be captured when this technique is used.
+// Immediate errors can also be handled with try/catch-blocks, but **note** that
+//since sends are inherently asynchronous, socket write failures will *not* be
+//captured when this technique is used.
 try { ws.send('something'); }
 catch (e) { /* handle error */ }
 ```
@@ -122,7 +129,7 @@ ws.on('close', function close() {
 ws.on('message', function message(data, flags) {
   console.log('Roundtrip time: ' + (Date.now() - parseInt(data)) + 'ms', flags);
 
-  setTimeout(function() {
+  setTimeout(function timeout() {
     ws.send(Date.now().toString(), {mask: true});
   }, 500);
 });
@@ -172,3 +179,5 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
 CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+[archive]: http://web.archive.org/web/20130314230536/http://hobbycoding.posterous.com/the-fastest-websocket-module-for-nodejs
