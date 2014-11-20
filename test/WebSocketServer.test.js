@@ -60,8 +60,12 @@ describe('WebSocketServer', function() {
     });
 
     it('emits an error if http server bind fails', function(done) {
-      var wss = new WebSocketServer({port: 1});
-      wss.on('error', function() { done(); });
+      var wss1 = new WebSocketServer({port: 50003});
+      var wss2 = new WebSocketServer({port: 50003});
+      wss2.on('error', function() {
+        wss1.close();
+        done();
+      });
     });
 
     it('starts a server on a given port', function(done) {
@@ -88,20 +92,23 @@ describe('WebSocketServer', function() {
       });
     });
 
-    it('uses a precreated http server listening on unix socket', function (done) {
-      var srv = http.createServer();
-      var sockPath = '/tmp/ws_socket_'+new Date().getTime()+'.'+Math.floor(Math.random() * 1000);
-      srv.listen(sockPath, function () {
-        var wss = new WebSocketServer({server: srv});
-        var ws = new WebSocket('ws+unix://'+sockPath);
+    // Don't test this on Windows. It throws errors for obvious reasons.
+    if(!/^win/i.test(process.platform)) {
+      it('uses a precreated http server listening on unix socket', function (done) {
+        var srv = http.createServer();
+        var sockPath = '/tmp/ws_socket_'+new Date().getTime()+'.'+Math.floor(Math.random() * 1000);
+        srv.listen(sockPath, function () {
+          var wss = new WebSocketServer({server: srv});
+          var ws = new WebSocket('ws+unix://'+sockPath);
 
-        wss.on('connection', function(client) {
-          wss.close();
-          srv.close();
-          done();
+          wss.on('connection', function(client) {
+            wss.close();
+            srv.close();
+            done();
+          });
         });
       });
-    });
+    }
 
     it('emits path specific connection event', function (done) {
       var srv = http.createServer();
