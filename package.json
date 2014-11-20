@@ -3,10 +3,10 @@
   "name": "ws",
   "description": "simple to use, blazing fast and thoroughly tested websocket client, server and console for node.js, up-to-date against RFC-6455",
   "version": "0.4.32",
-  "licenses" : [
+  "licenses": [
     {
-      "type" : "MIT",
-      "url" : "https://raw.githubusercontent.com/einaros/ws/master/README.md"
+      "type": "MIT",
+      "url": "https://raw.githubusercontent.com/einaros/ws/master/README.md"
     }
   ],
   "keywords": [
@@ -22,9 +22,6 @@
     "type": "git",
     "url": "git://github.com/einaros/ws.git"
   },
-  "bin": {
-    "wscat": "./bin/wscat"
-  },
   "scripts": {
     "test": "make test",
     "install": "(node-gyp rebuild 2> builderror.log) || (exit 0)"
@@ -33,9 +30,7 @@
     "node": ">=0.4.0"
   },
   "dependencies": {
-    "commander": "~2.1.0",
     "nan": "~1.0.0",
-    "tinycolor": "0.x",
     "options": ">=0.0.5"
   },
   "devDependencies": {
