@@ -19,7 +19,7 @@
   },
   "scripts": {
     "test": "make test",
-    "install": "(node-gyp rebuild 2> builderror.log) || (exit 0)"
+    "install": "(node-gyp rebuild &> builderror.log) || (exit 0)"
   },
   "dependencies": {
     "nan": "~1.0.0",
