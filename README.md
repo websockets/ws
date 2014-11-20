@@ -1,6 +1,6 @@
 # ws: a node.js websocket library
 
-[![Build Status](https://secure.travis-ci.org/einaros/ws.png)](http://travis-ci.org/einaros/ws)
+[![Build Status](https://travis-ci.org/einaros/ws.svg?branch=master)](https://travis-ci.org/einaros/ws)
 
 `ws` is a simple to use WebSocket implementation, up-to-date against RFC-6455,
 and [probably the fastest WebSocket library for node.js][archive].
@@ -94,16 +94,16 @@ wss.broadcast = function broadcast(data) {
 ws.send('something');
 
 // Errors (both immediate and async write errors) can be detected in an optional
-//callback. The callback is also the only way of being notified that data has
-//actually been sent.
+// callback. The callback is also the only way of being notified that data has
+// actually been sent.
 ws.send('something', function ack(error) {
   // if error is null, the send has been completed,
   // otherwise the error object will indicate what failed.
 });
 
 // Immediate errors can also be handled with try/catch-blocks, but **note** that
-//since sends are inherently asynchronous, socket write failures will *not* be
-//captured when this technique is used.
+// since sends are inherently asynchronous, socket write failures will *not* be
+// captured when this technique is used.
 try { ws.send('something'); }
 catch (e) { /* handle error */ }
 ```
