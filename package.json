@@ -27,11 +27,12 @@
     "ultron": "1.0.x"
   },
   "devDependencies": {
+    "ansi": "0.3.x",
+    "benchmark": "0.3.x",
+    "expect.js": "0.3.x",
     "mocha": "2.0.x",
     "should": "4.3.x",
-    "expect.js": "0.3.x",
-    "benchmark": "1.0.x",
-    "ansi": "0.3.x"
+    "tinycolor": "0.0.x"
   },
   "browser": "./lib/browser.js",
   "component": {
