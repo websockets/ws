@@ -19,7 +19,7 @@ for the full reports.
 ### Installing
 
 ```
-npm install ---save ws
+npm install --save ws
 ```
 
 ### Sending and receiving text data
