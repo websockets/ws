@@ -1,4 +1,4 @@
-v0.5 - November 20th 2013
+v0.5 - November 20th 2014
 =====================
 
 * Fixed a file descriptor leak.
