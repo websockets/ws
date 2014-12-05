@@ -1,3 +1,8 @@
+v0.6 - December 5th 2014
+=====================
+
+* Support for per-message deflate [nkzawa]
+
 v0.5 - November 20th 2014
 =====================
 
