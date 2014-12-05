@@ -805,6 +805,30 @@ describe('WebSocketServer', function() {
         });
         wss.on('error', function() {});
       });
+
+      it('accept connections with sec-websocket-extensions', function(done) {
+        var wss = new WebSocketServer({port: ++port}, function() {
+          var options = {
+            port: port,
+            host: '127.0.0.1',
+            headers: {
+              'Connection': 'Upgrade',
+              'Upgrade': 'websocket',
+              'Sec-WebSocket-Key': 'dGhlIHNhbXBsZSBub25jZQ==',
+              'Sec-WebSocket-Version': 13,
+              'Sec-WebSocket-Extensions': 'permessage-foo; x=10'
+            }
+          };
+          var req = http.request(options);
+          req.end();
+        });
+        wss.on('connection', function(ws) {
+          ws.terminate();
+          wss.close();
+          done();
+        });
+        wss.on('error', function() {});
+      });
     });
 
     describe('messaging', function() {
@@ -1212,4 +1236,83 @@ describe('WebSocketServer', function() {
     });
   });
 
+  describe('permessage-deflate', function() {
+    it('accept connections with permessage-deflate extension', function(done) {
+      var wss = new WebSocketServer({port: ++port}, function() {
+        var options = {
+          port: port,
+          host: '127.0.0.1',
+          headers: {
+            'Connection': 'Upgrade',
+            'Upgrade': 'websocket',
+            'Sec-WebSocket-Key': 'dGhlIHNhbXBsZSBub25jZQ==',
+            'Sec-WebSocket-Version': 13,
+            'Sec-WebSocket-Extensions': 'permessage-deflate; client_max_window_bits=8; server_max_window_bits=8; client_no_context_takeover; server_no_context_takeover'
+          }
+        };
+        var req = http.request(options);
+        req.end();
+      });
+      wss.on('connection', function(ws) {
+        ws.terminate();
+        wss.close();
+        done();
+      });
+      wss.on('error', function() {});
+    });
+
+    it('does not accept connections with not defined extension parameter', function(done) {
+      var wss = new WebSocketServer({port: ++port}, function() {
+        var options = {
+          port: port,
+          host: '127.0.0.1',
+          headers: {
+            'Connection': 'Upgrade',
+            'Upgrade': 'websocket',
+            'Sec-WebSocket-Key': 'dGhlIHNhbXBsZSBub25jZQ==',
+            'Sec-WebSocket-Version': 13,
+            'Sec-WebSocket-Extensions': 'permessage-deflate; foo=15'
+          }
+        };
+        var req = http.request(options);
+        req.end();
+        req.on('response', function(res) {
+          res.statusCode.should.eql(400);
+          wss.close();
+          done();
+        });
+      });
+      wss.on('connection', function(ws) {
+        done(new Error('connection must not be established'));
+      });
+      wss.on('error', function() {});
+    });
+
+    it('does not accept connections with invalid extension parameter', function(done) {
+      var wss = new WebSocketServer({port: ++port}, function() {
+        var options = {
+          port: port,
+          host: '127.0.0.1',
+          headers: {
+            'Connection': 'Upgrade',
+            'Upgrade': 'websocket',
+            'Sec-WebSocket-Key': 'dGhlIHNhbXBsZSBub25jZQ==',
+            'Sec-WebSocket-Version': 13,
+            'Sec-WebSocket-Extensions': 'permessage-deflate; server_max_window_bits=foo'
+          }
+        };
+        var req = http.request(options);
+        req.end();
+        req.on('response', function(res) {
+          res.statusCode.should.eql(400);
+          wss.close();
+          done();
+        });
+      });
+      wss.on('connection', function(ws) {
+        done(new Error('connection must not be established'));
+      });
+      wss.on('error', function() {});
+    });
+  });
 });

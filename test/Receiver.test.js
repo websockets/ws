@@ -1,5 +1,6 @@
 var assert = require('assert')
-  , Receiver = require('../lib/Receiver');
+  , Receiver = require('../lib/Receiver')
+  , PerMessageDeflate = require('../lib/PerMessageDeflate');
 require('should');
 require('./hybi-common');
 
@@ -250,6 +251,48 @@ describe('Receiver', function() {
 
     p.add(getBufferFromHexString(packet));
     gotData.should.be.ok;
+  });
+  it('can parse compressed message', function(done) {
+    var perMessageDeflate = new PerMessageDeflate();
+    perMessageDeflate.accept([{}]);
+
+    var p = new Receiver({ 'permessage-deflate': perMessageDeflate });
+    var buf = new Buffer('Hello');
+
+    p.ontext = function(data) {
+      assert.equal('Hello', data);
+      done();
+    };
+
+    perMessageDeflate.compress(buf, true, function(err, compressed) {
+      if (err) return done(err);
+      p.add(new Buffer([0xc1, compressed.length]));
+      p.add(compressed);
+    });
+  });
+  it('can parse compressed fragments', function(done) {
+    var perMessageDeflate = new PerMessageDeflate();
+    perMessageDeflate.accept([{}]);
+
+    var p = new Receiver({ 'permessage-deflate': perMessageDeflate });
+    var buf1 = new Buffer('foo');
+    var buf2 = new Buffer('bar');
+
+    p.ontext = function(data) {
+      assert.equal('foobar', data);
+      done();
+    };
+
+    perMessageDeflate.compress(buf1, false, function(err, compressed1) {
+      if (err) return done(err);
+      p.add(new Buffer([0x41, compressed1.length]));
+      p.add(compressed1);
+
+      perMessageDeflate.compress(buf2, true, function(err, compressed2) {
+        p.add(new Buffer([0x80, compressed2.length]));
+        p.add(compressed2);
+      });
+    });
   });
 });
 
