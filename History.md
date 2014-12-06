@@ -1,8 +1,9 @@
-v0.6.1 - December 6th 2014
+v0.6.1 - v.0.6.2 - December 6th 2014
 =====================
 
 * Disable per-message deflate by default as it seems cause errors which are not
   yet covered by our test suite.
+* Had to re-publish because of npm issues.
 
 v0.6 - December 5th 2014
 =====================
