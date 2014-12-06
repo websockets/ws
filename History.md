@@ -1,3 +1,9 @@
+v0.6.1 - December 6th 2014
+=====================
+
+* Disable per-message deflate by default as it seems cause errors which are not
+  yet covered by our test suite.
+
 v0.6 - December 5th 2014
 =====================
 
