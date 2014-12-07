@@ -49,4 +49,27 @@ describe('Sender', function() {
       sender.send('hi', { compress: true });
     });
   });
+
+  describe('#close', function() {
+    it('should consume all data before closing', function(done) {
+      var perMessageDeflate = new PerMessageDeflate();
+      perMessageDeflate.accept([{}]);
+
+      var count = 0;
+      var sender = new Sender({
+        write: function(data) {
+          count++;
+        }
+      }, {
+        'permessage-deflate': perMessageDeflate
+      });
+      sender.send('foo', {compress: true});
+      sender.send('bar', {compress: true});
+      sender.send('baz', {compress: true});
+      sender.close(1000, null, false, function(err) {
+        count.should.be.equal(4);
+        done(err);
+      });
+    });
+  });
 });
