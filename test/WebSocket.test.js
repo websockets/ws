@@ -1874,5 +1874,71 @@ describe('WebSocket', function() {
         });
       });
     });
+
+    describe('#close', function() {
+      it('should not raise error callback, if any, if called during send data', function(done) {
+        var wss = new WebSocketServer({port: ++port, perMessageDeflate: true}, function() {
+          var ws = new WebSocket('ws://localhost:' + port, {perMessageDeflate: true});
+          var errorGiven = false;
+          ws.on('open', function() {
+            ws.send('hi', function(error) {
+              errorGiven = error != null;
+            });
+            ws.close();
+          });
+          ws.on('close', function() {
+            setTimeout(function() {
+              assert.ok(!errorGiven);
+              wss.close();
+              ws.terminate();
+              done();
+            }, 1000);
+          });
+        });
+      });
+    });
+
+    describe('#terminate', function() {
+      it('will raise error callback, if any, if called during send data', function(done) {
+        var wss = new WebSocketServer({port: ++port, perMessageDeflate: true}, function() {
+          var ws = new WebSocket('ws://localhost:' + port, {perMessageDeflate: true});
+          var errorGiven = false;
+          ws.on('open', function() {
+            ws.send('hi', function(error) {
+              errorGiven = error != null;
+            });
+            ws.terminate();
+          });
+          ws.on('close', function() {
+            setTimeout(function() {
+              assert.ok(errorGiven);
+              wss.close();
+              ws.terminate();
+              done();
+            }, 1000);
+          });
+        });
+      });
+
+      it('can call during receiving data', function(done) {
+        var wss = new WebSocketServer({port: ++port, perMessageDeflate: true}, function() {
+          var ws = new WebSocket('ws://localhost:' + port, {perMessageDeflate: true});
+          wss.on('connection', function(client) {
+            for (var i = 0; i < 10; i++) {
+              client.send('hi');
+            }
+            client.send('hi', function() {
+              ws.terminate();
+            });
+          });
+          ws.on('close', function() {
+            setTimeout(function() {
+              wss.close();
+              done();
+            }, 1000);
+          });
+        });
+      });
+    });
   });
 });

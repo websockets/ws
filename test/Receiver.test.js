@@ -294,5 +294,22 @@ describe('Receiver', function() {
       });
     });
   });
+  it('can cleanup during consuming data', function(done) {
+    var perMessageDeflate = new PerMessageDeflate();
+    perMessageDeflate.accept([{}]);
+
+    var p = new Receiver({ 'permessage-deflate': perMessageDeflate });
+    var buf = new Buffer('Hello');
+
+    perMessageDeflate.compress(buf, true, function(err, compressed) {
+      if (err) return done(err);
+      var data = Buffer.concat([new Buffer([0xc1, compressed.length]), compressed]);
+      p.add(data);
+      p.add(data);
+      p.add(data);
+      p.cleanup();
+      setTimeout(done, 1000);
+    });
+  });
 });
 
