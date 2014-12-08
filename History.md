@@ -1,3 +1,8 @@
+v0.6.3 - December 8th 2014
+=====================
+
+* Fix an error when permessage-deflate is enabled and closing socket [nkzawa]
+
 v0.6.1 - v.0.6.2 - December 6th 2014
 =====================
 
