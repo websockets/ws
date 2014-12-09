@@ -127,6 +127,10 @@ The URL of the WebSocket server (only for clients)
 
 Describes the feature of the used protocol version. E.g. `supports.binary` is a boolean that describes if the connection supports binary messages.
 
+### websocket.upgradeReq
+
+The http request that initiated the upgrade. Useful for parsing authorty headers, cookie headers and other information to associate a specific Websocket to a specific Client. This is only available for WebSockets constructed by a Server.
+
 ### websocket.close([code], [data])
 
 Gracefully closes the connection, after sending a description message
