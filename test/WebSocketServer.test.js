@@ -686,7 +686,7 @@ describe('WebSocketServer', function() {
 
       it('selects the first protocol by default', function(done) {
         var wss = new WebSocketServer({port: ++port}, function() {
-          var ws = new WebSocket('ws://localhost:' + port, {protocol: 'prot1, prot2'});
+          var ws = new WebSocket('ws://localhost:' + port, ['prot1', 'prot2']);
           ws.on('open', function(client) {
               ws.protocol.should.eql('prot1');
               wss.close();
@@ -698,7 +698,7 @@ describe('WebSocketServer', function() {
       it('selects the last protocol via protocol handler', function(done) {
         var wss = new WebSocketServer({port: ++port, handleProtocols: function(ps, cb) {
             cb(true, ps[ps.length-1]); }}, function() {
-          var ws = new WebSocket('ws://localhost:' + port, {protocol: 'prot1, prot2'});
+          var ws = new WebSocket('ws://localhost:' + port, ['prot1', 'prot2']);
           ws.on('open', function(client) {
               ws.protocol.should.eql('prot2');
               wss.close();
@@ -710,7 +710,7 @@ describe('WebSocketServer', function() {
       it('client detects invalid server protocol', function(done) {
         var wss = new WebSocketServer({port: ++port, handleProtocols: function(ps, cb) {
             cb(true, 'prot3'); }}, function() {
-          var ws = new WebSocket('ws://localhost:' + port, {protocol: 'prot1, prot2'});
+          var ws = new WebSocket('ws://localhost:' + port, ['prot1', 'prot2']);
           ws.on('open', function(client) {
               done(new Error('connection must not be established'));
           });
@@ -723,7 +723,7 @@ describe('WebSocketServer', function() {
       it('client detects no server protocol', function(done) {
         var wss = new WebSocketServer({port: ++port, handleProtocols: function(ps, cb) {
             cb(true); }}, function() {
-          var ws = new WebSocket('ws://localhost:' + port, {protocol: 'prot1, prot2'});
+          var ws = new WebSocket('ws://localhost:' + port, ['prot1', 'prot2']);
           ws.on('open', function(client) {
               done(new Error('connection must not be established'));
           });
@@ -736,7 +736,7 @@ describe('WebSocketServer', function() {
       it('client refuses server protocols', function(done) {
         var wss = new WebSocketServer({port: ++port, handleProtocols: function(ps, cb) {
             cb(false); }}, function() {
-          var ws = new WebSocket('ws://localhost:' + port, {protocol: 'prot1, prot2'});
+          var ws = new WebSocket('ws://localhost:' + port, ['prot1', 'prot2']);
           ws.on('open', function(client) {
               done(new Error('connection must not be established'));
           });
@@ -1204,7 +1204,7 @@ describe('WebSocketServer', function() {
   describe('client properties', function() {
     it('protocol is exposed', function(done) {
       var wss = new WebSocketServer({port: ++port}, function() {
-        var ws = new WebSocket('ws://localhost:' + port, {protocol: 'hi'});
+        var ws = new WebSocket('ws://localhost:' + port, 'hi');
       });
       wss.on('connection', function(client) {
         client.protocol.should.eql('hi');
