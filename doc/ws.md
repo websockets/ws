@@ -154,7 +154,7 @@ Resume the client stream
 
 ### websocket.send(data, [options], [callback])
 
-Sends `data` through the connection. `options` can be an object with members `mask` and `binary`. The optional `callback` is executed after the send completes.
+Sends `data` through the connection. `options` can be an object with members `mask`, `binary` and `compress`. The optional `callback` is executed after the send completes.
 
 ### websocket.stream([options], callback)
 
