@@ -1425,6 +1425,28 @@ describe('WebSocket', function() {
         });
       });
     });
+
+    it('consume all data when the server socket closed', function(done) {
+      var wss = new WebSocketServer({port: ++port}, function() {
+        wss.on('connection', function(conn) {
+          conn.send('foo');
+          conn.send('bar');
+          conn.send('baz');
+          conn.close();
+        });
+        var ws = new WebSocket('ws://localhost:' + port);
+        var messages = [];
+        ws.on('message', function (message) {
+          messages.push(message);
+          if (messages.length === 3) {
+            assert.deepEqual(messages, ['foo', 'bar', 'baz']);
+            wss.close();
+            ws.terminate();
+            done();
+          }
+        });
+      });
+    });
   });
 
   describe('W3C API emulation', function() {
