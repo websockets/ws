@@ -85,7 +85,10 @@ function validServer(server, req, socket) {
   };
   receiver.onclose = function (code, message, flags) {
     flags = flags || {};
-    server.emit('close', code, message, flags);
+    sender.close(code, message, false, function(err) {
+      server.emit('close', code, message, flags);
+      socket.end();
+    });
   };
   socket.on('data', function (data) {
     receiver.add(data);
