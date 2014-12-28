@@ -1,3 +1,10 @@
+v0.6.4 - December 28th 2014
+=====================
+
+* Various of documentation improvements from [garcg] and [formula1]
+* Support for sub protocol as array [garcg]
+* Fixed for closing handshake which leads to dataloss when using deflate [nkzawa]
+
 v0.6.3 - December 8th 2014
 =====================
 
