@@ -97,7 +97,7 @@ ws.send('something');
 // callback. The callback is also the only way of being notified that data has
 // actually been sent.
 ws.send('something', function ack(error) {
-  // if error is null, the send has been completed,
+  // if error is not defined, the send has been completed,
   // otherwise the error object will indicate what failed.
 });
 
