@@ -1897,6 +1897,28 @@ describe('WebSocket', function() {
       });
     });
 
+    describe('#send', function() {
+      it('can set the compress option true when perMessageDeflate is disabled', function(done) {
+        var wss = new WebSocketServer({port: ++port}, function() {
+          var ws = new WebSocket('ws://localhost:' + port, {perMessageDeflate: false});
+          ws.on('open', function() {
+            ws.send('hi', {compress: true});
+          });
+          ws.on('message', function(message, flags) {
+            assert.equal('hi', message);
+            ws.terminate();
+            wss.close();
+            done();
+          });
+        });
+        wss.on('connection', function(ws) {
+          ws.on('message', function(message, flags) {
+            ws.send(message, {compress: true});
+          });
+        });
+      });
+    });
+
     describe('#close', function() {
       it('should not raise error callback, if any, if called during send data', function(done) {
         var wss = new WebSocketServer({port: ++port, perMessageDeflate: true}, function() {
