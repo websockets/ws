@@ -471,6 +471,10 @@ describe('WebSocket', function() {
           ws.ping();
         }
         catch (e) {
+          e.should.be.an.Error;
+          e.toString().should.equal(
+            'Error: Bad socket status! Expected state is OPEN but is currently set to CONNECTING'
+          )
           srv.close();
           ws.terminate();
           done();
@@ -544,6 +548,11 @@ describe('WebSocket', function() {
           ws.pong();
         }
         catch (e) {
+          e.should.be.an.Error;
+          e.toString().should.equal(
+            'Error: Bad socket status! Expected state is OPEN but is currently set to CONNECTING'
+          )
+
           srv.close();
           ws.terminate();
           done();
@@ -721,6 +730,10 @@ describe('WebSocket', function() {
           ws.send('hi');
         }
         catch (e) {
+          e.should.be.an.Error;
+          e.toString().should.equal(
+            'Error: Bad socket status! Expected state is OPEN but is currently set to CONNECTING'
+          )
           ws.terminate();
           srv.close();
           done();
@@ -1031,7 +1044,7 @@ describe('WebSocket', function() {
           ws.terminate();
           done();
         });
-        ws.on('error', function() { /* That's quite alright -- a send was attempted after close */ });
+        ws.on('error', function(err) { /* That's quite alright -- a send was attempted after close */ });
         srv.on('message', function(data, flags) {
           assert.ok(!flags.binary);
           assert.ok(areArraysEqual(fs.readFileSync('test/fixtures/textfile', 'utf8'), data));
@@ -1080,6 +1093,11 @@ describe('WebSocket', function() {
         ws.on('error', function() {});
         ws.stream(function(error) {
           assert.ok(error instanceof Error);
+
+          error.toString().should.equal(
+            'Error: Bad socket status! Expected state is OPEN but is currently set to CONNECTING'
+          )
+
           ws.terminate();
           srv.close();
           done();
@@ -1282,7 +1300,10 @@ describe('WebSocket', function() {
               send(payload.substr(5, 5), true);
             }
             else if (i == 3) {
-              assert.ok(error);
+              error.should.be.an.Error;
+              error.toString().should.equal(
+                'Error: Bad socket status! Expected state is OPEN but is currently set to CLOSING'
+              )
               errorGiven = true;
             }
           });
@@ -1315,7 +1336,11 @@ describe('WebSocket', function() {
           fileStream.setEncoding('utf8');
           fileStream.bufferSize = 100;
           ws.send(fileStream, function(error) {
-            errorGiven = error != null;
+            error.should.be.an.Error;
+            error.toString().should.equal(
+              'Error: Bad socket status! Expected state is OPEN but is currently set to CLOSING'
+            )
+            errorGiven = error !== null;
           });
           ws.close(1000, 'foobar');
         });
@@ -1926,7 +1951,7 @@ describe('WebSocket', function() {
           var errorGiven = false;
           ws.on('open', function() {
             ws.send('hi', function(error) {
-              errorGiven = error != null;
+              errorGiven = error !== undefined;
             });
             ws.close();
           });
@@ -1949,7 +1974,7 @@ describe('WebSocket', function() {
           var errorGiven = false;
           ws.on('open', function() {
             ws.send('hi', function(error) {
-              errorGiven = error != null;
+              errorGiven = error !== null;
             });
             ws.terminate();
           });

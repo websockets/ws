@@ -30,8 +30,8 @@
     "ansi": "0.3.x",
     "benchmark": "0.3.x",
     "expect.js": "0.3.x",
-    "mocha": "2.0.x",
-    "should": "4.3.x",
+    "mocha": "2.1.0",
+    "should": "4.4.2",
     "tinycolor": "0.0.x"
   },
   "browser": "./lib/browser.js",
