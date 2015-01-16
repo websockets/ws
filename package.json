@@ -22,7 +22,7 @@
     "install": "(node-gyp rebuild 2> builderror.log) || (exit 0)"
   },
   "dependencies": {
-    "nan": "1.4.x",
+    "nan": "1.5.x",
     "options": ">=0.0.5",
     "ultron": "1.0.x"
   },
