@@ -107,7 +107,7 @@ protected:
   }
 };
 
-extern "C" void init (Handle<Object> target)
+void init (Handle<Object> target)
 {
   NanScope();
   BufferUtil::Initialize(target);
