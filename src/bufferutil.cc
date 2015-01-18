@@ -6,6 +6,7 @@
 
 #include <v8.h>
 #include <node.h>
+#include <node_version.h>
 #include <node_buffer.h>
 #include <node_object_wrap.h>
 #include <stdlib.h>
@@ -107,6 +108,9 @@ protected:
   }
 };
 
+#if !NODE_VERSION_AT_LEAST(0,10,0)
+extern "C"
+#endif
 void init (Handle<Object> target)
 {
   NanScope();
