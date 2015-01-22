@@ -155,6 +155,10 @@ make test
 
 See the doc/ directory for Node.js-like docs for the ws classes.
 
+## Changelog
+
+We're using the GitHub `releases` for changelog entries.
+
 ## License
 
 (The MIT License)
