@@ -1,11 +1,11 @@
 # ws: a node.js websocket library
 
-[![Build Status](https://travis-ci.org/websockets/ws.svg?branch=master)](https://travis-ci.org/einaros/ws)
+[![Build Status](https://travis-ci.org/websockets/ws.svg?branch=master)](https://travis-ci.org/websockets/ws)
 
 `ws` is a simple to use WebSocket implementation, up-to-date against RFC-6455,
 and [probably the fastest WebSocket library for node.js][archive].
 
-Passes the quite extensive Autobahn test suite. See http://einaros.github.com/ws
+Passes the quite extensive Autobahn test suite. See http://websockets.github.com/ws
 for the full reports.
 
 ## Protocol support
