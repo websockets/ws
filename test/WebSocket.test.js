@@ -342,6 +342,25 @@ describe('WebSocket', function() {
       });
     });
 
+    it('can handle error before request is upgraded', function(done) {
+        // Here, we don't create a server, to guarantee that the connection will
+        // fail before the request is upgraded
+        ++port;
+        var ws = new WebSocket('ws://localhost:' + port);
+        ws.on('open', function() {
+          assert.fail('connect shouldnt be raised here');
+        });
+        ws.on('close', function() {
+          assert.fail('close shouldnt be raised here');
+        });
+        ws.on('error', function() {
+          setTimeout(function() {
+            assert.equal(ws.readyState, WebSocket.CLOSED);
+            done();
+          }, 50)
+        });
+    });
+
     it('invalid server key is denied', function(done) {
       server.createServer(++port, server.handlers.invalidKey, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
