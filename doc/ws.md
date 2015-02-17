@@ -86,9 +86,10 @@ When a new WebSocket connection is established. `socket` is an object of type `w
 
 This class represents a WebSocket connection. It is an `EventEmitter`.
 
-### new ws.WebSocket(address, [options])
+### new ws.WebSocket(address, [protocols], [options])
 
-* `address` String|Array
+* `address` String
+* `protocols` String|Array
 * `options` Object
   * `protocol` String
   * `agent` Agent
