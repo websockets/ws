@@ -135,6 +135,13 @@ ws.on('message', function message(data, flags) {
 });
 ```
 
+### Browserify users
+when including ws via a browserify bundle, ws returns global.WebSocket which has slightly different API. 
+You should use the standard WebSockets API instead.
+
+https://developer.mozilla.org/en-US/docs/WebSockets/Writing_WebSocket_client_applications#Availability_of_WebSockets
+
+
 ### Other examples
 
 For a full example with a browser client communicating with a ws server, see the
