@@ -3,6 +3,18 @@ var Sender = require('../lib/Sender')
 require('should');
 
 describe('Sender', function() {
+  describe('#ctor', function() {
+    it('throws TypeError when called without new', function(done) {
+      try {
+        var sender = Sender({ write: function() {} });
+      }
+      catch (e) {
+        e.should.be.instanceof(TypeError);
+        done();
+      }
+    });
+  });
+
   describe('#frameAndSend', function() {
     it('does not modify a masked binary buffer', function() {
       var sender = new Sender({ write: function() {} });
