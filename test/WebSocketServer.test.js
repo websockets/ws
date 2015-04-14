@@ -367,6 +367,20 @@ describe('WebSocketServer', function () {
     });
   });
 
+  describe('#shouldHandle', function () {
+    it('returns true when the path matches', function () {
+      const wss = new WebSocketServer({ noServer: true, path: '/foo' });
+
+      assert.strictEqual(wss.shouldHandle({ url: '/foo' }), true);
+    });
+
+    it('returns false when the path does not match', function () {
+      const wss = new WebSocketServer({ noServer: true, path: '/foo' });
+
+      assert.strictEqual(wss.shouldHandle({ url: '/bar' }), false);
+    });
+  });
+
   describe('#handleUpgrade', function () {
     it('can be used for a pre-existing server', function (done) {
       const server = http.createServer();
