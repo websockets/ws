@@ -1798,15 +1798,28 @@ describe('WebSocket', function() {
       });
     });
 
-    it('includes the origin header with port number', function(done) {
+    it('lacks default origin header', function(done) {
       var srv = http.createServer();
       srv.listen(++port, function() {
         srv.on('upgrade', function(req, socket, upgradeHeade) {
-          assert.equal('localhost:' + port, req.headers['origin']);
+          req.headers.should.not.have.property('origin');
           srv.close();
           done();
         });
         var ws = new WebSocket('ws://localhost:' + port);
+      });
+    });
+
+    it('honors origin set in options', function(done) {
+      var srv = http.createServer();
+      srv.listen(++port, function() {
+        var options = {origin: 'https://example.com:8000'}
+        srv.on('upgrade', function(req, socket, upgradeHeade) {
+          assert.equal(options.origin, req.headers['origin']);
+          srv.close();
+          done();
+        });
+        var ws = new WebSocket('ws://localhost:' + port, options);
       });
     });
   });
