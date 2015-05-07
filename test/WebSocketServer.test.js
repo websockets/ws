@@ -3,7 +3,9 @@ var http = require('http')
   , WebSocket = require('../')
   , WebSocketServer = WebSocket.Server
   , fs = require('fs')
-  , should = require('should');
+  , net = require('net')
+  , should = require('should')
+  , assert = require('assert');
 
 var port = 8000;
 
@@ -222,6 +224,19 @@ describe('WebSocketServer', function() {
         wss2.close();
         (typeof srv._webSocketPaths).should.eql('undefined');
         srv.close();
+        done();
+      });
+    });
+
+    it('closes the socket', function(done) {
+      var wss = new WebSocketServer({port: ++port});
+      wss.close();
+      var client = new net.Socket().connect(port, '127.0.0.1', function() {
+        return done(new Error('connected to server socket after calling close'));    
+      });
+
+      client.on('error', function(err) {
+        assert.equal(err.code, 'ECONNREFUSED');
         done();
       });
     });
