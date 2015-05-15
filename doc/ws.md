@@ -31,7 +31,7 @@ Either `port` or `server` must be provided, otherwise you might enable
 * `info` Object:
   * `origin` String: The value in the Origin header indicated by the client.
   * `req` http.ClientRequest: The client HTTP GET request.
-  * `secure` Boolean: `true` if `req.connection.authorized` or `req.connection.encypted` is set.
+  * `secure` Boolean: `true` if `req.connection.authorized` or `req.connection.encrypted` is set.
 * `cb` Function: A callback that must be called by the user upon inspection of the `info` fields. Arguments in this callback are:
   * `result` Boolean: Whether the user accepts or not the handshake.
   * `code` Number: If `result` is `false` this field determines the HTTP error status code to be sent to the client.
