@@ -706,7 +706,7 @@ describe('WebSocket', function() {
           ws.send(array.buffer);
         });
         ws.onmessage = function (event) {
-          assert.ok(event.type = 'Binary');
+          assert.ok(event.binary);
           assert.ok(areArraysEqual(array, new Float32Array(getArrayBuffer(event.data))));
           ws.terminate();
           srv.close();
@@ -723,7 +723,7 @@ describe('WebSocket', function() {
           ws.send(buf);
         });
         ws.onmessage = function (event) {
-          assert.ok(event.type = 'Binary');
+          assert.ok(event.binary);
           assert.ok(areArraysEqual(event.data, buf));
           ws.terminate();
           srv.close();
@@ -1595,6 +1595,32 @@ describe('WebSocket', function() {
         ws.addEventListener('error', function(errorEvent) {
           assert.equal(errorEvent.message, 'forced');
           assert.equal(ws, errorEvent.target);
+          ws.terminate();
+          done();
+        });
+      });
+      wss.on('connection', function(client) {
+        client.send('hi')
+      });
+    });
+
+    it('should have type set on Events', function(done) {
+      var wss = new WebSocketServer({port: ++port}, function() {
+        var ws = new WebSocket('ws://localhost:' + port);
+        ws.addEventListener('open', function(openEvent) {
+          assert.equal('open', openEvent.type);
+        });
+        ws.addEventListener('message', function(messageEvent) {
+          assert.equal('message', messageEvent.type);
+          wss.close();
+        });
+        ws.addEventListener('close', function(closeEvent) {
+          assert.equal('close', closeEvent.type);
+          ws.emit('error', new Error('forced'));
+        });
+        ws.addEventListener('error', function(errorEvent) {
+          assert.equal(errorEvent.message, 'forced');
+          assert.equal('error', errorEvent.type);
           ws.terminate();
           done();
         });
