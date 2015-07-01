@@ -1902,6 +1902,50 @@ describe('WebSocket', function() {
       });
     });
 
+    it('can send and receive a typed array', function(done) {
+      var array = new Float32Array(5);
+      for (var i = 0; i < array.length; i++) array[i] = i / 2;
+      var wss = new WebSocketServer({port: ++port, perMessageDeflate: true}, function() {
+        var ws = new WebSocket('ws://localhost:' + port, {perMessageDeflate: true});
+        ws.on('open', function() {
+          ws.send(array, {compress: true});
+        });
+        ws.on('message', function(message, flags) {
+          assert.ok(areArraysEqual(array, new Float32Array(getArrayBuffer(message))));
+          ws.terminate();
+          wss.close();
+          done();
+        });
+      });
+      wss.on('connection', function(ws) {
+        ws.on('message', function(message, flags) {
+          ws.send(message, {compress: true});
+        });
+      });
+    });
+
+    it('can send and receive ArrayBuffer', function(done) {
+      var array = new Float32Array(5);
+      for (var i = 0; i < array.length; i++) array[i] = i / 2;
+      var wss = new WebSocketServer({port: ++port, perMessageDeflate: true}, function() {
+        var ws = new WebSocket('ws://localhost:' + port, {perMessageDeflate: true});
+        ws.on('open', function() {
+          ws.send(array.buffer, {compress: true});
+        });
+        ws.on('message', function(message, flags) {
+          assert.ok(areArraysEqual(array, new Float32Array(getArrayBuffer(message))));
+          ws.terminate();
+          wss.close();
+          done();
+        });
+      });
+      wss.on('connection', function(ws) {
+        ws.on('message', function(message, flags) {
+          ws.send(message, {compress: true});
+        });
+      });
+    });
+
     it('with binary stream will send fragmented data', function(done) {
       var wss = new WebSocketServer({port: ++port, perMessageDeflate: true}, function() {
         var ws = new WebSocket('ws://localhost:' + port, {perMessageDeflate: true});
