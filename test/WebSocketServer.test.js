@@ -3,6 +3,7 @@
 'use strict';
 
 const assert = require('assert');
+const crypto = require('crypto');
 const https = require('https');
 const http = require('http');
 const net = require('net');
@@ -82,16 +83,23 @@ describe('WebSocketServer', function () {
       if (process.platform === 'win32') return done();
 
       const server = http.createServer();
-      const sockPath = `/tmp/ws_socket_${new Date().getTime()}.${Math.floor(Math.random() * 1000)}`;
+      const sockPath = `/tmp/ws.${crypto.randomBytes(16).toString('hex')}.socket`;
 
       server.listen(sockPath, () => {
         const wss = new WebSocketServer({ server });
-        const ws = new WebSocket(`ws+unix://${sockPath}`);
 
         wss.on('connection', (ws) => {
-          wss.close();
-          server.close(done);
+          if (wss.clients.size === 1) {
+            assert.strictEqual(ws.upgradeReq.url, '/foo?bar=bar');
+          } else {
+            assert.strictEqual(ws.upgradeReq.url, '/');
+            wss.close();
+            server.close(done);
+          }
         });
+
+        const ws = new WebSocket(`ws+unix://${sockPath}:/foo?bar=bar`);
+        ws.on('open', () => new WebSocket(`ws+unix://${sockPath}`));
       });
     });
 
