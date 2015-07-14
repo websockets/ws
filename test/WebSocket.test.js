@@ -1822,6 +1822,21 @@ describe('WebSocket', function() {
         var ws = new WebSocket('ws://localhost:' + port, options);
       });
     });
+
+    it('excludes default ports from host header', function(done) {
+      // can't create a server listening on ports 80 or 443
+      // so we need to expose the method that does this
+      var buildHostHeader = WebSocket.buildHostHeader
+      var host = buildHostHeader(false, 'localhost', 80)
+      assert.equal('localhost', host);
+      host = buildHostHeader(false, 'localhost', 88)
+      assert.equal('localhost:88', host);
+      host = buildHostHeader(true, 'localhost', 443)
+      assert.equal('localhost', host);
+      host = buildHostHeader(true, 'localhost', 8443)
+      assert.equal('localhost:8443', host);
+      done()
+    });
   });
 
   describe('permessage-deflate', function() {
