@@ -17,6 +17,7 @@ This class is a WebSocket server. It is an `EventEmitter`.
   * `disableHixie` Boolean
   * `clientTracking` Boolean
   * `perMessageDeflate` Boolean|Object
+  * `maximumPayload` Number (requires `disableHixie`)
 * `callback` Function
 
 Construct a new server object.
@@ -119,6 +120,7 @@ This class represents a WebSocket connection. It is an `EventEmitter`.
   * `ciphers` String
   * `rejectUnauthorized` Boolean
   * `perMessageDeflate` Boolean|Object
+  * `maximumPayload` Number (requires `disableHixie`)
 
 Instantiating with an `address` creates a new WebSocket client object. If `address` is an Array (request, socket, rest), it is instantiated as a Server client (e.g. called from the `ws.Server`).
 
