@@ -3,6 +3,18 @@ var Extensions = require('../lib/Extensions');
 require('should');
 
 describe('PerMessageDeflate', function() {
+  describe('#ctor', function() {
+    it('throws TypeError when called without new', function(done) {
+      try {
+        var perMessageDeflate = PerMessageDeflate();
+      }
+      catch (e) {
+        e.should.be.instanceof(TypeError);
+        done();
+      }
+    });
+  });
+
   describe('#offer', function() {
     it('should create default params', function() {
       var perMessageDeflate = new PerMessageDeflate();

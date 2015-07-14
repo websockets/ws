@@ -4,6 +4,18 @@ require('should');
 require('./hybi-common');
 
 describe('Sender', function() {
+  describe('#ctor', function() {
+    it('throws TypeError when called without new', function(done) {
+      try {
+        var sender = Sender({ write: function() {} });
+      }
+      catch (e) {
+        e.should.be.instanceof(TypeError);
+        done();
+      }
+    });
+  });
+
   describe('#send', function() {
     it('frames and sends a text message', function(done) {
       var message = 'Hello world';
