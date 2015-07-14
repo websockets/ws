@@ -92,6 +92,22 @@ describe('WebSocketServer', function() {
       });
     });
 
+    it('426s for non-Upgrade requests', function (done) {
+      var wss = new WebSocketServer({ port: ++port }, function () {
+        http.get('http://localhost:' + port, function (res) {
+          var body = '';
+
+          res.statusCode.should.equal(426);
+          res.on('data', function (chunk) { body += chunk; });
+          res.on('end', function () {
+            body.should.equal(http.STATUS_CODES[426]);
+            wss.close();
+            done();
+          });
+        });
+      });
+    });
+
     // Don't test this on Windows. It throws errors for obvious reasons.
     if(!/^win/i.test(process.platform)) {
       it('uses a precreated http server listening on unix socket', function (done) {
