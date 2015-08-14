@@ -99,7 +99,7 @@ describe('WebSocket', function() {
     });
 
     it('should accept the localAddress option whether it was wrong interface', function(done) {
-      if ( process.platform === 'linux' && process.version.match(/^v0\.(0|10)/) ) {
+      if ( process.platform === 'linux' && process.version.match(/^v0\.([0-9]\.|10)/) ) {
         return done();
       }
       var wss = new WebSocketServer({port: ++port}, function() {
