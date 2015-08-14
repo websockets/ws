@@ -100,11 +100,17 @@ describe('WebSocket', function() {
 
     it('should accept the localAddress option whether it was wrong interface', function(done) {
       var wss = new WebSocketServer({port: ++port}, function() {
-        var ws = new WebSocket('ws://localhost:' + port, { localAddress: '123.456.789.428' });
-        ws.on('error', function (error) {
-          error.code.should.eql('EADDRNOTAVAIL');
+        try {
+          var ws = new WebSocket('ws://localhost:' + port, { localAddress: '123.456.789.428' });
+          ws.on('error', function (error) {
+            error.code.should.eql('EADDRNOTAVAIL');
+            done();
+          });
+        }
+        catch(e) {
+          e.should.match(/localAddress must be a valid IP/);
           done();
-        });
+        }
       });
     });
   });
