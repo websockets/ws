@@ -5,6 +5,7 @@ var assert = require('assert')
   , WebSocket = require('../')
   , WebSocketServer = require('../').Server
   , fs = require('fs')
+  , os = require('os')
   , server = require('./testserver')
   , crypto = require('crypto');
 
@@ -72,6 +73,47 @@ describe('WebSocket', function() {
           }
         };
         var ws = new WebSocket('ws://localhost:' + port, [], { agent: agent });
+      });
+    });
+
+    it('should accept the localAddress option', function(done) {
+      // explore existing interfaces
+      var devs = os.networkInterfaces()
+        , localAddresses = []
+        , j, ifc, dev, devname;
+      for ( devname in devs ) {
+        dev = devs[devname];
+        for ( j=0;j<dev.length;j++ ) {
+          ifc = dev[j];
+          if ( !ifc.internal && ifc.family === 'IPv4' ) {
+            localAddresses.push(ifc.address);
+          }
+        }
+      }
+      var wss = new WebSocketServer({port: ++port}, function() {
+        var ws = new WebSocket('ws://localhost:' + port, { localAddress: localAddresses[0] });
+        ws.on('open', function () {
+          done();
+        });
+      });
+    });
+
+    it('should accept the localAddress option whether it was wrong interface', function(done) {
+      if ( process.platform === 'linux' && process.version.match(/^v0\.([0-9]\.|10)/) ) {
+        return done();
+      }
+      var wss = new WebSocketServer({port: ++port}, function() {
+        try {
+          var ws = new WebSocket('ws://localhost:' + port, { localAddress: '123.456.789.428' });
+          ws.on('error', function (error) {
+            error.code.should.eql('EADDRNOTAVAIL');
+            done();
+          });
+        }
+        catch(e) {
+          e.should.match(/localAddress must be a valid IP/);
+          done();
+        }
       });
     });
   });
