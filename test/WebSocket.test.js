@@ -49,6 +49,40 @@ describe('WebSocket', function() {
         done();
       }
     });
+
+    it('should emit an error object when the receiver throws an error string', function(done) {
+    
+      var wss = new WebSocketServer({port: ++port}, function() {
+
+          var ws = new WebSocket('ws://localhost:' + port);
+          
+          ws.on('open', function () {
+            ws._receiver.error('This is an error string', 1002);
+          });
+
+          ws.on('error', function (error) {
+            error.should.be.an.instanceof(Error);
+            done();
+          });
+      });
+    });
+
+    it('should emit an error object when the receiver throws an error object', function(done) {
+    
+      var wss = new WebSocketServer({port: ++port}, function() {
+
+          var ws = new WebSocket('ws://localhost:' + port);
+          
+          ws.on('open', function () {
+            ws._receiver.error(new Error('This is an error object'), 1002);
+          });
+
+          ws.on('error', function (error) {
+            error.should.be.an.instanceof(Error);
+            done();
+          });
+      });
+    });
   });
 
   describe('options', function() {
