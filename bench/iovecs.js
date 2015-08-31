@@ -38,7 +38,6 @@ else {
     bufCount: 1,
     bufSize: 8 * 1024,
     options: {
-      binary: true,
       compress: false,
       mask: false
     }
@@ -46,7 +45,6 @@ else {
     bufCount: 8,
     bufSize: 1 * 1024,
     options: {
-      binary: true,
       compress: false,
       mask: false
     }
@@ -54,7 +52,6 @@ else {
     bufCount: 1,
     bufSize: 128 * 1024,
     options: {
-      binary: true,
       compress: false,
       mask: false
     }
@@ -62,7 +59,6 @@ else {
     bufCount: 8,
     bufSize: 16 * 1024,
     options: {
-      binary: true,
       compress: false,
       mask: false
     }
@@ -70,7 +66,6 @@ else {
     bufCount: 1,
     bufSize: 1024 * 1024,
     options: {
-      binary: true,
       compress: false,
       mask: false
     }
@@ -78,7 +73,6 @@ else {
     bufCount: 8,
     bufSize: 128 * 1024,
     options: {
-      binary: true,
       compress: false,
       mask: false
     }
@@ -86,7 +80,6 @@ else {
     bufCount: 1,
     bufSize: 128 * 1024,
     options: {
-      binary: true,
       compress: false,
       mask: true
     }
@@ -94,7 +87,6 @@ else {
     bufCount: 1,
     bufSize: 128 * 1024,
     options: {
-      binary: true,
       compress: true,
       mask: true
     }
@@ -118,7 +110,7 @@ else {
         // the first 4 bytes of the message contain the length of the header so the receiver can decode it
         new Buffer(4),
         // the second buffer will be the json of the header
-        null 
+        null
       ];
       var size = 0;
       for (var i=0; i<conf.bufCount; ++i) {

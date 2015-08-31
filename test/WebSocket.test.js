@@ -1112,6 +1112,105 @@ describe('WebSocket', function() {
         });
       });
     });
+
+    describe('iovecs', function() {
+
+      // tests for sending iovecs
+      var iovecsConfigs = [{
+        // small message (<32K) with aligned iovecs
+        iolens: [1024, 1024, 1024, 1024]
+      }, {
+        // small message (<32K) with unaligned iovecs
+        iolens: [97, 2015, 256, 333]
+      }, {
+        // big message (>32K) with aligned iovecs
+        iolens: [1024 * 1024, 1024 * 1024, 1024 * 1024, 1024 * 1024]
+      }, {
+        // big message (>32K) with mixed size iovecs
+        iolens: [1, 1024 * 1024, 17, 199 * 1024]
+      }];
+      var iovecsOptions = [{
+        // default options: binary: true, mask: true, compress: true
+      }, {
+        mask: true,
+        compress: true
+      }, {
+        mask: false,
+        compress: true
+      }, {
+        mask: true,
+        compress: false
+      }, {
+        mask: false,
+        compress: false
+      }];
+
+      iovecsConfigs.forEach(function(conf) {
+        iovecsOptions.forEach(function(options) {
+          it('with iovecs is successful' +
+            ' with config ' + JSON.stringify(conf) +
+            ' and options ' + JSON.stringify(options),
+            function(done) {
+              // copy to reuse the options object, since send will mutate it (sets options.fin)
+              var optionsCopy = {};
+              for (var i in options) {
+                  if (options.hasOwnProperty(i)) {
+                      optionsCopy[i] = options[i];
+                  }
+              }
+              iovecsTest(conf, optionsCopy, done);
+            });
+        });
+      });
+
+      function iovecsTest(conf, options, done) {
+        server.createServer(++port, function(srv) {
+          var ws = new WebSocket('ws://localhost:' + port);
+          var runs = 10;
+          var sent = 0;
+          var callbacks = 0;
+          var received = 0;
+          // when the entire message is below 32K the sender will always copy
+          var iovecs = [];
+          iovecs.length = conf.iolens.length;
+          for (var i=0; i<conf.iolens.length; ++i) {
+            iovecs[i] = crypto.pseudoRandomBytes(conf.iolens[i]);
+          }
+          var message = Buffer.concat(iovecs);
+          ws.on('open', function() {
+            ws.emit('message', 'start sending ...');
+          });
+          ws.on('message', function(data, flags) {
+            if (data !== 'start sending ...') {
+              assert.ok(flags.binary);
+              assert.ok(areArraysEqual(message, data));
+              received += 1;
+              if (received >= runs) {
+                ws.terminate();
+                return;
+              }
+            }
+            if (sent >= runs) {
+              return;
+            }
+            sent += 1;
+            ws.send(iovecs, options, function(err) {
+              assert.equal(null, err);
+              callbacks += 1;
+            });
+          });
+          ws.on('close', function() {
+            assert.strictEqual(sent, runs);
+            assert.strictEqual(callbacks, runs);
+            assert.strictEqual(received, runs);
+            srv.close();
+            done();
+          });
+        });
+      }
+
+    });
+
   });
 
   describe('#stream', function() {
