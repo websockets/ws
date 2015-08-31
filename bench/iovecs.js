@@ -27,7 +27,7 @@ if (cluster.isMaster) {
     });
     ws.on('close', function() {});
   });
-  cluster.on('death', function(worker) {
+  cluster.on('exit', function(worker) {
     wss.close();
   });
 }
@@ -146,7 +146,7 @@ else {
           , conf.iovecs ? conf.prefix.green : conf.prefix.cyan
           , roundPrec(elapsed / 1000, 1).toString().green.bold
           , (humanSize(bytes / elapsed * 1000) + '/s').blue.bold);
-        if (elapsed >= 5000) {
+        if (elapsed >= 9000) {
           client.close();
           cb();
           return;
@@ -157,7 +157,10 @@ else {
   }
 
   (function testNext() {
-    if (configs.length == 0) process.exit();
+    if (!configs.length) {
+      console.log('done.');
+      process.exit();
+    }
     console.log(' '); // newline
     var conf = configs.shift();
     console.log('Sending messages with %s buffers of %s (options %s)',
