@@ -1151,14 +1151,7 @@ describe('WebSocket', function() {
             ' with config ' + JSON.stringify(conf) +
             ' and options ' + JSON.stringify(options),
             function(done) {
-              // copy to reuse the options object, since send will mutate it (sets options.fin)
-              var optionsCopy = {};
-              for (var i in options) {
-                  if (options.hasOwnProperty(i)) {
-                      optionsCopy[i] = options[i];
-                  }
-              }
-              iovecsTest(conf, optionsCopy, done);
+              iovecsTest(conf, options, done);
             });
         });
       });
