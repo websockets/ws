@@ -26,6 +26,12 @@ function areArraysEqual(x, y) {
 
 describe('WebSocketServer', function() {
   describe('#ctor', function() {
+    it('should return a new instance if called without new', function(done) {
+      var ws = WebSocketServer({noServer: true});
+      ws.should.be.an.instanceOf(WebSocketServer);
+      done();
+    });
+    
     it('throws an error if no option object is passed', function() {
       var gotException = false;
       try {

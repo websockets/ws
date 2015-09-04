@@ -40,6 +40,12 @@ describe('WebSocket', function() {
         done();
       }
     });
+    
+    it('should return a new instance if called without new', function(done) {
+      var ws = WebSocket('ws://localhost:' + port);
+      ws.should.be.an.instanceOf(WebSocket);
+      done();
+    });
   });
 
   describe('options', function() {
