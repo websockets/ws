@@ -2,9 +2,10 @@ language: node_js
 sudo: false
 npm_args: --ws:native
 node_js:
-  - "iojs-v3"
-  - "iojs-v2"
-  - "iojs-v1"
+  - "4"
+  - "3"
+  - "2"
+  - "1"
   - "0.12"
   - "0.11"
   - "0.10"
