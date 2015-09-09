@@ -40,14 +40,11 @@ describe('WebSocket', function() {
         done();
       }
     });
-    it('throws TypeError when called without new', function(done) {
-      try {
-        var ws = WebSocket('ws://localhost:' + port);
-      }
-      catch (e) {
-        e.should.be.instanceof(TypeError);
-        done();
-      }
+    
+    it('should return a new instance if called without new', function(done) {
+      var ws = WebSocket('ws://localhost:' + port);
+      ws.should.be.an.instanceOf(WebSocket);
+      done();
     });
   });
 
