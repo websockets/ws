@@ -26,7 +26,7 @@ npm install --save ws
 
 ```js
 var WebSocket = require('ws');
-var ws = new WebSocket('ws://www.host.com/path');
+var ws = WebSocket('ws://www.host.com/path');
 
 ws.on('open', function open() {
   ws.send('something');
@@ -42,7 +42,7 @@ ws.on('message', function(data, flags) {
 
 ```js
 var WebSocket = require('ws');
-var ws = new WebSocket('ws://www.host.com/path');
+var ws = WebSocket('ws://www.host.com/path');
 
 ws.on('open', function open() {
   var array = new Float32Array(5);
@@ -63,7 +63,7 @@ data.
 
 ```js
 var WebSocketServer = require('ws').Server
-  , wss = new WebSocketServer({ port: 8080 });
+  , wss = WebSocketServer({ port: 8080 });
 
 wss.on('connection', function connection(ws) {
   ws.on('message', function incoming(message) {
@@ -80,7 +80,7 @@ wss.on('connection', function connection(ws) {
 var server = require('http').createServer()
   , url = require('url')
   , WebSocketServer = require('ws').Server
-  , wss = new WebSocketServer({ server: server })
+  , wss = WebSocketServer({ server: server })
   , express = require('express')
   , app = express()
   , port = 4080;
@@ -109,7 +109,7 @@ server.listen(port, function () { console.log('Listening on ' + server.address()
 
 ```js
 var WebSocketServer = require('ws').Server
-  , wss = new WebSocketServer({ port: 8080 });
+  , wss = WebSocketServer({ port: 8080 });
 
 wss.broadcast = function broadcast(data) {
   wss.clients.forEach(function each(client) {
@@ -143,7 +143,7 @@ catch (e) { /* handle error */ }
 
 ```js
 var WebSocket = require('ws');
-var ws = new WebSocket('ws://echo.websocket.org/', {
+var ws = WebSocket('ws://echo.websocket.org/', {
   protocolVersion: 8, 
   origin: 'http://websocket.org'
 });

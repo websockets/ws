@@ -4,7 +4,7 @@
 
 This class is a WebSocket server. It is an `EventEmitter`.
 
-### new ws.Server([options], [callback])
+### ws.Server([options], [callback])
 
 * `options` Object
   * `host` String
@@ -99,7 +99,7 @@ When a new WebSocket connection is established. `socket` is an object of type `w
 
 This class represents a WebSocket connection. It is an `EventEmitter`.
 
-### new ws.WebSocket(address, [protocols], [options])
+### ws.WebSocket(address, [protocols], [options])
 
 * `address` String
 * `protocols` String|Array
