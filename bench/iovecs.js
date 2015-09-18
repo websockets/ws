@@ -125,8 +125,11 @@ else {
       buffers[0].writeUInt32BE(buffers[1].length, 0);
       size += buffers[0].length + buffers[1].length;
       bytes += size;
-      var data = conf.iovecs ? buffers : Buffer.concat(buffers);
-      client.send(data, conf.options);
+      if (conf.iovecs) {
+        client.sendv(buffers, conf.options);
+      } else {
+        client.send(Buffer.concat(buffers), conf.options);
+      }
     }
     client.on('error', function(e) {
       console.error(e);
