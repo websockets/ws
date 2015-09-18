@@ -59,6 +59,43 @@ Setting `mask`, as done for the send options above, will cause the data to be
 masked according to the WebSocket protocol. The same option applies for text
 data.
 
+### Sending iovecs
+
+Composing a message from multiple buffers using sendv() helps to eliminate 
+the need to copy the buffers to a new concatenated message buffer, 
+which reduces the CPU overhead and increases throughput.
+
+All the options of send() are supported and the default is to send the message as binary.
+It is possible to send any mix of buffers, strings, typed-arrays in a single message.
+Notice that if you use options.binary=false then you must only send strings.
+
+```js
+var WebSocket = require('ws');
+var ws = new WebSocket('ws://www.host.com/path');
+
+ws.on('open', function open() {
+
+  var header = new Buffer(JSON.stringify({
+    to: 'Mr. Hyde',
+    from: 'Dr. Jekyll',
+    subject: 'See attached my night work'
+  }));
+
+  var data = new Buffer(1024 * 1024);
+  data.fill(0xBA);
+
+  // in order for the receiver to to decode such a composed message
+  // it is common to send the lengths of the sections
+
+  var lens = new Buffer(8);
+  lens.writeUInt32BE(header.length, 0);
+  lens.writeUInt32BE(data.length, 4);
+
+  var iovecs = [lens, header, data];
+  ws.sendv(iovecs, { binary: true, mask: true });
+});
+```
+
 ### Server example
 
 ```js
