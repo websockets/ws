@@ -492,43 +492,6 @@ describe('WebSocket', function() {
     });
   });
 
-  describe('#pause and #resume', function() {
-    it('pauses the underlying stream', function(done) {
-      // this test is sort-of racecondition'y, since an unlikely slow connection
-      // to localhost can cause the test to succeed even when the stream pausing
-      // isn't working as intended. that is an extremely unlikely scenario, though
-      // and an acceptable risk for the test.
-      var client;
-      var serverClient;
-      var openCount = 0;
-      function onOpen() {
-        if (++openCount == 2) {
-          var paused = true;
-          serverClient.on('message', function() {
-            paused.should.not.be.ok;
-            wss.close();
-            done();
-          });
-          serverClient.pause();
-          setTimeout(function() {
-            paused = false;
-            serverClient.resume();
-          }, 200);
-          client.send('foo');
-        }
-      }
-      var wss = new WebSocketServer({port: ++port}, function() {
-        var ws = new WebSocket('ws://localhost:' + port);
-        serverClient = ws;
-        serverClient.on('open', onOpen);
-      });
-      wss.on('connection', function(ws) {
-        client = ws;
-        onOpen();
-      });
-    });
-  });
-
   describe('#ping', function() {
     it('before connect should fail', function(done) {
       server.createServer(++port, function(srv) {
