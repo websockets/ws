@@ -5,6 +5,18 @@ require('should');
 require('./hybi-common');
 
 describe('Receiver', function() {
+  describe('#ctor', function() {
+    it('throws TypeError when called without new', function(done) {
+      try {
+        var p = Receiver();
+      }
+      catch (e) {
+        e.should.be.instanceof(TypeError);
+        done();
+      }
+    });
+  });
+
   it('can parse unmasked text message', function() {
     var p = new Receiver();
     var packet = '81 05 48 65 6c 6c 6f';
@@ -312,4 +324,3 @@ describe('Receiver', function() {
     });
   });
 });
-

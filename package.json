@@ -2,7 +2,7 @@
   "author": "Einar Otto Stangvik <einaros@gmail.com> (http://2x.io)",
   "name": "ws",
   "description": "simple to use, blazing fast and thoroughly tested websocket client, server and console for node.js, up-to-date against RFC-6455",
-  "version": "0.7.2",
+  "version": "0.8.0",
   "license": "MIT",
   "keywords": [
     "Hixie",
@@ -25,8 +25,8 @@
     "ultron": "1.0.x"
   },
   "optionalDependencies": {
-    "bufferutil": "1.1.x",
-    "utf-8-validate": "1.1.x"
+    "bufferutil": "1.2.x",
+    "utf-8-validate": "1.2.x"
   },
   "devDependencies": {
     "ansi": "0.3.x",

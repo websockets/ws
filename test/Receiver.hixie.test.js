@@ -4,6 +4,18 @@ var assert = require('assert')
 require('./hybi-common');
 
 describe('Receiver', function() {
+  describe('#ctor', function() {
+    it('throws TypeError when called without new', function(done) {
+      try {
+        var p = Receiver();
+      }
+      catch (e) {
+        e.should.be.instanceof(TypeError);
+        done();
+      }
+    });
+  });
+
   it('can parse text message', function() {
     var p = new Receiver();
     var packet = '00 48 65 6c 6c 6f ff';
