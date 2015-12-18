@@ -1111,6 +1111,151 @@ describe('WebSocket', function() {
     });
   });
 
+  describe('#sendv', function() {
+
+    // tests for sending iovecs
+    var iovecsConfigs = [{
+      // small message (<32K) with aligned iovecs
+      ios: [1024, 1024, 1024, 1024]
+    }, {
+      // small message (<32K) with unaligned iovecs
+      ios: [97, 2015, 256, 333]
+    }, {
+      // big message (>32K) with aligned iovecs
+      ios: [1024 * 1024, 1024 * 1024, 1024 * 1024, 1024 * 1024]
+    }, {
+      // big message (>32K) with mixed size iovecs
+      ios: [1, 1024 * 1024, 17, 199 * 1024]
+    }, {
+      // small string iovecs
+      binary: false,
+      ios: [2387, 9999, 133]
+    }, {
+      // mixed strings and buffers
+        ios: [16 * 1024, {len: 8444, binary: false}, {len: 42 * 1024, binary: false}, 10000]
+    }];
+    var iovecsOptions = [{
+      // default options: binary: true, mask: true, compress: true
+    }, {
+      mask: true,
+      compress: true
+    }, {
+      mask: false,
+      compress: true
+    }, {
+      mask: true,
+      compress: false
+    }, {
+      mask: false,
+      compress: false
+    }, {
+      binary: false,
+      mask: false,
+      compress: false
+    }];
+
+    iovecsConfigs.forEach(function(conf) {
+      iovecsOptions.forEach(function(options) {
+        it('with iovecs is successful' +
+          ' with config ' + JSON.stringify(conf) +
+          ' and options ' + JSON.stringify(options),
+          function(done) {
+            iovecsTest(conf, options, done);
+          });
+      });
+    });
+
+    function iovecsTest(conf, options, done) {
+      server.createServer(++port, function(srv) {
+        var ws = new WebSocket('ws://localhost:' + port);
+        var runs = 10;
+        var sent = 0;
+        var callbacks = 0;
+        var received = 0;
+        // when the entire message is below 32K the sender will always copy
+        var iovecs = [];
+        iovecs.length = conf.ios.length;
+        var has_binary_iovec = false;
+
+        for (var i=0; i<conf.ios.length; ++i) {
+          var io = conf.ios[i];
+          if (typeof(io) !== 'object') {
+            io = conf.ios[i] = {
+              len: io
+            };
+          }
+          io.binary =
+              ('binary' in io ? io.binary :
+              ('binary' in conf ? conf.binary :
+              ('binary' in options ? options.binary : true)));
+          if (io.binary) {
+            iovecs[i] = crypto.pseudoRandomBytes(io.len);
+            has_binary_iovec = true;
+          } else {
+            iovecs[i] = crypto.pseudoRandomBytes(Math.ceil(io.len/2)).toString('hex');
+          }
+        }
+
+        // force the binary flag if any iovec is binary, or it won't work
+        if (has_binary_iovec && options.binary === false) {
+          console.log('\t\t(forced options.binary=true because at least one iovec is binary)');
+          new_options = {};
+          for (var opt in options) {
+            new_options[opt] = options[opt];
+          }
+          new_options.binary = true;
+          options = new_options;
+        }
+
+        ws.on('open', function() {
+          ws.emit('message', 'start sending ...');
+        });
+
+        ws.on('message', function(data, flags) {
+          if (data !== 'start sending ...') {
+            assert.strictEqual(!!flags.binary, !!options.binary);
+            // convert to buffer for the data compare
+            if (!flags.binary) {
+              data = new Buffer(data);
+            }
+            var pos = 0;
+            for (var i=0; i<conf.ios.length; ++i) {
+              var io = conf.ios[i];
+              var iov = io.binary ? iovecs[i] : new Buffer(iovecs[i]);
+              var data_slice = data.slice(pos, pos + iov.length);
+              assert.ok(areArraysEqual(iov, data_slice));
+              pos += iov.length;
+            }
+            assert.strictEqual(pos, data.length);
+            received += 1;
+            if (received >= runs) {
+              ws.terminate();
+              return;
+            }
+          }
+          if (sent >= runs) {
+            return;
+          }
+          sent += 1;
+          ws.sendv(iovecs, options, function(err) {
+            assert.equal(null, err);
+            callbacks += 1;
+          });
+        });
+
+        ws.on('close', function() {
+          assert.strictEqual(sent, runs);
+          assert.strictEqual(callbacks, runs);
+          assert.strictEqual(received, runs);
+          srv.close();
+          done();
+        });
+      });
+    }
+
+  });
+
+
   describe('#stream', function() {
     it('very long binary data can be streamed', function(done) {
       server.createServer(++port, function(srv) {

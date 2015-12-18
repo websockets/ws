@@ -35,7 +35,7 @@ if (cluster.isMaster) {
     });
     ws.on('close', function() {});
   });
-  cluster.on('death', function(worker) {
+  cluster.on('exit', function(worker) {
     wss.close();
   });
 }
@@ -97,7 +97,10 @@ else {
   }
 
   (function run() {
-    if (configs.length == 0) process.exit();
+    if (!configs.length) {
+      console.log('done.');
+      process.exit();
+    }
     var config = configs.shift();
     config.push(run);
     roundtrip.apply(null, config);
