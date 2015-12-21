@@ -1,16 +1,9 @@
 language: node_js
 sudo: false
-npm_args: --ws:native
 node_js:
+  - "5"
   - "4"
-  - "3"
-  - "2"
-  - "1"
   - "0.12"
-  - "0.11"
-  - "0.10"
-  - "0.9"
-  - "0.8"
 addons:
   apt:
     sources:
@@ -20,10 +13,3 @@ addons:
       - g++-4.9
 before_install:
   - export CC="gcc-4.9" CXX="g++-4.9"
-  - "if [[ $(node --version) == v0.8.* ]]; then npm install -g npm@2.1.18; fi"
-matrix:
-  fast_finish: true
-  allow_failures:
-    - node_js: "0.11"
-    - node_js: "0.9"
-    - node_js: "0.8"
