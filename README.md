@@ -22,6 +22,23 @@ for the full reports.
 npm install --save ws
 ```
 
+### Opt-in for performance
+
+There are 2 optional modules that can be installed along side with the `ws`
+module. These modules are binary addons which improve certain operations, but as
+they are binary addons they require compilation which can fail if no c++
+compiler is installed on the host system.
+
+- `npm install --save bufferutil`: Improves internal buffer operations which
+  allows for faster processing of masked WebSocket frames and general buffer
+  operations. 
+- `npm install --save utf-8-validate`: The specification requires validation of
+  invalid UTF-8 chars, some of these validations could not be done in JavaScript
+  hence the need for a binary addon. In most cases you will already be
+  validating the input that you receive for security purposes leading to double
+  validation. But if you want to be 100% spec conform and fast validation of UTF-8
+  then this module is a must.
+
 ### Sending and receiving text data
 
 ```js
