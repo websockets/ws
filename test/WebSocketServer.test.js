@@ -315,6 +315,49 @@ describe('WebSocketServer', function() {
     });
   });
 
+  describe('#maxpayload #hybiOnly', function() {
+    it('maxpayload is passed on to clients,', function(done) {
+      var _maxPayload = 20480;
+      var wss = new WebSocketServer({port: ++port,maxPayload:_maxPayload, disableHixie: true}, function() {
+        wss.clients.length.should.eql(0);
+        var ws = new WebSocket('ws://localhost:' + port);
+      });
+      wss.on('connection', function(client) {
+        wss.clients.length.should.eql(1);
+        wss.clients[0].maxPayload.should.eql(_maxPayload);
+        wss.close();
+        done();
+      });
+    });
+    it('maxpayload is passed on to hybi receivers', function(done) {
+      var _maxPayload = 20480;
+      var wss = new WebSocketServer({port: ++port,maxPayload:_maxPayload,  disableHixie: true}, function() {
+        wss.clients.length.should.eql(0);
+        var ws = new WebSocket('ws://localhost:' + port);
+      });
+      wss.on('connection', function(client) {
+        wss.clients.length.should.eql(1);
+        wss.clients[0]._receiver.maxPayload.should.eql(_maxPayload);
+        wss.close();
+        done();
+      });
+    });
+    it('maxpayload is passed on to permessage-deflate', function(done) {
+      var PerMessageDeflate = require('../lib/PerMessageDeflate');
+      var _maxPayload = 20480;
+      var wss = new WebSocketServer({port: ++port,maxPayload:_maxPayload, disableHixie: true}, function() {
+        wss.clients.length.should.eql(0);
+        var ws = new WebSocket('ws://localhost:' + port);
+      });
+      wss.on('connection', function(client) {
+        wss.clients.length.should.eql(1);
+        wss.clients[0]._receiver.extensions[PerMessageDeflate.extensionName]._maxPayload.should.eql(_maxPayload);
+        wss.close();
+        done();
+      });
+    });
+  });
+
   describe('#handleUpgrade', function() {
     it('can be used for a pre-existing server', function (done) {
       var srv = http.createServer();
