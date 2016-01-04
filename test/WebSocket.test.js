@@ -40,7 +40,7 @@ describe('WebSocket', function() {
         done();
       }
     });
-    
+
     it('should return a new instance if called without new', function(done) {
       var ws = WebSocket('ws://localhost:' + port);
       ws.should.be.an.instanceOf(WebSocket);
@@ -578,6 +578,23 @@ describe('WebSocket', function() {
         });
         srv.on('ping', function(message) {
           assert.equal('hi', message);
+          srv.close();
+          ws.terminate();
+          done();
+        });
+      });
+    });
+
+    it('can send safely receive numbers as ping payload', function(done) {
+      server.createServer(++port, function(srv) {
+        var ws = new WebSocket('ws://localhost:' + port);
+
+        ws.on('open', function() {
+          ws.ping(200);
+        });
+
+        srv.on('ping', function(message) {
+          assert.equal('200', message);
           srv.close();
           ws.terminate();
           done();
