@@ -4,6 +4,7 @@
   "description": "simple to use, blazing fast and thoroughly tested websocket client, server and console for node.js, up-to-date against RFC-6455",
   "version": "1.0.1",
   "license": "MIT",
+  "main": "index.js",
   "keywords": [
     "Hixie",
     "HyBi",
