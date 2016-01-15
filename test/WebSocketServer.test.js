@@ -315,6 +315,22 @@ describe('WebSocketServer', function() {
     });
   });
 
+  describe('#shouldHandle', function() {
+    it('returns true when the path matches', function(done) {
+      var wss = new WebSocketServer({ port: ++port, path: '/wss' }, function() {
+        wss.shouldHandle({ url: '/wss' }).should.eql(true);
+        done();
+      });
+    });
+
+    it('returns false when the path does not match', function(done) {
+      var wss = new WebSocketServer({ port: ++port, path: '/wss' }, function() {
+        wss.shouldHandle({ url: '/not-the-path-you%27re-looking-for' }).should.eql(false);
+        done();
+      });
+    })
+  });
+
   describe('#handleUpgrade', function() {
     it('can be used for a pre-existing server', function (done) {
       var srv = http.createServer();
