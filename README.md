@@ -31,7 +31,7 @@ compiler is installed on the host system.
 
 - `npm install --save bufferutil`: Improves internal buffer operations which
   allows for faster processing of masked WebSocket frames and general buffer
-  operations. 
+  operations.
 - `npm install --save utf-8-validate`: The specification requires validation of
   invalid UTF-8 chars, some of these validations could not be done in JavaScript
   hence the need for a binary addon. In most cases you will already be
@@ -110,7 +110,7 @@ wss.on('connection', function connection(ws) {
   var location = url.parse(ws.upgradeReq.url, true);
   // you might use location.query.access_token to authenticate or share sessions
   // or ws.upgradeReq.headers.cookie (see http://stackoverflow.com/a/16395220/151312)
-  
+
   ws.on('message', function incoming(message) {
     console.log('received: %s', message);
   });
@@ -161,7 +161,7 @@ catch (e) { /* handle error */ }
 ```js
 var WebSocket = require('ws');
 var ws = new WebSocket('ws://echo.websocket.org/', {
-  protocolVersion: 8, 
+  protocolVersion: 8,
   origin: 'http://websocket.org'
 });
 
@@ -182,13 +182,6 @@ ws.on('message', function message(data, flags) {
   }, 500);
 });
 ```
-
-### Browserify users
-When including ws via a browserify bundle, ws returns global.WebSocket which has slightly different API. 
-You should use the standard WebSockets API instead.
-
-https://developer.mozilla.org/en-US/docs/WebSockets/Writing_WebSocket_client_applications#Availability_of_WebSockets
-
 
 ### Other examples
 
