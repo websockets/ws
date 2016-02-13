@@ -382,6 +382,32 @@ describe('Receiver', function() {
       });
     });
   });
+  it('will not crash if another message is received after receiving a message that exceeds maxpayload', function(done) {
+    var perMessageDeflate = new PerMessageDeflate({},false,2);
+    perMessageDeflate.accept([{}]);
+
+    var p = new Receiver({ 'permessage-deflate': perMessageDeflate },2);
+    var buf1 = new Buffer('fooooooooooooooooooooooooooooooooooooooooooooooooooooooo');
+    var buf2 = new Buffer('baaaarrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr');
+
+    p.onerror = function(reason,code) {
+      assert.equal(code, 1009);
+    };
+
+    perMessageDeflate.compress(buf1, false, function(err, compressed1) {
+      if (err) return done(err);
+      p.add(new Buffer([0x41, compressed1.length]));
+      p.add(compressed1);
+
+      assert.equal(p.onerror,null);
+
+      perMessageDeflate.compress(buf2, true, function(err, compressed2) {
+          p.add(new Buffer([0x80, compressed2.length]));
+          p.add(compressed2);
+          done();
+      });
+    });
+  });
   it('can cleanup during consuming data', function(done) {
     var perMessageDeflate = new PerMessageDeflate();
     perMessageDeflate.accept([{}]);
