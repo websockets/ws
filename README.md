@@ -36,8 +36,8 @@ compiler is installed on the host system.
   invalid UTF-8 chars, some of these validations could not be done in JavaScript
   hence the need for a binary addon. In most cases you will already be
   validating the input that you receive for security purposes leading to double
-  validation. But if you want to be 100% spec conform and fast validation of UTF-8
-  then this module is a must.
+  validation. But if you want to be 100% spec-conforming and have fast
+  validation of UTF-8 then this module is a must.
 
 ### Sending and receiving text data
 
