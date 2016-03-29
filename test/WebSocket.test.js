@@ -1544,6 +1544,10 @@ describe('WebSocket', function() {
         ws.onclose = listener;
         ws.onopen = listener;
 
+        assert.ok(ws.binaryType === 'nodebuffer');
+        ws.binaryType = 'arraybuffer';
+        assert.ok(ws.binaryType === 'arraybuffer');
+
         assert.ok(ws.onopen === listener);
         assert.ok(ws.onmessage === listener);
         assert.ok(ws.onclose === listener);
@@ -1694,6 +1698,63 @@ describe('WebSocket', function() {
         client.send('hi')
       });
     });
+
+    it('should pass binary data as a node.js Buffer by default', function(done) {
+      server.createServer(++port, function(srv) {
+        var ws = new WebSocket('ws://localhost:' + port);
+        var array = new Uint8Array(4096);
+
+        ws.onopen = function() {
+          ws.send(array, {binary: true});
+        };
+        ws.onmessage = function(messageEvent) {
+          assert.ok(messageEvent.binary);
+          assert.ok(ws.binaryType === 'nodebuffer');
+          assert.ok(messageEvent.data instanceof Buffer);
+          ws.terminate();
+          srv.close();
+          done();
+        };
+      });
+    });
+
+    it('should pass an ArrayBuffer for event.data if binaryType = arraybuffer', function(done) {
+      server.createServer(++port, function(srv) {
+        var ws = new WebSocket('ws://localhost:' + port);
+        ws.binaryType = 'arraybuffer';
+        var array = new Uint8Array(4096);
+
+        ws.onopen = function() {
+          ws.send(array, {binary: true});
+        };
+        ws.onmessage = function(messageEvent) {
+          assert.ok(messageEvent.binary);
+          assert.ok(messageEvent.data instanceof ArrayBuffer);
+          ws.terminate();
+          srv.close();
+          done();
+        };
+      });
+    });
+
+    it('should ignore binaryType for text messages', function(done) {
+      server.createServer(++port, function(srv) {
+        var ws = new WebSocket('ws://localhost:' + port);
+        ws.binaryType = 'arraybuffer';
+
+        ws.onopen = function() {
+          ws.send('foobar');
+        };
+        ws.onmessage = function(messageEvent) {
+          assert.ok(!messageEvent.binary);
+          assert.ok(typeof messageEvent.data === 'string');
+          ws.terminate();
+          srv.close();
+          done();
+        };
+      });
+    });
+
   });
 
   describe('ssl', function() {
