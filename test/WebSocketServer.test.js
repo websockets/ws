@@ -185,6 +185,21 @@ describe('WebSocketServer', function() {
         }
       });
     });
+    it('will not crash when it receives an unhandled opcode', function(done) {
+      var wss = new WebSocketServer({ port: 8080 });
+      wss.on('connection', function connection(ws) {
+          ws.onerror = function(error) {
+              done();
+          };
+      });
+
+      var socket = new WebSocket('ws://127.0.0.1:8080/');
+
+      socket.onopen = function() {
+          socket._socket.write(new Buffer([5]));
+          socket.send('');
+      };
+    });  
   });
 
   describe('#close', function() {
