@@ -398,11 +398,13 @@ describe('WebSocket', function() {
         ws.on('open', function() {
           assert.fail('connect shouldnt be raised here');
         });
-        ws.on('close', function() {
-          assert.fail('close shouldnt be raised here');
-        });
+		var errorCallBackFired = false;
         ws.on('error', function() {
+          errorCallBackFired = true;
+        });
+        ws.on('close', function() {
           setTimeout(function() {
+			assert.equal(true, errorCallBackFired);
             assert.equal(ws.readyState, WebSocket.CLOSED);
             done();
           }, 50)
