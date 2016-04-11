@@ -247,6 +247,18 @@ describe('WebSocketServer', function() {
       });
     });
 
+    it('cleans event handlers on precreated server', function(done) {
+      var srv = http.createServer();
+      srv.listen(++port, function() {
+        var wss = new WebSocketServer({server: srv});
+        wss.close();
+        srv.emit('upgrade');
+        srv.on('error', function() {});
+        srv.emit('error');
+        done()
+      });
+    });
+
     it('cleans up websocket data on a precreated server', function(done) {
       var srv = http.createServer();
       srv.listen(++port, function () {
