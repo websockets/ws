@@ -30,6 +30,7 @@
     "benchmark": "0.3.x",
     "bufferutil": "1.2.x",
     "expect.js": "0.3.x",
+    "istanbul": "^0.4.1",
     "mocha": "2.3.x",
     "should": "8.0.x",
     "tinycolor": "0.0.x",

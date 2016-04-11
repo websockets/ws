@@ -3,5 +3,6 @@ node_modules
 .*.swp
 .lock-*
 build
+coverage
 
 builderror.log
