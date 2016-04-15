@@ -1538,6 +1538,20 @@ describe('WebSocket', function() {
         });
       });
     });
+
+    it('allows close code 1013', function (done) {
+      var wss = new WebSocketServer({port: ++port}, function () {
+        var ws = new WebSocket(`ws://localhost:${port}`);
+        ws.on('close', function (code) {
+          assert.strictEqual(code, 1013);
+          wss.close(done);
+        });
+      });
+
+      wss.on('connection', function (ws) {
+        ws.close(1013);
+      });
+    });
   });
 
   describe('W3C API emulation', function() {
