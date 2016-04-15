@@ -48,11 +48,11 @@ describe('WebSocket', function() {
     });
 
     it('should emit an error object when the receiver throws an error string', function(done) {
-    
+
       var wss = new WebSocketServer({port: ++port}, function() {
 
           var ws = new WebSocket('ws://localhost:' + port);
-          
+
           ws.on('open', function () {
             ws._receiver.error('This is an error string', 1002);
           });
@@ -65,11 +65,11 @@ describe('WebSocket', function() {
     });
 
     it('should emit an error object when the receiver throws an error object', function(done) {
-    
+
       var wss = new WebSocketServer({port: ++port}, function() {
 
           var ws = new WebSocket('ws://localhost:' + port);
-          
+
           ws.on('open', function () {
             ws._receiver.error(new Error('This is an error object'), 1002);
           });
@@ -1564,6 +1564,21 @@ describe('WebSocket', function() {
             ws.terminate();
             done();
           }
+        });
+      });
+    });
+
+    it('allows close code 1013', function(done) {
+      server.createServer(++port, function(srv) {
+        var ws = new WebSocket('ws://localhost:' + port);
+        ws.on('open', function() {
+          ws.close(1013);
+        });
+        srv.on('close', function(code, message, flags) {
+          assert.equal(1013, code);
+          srv.close();
+          ws.terminate();
+          done();
         });
       });
     });
