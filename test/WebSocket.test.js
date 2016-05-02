@@ -1990,7 +1990,7 @@ describe('WebSocket', function() {
       var srv = http.createServer();
       srv.listen(++port, function() {
         srv.on('upgrade', function(req, socket, upgradeHeade) {
-          req.headers.should.not.have.property('origin');
+          should(req.headers).not.have.property('origin');
           srv.close();
           done();
         });
