@@ -2,6 +2,8 @@
 
 [![Build Status](https://travis-ci.org/websockets/ws.svg?branch=master)](https://travis-ci.org/websockets/ws)
 
+This fork simply adds the ability to select a network interface when creating a websocket. Node.js has a property on HTTP module called "localAddress". If this property is null or undefined, the socket created has late binding i.e. interface used will be determined by the o/s. If this property is an IP address, the socket is bound that interface and only that interface will be used to create Websocket.
+
 `ws` is a simple to use WebSocket implementation, up-to-date against RFC-6455,
 and [probably the fastest WebSocket library for node.js][archive].
 
