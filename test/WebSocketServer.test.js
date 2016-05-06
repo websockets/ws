@@ -26,16 +26,12 @@ function areArraysEqual(x, y) {
 
 describe('WebSocketServer', function() {
   describe('#ctor', function() {
-    it('throws TypeError when called without new', function(done) {
-      try {
-        var ws = WebSocketServer({noServer: true});
-      }
-      catch (e) {
-        e.should.be.instanceof(TypeError);
-        done();
-      }
+    it('should return a new instance if called without new', function(done) {
+      var ws = WebSocketServer({noServer: true});
+      ws.should.be.an.instanceOf(WebSocketServer);
+      done();
     });
-
+    
     it('throws an error if no option object is passed', function() {
       var gotException = false;
       try {
@@ -189,6 +185,21 @@ describe('WebSocketServer', function() {
         }
       });
     });
+    it('will not crash when it receives an unhandled opcode', function(done) {
+      var wss = new WebSocketServer({ port: 8080 });
+      wss.on('connection', function connection(ws) {
+          ws.onerror = function(error) {
+              done();
+          };
+      });
+
+      var socket = new WebSocket('ws://127.0.0.1:8080/');
+
+      socket.onopen = function() {
+          socket._socket.write(new Buffer([5]));
+          socket.send('');
+      };
+    });  
   });
 
   describe('#close', function() {
@@ -233,6 +244,18 @@ describe('WebSocketServer', function() {
           srv.close();
           done();
         });
+      });
+    });
+
+    it('cleans event handlers on precreated server', function(done) {
+      var srv = http.createServer();
+      srv.listen(++port, function() {
+        var wss = new WebSocketServer({server: srv});
+        wss.close();
+        srv.emit('upgrade');
+        srv.on('error', function() {});
+        srv.emit('error');
+        done()
       });
     });
 
@@ -313,6 +336,49 @@ describe('WebSocketServer', function() {
     it('exposes options passed to constructor', function(done) {
       var wss = new WebSocketServer({port: ++port}, function() {
         wss.options.port.should.eql(port);
+        wss.close();
+        done();
+      });
+    });
+  });
+
+  describe('#maxpayload #hybiOnly', function() {
+    it('maxpayload is passed on to clients,', function(done) {
+      var _maxPayload = 20480;
+      var wss = new WebSocketServer({port: ++port,maxPayload:_maxPayload, disableHixie: true}, function() {
+        wss.clients.length.should.eql(0);
+        var ws = new WebSocket('ws://localhost:' + port);
+      });
+      wss.on('connection', function(client) {
+        wss.clients.length.should.eql(1);
+        wss.clients[0].maxPayload.should.eql(_maxPayload);
+        wss.close();
+        done();
+      });
+    });
+    it('maxpayload is passed on to hybi receivers', function(done) {
+      var _maxPayload = 20480;
+      var wss = new WebSocketServer({port: ++port,maxPayload:_maxPayload,  disableHixie: true}, function() {
+        wss.clients.length.should.eql(0);
+        var ws = new WebSocket('ws://localhost:' + port);
+      });
+      wss.on('connection', function(client) {
+        wss.clients.length.should.eql(1);
+        wss.clients[0]._receiver.maxPayload.should.eql(_maxPayload);
+        wss.close();
+        done();
+      });
+    });
+    it('maxpayload is passed on to permessage-deflate', function(done) {
+      var PerMessageDeflate = require('../lib/PerMessageDeflate');
+      var _maxPayload = 20480;
+      var wss = new WebSocketServer({port: ++port,maxPayload:_maxPayload, disableHixie: true}, function() {
+        wss.clients.length.should.eql(0);
+        var ws = new WebSocket('ws://localhost:' + port);
+      });
+      wss.on('connection', function(client) {
+        wss.clients.length.should.eql(1);
+        wss.clients[0]._receiver.extensions[PerMessageDeflate.extensionName]._maxPayload.should.eql(_maxPayload);
         wss.close();
         done();
       });

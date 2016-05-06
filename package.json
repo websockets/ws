@@ -2,8 +2,9 @@
   "author": "Einar Otto Stangvik <einaros@gmail.com> (http://2x.io)",
   "name": "ws-interface",
   "description": "simple to use, blazing fast and thoroughly tested websocket client, server and console for node.js, up-to-date against RFC-6455",
-  "version": "0.7.4",
+  "version": "1.2.0",
   "license": "MIT",
+  "main": "index.js",
   "keywords": [
     "Hixie",
     "HyBi",
@@ -24,23 +25,16 @@
     "options": ">=0.0.5",
     "ultron": "1.0.x"
   },
-  "optionalDependencies": {
-    "bufferutil": "1.1.x",
-    "utf-8-validate": "1.1.x"
-  },
   "devDependencies": {
     "ansi": "0.3.x",
     "benchmark": "0.3.x",
+    "bufferutil": "1.2.x",
     "expect.js": "0.3.x",
-    "mocha": "2.2.x",
-    "should": "4.3.x",
-    "tinycolor": "0.0.x"
-  },
-  "browser": "./lib/browser.js",
-  "component": {
-    "scripts": {
-      "ws/index.js": "./lib/browser.js"
-    }
+    "istanbul": "^0.4.1",
+    "mocha": "2.3.x",
+    "should": "8.0.x",
+    "tinycolor": "0.0.x",
+    "utf-8-validate": "1.2.x"
   },
   "gypfile": true
 }

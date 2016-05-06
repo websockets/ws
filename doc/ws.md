@@ -66,9 +66,9 @@ If `handleProtocols` is not set then the handshake is accepted regardless the va
 
 If a property is empty then either an offered configuration or a default value is used.
 
-### server.close()
+### server.close([callback])
 
-Close the server and terminate all clients
+Close the server and terminate all clients, calls callback when done with an error if one occured.
 
 ### server.handleUpgrade(request, socket, upgradeHead, callback)
 
@@ -119,6 +119,7 @@ This class represents a WebSocket connection. It is an `EventEmitter`.
   * `ciphers` String
   * `rejectUnauthorized` Boolean
   * `perMessageDeflate` Boolean|Object
+  * `localAddress` String
 
 Instantiating with an `address` creates a new WebSocket client object. If `address` is an Array (request, socket, rest), it is instantiated as a Server client (e.g. called from the `ws.Server`).
 

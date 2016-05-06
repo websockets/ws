@@ -306,6 +306,108 @@ describe('Receiver', function() {
       });
     });
   });
+    it('will raise an error on a 200kb long masked binary message when maxpayload is 20kb', function() {
+    var p = new Receiver(20480);
+    var length = 200 * 1024;
+    var message = new Buffer(length);
+    for (var i = 0; i < length; ++i) message[i] = i % 256;
+    var originalMessage = getHexStringFromBuffer(message);
+    var packet = '82 ' + getHybiLengthAsHexString(length, true) + ' 34 83 a8 68 ' + getHexStringFromBuffer(mask(message, '34 83 a8 68'));
+
+    var gotError = false;
+    p.error = function(reason,code) {
+      gotError = true;
+      assert.equal(code, 1009);
+    };
+
+    p.add(getBufferFromHexString(packet));
+    gotError.should.be.ok;
+  });
+  it('will raise an error on a 200kb long unmasked binary message when maxpayload is 20kb', function() {
+    var p = new Receiver(20480);
+    var length = 200 * 1024;
+    var message = new Buffer(length);
+    for (var i = 0; i < length; ++i) message[i] = i % 256;
+    var originalMessage = getHexStringFromBuffer(message);
+    var packet = '82 ' + getHybiLengthAsHexString(length, false) + ' ' + getHexStringFromBuffer(message);
+
+    var gotError = false;
+    p.error = function(reason,code) {
+      gotError = true;
+      assert.equal(code, 1009);
+    };
+
+    p.add(getBufferFromHexString(packet));
+    gotError.should.be.ok;
+  });
+  it('will raise an error on a compressed message that exceeds maxpayload of 3bytes', function(done) {
+    var perMessageDeflate = new PerMessageDeflate({},false,3);
+    perMessageDeflate.accept([{}]);
+
+    var p = new Receiver({ 'permessage-deflate': perMessageDeflate },3);
+    var buf = new Buffer('Hellooooooooooooooooooooooooooooooooooooooo');
+
+    p.onerror = function(reason,code) {
+      assert.equal(code, 1009);
+      done();
+    };
+
+    perMessageDeflate.compress(buf, true, function(err, compressed) {
+      if (err) return done(err);
+      p.add(new Buffer([0xc1, compressed.length]));
+      p.add(compressed);
+    });
+  });
+  it('will raise an error on a compressed fragment that exceeds maxpayload of 2 bytes', function(done) {
+    var perMessageDeflate = new PerMessageDeflate({},false,2);
+    perMessageDeflate.accept([{}]);
+
+    var p = new Receiver({ 'permessage-deflate': perMessageDeflate },2);
+    var buf1 = new Buffer('fooooooooooooooooooooooooooooooooooooooooooooooooooooooo');
+    var buf2 = new Buffer('baaaarrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr');
+
+    p.onerror = function(reason,code) {
+      assert.equal(code, 1009);
+      done();
+    };
+
+    perMessageDeflate.compress(buf1, false, function(err, compressed1) {
+      if (err) return done(err);
+      p.add(new Buffer([0x41, compressed1.length]));
+      p.add(compressed1);
+
+      perMessageDeflate.compress(buf2, true, function(err, compressed2) {
+        p.add(new Buffer([0x80, compressed2.length]));
+        p.add(compressed2);
+      });
+    });
+  });
+  it('will not crash if another message is received after receiving a message that exceeds maxpayload', function(done) {
+    var perMessageDeflate = new PerMessageDeflate({},false,2);
+    perMessageDeflate.accept([{}]);
+
+    var p = new Receiver({ 'permessage-deflate': perMessageDeflate },2);
+    var buf1 = new Buffer('fooooooooooooooooooooooooooooooooooooooooooooooooooooooo');
+    var buf2 = new Buffer('baaaarrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr');
+
+    p.onerror = function(reason,code) {
+      assert.equal(code, 1009);
+    };
+
+    perMessageDeflate.compress(buf1, false, function(err, compressed1) {
+      if (err) return done(err);
+      p.add(new Buffer([0x41, compressed1.length]));
+      p.add(compressed1);
+
+      assert.equal(p.onerror,null);
+
+      perMessageDeflate.compress(buf2, true, function(err, compressed2) {
+          p.add(new Buffer([0x80, compressed2.length]));
+          p.add(compressed2);
+          done();
+      });
+    });
+  });
   it('can cleanup during consuming data', function(done) {
     var perMessageDeflate = new PerMessageDeflate();
     perMessageDeflate.accept([{}]);

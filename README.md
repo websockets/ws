@@ -24,6 +24,23 @@ for the full reports.
 npm install --save ws
 ```
 
+### Opt-in for performance
+
+There are 2 optional modules that can be installed along side with the `ws`
+module. These modules are binary addons which improve certain operations, but as
+they are binary addons they require compilation which can fail if no c++
+compiler is installed on the host system.
+
+- `npm install --save bufferutil`: Improves internal buffer operations which
+  allows for faster processing of masked WebSocket frames and general buffer
+  operations.
+- `npm install --save utf-8-validate`: The specification requires validation of
+  invalid UTF-8 chars, some of these validations could not be done in JavaScript
+  hence the need for a binary addon. In most cases you will already be
+  validating the input that you receive for security purposes leading to double
+  validation. But if you want to be 100% spec-conforming and have fast
+  validation of UTF-8 then this module is a must.
+
 ### Sending and receiving text data
 
 ```js
@@ -76,6 +93,37 @@ wss.on('connection', function connection(ws) {
 });
 ```
 
+### ExpressJS example
+
+```js
+var server = require('http').createServer()
+  , url = require('url')
+  , WebSocketServer = require('ws').Server
+  , wss = new WebSocketServer({ server: server })
+  , express = require('express')
+  , app = express()
+  , port = 4080;
+
+app.use(function (req, res) {
+  res.send({ msg: "hello" });
+});
+
+wss.on('connection', function connection(ws) {
+  var location = url.parse(ws.upgradeReq.url, true);
+  // you might use location.query.access_token to authenticate or share sessions
+  // or ws.upgradeReq.headers.cookie (see http://stackoverflow.com/a/16395220/151312)
+
+  ws.on('message', function incoming(message) {
+    console.log('received: %s', message);
+  });
+
+  ws.send('something');
+});
+
+server.on('request', app);
+server.listen(port, function () { console.log('Listening on ' + server.address().port) });
+```
+
 ### Server sending broadcast data
 
 ```js
@@ -115,7 +163,7 @@ catch (e) { /* handle error */ }
 ```js
 var WebSocket = require('ws');
 var ws = new WebSocket('ws://echo.websocket.org/', {
-  protocolVersion: 8, 
+  protocolVersion: 8,
   origin: 'http://websocket.org'
 });
 
@@ -136,13 +184,6 @@ ws.on('message', function message(data, flags) {
   }, 500);
 });
 ```
-
-### Browserify users
-When including ws via a browserify bundle, ws returns global.WebSocket which has slightly different API. 
-You should use the standard WebSockets API instead.
-
-https://developer.mozilla.org/en-US/docs/WebSockets/Writing_WebSocket_client_applications#Availability_of_WebSockets
-
 
 ### Other examples
 
