@@ -134,6 +134,18 @@ wss.broadcast = function broadcast(data) {
   });
 };
 ```
+### Server sending broadcast data to everyone else
+
+```js
+var WebSocketServer = require('ws').Server
+  , wss = new WebSocketServer({ port: 8080 });
+
+wss.broadcast = function broadcast(data) {
+  wss.clients.forEach(function each(client) {
+    if (client !== ws) client.send(data);
+  });
+};
+```
 
 ### Error handling best practices
 
