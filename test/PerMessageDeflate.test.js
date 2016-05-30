@@ -311,5 +311,32 @@ describe('PerMessageDeflate', function () {
         });
       });
     });
+
+    it('should compress data between contexts when allowed', function (done) {
+      var perMessageDeflate = new PerMessageDeflate();
+      var extensions = Extensions.parse('permessage-deflate');
+      perMessageDeflate.accept(extensions['permessage-deflate']);
+
+      var buf = new Buffer('foofoo');
+      perMessageDeflate.compress(buf, true, function (err, compressed1) {
+        if (err) return done(err);
+
+        perMessageDeflate.decompress(compressed1, true, function (err, data) {
+          if (err) return done(err);
+
+          perMessageDeflate.compress(data, true, function (err, compressed2) {
+            if (err) return done(err);
+
+            perMessageDeflate.decompress(compressed2, true, function (err, data) {
+              if (err) return done(err);
+
+              assert.ok(compressed2.length < compressed1.length);
+              assert.deepEqual(data, buf);
+              done();
+            });
+          });
+        });
+      });
+    });
   });
 });
