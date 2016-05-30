@@ -22,7 +22,7 @@
     "test": "make test"
   },
   "dependencies": {
-    "options": ">=0.0.5",
+    "options": "https://git@github.com/andrija-hers/options.js",
     "ultron": "1.0.x"
   },
   "devDependencies": {
