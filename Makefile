@@ -1,6 +1,9 @@
 ALL_TESTS = $(shell find test/ -name '*.test.js')
 ALL_INTEGRATION = $(shell find test/ -name '*.integration.js')
 
+lint:
+	@./node_modules/.bin/eslint lib test bench
+
 run-tests:
 	@./node_modules/.bin/mocha \
 		-t 5000 \
