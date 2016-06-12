@@ -269,7 +269,7 @@ describe('WebSocketServer', function() {
         wss1.close();
         Object.keys(srv._webSocketPaths).length.should.eql(1);
         wss2.close();
-        (typeof srv._webSocketPaths).should.eql('undefined');
+        should.equal(srv._webSocketPaths, null);
         srv.close();
         done();
       });
