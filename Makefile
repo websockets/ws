@@ -21,8 +21,8 @@ run-integrationtests:
 run-coverage:
 	@./node_modules/.bin/istanbul cover --report html \
 		./node_modules/.bin/_mocha -- \
-		-t 5000 \
-		-s 6000 \
+		-t 6000 \
+		-s 2400 \
 		$(TESTFLAGS) \
 		$(TESTS)
 
@@ -32,7 +32,7 @@ test: lint
 integrationtest:
 	@$(MAKE) NODE_TLS_REJECT_UNAUTHORIZED=0 TESTS="$(ALL_INTEGRATION)" run-integrationtests
 
-coverage:
+coverage: lint
 	@$(MAKE) NODE_TLS_REJECT_UNAUTHORIZED=0 TESTS="$(ALL_TESTS)" run-coverage
 
 benchmark:

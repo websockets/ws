@@ -19,7 +19,7 @@
     "url": "git://github.com/websockets/ws.git"
   },
   "scripts": {
-    "test": "make test"
+    "test": "make coverage"
   },
   "dependencies": {
     "ultron": "1.0.x"
