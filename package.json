@@ -22,7 +22,6 @@
     "test": "make test"
   },
   "dependencies": {
-    "options": ">=0.0.5",
     "ultron": "1.0.x"
   },
   "devDependencies": {
