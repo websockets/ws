@@ -3,7 +3,8 @@
     "no-unused-vars": ["error", { "args": "none" }],
     "no-console": 0,
     "no-constant-condition": ["error", { "checkLoops": false }],
-    "no-empty": ["error", { "allowEmptyCatch": true }]
+    "no-empty": ["error", { "allowEmptyCatch": true }],
+    "indent": ["error", 2]
   },
   "env": {
     "es6": true,
