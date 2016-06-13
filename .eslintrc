@@ -1,6 +1,9 @@
 {
   "rules": {
-
+    "no-unused-vars": ["error", { "args": "none" }],
+    "no-console": 0,
+    "no-constant-condition": ["error", { "checkLoops": false }],
+    "no-empty": ["error", { "allowEmptyCatch": true }]
   },
   "env": {
     "es6": true,
