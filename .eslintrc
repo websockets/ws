@@ -12,7 +12,8 @@
     "linebreak-style": [2, "unix"],
     "comma-dangle": ["error", "never"],
     "no-unreachable": [2],
-    "comma-spacing": 2
+    "comma-spacing": 2,
+    "comma-style": ["error", "last"]
   },
   "env": {
     "es6": true,
