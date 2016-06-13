@@ -6,7 +6,8 @@
     "no-empty": ["error", { "allowEmptyCatch": true }],
     "indent": ["error", 2],
     "space-infix-ops": 2,
-    "strict": 2
+    "strict": 2,
+    "quotes": [2, "single", {"avoidEscape": true, "allowTemplateLiterals": true}]
   },
   "env": {
     "es6": true,
