@@ -5,7 +5,8 @@
     "no-constant-condition": ["error", { "checkLoops": false }],
     "no-empty": ["error", { "allowEmptyCatch": true }],
     "indent": ["error", 2],
-    "space-infix-ops": 2
+    "space-infix-ops": 2,
+    "strict": 2
   },
   "env": {
     "es6": true,

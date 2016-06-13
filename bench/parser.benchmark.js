@@ -4,6 +4,8 @@
  * MIT Licensed
  */
 
+'use strict';
+
 /**
  * Benchmark dependencies.
  */
@@ -17,7 +19,7 @@ require('./util');
 /**
  * Setup receiver.
  */
- 
+
 suite.on('start', function () {
   receiver = new Receiver();
 });
@@ -31,10 +33,10 @@ suite.on('cycle', function () {
  */
 
 var pingMessage = 'Hello'
-  , pingPacket1 = getBufferFromHexString('89 ' + (pack(2, 0x80 | pingMessage.length)) + 
+  , pingPacket1 = getBufferFromHexString('89 ' + (pack(2, 0x80 | pingMessage.length)) +
                                          ' 34 83 a8 68 '+ getHexStringFromBuffer(mask(pingMessage, '34 83 a8 68')));
 suite.add('ping message', function () {
-  receiver.add(pingPacket1);  
+  receiver.add(pingPacket1);
 });
 
 var pingPacket2 = getBufferFromHexString('89 00')
@@ -63,7 +65,7 @@ binaryDataPacket = (function() {
 suite.add('binary data (125 bytes)', function () {
   try {
     receiver.add(binaryDataPacket);
-    
+
   }
   catch(e) {console.log(e)}
 });
@@ -100,7 +102,7 @@ suite.on('cycle', function (bench, details) {
       details.hz.toFixed(2).cyan + ' ops/sec'.grey
     , details.count.toString().white + ' times executed'.grey
     , 'benchmark took '.grey + details.times.elapsed.toString().white + ' sec.'.grey
-    , 
+    ,
   ].join(', '.grey));
 });
 

@@ -26,7 +26,7 @@ run-coverage:
 		$(TESTFLAGS) \
 		$(TESTS)
 
-test:
+test: lint
 	@$(MAKE) NODE_TLS_REJECT_UNAUTHORIZED=0 NODE_PATH=lib TESTS="$(ALL_TESTS)" run-tests
 
 integrationtest:

@@ -4,6 +4,8 @@
  * MIT Licensed
  */
 
+'use strict';
+
 /**
  * Returns a Buffer from a "ff 00 ff"-type hex string.
  */
@@ -49,7 +51,7 @@ mask = function(buf, maskString) {
   if (typeof buf == 'string') buf = new Buffer(buf);
   var mask = getBufferFromHexString(maskString || '34 83 a8 68');
   for (var i = 0; i < buf.length; ++i) {
-    buf[i] ^= mask[i % 4];    
+    buf[i] ^= mask[i % 4];
   }
   return buf;
 }
@@ -57,8 +59,8 @@ mask = function(buf, maskString) {
 /**
  * Returns a hex string representing the length of a message
  */
- 
-getHybiLengthAsHexString = function(len, masked) {  
+
+getHybiLengthAsHexString = function(len, masked) {
   if (len < 126) {
     var buf = new Buffer(1);
     buf[0] = (masked ? 0x80 : 0) | len;
@@ -100,6 +102,6 @@ pack = function(length, number) {
  * Left pads the string 's' to a total length of 'n' with char 'c'.
  */
 
-padl = function(s, n, c) { 
+padl = function(s, n, c) {
   return new Array(1 + n - s.length).join(c) + s;
 }
