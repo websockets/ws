@@ -8,7 +8,11 @@
     "space-infix-ops": 2,
     "strict": 2,
     "quotes": [2, "single", {"avoidEscape": true, "allowTemplateLiterals": true}],
-    "keyword-spacing": 2
+    "keyword-spacing": 2,
+    "linebreak-style": [2, "unix"],
+    "comma-dangle": ["error", "never"],
+    "no-unreachable": [2],
+    "comma-spacing": 2
   },
   "env": {
     "es6": true,
