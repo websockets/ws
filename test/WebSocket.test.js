@@ -694,6 +694,95 @@ describe('WebSocket', function() {
     });
   });
 
+  describe('#setKeepAlive',function(){
+    var wss = null;
+
+    before(function(done){
+      wss = new WebSocketServer({port:++port},done);
+    });
+
+    it('should be pinged 3 times or more in 700ms',function(done){
+      var nbPing = 0;
+      var ws = new WebSocket('ws://localhost:'+port);
+      ws.on('ping',function(){
+        nbPing++;
+      });
+      wss.on('connection',function(socket){
+        socket.setKeepAlive(true,200,400);
+      });
+      setTimeout(function(){
+        nbPing.should.be.above(2);
+
+        ws.close();
+        wss.removeAllListeners('connection');
+        done();
+      },700);
+    });
+
+    it('When keepAlive is disabled websocket should be pinged 0 time in 700ms',function(done){
+      var nbPing = 0;
+      var ws = new WebSocket('ws://localhost:'+port);
+      ws.on('ping',function(){
+        nbPing++;
+      });
+      wss.on('connection',function(socket){
+        socket.setKeepAlive(false);
+      });
+      setTimeout(function(){
+        nbPing.should.be.equal(0);
+        ws.close();
+        wss.removeAllListeners('connection');
+        done();
+      },700);
+    });
+
+    it("when websocket doesn't reply to a ping, WebSocketServer should close it",function(done){
+      var ws = new WebSocket('ws://localhost:'+port);
+      ws.onopen = function(){
+        ws._receiver.onping = function(){};
+      }
+      wss.on('connection',function(socket){
+        socket.setKeepAlive(true,200,1000);
+        socket.on('close',function(){
+          socket.readyState.should.be.equal(WebSocket.CLOSED);
+          wss.removeAllListeners('connection');
+          ws.close();
+          done();
+        });
+      });
+    });
+
+    it("without parameters, setKeepAlive should be executed with default values",function(done){
+      var ws = new WebSocket('ws://localhost:'+port);
+      wss.on('connection',function(socket){
+        socket.setKeepAlive();
+        socket._keepAliveEnabled.should.be.ok;
+        socket._keepAliveInterval.should.be.equal(2000);
+        socket._keepAliveTimeout.should.be.equal(10000);
+        wss.removeAllListeners('connection');
+        ws.close();
+        done();
+      });
+    });
+
+    it("with true parameter, setKeepAlive should be executed with default values",function(done){
+      var ws = new WebSocket('ws://localhost:'+port);
+      wss.on('connection',function(socket){
+        socket.setKeepAlive(true);
+        socket._keepAliveEnabled.should.be.ok;
+        socket._keepAliveInterval.should.be.equal(2000);
+        socket._keepAliveTimeout.should.be.equal(10000);
+        wss.removeAllListeners('connection');
+        ws.close();
+        done();
+      });
+    });
+
+    after(function(){
+      wss.close();
+    });
+  });
+
   describe('#send', function() {
     it('very long binary data can be sent and received (with echoing server)', function(done) {
       server.createServer(++port, function(srv) {

@@ -17,6 +17,7 @@ This class is a WebSocket server. It is an `EventEmitter`.
   * `disableHixie` Boolean
   * `clientTracking` Boolean
   * `perMessageDeflate` Boolean|Object
+  * `keepAlive` Boolean|Object
 * `callback` Function
 
 Construct a new server object.
@@ -66,7 +67,14 @@ If `handleProtocols` is not set then the handshake is accepted regardless the va
 
 If a property is empty then either an offered configuration or a default value is used.
 
-### server.close([callback])
+### options.keepAlive
+
+`keepAlive` Makes available a ping pong protocol which allows to check if the connection is alive for all websockets. The extension is disable when false (default value).The extension is enable when an object is instead provided in parameters:
+
+* `interval` Number: the interval of time in milliseconds between a ping request and a pong response. default: 2000.
+* `timeout`  Number: the maximum waiting time between a ping request and the pong response before close the socket. default: 10000.
+
+### server.close()
 
 Close the server and terminate all clients, calls callback when done with an error if one occured.
 
@@ -107,7 +115,7 @@ This class represents a WebSocket connection. It is an `EventEmitter`.
   * `protocol` String
   * `agent` Agent
   * `headers` Object
-  * `protocolVersion` Number|String  
+  * `protocolVersion` Number|String
     -- the following only apply if `address` is a String
   * `host` String
   * `origin` String
@@ -167,6 +175,10 @@ Sends a ping. `data` is sent, `options` is an object with members `mask` and `bi
 
 Sends a pong. `data` is sent, `options` is an object with members `mask` and `binary`. `dontFailWhenClosed` indicates whether or not to throw if the connection isnt open.
 
+### websocket.setKeepAlive([enabled], [interval], [timeout])
+
+Starts a ping pong protocol to check if the connection stays alive. The protocol closes the connection if the client doesn't reply to the ping request before the end of the timeout. enabled boolean enable or disable the keepAlive protocol, interval default: 2000 the time laps in milliseconds between a pong response and a ping request. timeout the maximum waiting time between a ping request and the pong response before closing the socket.
+/!\ Warning: The websocket client must respond to the ping request with a pong message. That is not necessarily the case if you use an other websocket client than WS.
 
 ### websocket.resume()
 
