@@ -22,7 +22,8 @@
     "test": "make test"
   },
   "dependencies": {
-    "ultron": "1.0.x"
+    "ultron": "1.0.x",
+    "base64id": "0.1.0"
   },
   "devDependencies": {
     "ansi": "0.3.x",
