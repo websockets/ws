@@ -27,13 +27,13 @@ run-coverage:
 		$(TESTS)
 
 test: lint
-	@$(MAKE) NODE_TLS_REJECT_UNAUTHORIZED=0 NODE_PATH=lib TESTS="$(ALL_TESTS)" run-tests
+	@$(MAKE) NODE_TLS_REJECT_UNAUTHORIZED=0 TESTS="$(ALL_TESTS)" run-tests
 
 integrationtest:
-	@$(MAKE) NODE_TLS_REJECT_UNAUTHORIZED=0 NODE_PATH=lib TESTS="$(ALL_INTEGRATION)" run-integrationtests
+	@$(MAKE) NODE_TLS_REJECT_UNAUTHORIZED=0 TESTS="$(ALL_INTEGRATION)" run-integrationtests
 
 coverage:
-	@$(MAKE) NODE_TLS_REJECT_UNAUTHORIZED=0 NODE_PATH=lib TESTS="$(ALL_TESTS)" run-coverage
+	@$(MAKE) NODE_TLS_REJECT_UNAUTHORIZED=0 TESTS="$(ALL_TESTS)" run-coverage
 
 benchmark:
 	@node bench/sender.benchmark.js
