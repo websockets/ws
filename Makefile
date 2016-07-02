@@ -1,18 +1,19 @@
 ALL_TESTS = $(shell find test/ -name '*.test.js')
 ALL_INTEGRATION = $(shell find test/ -name '*.integration.js')
+MOCHA = ./node_modules/.bin/mocha
 
 lint:
 	@./node_modules/.bin/eslint lib
 
 run-tests:
-	@./node_modules/.bin/mocha \
+	@$(MOCHA) \
 		-t 5000 \
 		-s 2400 \
 		$(TESTFLAGS) \
 		$(TESTS)
 
 run-integrationtests:
-	@./node_modules/.bin/mocha \
+	@$(MOCHA) \
 		-t 5000 \
 		-s 6000 \
 		$(TESTFLAGS) \
