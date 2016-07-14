@@ -1,8 +1,8 @@
-ALL_TESTS = $(shell find test/ -name '*.test.js')
-ALL_INTEGRATION = $(shell find test/ -name '*.integration.js')
+ALL_TESTS = $(shell find test -name '*.test.js')
+ALL_INTEGRATION = $(shell find test -name '*.integration.js')
 
 lint:
-	@./node_modules/.bin/eslint lib
+	@./node_modules/.bin/eslint lib index.js
 
 run-tests:
 	@./node_modules/.bin/mocha \
