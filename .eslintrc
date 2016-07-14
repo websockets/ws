@@ -13,7 +13,8 @@
     "comma-dangle": ["error", "never"],
     "no-unreachable": [2],
     "comma-spacing": 2,
-    "comma-style": ["error", "last"]
+    "comma-style": ["error", "last"],
+    "max-len": ["error", 120]
   },
   "env": {
     "es6": true,
