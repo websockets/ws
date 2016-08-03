@@ -36,7 +36,7 @@ Either `port` or `server` must be provided, otherwise you might enable
   * `result` Boolean: Whether the user accepts or not the handshake.
   * `code` Number: If `result` is `false` this field determines the HTTP error status code to be sent to the client.
   * `name` String: If `result` is `false` this field determines the HTTP reason phrase.
-  * `headers` Array: If `result` is `false` these are returned in the headers seperated by new lines. i.e. `["retry-after: 2"]` to ask the client to retry after 2 seconds (for a 503 response).
+  * `headers` Object: If `result` is `false` these can be returned as addional headers to the client. i.e. `{"retry-after": 2}` to ask the client to retry after 2 seconds (for a 503 response). If left blank, no extra headers will be sent.
 
 If `verifyClient` is provided with a single argument then that is:
 * `info` Object: Same as above.
