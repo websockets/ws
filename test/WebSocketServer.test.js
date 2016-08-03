@@ -685,10 +685,10 @@ describe('WebSocketServer', function() {
         wss.on('error', function() {});
       });
 
-      it('client can be denied asynchronously with custom response code', function(done) {
+      it('client can be denied asynchronously with custom response code and headers', function(done) {
         var wss = new WebSocketServer({port: ++port, verifyClient: function(o, cb) {
           process.nextTick(function() {
-            cb(false, 404);
+            cb(false, 503, 'Service Unavailable', { 'retry-after': 2 });
           });
         }}, function() {
           var options = {
@@ -705,7 +705,9 @@ describe('WebSocketServer', function() {
           var req = http.request(options);
           req.end();
           req.on('response', function(res) {
-            res.statusCode.should.eql(404);
+            res.statusCode.should.eql(503);
+            res.headers['retry-after'].should.eql('2');
+            res.statusMessage.should.eql('Service Unavailable');
             process.nextTick(function() {
               wss.close();
               done();
