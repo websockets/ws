@@ -36,5 +36,11 @@
     "tinycolor": "0.0.x",
     "utf-8-validate": "1.2.x"
   },
+  "browser": "./lib/browser.js",
+  "component": {
+    "scripts": {
+      "ws/index.js": "./lib/browser.js"
+    }
+  },
   "gypfile": true
 }
