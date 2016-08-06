@@ -6,3 +6,6 @@ build
 coverage
 
 builderror.log
+
+*.iml
+.idea
