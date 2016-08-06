@@ -1618,6 +1618,41 @@ describe('WebSocket', function () {
       });
     });
 
+    it('should remove event listeners added with addEventListener', function (done) {
+      server.createServer(++port, (srv) => {
+        const message = () => {};
+        const open = () => {};
+        const ws = new WebSocket(`ws://localhost:${port}`);
+
+        ws.addEventListener('message', message);
+        ws.addEventListener('open', open);
+
+        assert.notStrictEqual(
+          ws.listeners('message').find((listener) => listener._listener === message),
+          undefined
+        );
+        assert.notStrictEqual(
+          ws.listeners('open').find((listener) => listener._listener === open),
+          undefined
+        );
+
+        ws.removeEventListener('message', message);
+        ws.removeEventListener('open', open);
+
+        assert.strictEqual(
+          ws.listeners('message').find((listener) => listener._listener === message),
+          undefined
+        );
+        assert.strictEqual(
+          ws.listeners('open').find((listener) => listener._listener === open),
+          undefined
+        );
+
+        srv.close(done);
+        ws.close();
+      });
+    });
+
     it('should receive valid CloseEvent when server closes with code 1000', function (done) {
       const wss = new WebSocketServer({ port: ++port }, () => {
         const ws = new WebSocket(`ws://localhost:${port}`);
