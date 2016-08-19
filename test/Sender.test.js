@@ -60,6 +60,23 @@ describe('Sender', function() {
       });
       sender.send('hi', { compress: true });
     });
+
+    it('handles many send calls while processing without crashing on flush', function(done) {
+      var count = 0;
+      var sender = new Sender({
+        write: function() {
+          if (++count > 10000) return done();
+        }
+      });
+
+      for (var i = 0; i < 10000; i++) {
+        sender.processing = true;
+        sender.send('hi', { compress: false, fin: true });
+      }
+
+      sender.processing = false;
+      sender.send('hi', { compress: false, fin: true });
+    });
   });
 
   describe('#close', function() {
