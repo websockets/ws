@@ -494,6 +494,26 @@ describe('WebSocket', function() {
     });
   });
 
+  describe('connection with query string', function () {
+    it('connects when pathname is not null', function (done) {
+      var wss = new WebSocketServer({port: ++port}, function () {
+        var ws = new WebSocket(`ws://localhost:${port}/?token=qwerty`);
+        ws.on('open', function () {
+          wss.close(done);
+        });
+      });
+    });
+
+    it('connects when pathname is null', function (done) {
+      var wss = new WebSocketServer({port: ++port}, function () {
+        var ws = new WebSocket(`ws://localhost:${port}?token=qwerty`);
+        ws.on('open', function () {
+          wss.close(done);
+        });
+      });
+    });
+  });
+
   describe('#pause and #resume', function() {
     it('pauses the underlying stream', function(done) {
       // this test is sort-of racecondition'y, since an unlikely slow connection
