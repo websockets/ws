@@ -1,0 +1,30 @@
+{
+  "rules": {
+    "no-unused-vars": ["error", { "args": "none" }],
+    "no-console": 0,
+    "no-constant-condition": ["error", { "checkLoops": false }],
+    "no-empty": ["error", { "allowEmptyCatch": true }],
+    "indent": ["error", 2],
+    "space-infix-ops": 2,
+    "strict": 2,
+    "quotes": [2, "single", {"avoidEscape": true, "allowTemplateLiterals": true}],
+    "keyword-spacing": 2,
+    "linebreak-style": [2, "unix"],
+    "comma-dangle": ["error", "never"],
+    "no-unreachable": [2],
+    "comma-spacing": 2,
+    "comma-style": ["error", "last"],
+    "max-len": ["error", 120]
+  },
+  "env": {
+    "es6": true,
+    "node": true
+  },
+  "globals": {
+    "describe": true,
+    "it": true,
+    "before": true,
+    "after": true
+  },
+  "extends": "eslint:recommended"
+}

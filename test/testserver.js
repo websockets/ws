@@ -49,7 +49,7 @@ function validServer(server, req, socket) {
   // calc key
   var key = req.headers['sec-websocket-key'];
   var shasum = crypto.createHash('sha1');
-  shasum.update(key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11");
+  shasum.update(key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11", 'binary');
   key = shasum.digest('base64');
 
   var headers = [
@@ -113,7 +113,7 @@ function invalidRequestHandler(server, req, socket) {
   // calc key
   var key = req.headers['sec-websocket-key'];
   var shasum = crypto.createHash('sha1');
-  shasum.update(key + "bogus");
+  shasum.update(key + "bogus", 'binary');
   key = shasum.digest('base64');
 
   var headers = [
@@ -142,7 +142,7 @@ function closeAfterConnectHandler(server, req, socket) {
   // calc key
   var key = req.headers['sec-websocket-key'];
   var shasum = crypto.createHash('sha1');
-  shasum.update(key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11");
+  shasum.update(key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11", 'binary');
   key = shasum.digest('base64');
 
   var headers = [

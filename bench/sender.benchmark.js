@@ -4,6 +4,8 @@
  * MIT Licensed
  */
 
+'use strict';
+
 /**
  * Benchmark dependencies.
  */
@@ -17,7 +19,8 @@ require('./util');
 /**
  * Setup sender.
  */
- 
+
+var sender;
 suite.on('start', function () {
   sender = new Sender();
   sender._socket = { write: function() {} };
@@ -32,7 +35,7 @@ suite.on('cycle', function () {
  * Benchmarks
  */
 
-framePacket = new Buffer(200*1024);
+var framePacket = new Buffer(200*1024);
 framePacket.fill(99);
 suite.add('frameAndSend, unmasked (200 kB)', function () {
   sender.frameAndSend(0x2, framePacket, true, false);
@@ -51,7 +54,7 @@ suite.on('cycle', function (bench, details) {
       details.hz.toFixed(2).cyan + ' ops/sec'.grey
     , details.count.toString().white + ' times executed'.grey
     , 'benchmark took '.grey + details.times.elapsed.toString().white + ' sec.'.grey
-    , 
+    ,
   ].join(', '.grey));
 });
 

@@ -1,3 +1,5 @@
+'use strict';
+
 var cluster = require('cluster')
   , WebSocket = require('../')
   , WebSocketServer = WebSocket.Server

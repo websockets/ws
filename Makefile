@@ -1,11 +1,8 @@
-ALL_TESTS = $(shell find test/ -name '*.test.js')
-ALL_INTEGRATION = $(shell find test/ -name '*.integration.js')
+ALL_TESTS = $(shell find test -name '*.test.js')
+ALL_INTEGRATION = $(shell find test -name '*.integration.js')
 
-all:
-	node-gyp configure build
-
-clean:
-	node-gyp clean
+lint:
+	@./node_modules/.bin/eslint lib index.js
 
 run-tests:
 	@./node_modules/.bin/mocha \
@@ -21,11 +18,22 @@ run-integrationtests:
 		$(TESTFLAGS) \
 		$(TESTS)
 
-test:
-	@$(MAKE) NODE_TLS_REJECT_UNAUTHORIZED=0 NODE_PATH=lib TESTS="$(ALL_TESTS)" run-tests
+run-coverage:
+	@./node_modules/.bin/istanbul cover --report html \
+		./node_modules/.bin/_mocha -- \
+		-t 5000 \
+		-s 6000 \
+		$(TESTFLAGS) \
+		$(TESTS)
+
+test: lint
+	@$(MAKE) NODE_TLS_REJECT_UNAUTHORIZED=0 TESTS="$(ALL_TESTS)" run-tests
 
 integrationtest:
-	@$(MAKE) NODE_TLS_REJECT_UNAUTHORIZED=0 NODE_PATH=lib TESTS="$(ALL_INTEGRATION)" run-integrationtests
+	@$(MAKE) NODE_TLS_REJECT_UNAUTHORIZED=0 TESTS="$(ALL_INTEGRATION)" run-integrationtests
+
+coverage:
+	@$(MAKE) NODE_TLS_REJECT_UNAUTHORIZED=0 TESTS="$(ALL_TESTS)" run-coverage
 
 benchmark:
 	@node bench/sender.benchmark.js
@@ -37,4 +45,4 @@ autobahn:
 autobahn-server:
 	@NODE_PATH=lib node test/autobahn-server.js
 
-.PHONY: test
+.PHONY: test coverage
