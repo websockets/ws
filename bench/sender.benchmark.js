@@ -20,6 +20,7 @@ require('./util');
  * Setup sender.
  */
 
+var sender;
 suite.on('start', function () {
   sender = new Sender();
   sender._socket = { write: function() {} };
@@ -34,7 +35,7 @@ suite.on('cycle', function () {
  * Benchmarks
  */
 
-framePacket = new Buffer(200*1024);
+var framePacket = new Buffer(200*1024);
 framePacket.fill(99);
 suite.add('frameAndSend, unmasked (200 kB)', function () {
   sender.frameAndSend(0x2, framePacket, true, false);
