@@ -60,8 +60,26 @@ describe('Sender', function() {
       });
       sender.send('hi', { compress: true });
     });
-  });
+    
+    it('Should be able to handle many send calls while processing without crashing on flush', function(done) {
+      var messageCount = 0;
+      var maxMessages = 5000;
 
+      var sender = new Sender({
+        write: function(data) {
+          messageCount++;
+          if (messageCount > maxMessages) return done();
+        }
+      });
+      for (var i = 0; i < maxMessages; i++) {
+        sender.processing = true;
+        sender.send('hi', { compress: false, fin: true, binary: false, mask: false });
+      }
+      sender.processing = false;
+      sender.send('hi', { compress: false, fin: true, binary: false, mask: false });
+    });
+  });
+  
   describe('#close', function() {
     it('should consume all data before closing', function(done) {
       var perMessageDeflate = new PerMessageDeflate();
