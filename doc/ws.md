@@ -68,7 +68,7 @@ If a property is empty then either an offered configuration or a default value i
 
 ### server.close([callback])
 
-Close the server and terminate all clients, calls callback when done with an error if one occured.
+Close the server and terminate all clients, calls callback when done with an error if one occurred.
 
 ### server.handleUpgrade(request, socket, upgradeHead, callback)
 
