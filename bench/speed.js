@@ -28,7 +28,12 @@ function generateRandomData(size) {
 }
 
 if (cluster.isMaster) {
-  var wss = new WebSocketServer({port: 8181}, function() {
+  var wss = new WebSocketServer({
+    perMessageDeflate: false,
+    clientTracking: false,
+    maxPayload: Infinity,
+    port: 8181
+  }, function() {
     cluster.fork();
   });
   wss.on('connection', function(ws) {
@@ -37,7 +42,7 @@ if (cluster.isMaster) {
     });
     ws.on('close', function() {});
   });
-  cluster.on('death', function(worker) {
+  cluster.on('exit', function(worker) {
     wss.close();
   });
 }
