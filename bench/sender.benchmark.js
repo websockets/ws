@@ -6,64 +6,26 @@
 
 'use strict';
 
-/**
- * Benchmark dependencies.
- */
+const benchmark = require('benchmark')
 
-var benchmark = require('benchmark')
-  , Sender = require('../').Sender
-  , suite = new benchmark.Suite('Sender');
-require('tinycolor');
-require('./util');
+const Sender = require('../').Sender
 
-/**
- * Setup sender.
- */
+const framePacket = Buffer.alloc(200 * 1024).fill(99);
 
-var sender;
-suite.on('start', function () {
+const suite = new benchmark.Suite();
+var sender = new Sender();
+sender._socket = { write() {} };
+
+suite.add('frameAndSend, unmasked (200 kB)', () => sender.frameAndSend(0x2, framePacket, true, false));
+suite.add('frameAndSend, masked (200 kB)', () => sender.frameAndSend(0x2, framePacket, true, true));
+suite.on('cycle', (e) => {
+  console.log(e.target.toString());
   sender = new Sender();
-  sender._socket = { write: function() {} };
+  sender._socket = { write() {} };
 });
 
-suite.on('cycle', function () {
-  sender = new Sender();
-  sender._socket = { write: function() {} };
-});
-
-/**
- * Benchmarks
- */
-
-var framePacket = new Buffer(200*1024);
-framePacket.fill(99);
-suite.add('frameAndSend, unmasked (200 kB)', function () {
-  sender.frameAndSend(0x2, framePacket, true, false);
-});
-suite.add('frameAndSend, masked (200 kB)', function () {
-  sender.frameAndSend(0x2, framePacket, true, true);
-});
-
-/**
- * Output progress.
- */
-
-suite.on('cycle', function (bench, details) {
-  console.log('\n  ' + suite.name.grey, details.name.white.bold);
-  console.log('  ' + [
-      details.hz.toFixed(2).cyan + ' ops/sec'.grey
-    , details.count.toString().white + ' times executed'.grey
-    , 'benchmark took '.grey + details.times.elapsed.toString().white + ' sec.'.grey
-    ,
-  ].join(', '.grey));
-});
-
-/**
- * Run/export benchmarks.
- */
-
-if (!module.parent) {
-  suite.run();
+if (require.main === module) {
+  suite.run({ async: true });
 } else {
   module.exports = suite;
 }
