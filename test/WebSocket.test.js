@@ -1518,6 +1518,20 @@ describe('WebSocket', function() {
         });
       });
     });
+
+    it('consumes all data when the server tcp socket closed', function(done) {
+      var wss = new WebSocketServer({port: ++port}, function() {
+        wss.on('connection', function(conn) {
+          conn.send('foo', function() {
+            conn._socket.destroy();
+          });
+        });
+        var ws = new WebSocket('ws://localhost:' + port);
+        ws.on('message', function (message) {
+            done();
+        });
+      });
+    });
   });
 
   describe('W3C API emulation', function() {
