@@ -928,8 +928,7 @@ describe('WebSocket', function() {
         var ws = new WebSocket('ws://localhost:' + port);
         var callbackFired = false;
         ws.on('open', function() {
-          var fileStream = fs.createReadStream('test/fixtures/textfile');
-          fileStream.bufferSize = 100;
+          var fileStream = fs.createReadStream('test/fixtures/textfile', { highWaterMark: 100 });
           ws.send(fileStream, {binary: true}, function(error) {
             assert.equal(null, error);
             callbackFired = true;
@@ -953,9 +952,7 @@ describe('WebSocket', function() {
         var ws = new WebSocket('ws://localhost:' + port);
         var callbackFired = false;
         ws.on('open', function() {
-          var fileStream = fs.createReadStream('test/fixtures/textfile');
-          fileStream.setEncoding('utf8');
-          fileStream.bufferSize = 100;
+          var fileStream = fs.createReadStream('test/fixtures/textfile', { highWaterMark: 100, encoding: 'utf8' });
           ws.send(fileStream, {binary: false}, function(error) {
             assert.equal(null, error);
             callbackFired = true;
@@ -978,9 +975,7 @@ describe('WebSocket', function() {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
         ws.on('open', function() {
-          var fileStream = fs.createReadStream('test/fixtures/textfile');
-          fileStream.setEncoding('utf8');
-          fileStream.bufferSize = 100;
+          var fileStream = fs.createReadStream('test/fixtures/textfile', { highWaterMark: 100, encoding: 'utf8' });
           ws.send(fileStream);
           ws.send('foobar');
           ws.send('baz');
@@ -1011,9 +1006,7 @@ describe('WebSocket', function() {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
         ws.on('open', function() {
-          var fileStream = fs.createReadStream('test/fixtures/textfile');
-          fileStream.setEncoding('utf8');
-          fileStream.bufferSize = 100;
+          var fileStream = fs.createReadStream('test/fixtures/textfile', { highWaterMark: 100, encoding: 'utf8' });
           ws.send(fileStream);
           var i = 0;
           ws.stream(function(error, send) {
@@ -1044,9 +1037,7 @@ describe('WebSocket', function() {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
         ws.on('open', function() {
-          var fileStream = fs.createReadStream('test/fixtures/textfile');
-          fileStream.setEncoding('utf8');
-          fileStream.bufferSize = 100;
+          var fileStream = fs.createReadStream('test/fixtures/textfile', { highWaterMark: 100, encoding: 'utf8' });
           ws.send(fileStream);
           ws.ping('foobar');
         });
@@ -1075,9 +1066,7 @@ describe('WebSocket', function() {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
         ws.on('open', function() {
-          var fileStream = fs.createReadStream('test/fixtures/textfile');
-          fileStream.setEncoding('utf8');
-          fileStream.bufferSize = 100;
+          var fileStream = fs.createReadStream('test/fixtures/textfile', { highWaterMark: 100, encoding: 'utf8' });
           ws.send(fileStream);
           ws.pong('foobar');
         });
@@ -1106,9 +1095,7 @@ describe('WebSocket', function() {
       server.createServer(++port, function(srv) {
         var ws = new WebSocket('ws://localhost:' + port);
         ws.on('open', function() {
-          var fileStream = fs.createReadStream('test/fixtures/textfile');
-          fileStream.setEncoding('utf8');
-          fileStream.bufferSize = 100;
+          var fileStream = fs.createReadStream('test/fixtures/textfile', { highWaterMark: 100, encoding: 'utf8' });
           ws.send(fileStream);
           ws.close(1000, 'foobar');
         });
@@ -1397,9 +1384,7 @@ describe('WebSocket', function() {
         var ws = new WebSocket('ws://localhost:' + port);
         var errorGiven = false;
         ws.on('open', function() {
-          var fileStream = fs.createReadStream('test/fixtures/textfile');
-          fileStream.setEncoding('utf8');
-          fileStream.bufferSize = 100;
+          var fileStream = fs.createReadStream('test/fixtures/textfile', { highWaterMark: 100, encoding: 'utf8' });
           ws.send(fileStream, function(error) {
             errorGiven = error != null;
           });
@@ -2120,8 +2105,7 @@ describe('WebSocket', function() {
         var ws = new WebSocket('ws://localhost:' + port, {perMessageDeflate: true});
         var callbackFired = false;
         ws.on('open', function() {
-          var fileStream = fs.createReadStream('test/fixtures/textfile');
-          fileStream.bufferSize = 100;
+          var fileStream = fs.createReadStream('test/fixtures/textfile', { highWaterMark: 100 });
           ws.send(fileStream, {binary: true, compress: true}, function(error) {
             assert.equal(null, error);
             callbackFired = true;
