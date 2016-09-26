@@ -26,7 +26,7 @@
   },
   "devDependencies": {
     "ansi": "0.3.x",
-    "benchmark": "0.3.x",
+    "benchmark": "2.1.x",
     "bufferutil": "1.2.x",
     "eslint": "^2.12.0",
     "expect.js": "0.3.x",
