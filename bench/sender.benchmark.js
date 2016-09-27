@@ -16,6 +16,8 @@ const suite = new benchmark.Suite();
 var sender = new Sender();
 sender._socket = { write() {} };
 
+suite.add('ping message', () => sender.ping('Hello', { mask: true }));
+suite.add('ping with no data', () => sender.ping(null, { mask: true }));
 suite.add('frameAndSend, unmasked (200 kB)', () => sender.frameAndSend(0x2, framePacket, true, false));
 suite.add('frameAndSend, masked (200 kB)', () => sender.frameAndSend(0x2, framePacket, true, true));
 suite.on('cycle', (e) => {
