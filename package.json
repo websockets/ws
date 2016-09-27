@@ -25,7 +25,6 @@
     "ultron": "1.0.x"
   },
   "devDependencies": {
-    "ansi": "0.3.x",
     "benchmark": "2.1.x",
     "bufferutil": "1.2.x",
     "eslint": "^2.12.0",
@@ -33,7 +32,6 @@
     "istanbul": "^0.4.1",
     "mocha": "2.3.x",
     "should": "8.0.x",
-    "tinycolor": "0.0.x",
     "utf-8-validate": "1.2.x"
   },
   "gypfile": true
