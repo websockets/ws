@@ -30,7 +30,7 @@ const binaryDataPacket = createBinaryPacket(125);
 const binaryDataPacket2 = createBinaryPacket(65535);
 const binaryDataPacket3 = createBinaryPacket(200 * 1024)
 
-var receiver = new Receiver({}, Infinity);
+var receiver = new Receiver({}, 1024 * 1024);
 const suite = new benchmark.Suite();
 
 suite.add('ping message', () => receiver.add(pingPacket1));
