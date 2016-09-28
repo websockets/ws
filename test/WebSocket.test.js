@@ -2230,4 +2230,27 @@ describe('WebSocket', function() {
       });
     });
   });
+
+  describe('connect with query path', function(){
+    it('can connect with /', function(done){
+      server.createServer(++port, function(srv) {
+        var ws = new WebSocket('ws://localhost:' + port + '/?token=qwerty');
+        ws.on('open', function() {
+          done();
+        });
+      });
+    });
+
+    it('can connect without /', function(done){
+      server.createServer(++port, function(srv) {
+        var ws = new WebSocket('ws://localhost:' + port + '?token=qwerty');
+        ws.on('open', function() {
+          done();
+        });
+      });
+    });
+
+
+  });
+
 });
