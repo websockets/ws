@@ -18,13 +18,8 @@
   },
   "env": {
     "es6": true,
-    "node": true
-  },
-  "globals": {
-    "describe": true,
-    "it": true,
-    "before": true,
-    "after": true
+    "node": true,
+    "mocha": true
   },
   "extends": "eslint:recommended"
 }
