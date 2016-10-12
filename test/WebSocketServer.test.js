@@ -31,7 +31,7 @@ describe('WebSocketServer', function() {
       ws.should.be.an.instanceOf(WebSocketServer);
       done();
     });
-    
+
     it('throws an error if no option object is passed', function() {
       var gotException = false;
       try {
@@ -1405,6 +1405,144 @@ describe('WebSocketServer', function() {
         done(new Error('connection must not be established'));
       });
       wss.on('error', function() {});
+    });
+  });
+
+  describe('keepAlive', function() {
+    it("should set keepAlive with the full options",function(done){
+      var wss = new WebSocketServer({
+        port: ++port,
+        keepAlive:{
+          interval:200,
+          timeout:500
+        }
+      });
+      var ws = new WebSocket("ws://localhost:"+port);
+      wss.on('connection',function(socket){
+        socket._keepAliveEnabled.should.be.equal(true);
+        socket._keepAliveTimeout.should.be.equal(500);
+        socket._keepAliveInterval.should.be.equal(200);
+        done();
+      });
+    });
+
+    it("should set keepAlive with only interval option",function(done){
+      var wss = new WebSocketServer({
+        port: ++port,
+        keepAlive:{
+          interval:200
+        }
+      });
+      var ws = new WebSocket("ws://localhost:"+port);
+      wss.on('connection',function(socket){
+        socket._keepAliveEnabled.should.be.equal(true);
+        socket._keepAliveTimeout.should.be.equal(10000);
+        socket._keepAliveInterval.should.be.equal(200);
+        done();
+      });
+    });
+
+    it("should set keepAlive with only timeout option",function(done){
+      var wss = new WebSocketServer({
+        port: ++port,
+        keepAlive:{
+          timeout:500
+        }
+      });
+      var ws = new WebSocket("ws://localhost:"+port);
+      wss.on('connection',function(socket){
+        socket._keepAliveEnabled.should.be.equal(true);
+        socket._keepAliveTimeout.should.be.equal(500);
+        socket._keepAliveInterval.should.be.equal(2000);
+        done();
+      });
+    });
+
+    it("should set keepAlive with default values",function(done){
+      var wss = new WebSocketServer({
+        port: ++port,
+        keepAlive:true
+      });
+      var ws = new WebSocket("ws://localhost:"+port);
+      wss.on('connection',function(socket){
+        socket._keepAliveEnabled.should.be.equal(true);
+        socket._keepAliveTimeout.should.be.equal(10000);
+        socket._keepAliveInterval.should.be.equal(2000);
+        done();
+      });
+    });
+
+    it("should disable keepAlive with false option",function(done){
+      var wss = new WebSocketServer({
+        port: ++port,
+        keepAlive:false
+      });
+      var ws = new WebSocket("ws://localhost:"+port);
+      wss.on('connection',function(socket){
+        should(socket._keepAliveEnabled).not.be.ok;
+        done();
+      });
+    });
+
+    it('should be pinged 3 times or more in 700ms',function(done){
+      var nbPing = 0;
+      var wss = new WebSocketServer({
+        port: ++port,
+        keepAlive:{
+          interval:200,
+          timeout:700
+        }
+      });
+      var ws = new WebSocket('ws://localhost:'+port);
+      ws.on('ping',function(){
+        nbPing++;
+      });
+      setTimeout(function(){
+        nbPing.should.be.above(2);
+
+        ws.close();
+        wss.removeAllListeners('connection');
+        done();
+      },700);
+    });
+
+    it('When keepAlive is disabled websocket should be pinged 0 time in 700ms',function(done){
+      var nbPing = 0;
+      var wss = new WebSocketServer({
+        port: ++port,
+        keepAlive:false
+      });
+      var ws = new WebSocket('ws://localhost:'+port);
+      ws.on('ping',function(){
+        nbPing++;
+      });
+      setTimeout(function(){
+        nbPing.should.be.equal(0);
+        ws.close();
+        wss.removeAllListeners('connection');
+        done();
+      },700);
+    });
+
+    it("when websocket doesn't reply to a ping, WebSocketServer should close it",function(done){
+      var wss = new WebSocketServer({
+        port: ++port,
+        keepAlive:{
+          interval:200,
+          timeout:1000
+        }
+      });
+      var ws = new WebSocket('ws://localhost:'+port);
+      ws.onopen = function(){
+        ws._receiver.onping = function(){};
+      }
+      wss.on('connection',function(socket){
+        socket.on('close',function(){
+          socket.readyState.should.be.equal(WebSocket.CLOSED);
+          ws.close();
+          done();
+        });
+      });
     });
   });
 });
