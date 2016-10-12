@@ -2,22 +2,22 @@
 
 const cluster = require('cluster');
 
-const ws = require('../');
+const WebSocket = require('../');
 
 const port = 8181;
 
-function roundPrec(num, prec) {
+function roundPrec (num, prec) {
   const mul = Math.pow(10, prec);
   return Math.round(num * mul) / mul;
 }
 
-function humanSize(bytes) {
+function humanSize (bytes) {
   if (bytes >= 1048576) return roundPrec(bytes / 1048576, 2) + ' MiB';
   if (bytes >= 1024) return roundPrec(bytes / 1024, 2) + ' KiB';
   return roundPrec(bytes, 2) + ' B';
 }
 
-function generateRandomData(size) {
+function generateRandomData (size) {
   const buffer = Buffer.alloc(size);
   for (var i = 0; i < size; ++i) {
     buffer[i] = ~~(Math.random() * 127);
@@ -25,9 +25,9 @@ function generateRandomData(size) {
   return buffer;
 }
 
-function runConfig(useBinary, roundtrips, size, randomBytes, cb) {
+function runConfig (useBinary, roundtrips, size, randomBytes, cb) {
   const data = randomBytes.slice(0, size);
-  const client = new ws(`ws://localhost:${port}`);
+  const client = new WebSocket(`ws://localhost:${port}`);
   var roundtrip = 0;
   var time;
 
@@ -60,7 +60,7 @@ function runConfig(useBinary, roundtrips, size, randomBytes, cb) {
 }
 
 if (cluster.isMaster) {
-  const wss = new ws.Server({
+  const wss = new WebSocket.Server({
     maxPayload: 600 * 1024 * 1024,
     perMessageDeflate: false,
     clientTracking: false,
@@ -89,7 +89,7 @@ if (cluster.isMaster) {
   console.log('Generating %s of test data...', humanSize(largest));
   const randomBytes = generateRandomData(largest);
 
-  (function run() {
+  (function run () {
     if (configs.length === 0) return cluster.worker.kill();
     var config = configs.shift();
     config.push(randomBytes, run);

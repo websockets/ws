@@ -9,7 +9,7 @@
 /**
  * Performs hybi07+ type masking on a hex string or buffer.
  */
-function mask(buf, maskString) {
+function mask (buf, maskString) {
   const _mask = Buffer.from(maskString || '3483a868', 'hex');
 
   if (typeof buf === 'string') buf = Buffer.from(buf);
@@ -24,21 +24,21 @@ function mask(buf, maskString) {
 /**
  * Left pads the string `s` to a total length of `n` with char `c`.
  */
-function padl(s, n, c) {
+function padl (s, n, c) {
   return c.repeat(n - s.length) + s;
 }
 
 /**
  * Returns a hex string, representing a specific byte count `length`, from a number.
  */
-function pack(length, number) {
+function pack (length, number) {
   return padl(number.toString(16), length, '0');
 }
 
 /**
  * Returns a hex string representing the length of a message.
  */
-function getHybiLengthAsHexString(len, masked) {
+function getHybiLengthAsHexString (len, masked) {
   var s;
 
   masked = masked ? 0x80 : 0;
