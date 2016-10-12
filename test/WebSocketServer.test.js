@@ -31,7 +31,7 @@ describe('WebSocketServer', function() {
       ws.should.be.an.instanceOf(WebSocketServer);
       done();
     });
-    
+
     it('throws an error if no option object is passed', function() {
       var gotException = false;
       try {
@@ -199,7 +199,7 @@ describe('WebSocketServer', function() {
           socket._socket.write(new Buffer([5]));
           socket.send('');
       };
-    });  
+    });
   });
 
   describe('#close', function() {
@@ -279,11 +279,11 @@ describe('WebSocketServer', function() {
   describe('#clients', function() {
     it('returns a list of connected clients', function(done) {
       var wss = new WebSocketServer({port: ++port}, function() {
-        wss.clients.length.should.eql(0);
+        wss.clients.size.should.eql(0);
         var ws = new WebSocket('ws://localhost:' + port);
       });
       wss.on('connection', function(client) {
-        wss.clients.length.should.eql(1);
+        wss.clients.size.should.eql(1);
         wss.close();
         done();
       });
@@ -291,11 +291,11 @@ describe('WebSocketServer', function() {
 
     it('can be disabled', function(done) {
       var wss = new WebSocketServer({port: ++port, clientTracking: false}, function() {
-        wss.clients.length.should.eql(0);
+        wss.should.not.have.property('clients');
         var ws = new WebSocket('ws://localhost:' + port);
       });
       wss.on('connection', function(client) {
-        wss.clients.length.should.eql(0);
+        wss.should.not.have.property('clients');
         wss.close();
         done();
       });
@@ -308,7 +308,7 @@ describe('WebSocketServer', function() {
       });
       wss.on('connection', function(client) {
         client.on('close', function() {
-          wss.clients.length.should.eql(0);
+          wss.clients.size.should.eql(0);
           wss.close();
           done();
         });
@@ -323,7 +323,7 @@ describe('WebSocketServer', function() {
       });
       wss.on('connection', function(client) {
         client.on('close', function() {
-          wss.clients.length.should.eql(0);
+          wss.clients.size.should.eql(0);
           wss.close();
           done();
         });
@@ -346,12 +346,12 @@ describe('WebSocketServer', function() {
     it('maxpayload is passed on to clients,', function(done) {
       var _maxPayload = 20480;
       var wss = new WebSocketServer({port: ++port,maxPayload:_maxPayload, disableHixie: true}, function() {
-        wss.clients.length.should.eql(0);
+        wss.clients.size.should.eql(0);
         var ws = new WebSocket('ws://localhost:' + port);
       });
       wss.on('connection', function(client) {
-        wss.clients.length.should.eql(1);
-        wss.clients[0].maxPayload.should.eql(_maxPayload);
+        wss.clients.size.should.eql(1);
+        client.maxPayload.should.eql(_maxPayload);
         wss.close();
         done();
       });
@@ -359,12 +359,12 @@ describe('WebSocketServer', function() {
     it('maxpayload is passed on to hybi receivers', function(done) {
       var _maxPayload = 20480;
       var wss = new WebSocketServer({port: ++port,maxPayload:_maxPayload,  disableHixie: true}, function() {
-        wss.clients.length.should.eql(0);
+        wss.clients.size.should.eql(0);
         var ws = new WebSocket('ws://localhost:' + port);
       });
       wss.on('connection', function(client) {
-        wss.clients.length.should.eql(1);
-        wss.clients[0]._receiver.maxPayload.should.eql(_maxPayload);
+        wss.clients.size.should.eql(1);
+        client._receiver.maxPayload.should.eql(_maxPayload);
         wss.close();
         done();
       });
@@ -373,12 +373,12 @@ describe('WebSocketServer', function() {
       var PerMessageDeflate = require('../lib/PerMessageDeflate');
       var _maxPayload = 20480;
       var wss = new WebSocketServer({port: ++port,maxPayload:_maxPayload, disableHixie: true}, function() {
-        wss.clients.length.should.eql(0);
+        wss.clients.size.should.eql(0);
         var ws = new WebSocket('ws://localhost:' + port);
       });
       wss.on('connection', function(client) {
-        wss.clients.length.should.eql(1);
-        wss.clients[0]._receiver.extensions[PerMessageDeflate.extensionName]._maxPayload.should.eql(_maxPayload);
+        wss.clients.size.should.eql(1);
+        client._receiver.extensions[PerMessageDeflate.extensionName]._maxPayload.should.eql(_maxPayload);
         wss.close();
         done();
       });
