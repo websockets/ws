@@ -22,6 +22,7 @@
     "test": "make test"
   },
   "dependencies": {
+    "bl": "^1.1.2",
     "ultron": "1.0.x"
   },
   "devDependencies": {
