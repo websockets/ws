@@ -27,7 +27,7 @@
   "devDependencies": {
     "benchmark": "2.1.x",
     "bufferutil": "1.2.x",
-    "eslint": "3.7.x",
+    "eslint": "3.8.x",
     "eslint-config-semistandard": "7.0.x",
     "eslint-config-standard": "6.2.x",
     "eslint-plugin-promise": "3.0.x",
