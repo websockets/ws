@@ -404,6 +404,26 @@ describe('WebSocketServer', function() {
         });
       });
     });
+
+    it('can not finish upgrade when path is not right', function(done) {
+      var wss = new WebSocketServer({port: ++port, path: '/ws'}, function() {
+        var options = {
+          port: port,
+          host: '127.0.0.1',
+          headers: {
+            'Connection': 'Upgrade',
+            'Upgrade': 'websocket'
+          },
+        };
+        var req = http.request(options);
+        req.end();
+        req.on('response', function(res) {
+          res.statusCode.should.eql(400);
+          wss.close();
+          done();
+        });
+      });
+    });
   });
 
   describe('hybi mode', function() {
