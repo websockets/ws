@@ -2218,11 +2218,7 @@ describe('WebSocket', function() {
           });
           ws.on('close', function() {
             setTimeout(function() {
-              if (errorGiven) {
-                assert.ok(errorGiven);
-              } else {
-                assert.ok(!errorGiven);
-              }
+              assert.ok(errorGiven);
               wss.close();
               ws.terminate();
               done();
