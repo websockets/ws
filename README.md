@@ -130,7 +130,7 @@ var WebSocketServer = require('ws').Server
 
 wss.broadcast = function broadcast(data) {
   wss.clients.forEach(function each(client) {
-    // use this, if you want to send to everyone else
+    // use this, if you want to send to everyone except the current webcocket (ws)
     // if (client !== ws) client.send(data);
     client.send(data);
   });
