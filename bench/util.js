@@ -7,12 +7,12 @@
 'use strict';
 
 /**
- * Performs hybi07+ type masking on a hex string or buffer.
+ * Performs hybi07+ type masking.
  */
 function mask (buf, maskString) {
   const _mask = Buffer.from(maskString || '3483a868', 'hex');
 
-  if (typeof buf === 'string') buf = Buffer.from(buf);
+  buf = Buffer.from(buf);
 
   for (var i = 0; i < buf.length; ++i) {
     buf[i] ^= _mask[i % 4];
@@ -54,4 +54,17 @@ function getHybiLengthAsHexString (len, masked) {
   return s;
 }
 
-module.exports = { getHybiLengthAsHexString, mask, pack };
+/**
+ * Split a buffer in two.
+ */
+function splitBuffer (buf) {
+  const i = Math.floor(buf.length / 2);
+  return [buf.slice(0, i), buf.slice(i)];
+}
+
+module.exports = {
+  getHybiLengthAsHexString,
+  splitBuffer,
+  mask,
+  pack
+};

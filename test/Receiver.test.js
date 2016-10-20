@@ -1,423 +1,441 @@
-var assert = require('assert')
-  , Receiver = require('../lib/Receiver')
-  , PerMessageDeflate = require('../lib/PerMessageDeflate');
-require('should');
-require('./hybi-common');
+'use strict';
 
-describe('Receiver', function() {
-  describe('#ctor', function() {
-    it('throws TypeError when called without new', function(done) {
-      try {
-        var p = Receiver();
-      }
-      catch (e) {
-        e.should.be.instanceof(TypeError);
-        done();
-      }
+const assert = require('assert');
+const crypto = require('crypto');
+
+const PerMessageDeflate = require('../lib/PerMessageDeflate');
+const Receiver = require('../lib/Receiver');
+const util = require('../bench/util');
+
+describe('Receiver', function () {
+  describe('#ctor', function () {
+    it('throws TypeError when called without new', function () {
+      assert.throws(Receiver, TypeError);
     });
   });
 
-  it('can parse unmasked text message', function() {
-    var p = new Receiver();
-    var packet = '81 05 48 65 6c 6c 6f';
+  it('can parse unmasked text message', function (done) {
+    const p = new Receiver();
 
-    var gotData = false;
-    p.ontext = function(data) {
-      gotData = true;
-      assert.equal('Hello', data);
+    p.ontext = function (data) {
+      assert.strictEqual(data, 'Hello');
+      done();
     };
 
-    p.add(getBufferFromHexString(packet));
-    gotData.should.be.ok;
+    p.add(Buffer.from('810548656c6c6f', 'hex'));
   });
-  it('can parse close message', function() {
-    var p = new Receiver();
-    var packet = '88 00';
 
-    var gotClose = false;
-    p.onclose = function(data) {
-      gotClose = true;
+  it('can parse close message', function (done) {
+    const p = new Receiver();
+
+    p.onclose = function (code, data) {
+      assert.strictEqual(code, 1000);
+      assert.strictEqual(data, '');
+      done();
     };
 
-    p.add(getBufferFromHexString(packet));
-    gotClose.should.be.ok;
+    p.add(Buffer.from('8800', 'hex'));
   });
-  it('can parse masked text message', function() {
-    var p = new Receiver();
-    var packet = '81 93 34 83 a8 68 01 b9 92 52 4f a1 c6 09 59 e6 8a 52 16 e6 cb 00 5b a1 d5';
 
-    var gotData = false;
-    p.ontext = function(data) {
-      gotData = true;
-      assert.equal('5:::{"name":"echo"}', data);
+  it('can parse masked text message', function (done) {
+    const p = new Receiver();
+
+    p.ontext = function (data) {
+      assert.strictEqual(data, '5:::{"name":"echo"}');
+      done();
     };
 
-    p.add(getBufferFromHexString(packet));
-    gotData.should.be.ok;
+    p.add(Buffer.from('81933483a86801b992524fa1c60959e68a5216e6cb005ba1d5', 'hex'));
   });
-  it('can parse a masked text message longer than 125 bytes', function() {
-    var p = new Receiver();
-    var message = 'A';
-    for (var i = 0; i < 300; ++i) message += (i % 5).toString();
-    var packet = '81 FE ' + pack(4, message.length) + ' 34 83 a8 68 ' + getHexStringFromBuffer(mask(message, '34 83 a8 68'));
 
-    var gotData = false;
-    p.ontext = function(data) {
-      gotData = true;
-      assert.equal(message, data);
+  it('can parse a masked text message longer than 125 bytes', function (done) {
+    const p = new Receiver();
+    const msg = 'A'.repeat(200);
+
+    const mask = '3483a868';
+    const frame = '81FE' + util.pack(4, msg.length) + mask +
+      util.mask(msg, mask).toString('hex');
+
+    p.ontext = function (data) {
+      assert.strictEqual(data, msg);
+      done();
     };
 
-    p.add(getBufferFromHexString(packet));
-    gotData.should.be.ok;
+    p.add(Buffer.from(frame, 'hex'));
   });
-  it('can parse a really long masked text message', function() {
-    var p = new Receiver();
-    var message = 'A';
-    for (var i = 0; i < 64*1024; ++i) message += (i % 5).toString();
-    var packet = '81 FF ' + pack(16, message.length) + ' 34 83 a8 68 ' + getHexStringFromBuffer(mask(message, '34 83 a8 68'));
 
-    var gotData = false;
-    p.ontext = function(data) {
-      gotData = true;
-      assert.equal(message, data);
+  it('can parse a really long masked text message', function (done) {
+    const p = new Receiver();
+    const msg = 'A'.repeat(64 * 1024);
+
+    const mask = '3483a868';
+    const frame = '81FF' + util.pack(16, msg.length) + mask +
+      util.mask(msg, mask).toString('hex');
+
+    p.ontext = function (data) {
+      assert.strictEqual(data, msg);
+      done();
     };
 
-    p.add(getBufferFromHexString(packet));
-    gotData.should.be.ok;
+    p.add(Buffer.from(frame, 'hex'));
   });
-  it('can parse a fragmented masked text message of 300 bytes', function() {
-    var p = new Receiver();
-    var message = 'A';
-    for (var i = 0; i < 300; ++i) message += (i % 5).toString();
-    var msgpiece1 = message.substr(0, 150);
-    var msgpiece2 = message.substr(150);
-    var packet1 = '01 FE ' + pack(4, msgpiece1.length) + ' 34 83 a8 68 ' + getHexStringFromBuffer(mask(msgpiece1, '34 83 a8 68'));
-    var packet2 = '80 FE ' + pack(4, msgpiece2.length) + ' 34 83 a8 68 ' + getHexStringFromBuffer(mask(msgpiece2, '34 83 a8 68'));
 
-    var gotData = false;
-    p.ontext = function(data) {
-      gotData = true;
-      assert.equal(message, data);
+  it('can parse a fragmented masked text message of 300 bytes', function (done) {
+    const p = new Receiver();
+    const msg = 'A'.repeat(300);
+
+    const fragment1 = msg.substr(0, 150);
+    const fragment2 = msg.substr(150);
+
+    const mask = '3483a868';
+    const frame1 = '01FE' + util.pack(4, fragment1.length) + mask +
+      util.mask(fragment1, mask).toString('hex');
+    const frame2 = '80FE' + util.pack(4, fragment2.length) + mask +
+      util.mask(fragment2, mask).toString('hex');
+
+    p.ontext = function (data) {
+      assert.strictEqual(data, msg);
+      done();
     };
 
-    p.add(getBufferFromHexString(packet1));
-    p.add(getBufferFromHexString(packet2));
-    gotData.should.be.ok;
+    p.add(Buffer.from(frame1, 'hex'));
+    p.add(Buffer.from(frame2, 'hex'));
   });
-  it('can parse a ping message', function() {
-    var p = new Receiver();
-    var message = 'Hello';
-    var packet = '89 ' + getHybiLengthAsHexString(message.length, true) + ' 34 83 a8 68 ' + getHexStringFromBuffer(mask(message, '34 83 a8 68'));
 
-    var gotPing = false;
-    p.onping = function(data) {
+  it('can parse a ping message', function (done) {
+    const p = new Receiver();
+    const msg = 'Hello';
+
+    const mask = '3483a868';
+    const frame = '89' + util.getHybiLengthAsHexString(msg.length, true) + mask +
+      util.mask(msg, mask).toString('hex');
+
+    p.onping = function (data) {
+      assert.strictEqual(data.toString(), msg);
+      done();
+    };
+
+    p.add(Buffer.from(frame, 'hex'));
+  });
+
+  it('can parse a ping with no data', function (done) {
+    const p = new Receiver();
+
+    p.onping = function (data) {
+      assert.strictEqual(data, null);
+      done();
+    };
+
+    p.add(Buffer.from('8900', 'hex'));
+  });
+
+  it('can parse a fragmented masked text message of 300 bytes with a ping in the middle (1/2)', function (done) {
+    const p = new Receiver();
+    const msg = 'A'.repeat(300);
+    const pingMessage = 'Hello';
+
+    const fragment1 = msg.substr(0, 150);
+    const fragment2 = msg.substr(150);
+
+    const mask = '3483a868';
+    const frame1 = '01FE' + util.pack(4, fragment1.length) + mask +
+      util.mask(fragment1, mask).toString('hex');
+    const frame2 = '89' + util.getHybiLengthAsHexString(pingMessage.length, true) + mask +
+      util.mask(pingMessage, mask).toString('hex');
+    const frame3 = '80FE' + util.pack(4, fragment2.length) + mask +
+      util.mask(fragment2, mask).toString('hex');
+
+    let gotPing = false;
+
+    p.ontext = function (data) {
+      assert.strictEqual(data, msg);
+      assert.ok(gotPing);
+      done();
+    };
+    p.onping = function (data) {
       gotPing = true;
-      assert.equal(message, data);
+      assert.strictEqual(data.toString(), pingMessage);
     };
 
-    p.add(getBufferFromHexString(packet));
-    gotPing.should.be.ok;
+    p.add(Buffer.from(frame1, 'hex'));
+    p.add(Buffer.from(frame2, 'hex'));
+    p.add(Buffer.from(frame3, 'hex'));
   });
-  it('can parse a ping with no data', function() {
-    var p = new Receiver();
-    var packet = '89 00';
 
-    var gotPing = false;
-    p.onping = function(data) {
-      gotPing = true;
-    };
-
-    p.add(getBufferFromHexString(packet));
-    gotPing.should.be.ok;
-  });
-  it('can parse a fragmented masked text message of 300 bytes with a ping in the middle', function() {
-    var p = new Receiver();
-    var message = 'A';
-    for (var i = 0; i < 300; ++i) message += (i % 5).toString();
-
-    var msgpiece1 = message.substr(0, 150);
-    var packet1 = '01 FE ' + pack(4, msgpiece1.length) + ' 34 83 a8 68 ' + getHexStringFromBuffer(mask(msgpiece1, '34 83 a8 68'));
-
+  it('can parse a fragmented masked text message of 300 bytes with a ping in the middle (2/2)', function (done) {
+    const p = new Receiver();
+    const msg = 'A'.repeat(300);
     var pingMessage = 'Hello';
-    var pingPacket = '89 ' + getHybiLengthAsHexString(pingMessage.length, true) + ' 34 83 a8 68 ' + getHexStringFromBuffer(mask(pingMessage, '34 83 a8 68'));
 
-    var msgpiece2 = message.substr(150);
-    var packet2 = '80 FE ' + pack(4, msgpiece2.length) + ' 34 83 a8 68 ' + getHexStringFromBuffer(mask(msgpiece2, '34 83 a8 68'));
+    var fragment1 = msg.substr(0, 150);
+    var fragment2 = msg.substr(150);
 
-    var gotData = false;
-    p.ontext = function(data) {
-      gotData = true;
-      assert.equal(message, data);
+    const mask = '3483a868';
+    const frame1 = '01FE' + util.pack(4, fragment1.length) + mask +
+      util.mask(fragment1, mask).toString('hex');
+    const frame2 = '89' + util.getHybiLengthAsHexString(pingMessage.length, true) + mask +
+      util.mask(pingMessage, mask).toString('hex');
+    const frame3 = '80FE' + util.pack(4, fragment2.length) + mask +
+      util.mask(fragment2, mask).toString('hex');
+
+    let buffers = [];
+
+    buffers = buffers.concat(util.splitBuffer(Buffer.from(frame1, 'hex')));
+    buffers = buffers.concat(util.splitBuffer(Buffer.from(frame2, 'hex')));
+    buffers = buffers.concat(util.splitBuffer(Buffer.from(frame3, 'hex')));
+
+    let gotPing = false;
+
+    p.ontext = function (data) {
+      assert.strictEqual(data, msg);
+      assert.ok(gotPing);
+      done();
     };
-    var gotPing = false;
-    p.onping = function(data) {
+    p.onping = function (data) {
       gotPing = true;
-      assert.equal(pingMessage, data);
+      assert.strictEqual(data.toString(), pingMessage);
     };
 
-    p.add(getBufferFromHexString(packet1));
-    p.add(getBufferFromHexString(pingPacket));
-    p.add(getBufferFromHexString(packet2));
-    gotData.should.be.ok;
-    gotPing.should.be.ok;
-  });
-  it('can parse a fragmented masked text message of 300 bytes with a ping in the middle, which is delievered over sevaral tcp packets', function() {
-    var p = new Receiver();
-    var message = 'A';
-    for (var i = 0; i < 300; ++i) message += (i % 5).toString();
-
-    var msgpiece1 = message.substr(0, 150);
-    var packet1 = '01 FE ' + pack(4, msgpiece1.length) + ' 34 83 a8 68 ' + getHexStringFromBuffer(mask(msgpiece1, '34 83 a8 68'));
-
-    var pingMessage = 'Hello';
-    var pingPacket = '89 ' + getHybiLengthAsHexString(pingMessage.length, true) + ' 34 83 a8 68 ' + getHexStringFromBuffer(mask(pingMessage, '34 83 a8 68'));
-
-    var msgpiece2 = message.substr(150);
-    var packet2 = '80 FE ' + pack(4, msgpiece2.length) + ' 34 83 a8 68 ' + getHexStringFromBuffer(mask(msgpiece2, '34 83 a8 68'));
-
-    var gotData = false;
-    p.ontext = function(data) {
-      gotData = true;
-      assert.equal(message, data);
-    };
-    var gotPing = false;
-    p.onping = function(data) {
-      gotPing = true;
-      assert.equal(pingMessage, data);
-    };
-
-    var buffers = [];
-    buffers = buffers.concat(splitBuffer(getBufferFromHexString(packet1)));
-    buffers = buffers.concat(splitBuffer(getBufferFromHexString(pingPacket)));
-    buffers = buffers.concat(splitBuffer(getBufferFromHexString(packet2)));
     for (var i = 0; i < buffers.length; ++i) {
       p.add(buffers[i]);
     }
-    gotData.should.be.ok;
-    gotPing.should.be.ok;
   });
-  it('can parse a 100 byte long masked binary message', function() {
-    var p = new Receiver();
-    var length = 100;
-    var message = new Buffer(length);
-    for (var i = 0; i < length; ++i) message[i] = i % 256;
-    var originalMessage = getHexStringFromBuffer(message);
-    var packet = '82 ' + getHybiLengthAsHexString(length, true) + ' 34 83 a8 68 ' + getHexStringFromBuffer(mask(message, '34 83 a8 68'));
 
-    var gotData = false;
-    p.onbinary = function(data) {
-      gotData = true;
-      assert.equal(originalMessage, getHexStringFromBuffer(data));
-    };
+  it('can parse a 100 byte long masked binary message', function (done) {
+    const p = new Receiver();
+    const msg = crypto.randomBytes(100);
 
-    p.add(getBufferFromHexString(packet));
-    gotData.should.be.ok;
-  });
-  it('can parse a 256 byte long masked binary message', function() {
-    var p = new Receiver();
-    var length = 256;
-    var message = new Buffer(length);
-    for (var i = 0; i < length; ++i) message[i] = i % 256;
-    var originalMessage = getHexStringFromBuffer(message);
-    var packet = '82 ' + getHybiLengthAsHexString(length, true) + ' 34 83 a8 68 ' + getHexStringFromBuffer(mask(message, '34 83 a8 68'));
+    const mask = '3483a868';
+    const frame = '82' + util.getHybiLengthAsHexString(msg.length, true) + mask +
+      util.mask(msg, mask).toString('hex');
 
-    var gotData = false;
-    p.onbinary = function(data) {
-      gotData = true;
-      assert.equal(originalMessage, getHexStringFromBuffer(data));
-    };
-
-    p.add(getBufferFromHexString(packet));
-    gotData.should.be.ok;
-  });
-  it('can parse a 200kb long masked binary message', function() {
-    var p = new Receiver();
-    var length = 200 * 1024;
-    var message = new Buffer(length);
-    for (var i = 0; i < length; ++i) message[i] = i % 256;
-    var originalMessage = getHexStringFromBuffer(message);
-    var packet = '82 ' + getHybiLengthAsHexString(length, true) + ' 34 83 a8 68 ' + getHexStringFromBuffer(mask(message, '34 83 a8 68'));
-
-    var gotData = false;
-    p.onbinary = function(data) {
-      gotData = true;
-      assert.equal(originalMessage, getHexStringFromBuffer(data));
-    };
-
-    p.add(getBufferFromHexString(packet));
-    gotData.should.be.ok;
-  });
-  it('can parse a 200kb long unmasked binary message', function() {
-    var p = new Receiver();
-    var length = 200 * 1024;
-    var message = new Buffer(length);
-    for (var i = 0; i < length; ++i) message[i] = i % 256;
-    var originalMessage = getHexStringFromBuffer(message);
-    var packet = '82 ' + getHybiLengthAsHexString(length, false) + ' ' + getHexStringFromBuffer(message);
-
-    var gotData = false;
-    p.onbinary = function(data) {
-      gotData = true;
-      assert.equal(originalMessage, getHexStringFromBuffer(data));
-    };
-
-    p.add(getBufferFromHexString(packet));
-    gotData.should.be.ok;
-  });
-  it('can parse compressed message', function(done) {
-    var perMessageDeflate = new PerMessageDeflate();
-    perMessageDeflate.accept([{}]);
-
-    var p = new Receiver({ 'permessage-deflate': perMessageDeflate });
-    var buf = new Buffer('Hello');
-
-    p.ontext = function(data) {
-      assert.equal('Hello', data);
+    p.onbinary = function (data) {
+      assert.deepStrictEqual(data.toString('hex'), msg.toString('hex'));
       done();
     };
 
-    perMessageDeflate.compress(buf, true, function(err, compressed) {
+    p.add(Buffer.from(frame, 'hex'));
+  });
+
+  it('can parse a 256 byte long masked binary message', function (done) {
+    const p = new Receiver();
+    const msg = crypto.randomBytes(256);
+
+    const mask = '3483a868';
+    const frame = '82' + util.getHybiLengthAsHexString(msg.length, true) + mask +
+      util.mask(msg, mask).toString('hex');
+
+    p.onbinary = function (data) {
+      assert.deepStrictEqual(data, msg);
+      done();
+    };
+
+    p.add(Buffer.from(frame, 'hex'));
+  });
+
+  it('can parse a 200kb long masked binary message', function (done) {
+    const p = new Receiver();
+    const msg = crypto.randomBytes(200 * 1024);
+
+    const mask = '3483a868';
+    const frame = '82' + util.getHybiLengthAsHexString(msg.length, true) + mask +
+      util.mask(msg, mask).toString('hex');
+
+    p.onbinary = function (data) {
+      assert.deepStrictEqual(data, msg);
+      done();
+    };
+
+    p.add(Buffer.from(frame, 'hex'));
+  });
+
+  it('can parse a 200kb long unmasked binary message', function (done) {
+    const p = new Receiver();
+    const msg = crypto.randomBytes(200 * 1024);
+
+    const frame = '82' + util.getHybiLengthAsHexString(msg.length, false) +
+      msg.toString('hex');
+
+    p.onbinary = function (data) {
+      assert.deepStrictEqual(data, msg);
+      done();
+    };
+
+    p.add(Buffer.from(frame, 'hex'));
+  });
+
+  it('can parse compressed message', function (done) {
+    const perMessageDeflate = new PerMessageDeflate();
+    perMessageDeflate.accept([{}]);
+
+    const p = new Receiver({ 'permessage-deflate': perMessageDeflate });
+    const buf = Buffer.from('Hello');
+
+    p.ontext = function (data) {
+      assert.strictEqual(data, 'Hello');
+      done();
+    };
+
+    perMessageDeflate.compress(buf, true, function (err, compressed) {
       if (err) return done(err);
-      p.add(new Buffer([0xc1, compressed.length]));
+
+      p.add(Buffer.from([0xc1, compressed.length]));
       p.add(compressed);
     });
   });
-  it('can parse compressed fragments', function(done) {
-    var perMessageDeflate = new PerMessageDeflate();
+
+  it('can parse compressed fragments', function (done) {
+    const perMessageDeflate = new PerMessageDeflate();
     perMessageDeflate.accept([{}]);
 
-    var p = new Receiver({ 'permessage-deflate': perMessageDeflate });
-    var buf1 = new Buffer('foo');
-    var buf2 = new Buffer('bar');
+    const p = new Receiver({ 'permessage-deflate': perMessageDeflate });
+    const buf1 = Buffer.from('foo');
+    const buf2 = Buffer.from('bar');
 
-    p.ontext = function(data) {
-      assert.equal('foobar', data);
+    p.ontext = function (data) {
+      assert.strictEqual(data, 'foobar');
       done();
     };
 
-    perMessageDeflate.compress(buf1, false, function(err, compressed1) {
+    perMessageDeflate.compress(buf1, false, function (err, compressed1) {
       if (err) return done(err);
-      p.add(new Buffer([0x41, compressed1.length]));
+
+      p.add(Buffer.from([0x41, compressed1.length]));
       p.add(compressed1);
 
-      perMessageDeflate.compress(buf2, true, function(err, compressed2) {
-        p.add(new Buffer([0x80, compressed2.length]));
+      perMessageDeflate.compress(buf2, true, function (err, compressed2) {
+        if (err) return done(err);
+
+        p.add(Buffer.from([0x80, compressed2.length]));
         p.add(compressed2);
       });
     });
   });
-    it('will raise an error on a 200kb long masked binary message when maxpayload is 20kb', function() {
-    var p = new Receiver(20480);
-    var length = 200 * 1024;
-    var message = new Buffer(length);
-    for (var i = 0; i < length; ++i) message[i] = i % 256;
-    var originalMessage = getHexStringFromBuffer(message);
-    var packet = '82 ' + getHybiLengthAsHexString(length, true) + ' 34 83 a8 68 ' + getHexStringFromBuffer(mask(message, '34 83 a8 68'));
 
-    var gotError = false;
-    p.error = function(reason,code) {
-      gotError = true;
-      assert.equal(code, 1009);
-    };
+  it('will raise an error on a 200kb long masked binary message when maxpayload is 20kb', function (done) {
+    const p = new Receiver({}, 20 * 1024);
+    const msg = crypto.randomBytes(200 * 1024);
 
-    p.add(getBufferFromHexString(packet));
-    gotError.should.be.ok;
-  });
-  it('will raise an error on a 200kb long unmasked binary message when maxpayload is 20kb', function() {
-    var p = new Receiver(20480);
-    var length = 200 * 1024;
-    var message = new Buffer(length);
-    for (var i = 0; i < length; ++i) message[i] = i % 256;
-    var originalMessage = getHexStringFromBuffer(message);
-    var packet = '82 ' + getHybiLengthAsHexString(length, false) + ' ' + getHexStringFromBuffer(message);
+    const mask = '3483a868';
+    const frame = '82' + util.getHybiLengthAsHexString(msg.length, true) + mask +
+      util.mask(msg, mask).toString('hex');
 
-    var gotError = false;
-    p.error = function(reason,code) {
-      gotError = true;
-      assert.equal(code, 1009);
-    };
-
-    p.add(getBufferFromHexString(packet));
-    gotError.should.be.ok;
-  });
-  it('will raise an error on a compressed message that exceeds maxpayload of 3bytes', function(done) {
-    var perMessageDeflate = new PerMessageDeflate({},false,3);
-    perMessageDeflate.accept([{}]);
-
-    var p = new Receiver({ 'permessage-deflate': perMessageDeflate },3);
-    var buf = new Buffer('Hellooooooooooooooooooooooooooooooooooooooo');
-
-    p.onerror = function(reason,code) {
-      assert.equal(code, 1009);
+    p.error = function (reason, code) {
+      assert.strictEqual(code, 1009);
       done();
     };
 
-    perMessageDeflate.compress(buf, true, function(err, compressed) {
+    p.add(Buffer.from(frame, 'hex'));
+  });
+
+  it('will raise an error on a 200kb long unmasked binary message when maxpayload is 20kb', function (done) {
+    const p = new Receiver({}, 20 * 1024);
+    const msg = crypto.randomBytes(200 * 1024);
+
+    const frame = '82' + util.getHybiLengthAsHexString(msg.length, false) +
+      msg.toString('hex');
+
+    p.error = function (reason, code) {
+      assert.strictEqual(code, 1009);
+      done();
+    };
+
+    p.add(Buffer.from(frame, 'hex'));
+  });
+
+  it('will raise an error on a compressed message that exceeds maxpayload of 3 bytes', function (done) {
+    const perMessageDeflate = new PerMessageDeflate({}, false, 3);
+    perMessageDeflate.accept([{}]);
+
+    const p = new Receiver({ 'permessage-deflate': perMessageDeflate }, 3);
+    const buf = Buffer.from('Hellooooooooooooooooooooooooooooooooooooooo');
+
+    p.onerror = function (reason, code) {
+      assert.strictEqual(code, 1009);
+      done();
+    };
+
+    perMessageDeflate.compress(buf, true, function (err, compressed) {
       if (err) return done(err);
-      p.add(new Buffer([0xc1, compressed.length]));
+
+      p.add(Buffer.from([0xc1, compressed.length]));
       p.add(compressed);
     });
   });
-  it('will raise an error on a compressed fragment that exceeds maxpayload of 2 bytes', function(done) {
-    var perMessageDeflate = new PerMessageDeflate({},false,2);
+
+  it('will raise an error on a compressed fragment that exceeds maxpayload of 2 bytes', function (done) {
+    const perMessageDeflate = new PerMessageDeflate({}, false, 2);
     perMessageDeflate.accept([{}]);
 
-    var p = new Receiver({ 'permessage-deflate': perMessageDeflate },2);
-    var buf1 = new Buffer('fooooooooooooooooooooooooooooooooooooooooooooooooooooooo');
-    var buf2 = new Buffer('baaaarrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr');
+    const p = new Receiver({ 'permessage-deflate': perMessageDeflate }, 2);
+    const buf1 = Buffer.from('foooooooooooooooooooooooooooooooooooooooooooooo');
+    const buf2 = Buffer.from('baaaarrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr');
 
-    p.onerror = function(reason,code) {
-      assert.equal(code, 1009);
+    p.onerror = function (reason, code) {
+      assert.strictEqual(code, 1009);
       done();
     };
 
-    perMessageDeflate.compress(buf1, false, function(err, compressed1) {
+    perMessageDeflate.compress(buf1, false, function (err, compressed1) {
       if (err) return done(err);
-      p.add(new Buffer([0x41, compressed1.length]));
+
+      p.add(Buffer.from([0x41, compressed1.length]));
       p.add(compressed1);
 
-      perMessageDeflate.compress(buf2, true, function(err, compressed2) {
-        p.add(new Buffer([0x80, compressed2.length]));
+      perMessageDeflate.compress(buf2, true, function (err, compressed2) {
+        if (err) return done(err);
+
+        p.add(Buffer.from([0x80, compressed2.length]));
         p.add(compressed2);
       });
     });
   });
-  it('will not crash if another message is received after receiving a message that exceeds maxpayload', function(done) {
-    var perMessageDeflate = new PerMessageDeflate({},false,2);
+
+  it('will not crash if another message is received after receiving a message that exceeds maxpayload', function (done) {
+    const perMessageDeflate = new PerMessageDeflate({}, false, 2);
     perMessageDeflate.accept([{}]);
 
-    var p = new Receiver({ 'permessage-deflate': perMessageDeflate },2);
-    var buf1 = new Buffer('fooooooooooooooooooooooooooooooooooooooooooooooooooooooo');
-    var buf2 = new Buffer('baaaarrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr');
+    const p = new Receiver({ 'permessage-deflate': perMessageDeflate }, 2);
+    const buf1 = Buffer.from('foooooooooooooooooooooooooooooooooooooooooooooo');
+    const buf2 = Buffer.from('baaaarrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr');
 
-    p.onerror = function(reason,code) {
-      assert.equal(code, 1009);
+    let gotError = false;
+
+    p.onerror = function (reason, code) {
+      gotError = true;
+      assert.strictEqual(code, 1009);
     };
 
-    perMessageDeflate.compress(buf1, false, function(err, compressed1) {
+    perMessageDeflate.compress(buf1, false, function (err, compressed1) {
       if (err) return done(err);
-      p.add(new Buffer([0x41, compressed1.length]));
+
+      p.add(Buffer.from([0x41, compressed1.length]));
       p.add(compressed1);
 
-      assert.equal(p.onerror,null);
+      assert.ok(gotError);
+      assert.strictEqual(p.onerror, null);
 
-      perMessageDeflate.compress(buf2, true, function(err, compressed2) {
-          p.add(new Buffer([0x80, compressed2.length]));
-          p.add(compressed2);
-          done();
+      perMessageDeflate.compress(buf2, true, function (err, compressed2) {
+        if (err) return done(err);
+
+        p.add(Buffer.from([0x80, compressed2.length]));
+        p.add(compressed2);
+        done();
       });
     });
   });
-  it('can cleanup during consuming data', function(done) {
-    var perMessageDeflate = new PerMessageDeflate();
+
+  it('can cleanup when consuming data', function (done) {
+    const perMessageDeflate = new PerMessageDeflate();
     perMessageDeflate.accept([{}]);
 
-    var p = new Receiver({ 'permessage-deflate': perMessageDeflate });
-    var buf = new Buffer('Hello');
+    const p = new Receiver({ 'permessage-deflate': perMessageDeflate });
+    const buf = Buffer.from('Hello');
 
-    perMessageDeflate.compress(buf, true, function(err, compressed) {
+    perMessageDeflate.compress(buf, true, function (err, compressed) {
       if (err) return done(err);
-      var data = Buffer.concat([new Buffer([0xc1, compressed.length]), compressed]);
+
+      const data = Buffer.concat([Buffer.from([0xc1, compressed.length]), compressed]);
       p.add(data);
       p.add(data);
       p.add(data);
