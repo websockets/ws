@@ -30,7 +30,7 @@ describe('Sender', function() {
     it('does not modify a masked text buffer', function() {
       var sender = new Sender({ write: function() {} });
       var text = 'hi there';
-      sender.frameAndSend(1, text, true, true);
+      sender.frameAndSend(1, Buffer.from(text), true, true);
       text.should.eql('hi there');
     });
 
@@ -41,13 +41,13 @@ describe('Sender', function() {
           done();
         }
       });
-      sender.frameAndSend(1, 'hi', true, false, true);
+      sender.frameAndSend(1, Buffer.from('hi'), true, false, true);
     });
   });
 
   describe('#send', function() {
     it('compresses data if compress option is enabled', function(done) {
-      var perMessageDeflate = new PerMessageDeflate();
+      var perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
       perMessageDeflate.accept([{}]);
 
       var sender = new Sender({
@@ -61,6 +61,21 @@ describe('Sender', function() {
       sender.send('hi', { compress: true });
     });
     
+    it('does not compress data for small payloads', function(done) {
+      var perMessageDeflate = new PerMessageDeflate();
+      perMessageDeflate.accept([{}]);
+
+      var sender = new Sender({
+        write: function(data) {
+          (data[0] & 0x40).should.not.equal(0x40);
+          done();
+        }
+      }, {
+        'permessage-deflate': perMessageDeflate
+      });
+      sender.send('hi', { compress: true });
+    });
+
     it('Should be able to handle many send calls while processing without crashing on flush', function(done) {
       var messageCount = 0;
       var maxMessages = 5000;

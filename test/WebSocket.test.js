@@ -2226,7 +2226,7 @@ describe('WebSocket', function() {
     describe('#terminate', function() {
       it('will raise error callback, if any, if called during send data', function(done) {
         var wss = new WebSocketServer({port: ++port, perMessageDeflate: true}, function() {
-          var ws = new WebSocket('ws://localhost:' + port, {perMessageDeflate: true});
+          var ws = new WebSocket('ws://localhost:' + port, {perMessageDeflate: { threshold: 0 }});
           var errorGiven = false;
           ws.on('open', function() {
             ws.send('hi', function(error) {
