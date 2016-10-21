@@ -58,7 +58,10 @@ export class WebSocket {
     ping( data?, options?: { mask: boolean, binary: boolean }, dontFailWhenClosed?: boolean );
     pong( data?, options?: { mask: boolean, binary: boolean }, dontFailWhenClosed?: boolean );
     resume();
+    send( data );
+    send( data, callback: () => any );
     send( data, options: { mask: boolean, binary: boolean, compress: boolean }, callback: () => any );
+    stream( callback: (data, final: boolean) => any );
     stream( options: { mask: boolean, binary: boolean }, callback: (data, final: boolean) => any );
     terminate();
 
