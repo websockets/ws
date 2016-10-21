@@ -63,6 +63,7 @@ If `handleProtocols` is not set then the handshake is accepted regardless the va
 * `serverMaxWindowBits` Number: The value of windowBits.
 * `clientMaxWindowBits` Number: The value of max windowBits to be requested to clients.
 * `memLevel` Number: The value of memLevel.
+* `threshold` Number: Payloads smaller than this will not be compressed. Default 1024 bytes.
 
 If a property is empty then either an offered configuration or a default value is used.
 
