@@ -19,11 +19,9 @@ interface ServerOptions {
     host?: string;
     port?: number;
     server?: http.Server | https.Server;
-    verifyClient?: {
-        (info: { origin: string, req: http.ClientRequest, secure: boolean }): boolean;
-        (info: { origin: string, req: http.ClientRequest, secure: boolean }, cb: (result: boolean) => any): void;
-    };
-    handleProtocols?: (protocols: string[], cb: (result: boolean, protocol: string) => void) => any;
+    verifyClient?(info: { origin: string, req: http.ClientRequest, secure: boolean }): boolean;
+    verifyClient?(info: { origin: string, req: http.ClientRequest, secure: boolean }, cb: (result: boolean) => any): void;
+    handleProtocols?(protocols: string[], cb: (result: boolean, protocol: string) => void): any;
     path?: string;
     noServer?: boolean;
     disableHixie?: boolean;
