@@ -6,7 +6,6 @@
   "license": "MIT",
   "main": "index.js",
   "keywords": [
-    "Hixie",
     "HyBi",
     "Push",
     "RFC-6455",
@@ -32,7 +31,6 @@
     "eslint-config-standard": "6.2.x",
     "eslint-plugin-promise": "3.0.x",
     "eslint-plugin-standard": "2.0.x",
-    "expect.js": "0.3.x",
     "istanbul": "0.4.x",
     "mocha": "3.1.x",
     "should": "8.0.x",

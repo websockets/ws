@@ -10,9 +10,6 @@ for the full reports.
 
 ## Protocol support
 
-* **Hixie draft 76** (Old and deprecated, but still in use by Safari and Opera.
-  Added to ws version 0.4.2, but server only. Can be disabled by setting the
-  `disableHixie` option to true.)
 * **HyBi drafts 07-12** (Use the option `protocolVersion: 8`)
 * **HyBi drafts 13-17** (Current default, alternatively option `protocolVersion: 13`)
 
