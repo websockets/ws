@@ -1,7 +1,6 @@
 
 import { EventEmitter } from 'events'
 import * as http from 'http'
-import * as https from 'https'
 import * as net from 'net'
 
 export class Server extends EventEmitter {
@@ -18,7 +17,7 @@ export class Server extends EventEmitter {
 interface ServerOptions {
     host?: string;
     port?: number;
-    server?: http.Server | https.Server;
+    server?: net.Server;
     verifyClient?(info: { origin: string, req: http.ClientRequest, secure: boolean }): boolean;
     verifyClient?(info: { origin: string, req: http.ClientRequest, secure: boolean }, cb: (result: boolean) => any): void;
     handleProtocols?(protocols: string[], cb: (result: boolean, protocol: string) => void): any;
