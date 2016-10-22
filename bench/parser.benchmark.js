@@ -29,6 +29,7 @@ const maskedTextPacket = Buffer.from('81933483a86801b992524fa1c60959e68a5216e6cb
 const binaryDataPacket = createBinaryPacket(125);
 const binaryDataPacket2 = createBinaryPacket(65535);
 const binaryDataPacket3 = createBinaryPacket(200 * 1024);
+const binaryDataPacket4 = createBinaryPacket(1024 * 1024);
 
 var receiver = new Receiver({}, 1024 * 1024);
 const suite = new benchmark.Suite();
@@ -42,7 +43,8 @@ suite.add('close message', () => {
 suite.add('masked text message', () => receiver.add(maskedTextPacket));
 suite.add('binary data (125 bytes)', () => receiver.add(binaryDataPacket));
 suite.add('binary data (65535 bytes)', () => receiver.add(binaryDataPacket2));
-suite.add('binary data (200 kB)', () => receiver.add(binaryDataPacket3));
+suite.add('binary data (200 KiB)', () => receiver.add(binaryDataPacket3));
+suite.add('binary data (1 MiB)', () => receiver.add(binaryDataPacket4));
 suite.on('cycle', (e) => {
   console.log(e.target.toString());
   receiver = new Receiver();
