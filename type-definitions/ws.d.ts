@@ -50,6 +50,7 @@ export class WebSocket {
     supports: any;
     upgradeReq: http.ClientRequest;
 
+    constructor( address: string, options: WebSocketOptions );
     constructor( address: string, protocols: string[], options: WebSocketOptions );
 
     close( code?: number, data?: string );
