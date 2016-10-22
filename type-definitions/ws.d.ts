@@ -87,20 +87,20 @@ export class WebSocket {
 }
 
 interface WebSocketOptions {
-    protocol: string
-    agent: http.Agent;
-    headers: any;
-    protocolVersion: number | string;
+    protocol?: string
+    agent?: http.Agent;
+    headers?: any;
+    protocolVersion?: number | string;
     // the following only apply if address is a String
-    host: string;
-    origin: string;
-    pfx: string | Buffer
-    key: string | Buffer;
-    passphrase: string;
-    cert: string | Buffer;
-    ca: any[];
-    ciphers: string;
-    rejectUnauthorized: boolean;
-    perMessageDeflate: boolean | PerMessageDeflateOptions;
-    localAddress: string;
+    host?: string;
+    origin?: string;
+    pfx?: string | Buffer
+    key?: string | Buffer;
+    passphrase?: string;
+    cert?: string | Buffer;
+    ca?: any[];
+    ciphers?: string;
+    rejectUnauthorized?: boolean;
+    perMessageDeflate?: boolean | PerMessageDeflateOptions;
+    localAddress?: string;
 }
