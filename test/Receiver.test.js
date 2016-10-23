@@ -48,7 +48,7 @@ describe('Receiver', function () {
     p.add(Buffer.from('81933483a86801b992524fa1c60959e68a5216e6cb005ba1d5', 'hex'));
   });
 
-  it('can parse a masked text message longer than 125 bytes', function (done) {
+  it('can parse a masked text message longer than 125 B', function (done) {
     const p = new Receiver();
     const msg = 'A'.repeat(200);
 
@@ -80,7 +80,7 @@ describe('Receiver', function () {
     p.add(Buffer.from(frame, 'hex'));
   });
 
-  it('can parse a fragmented masked text message of 300 bytes', function (done) {
+  it('can parse a fragmented masked text message of 300 B', function (done) {
     const p = new Receiver();
     const msg = 'A'.repeat(300);
 
@@ -129,7 +129,7 @@ describe('Receiver', function () {
     p.add(Buffer.from('8900', 'hex'));
   });
 
-  it('can parse a fragmented masked text message of 300 bytes with a ping in the middle (1/2)', function (done) {
+  it('can parse a fragmented masked text message of 300 B with a ping in the middle (1/2)', function (done) {
     const p = new Receiver();
     const msg = 'A'.repeat(300);
     const pingMessage = 'Hello';
@@ -162,7 +162,7 @@ describe('Receiver', function () {
     p.add(Buffer.from(frame3, 'hex'));
   });
 
-  it('can parse a fragmented masked text message of 300 bytes with a ping in the middle (2/2)', function (done) {
+  it('can parse a fragmented masked text message of 300 B with a ping in the middle (2/2)', function (done) {
     const p = new Receiver();
     const msg = 'A'.repeat(300);
     var pingMessage = 'Hello';
@@ -201,7 +201,7 @@ describe('Receiver', function () {
     }
   });
 
-  it('can parse a 100 byte long masked binary message', function (done) {
+  it('can parse a 100 B long masked binary message', function (done) {
     const p = new Receiver();
     const msg = crypto.randomBytes(100);
 
@@ -217,7 +217,7 @@ describe('Receiver', function () {
     p.add(Buffer.from(frame, 'hex'));
   });
 
-  it('can parse a 256 byte long masked binary message', function (done) {
+  it('can parse a 256 B long masked binary message', function (done) {
     const p = new Receiver();
     const msg = crypto.randomBytes(256);
 
@@ -233,7 +233,7 @@ describe('Receiver', function () {
     p.add(Buffer.from(frame, 'hex'));
   });
 
-  it('can parse a 200kb long masked binary message', function (done) {
+  it('can parse a 200 KiB long masked binary message', function (done) {
     const p = new Receiver();
     const msg = crypto.randomBytes(200 * 1024);
 
@@ -249,7 +249,7 @@ describe('Receiver', function () {
     p.add(Buffer.from(frame, 'hex'));
   });
 
-  it('can parse a 200kb long unmasked binary message', function (done) {
+  it('can parse a 200 KiB long unmasked binary message', function (done) {
     const p = new Receiver();
     const msg = crypto.randomBytes(200 * 1024);
 
@@ -312,7 +312,44 @@ describe('Receiver', function () {
     });
   });
 
-  it('will raise an error on a 200kb long masked binary message when maxpayload is 20kb', function (done) {
+  it('resets `currentPayloadLength` only on final frame (unfragmented)', function () {
+    const p = new Receiver({}, 10);
+
+    assert.strictEqual(p.currentPayloadLength, 0);
+    p.add(Buffer.from('810548656c6c6f', 'hex'));
+    assert.strictEqual(p.currentPayloadLength, 0);
+  });
+
+  it('resets `currentPayloadLength` only on final frame (fragmented)', function () {
+    const p = new Receiver({}, 10);
+
+    const frame1 = '01024865';
+    const frame2 = '80036c6c6f';
+
+    assert.strictEqual(p.currentPayloadLength, 0);
+    p.add(Buffer.from(frame1, 'hex'));
+    assert.strictEqual(p.currentPayloadLength, 2);
+    p.add(Buffer.from(frame2, 'hex'));
+    assert.strictEqual(p.currentPayloadLength, 0);
+  });
+
+  it('resets `currentPayloadLength` only on final frame (fragmented + ping)', function () {
+    const p = new Receiver({}, 10);
+
+    const frame1 = '01024865';
+    const frame2 = '8900';
+    const frame3 = '80036c6c6f';
+
+    assert.strictEqual(p.currentPayloadLength, 0);
+    p.add(Buffer.from(frame1, 'hex'));
+    assert.strictEqual(p.currentPayloadLength, 2);
+    p.add(Buffer.from(frame2, 'hex'));
+    assert.strictEqual(p.currentPayloadLength, 2);
+    p.add(Buffer.from(frame3, 'hex'));
+    assert.strictEqual(p.currentPayloadLength, 0);
+  });
+
+  it('will raise an error on a 200 KiB long masked binary message when maxpayload is 20 KiB', function (done) {
     const p = new Receiver({}, 20 * 1024);
     const msg = crypto.randomBytes(200 * 1024);
 
@@ -328,7 +365,7 @@ describe('Receiver', function () {
     p.add(Buffer.from(frame, 'hex'));
   });
 
-  it('will raise an error on a 200kb long unmasked binary message when maxpayload is 20kb', function (done) {
+  it('will raise an error on a 200 KiB long unmasked binary message when maxpayload is 20 KiB', function (done) {
     const p = new Receiver({}, 20 * 1024);
     const msg = crypto.randomBytes(200 * 1024);
 
@@ -343,7 +380,7 @@ describe('Receiver', function () {
     p.add(Buffer.from(frame, 'hex'));
   });
 
-  it('will raise an error on a compressed message that exceeds maxpayload of 3 bytes', function (done) {
+  it('will raise an error on a compressed message that exceeds maxpayload of 3 B', function (done) {
     const perMessageDeflate = new PerMessageDeflate({}, false, 3);
     perMessageDeflate.accept([{}]);
 
@@ -363,7 +400,7 @@ describe('Receiver', function () {
     });
   });
 
-  it('will raise an error on a compressed fragment that exceeds maxpayload of 2 bytes', function (done) {
+  it('will raise an error on a compressed fragment that exceeds maxpayload of 2 B', function (done) {
     const perMessageDeflate = new PerMessageDeflate({}, false, 2);
     perMessageDeflate.accept([{}]);
 
