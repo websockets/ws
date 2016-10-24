@@ -106,7 +106,7 @@ This class represents a WebSocket connection. It is an `EventEmitter`.
   * `protocol` String
   * `agent` Agent
   * `headers` Object
-  * `protocolVersion` Number|String
+  * `protocolVersion` Number
     -- the following only apply if `address` is a String
   * `host` String
   * `origin` String
