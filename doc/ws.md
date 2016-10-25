@@ -174,7 +174,20 @@ Resume the client stream
 
 ### websocket.send(data, [options], [callback])
 
-Sends `data` through the connection. `options` can be an object with members `mask`, `binary` and `compress`. The optional `callback` is executed after the send completes.
+* `data` Any The data to send.
+* `options` Object An options object.
+  * `compress` Boolean Specifies whether `data` should be compressed or not.
+    Defaults to `true` when permessage-deflate is enabled.
+  * `binary` Boolean Specifies whether `data` should be sent as a binary or not.
+    Default is autodetected.
+  * `mask` Boolean Specifies whether `data` should be masked or not. Defaults
+    to `true` when `websocket` is not a server client.
+  * `fin` Boolean Specifies whether `data` is the last fragment of a message or
+    not. Defaults to `true`.
+* `callback` Function An optional callback which is invoked when the send
+  completes.
+
+Sends `data` through the connection.
 
 ### websocket.stream([options], callback)
 
