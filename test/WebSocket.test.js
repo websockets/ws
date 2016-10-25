@@ -1939,35 +1939,12 @@ describe('WebSocket', function() {
   describe('protocol support discovery', function() {
     describe('#supports', function() {
       describe('#binary', function() {
-        it('returns true for hybi transport', function(done) {
+        it('returns true', function(done) {
           var wss = new WebSocketServer({port: ++port}, function() {
             var ws = new WebSocket('ws://localhost:' + port);
           });
           wss.on('connection', function(client) {
             assert.equal(true, client.supports.binary);
-            wss.close();
-            done();
-          });
-        });
-
-        it('returns false for hixie transport', function(done) {
-          var wss = new WebSocketServer({port: ++port}, function() {
-            var options = {
-              port: port,
-              host: '127.0.0.1',
-              headers: {
-                'Connection': 'Upgrade',
-                'Upgrade': 'WebSocket',
-                'Sec-WebSocket-Key1': '3e6b263  4 17 80',
-                'Sec-WebSocket-Key2': '17  9 G`ZD9   2 2b 7X 3 /r90'
-              }
-            };
-            var req = http.request(options);
-            req.write('WjN}|M(6');
-            req.end();
-          });
-          wss.on('connection', function(client) {
-            assert.equal(false, client.supports.binary);
             wss.close();
             done();
           });
