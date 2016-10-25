@@ -8,8 +8,8 @@
 
 const benchmark = require('benchmark');
 
+const util = require('../test/hybi-util');
 const Receiver = require('../').Receiver;
-const util = require('./util');
 
 function createBinaryPacket (length) {
   const message = Buffer.alloc(length);

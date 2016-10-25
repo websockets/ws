@@ -5,7 +5,7 @@ const crypto = require('crypto');
 
 const PerMessageDeflate = require('../lib/PerMessageDeflate');
 const Receiver = require('../lib/Receiver');
-const util = require('../bench/util');
+const util = require('./hybi-util');
 
 describe('Receiver', function () {
   describe('#ctor', function () {
