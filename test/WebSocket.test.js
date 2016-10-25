@@ -1653,6 +1653,24 @@ describe('WebSocket', function() {
       });
     });
 
+    it('should remove added event listener', function(done) {
+      this.timeout(4000);
+      server.createServer(++port, function(srv) {
+        var ws = new WebSocket('ws://localhost:' + port);
+        function openListener() {}
+        function messageListener() {}
+        ws.addEventListener('open', openListener);
+        ws.addEventListener('message', messageListener);
+        assert.equal(ws.hasEventListener('open', openListener), true);
+        assert.equal(ws.hasEventListener('message', messageListener), true);
+        ws.removeEventListener('open', openListener);
+        ws.removeEventListener('message', messageListener);
+        assert.equal(ws.hasEventListener('open', openListener), false);
+        assert.equal(ws.hasEventListener('message', messageListener), false);
+        done();
+      });
+    });
+
     it('should receive valid CloseEvent when server closes with code 1000', function(done) {
       var wss = new WebSocketServer({port: ++port}, function() {
         var ws = new WebSocket('ws://localhost:' + port);
