@@ -1,15 +1,7 @@
 language: node_js
-sudo: false
+sudo: required
+dist: trusty
 node_js:
+  - "7"
   - "6"
-  - "5"
   - "4"
-addons:
-  apt:
-    sources:
-      - ubuntu-toolchain-r-test
-    packages:
-      - gcc-4.9
-      - g++-4.9
-before_install:
-  - export CC="gcc-4.9" CXX="g++-4.9"
