@@ -1,9 +1,11 @@
-var http = require('http'),
-  util = require('util'),
-  crypto = require('crypto'),
-  events = require('events'),
-  Sender = require('../lib/Sender'),
-  Receiver = require('../lib/Receiver');
+'use strict';
+
+const http = require('http');
+const util = require('util');
+const crypto = require('crypto');
+const events = require('events');
+const Sender = require('../lib/Sender');
+const Receiver = require('../lib/Receiver');
 
 module.exports = {
   handlers: {
@@ -38,7 +40,6 @@ function validServer (server, req, socket) {
   if (typeof req.headers.upgrade === 'undefined' ||
     req.headers.upgrade.toLowerCase() !== 'websocket') {
     throw new Error('invalid headers');
-    return;
   }
 
   if (!req.headers['sec-websocket-key']) {
@@ -85,7 +86,7 @@ function validServer (server, req, socket) {
   };
   receiver.onclose = function (code, message, flags) {
     flags = flags || {};
-    sender.close(code, message, false, function (err) {
+    sender.close(code, message, false, function () {
       server.emit('close', code, message, flags);
       socket.end();
     });
@@ -102,7 +103,6 @@ function invalidRequestHandler (server, req, socket) {
   if (typeof req.headers.upgrade === 'undefined' ||
     req.headers.upgrade.toLowerCase() !== 'websocket') {
     throw new Error('invalid headers');
-    return;
   }
 
   if (!req.headers['sec-websocket-key']) {
@@ -131,7 +131,6 @@ function closeAfterConnectHandler (server, req, socket) {
   if (typeof req.headers.upgrade === 'undefined' ||
     req.headers.upgrade.toLowerCase() !== 'websocket') {
     throw new Error('invalid headers');
-    return;
   }
 
   if (!req.headers['sec-websocket-key']) {

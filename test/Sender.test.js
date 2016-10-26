@@ -1,14 +1,15 @@
-var Sender = require('../lib/Sender'),
-  PerMessageDeflate = require('../lib/PerMessageDeflate');
+'use strict';
+
+const Sender = require('../lib/Sender');
+const PerMessageDeflate = require('../lib/PerMessageDeflate');
 require('should');
 
 describe('Sender', function () {
   describe('#ctor', function () {
     it('throws TypeError when called without new', function (done) {
       try {
-        var sender = Sender({ write: function () {} });
-      }
-      catch (e) {
+        Sender({ write: function () {} });
+      } catch (e) {
         e.should.be.instanceof(TypeError);
         done();
       }

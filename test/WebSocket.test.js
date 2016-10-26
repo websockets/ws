@@ -1,15 +1,19 @@
-var assert = require('assert'),
-  https = require('https'),
-  http = require('http'),
-  should = require('should'),
-  WebSocket = require('../'),
-  WebSocketServer = require('../').Server,
-  fs = require('fs'),
-  os = require('os'),
-  server = require('./testserver'),
-  crypto = require('crypto');
+/* eslint no-unused-vars: ["error", { "varsIgnorePattern": "^ws$", "args": "none" }] */
 
-var port = 20000;
+'use strict';
+
+const assert = require('assert');
+const https = require('https');
+const http = require('http');
+const WebSocket = require('../');
+const fs = require('fs');
+const os = require('os');
+const server = require('./testserver');
+const crypto = require('crypto');
+
+const WebSocketServer = WebSocket.Server;
+
+let port = 20000;
 
 function getArrayBuffer (buf) {
   var l = buf.length;
@@ -22,7 +26,7 @@ function getArrayBuffer (buf) {
 }
 
 function areArraysEqual (x, y) {
-  if (x.length != y.length) return false;
+  if (x.length !== y.length) return false;
   for (var i = 0, l = x.length; i < l; ++i) {
     if (x[i] !== y[i]) return false;
   }
@@ -31,86 +35,57 @@ function areArraysEqual (x, y) {
 
 describe('WebSocket', function () {
   describe('#ctor', function () {
-    it('throws exception for invalid url', function (done) {
-      try {
-        var ws = new WebSocket('echo.websocket.org');
-      }
-      catch (e) {
-        done();
-      }
+    it('should return a new instance if called without new', function (done) {
+      var ws = WebSocket('ws://localhost');
+
+      assert.ok(ws instanceof WebSocket);
+      ws.on('error', () => done());
     });
 
-    it('should return a new instance if called without new', function (done) {
-      var ws = WebSocket('ws://localhost:' + port);
-      ws.should.be.an.instanceOf(WebSocket);
-      done();
+    it('throws exception for invalid url', function () {
+      assert.throws(() => new WebSocket('echo.websocket.org'));
     });
   });
 
   describe('options', function () {
     it('should accept an `agent` option', function (done) {
-      var wss = new WebSocketServer({port: ++port}, function () {
-        var agent = {
-          addRequest: function () {
-            wss.close();
-            done();
-          }
-        };
-        var ws = new WebSocket('ws://localhost:' + port, { agent: agent });
-      });
+      const agent = { addRequest: () => done() };
+      const ws = new WebSocket('ws://localhost', { agent });
     });
+
     // GH-227
     it('should accept the `options` object as the 3rd argument', function (done) {
-      var wss = new WebSocketServer({port: ++port}, function () {
-        var agent = {
-          addRequest: function () {
-            wss.close();
-            done();
-          }
-        };
-        var ws = new WebSocket('ws://localhost:' + port, [], { agent: agent });
-      });
+      const agent = { addRequest: () => done() };
+      const ws = new WebSocket('ws://localhost', [], { agent });
     });
 
     it('should accept the localAddress option', function (done) {
       // explore existing interfaces
-      var devs = os.networkInterfaces(),
-        localAddresses = [],
-        j, ifc, dev, devname;
-      for (devname in devs) {
-        dev = devs[devname];
-        for (j = 0; j < dev.length; j++) {
-          ifc = dev[j];
+      const devs = os.networkInterfaces();
+      const localAddresses = [];
+
+      Object.keys(devs).forEach((name) => {
+        devs[name].forEach((ifc) => {
           if (!ifc.internal && ifc.family === 'IPv4') {
             localAddresses.push(ifc.address);
           }
-        }
-      }
-      var wss = new WebSocketServer({port: ++port}, function () {
-        var ws = new WebSocket('ws://localhost:' + port, { localAddress: localAddresses[0] });
-        ws.on('open', function () {
-          done();
         });
+      });
+
+      const wss = new WebSocketServer({ port: ++port }, function () {
+        const ws = new WebSocket(`ws://localhost:${port}`, {
+          localAddress: localAddresses[0]
+        });
+
+        ws.on('open', () => wss.close(done));
       });
     });
 
-    it('should accept the localAddress option whether it was wrong interface', function (done) {
-      if (process.platform === 'linux' && process.version.match(/^v0\.([0-9]\.|10)/)) {
-        return done();
-      }
-      var wss = new WebSocketServer({port: ++port}, function () {
-        try {
-          var ws = new WebSocket('ws://localhost:' + port, { localAddress: '123.456.789.428' });
-          ws.on('error', function (error) {
-            error.code.should.eql('EADDRNOTAVAIL');
-            done();
-          });
-        }
-        catch (e) {
-          e.should.match(/localAddress must be a valid IP/);
-          done();
-        }
-      });
+    it('should accept the localAddress option whether it was wrong interface', function () {
+      assert.throws(
+        () => new WebSocket(`ws://localhost:${port}`, { localAddress: '123.456.789.428' }),
+        /must be a valid IP: 123.456.789.428/
+      );
     });
   });
 
@@ -119,7 +94,7 @@ describe('WebSocket', function () {
       var wss = new WebSocketServer({port: ++port}, function () {
         var ws = new WebSocket('ws://localhost:' + port, { perMessageDeflate: false });
         ws.on('message', function () {
-          ws.bytesReceived.should.eql(8);
+          assert.strictEqual(ws.bytesReceived, 8);
           wss.close();
           done();
         });
@@ -185,19 +160,16 @@ describe('WebSocket', function () {
       });
 
       it('stress kernel write buffer', function (done) {
-        var wss = new WebSocketServer({port: ++port}, function () {
-          var ws = new WebSocket('ws://localhost:' + port, { perMessageDeflate: false });
+        const wss = new WebSocketServer({ port: ++port }, () => {
+          const ws = new WebSocket(`ws://localhost:${port}`, { perMessageDeflate: false });
         });
-        wss.on('connection', function (ws) {
+
+        wss.on('connection', (ws) => {
           while (true) {
             if (ws.bufferedAmount > 0) break;
-            ws.send((new Array(10000)).join('hello'));
+            ws.send('hello'.repeat(1e4));
           }
-          ws.terminate();
-          ws.on('close', function () {
-            wss.close();
-            done();
-          });
+          wss.close(done);
         });
       });
     });
@@ -205,7 +177,7 @@ describe('WebSocket', function () {
     describe('Custom headers', function () {
       it('request has an authorization header', function (done) {
         var auth = 'test:testpass';
-        var srv = http.createServer(function (req, res) {});
+        var srv = http.createServer();
         var wss = new WebSocketServer({server: srv});
         srv.listen(++port);
         var ws = new WebSocket('ws://' + auth + '@localhost:' + port);
@@ -222,7 +194,7 @@ describe('WebSocket', function () {
       });
 
       it('accepts custom headers', function (done) {
-        var srv = http.createServer(function (req, res) {});
+        var srv = http.createServer();
         var wss = new WebSocketServer({server: srv});
         srv.listen(++port);
 
@@ -523,10 +495,10 @@ describe('WebSocket', function () {
       var serverClient;
       var openCount = 0;
       function onOpen () {
-        if (++openCount == 2) {
+        if (++openCount === 2) {
           var paused = true;
           serverClient.on('message', function () {
-            paused.should.not.be.ok;
+            assert.ok(!paused);
             wss.close();
             done();
           });
@@ -557,8 +529,7 @@ describe('WebSocket', function () {
         ws.on('error', function () {});
         try {
           ws.ping();
-        }
-        catch (e) {
+        } catch (e) {
           srv.close();
           ws.terminate();
           done();
@@ -583,7 +554,7 @@ describe('WebSocket', function () {
         ws.on('open', function () {
           ws.ping();
         });
-        srv.on('ping', function (message) {
+        srv.on('ping', function () {
           srv.close();
           ws.terminate();
           done();
@@ -647,8 +618,7 @@ describe('WebSocket', function () {
         ws.on('error', function () {});
         try {
           ws.pong();
-        }
-        catch (e) {
+        } catch (e) {
           srv.close();
           ws.terminate();
           done();
@@ -673,7 +643,7 @@ describe('WebSocket', function () {
         ws.on('open', function () {
           ws.pong();
         });
-        srv.on('pong', function (message) {
+        srv.on('pong', function () {
           srv.close();
           ws.terminate();
           done();
@@ -842,8 +812,7 @@ describe('WebSocket', function () {
         ws.on('error', function () {});
         try {
           ws.send('hi');
-        }
-        catch (e) {
+        } catch (e) {
           ws.terminate();
           srv.close();
           done();
@@ -1020,15 +989,13 @@ describe('WebSocket', function () {
         var receivedIndex = 0;
         srv.on('message', function (data, flags) {
           ++receivedIndex;
-          if (receivedIndex == 1) {
+          if (receivedIndex === 1) {
             assert.ok(!flags.binary);
             assert.ok(areArraysEqual(fs.readFileSync('test/fixtures/textfile', 'utf8'), data));
-          }
-          else if (receivedIndex == 2) {
+          } else if (receivedIndex === 2) {
             assert.ok(!flags.binary);
             assert.equal('foobar', data);
-          }
-          else {
+          } else {
             assert.ok(!flags.binary);
             assert.equal('baz', data);
             srv.close();
@@ -1048,18 +1015,17 @@ describe('WebSocket', function () {
           var i = 0;
           ws.stream(function (error, send) {
             assert.ok(!error);
-            if (++i == 1) send('foo');
+            if (++i === 1) send('foo');
             else send('bar', true);
           });
         });
         var receivedIndex = 0;
         srv.on('message', function (data, flags) {
           ++receivedIndex;
-          if (receivedIndex == 1) {
+          if (receivedIndex === 1) {
             assert.ok(!flags.binary);
             assert.ok(areArraysEqual(fs.readFileSync('test/fixtures/textfile', 'utf8'), data));
-          }
-          else if (receivedIndex == 2) {
+          } else if (receivedIndex === 2) {
             assert.ok(!flags.binary);
             assert.equal('foobar', data);
             srv.close();
@@ -1082,7 +1048,7 @@ describe('WebSocket', function () {
         srv.on('message', function (data, flags) {
           assert.ok(!flags.binary);
           assert.ok(areArraysEqual(fs.readFileSync('test/fixtures/textfile', 'utf8'), data));
-          if (++receivedIndex == 2) {
+          if (++receivedIndex === 2) {
             srv.close();
             ws.terminate();
             done();
@@ -1090,7 +1056,7 @@ describe('WebSocket', function () {
         });
         srv.on('ping', function (data) {
           assert.equal('foobar', data);
-          if (++receivedIndex == 2) {
+          if (++receivedIndex === 2) {
             srv.close();
             ws.terminate();
             done();
@@ -1111,7 +1077,7 @@ describe('WebSocket', function () {
         srv.on('message', function (data, flags) {
           assert.ok(!flags.binary);
           assert.ok(areArraysEqual(fs.readFileSync('test/fixtures/textfile', 'utf8'), data));
-          if (++receivedIndex == 2) {
+          if (++receivedIndex === 2) {
             srv.close();
             ws.terminate();
             done();
@@ -1119,7 +1085,7 @@ describe('WebSocket', function () {
         });
         srv.on('pong', function (data) {
           assert.equal('foobar', data);
-          if (++receivedIndex == 2) {
+          if (++receivedIndex === 2) {
             srv.close();
             ws.terminate();
             done();
@@ -1200,12 +1166,10 @@ describe('WebSocket', function () {
     it('without callback should fail', function (done) {
       server.createServer(++port, function (srv) {
         var ws = new WebSocket('ws://localhost:' + port);
-        var payload = 'HelloWorld';
         ws.on('open', function () {
           try {
             ws.stream();
-          }
-          catch (e) {
+          } catch (e) {
             srv.close();
             ws.terminate();
             done();
@@ -1222,12 +1186,11 @@ describe('WebSocket', function () {
           var i = 0;
           ws.stream(function (error, send) {
             assert.ok(!error);
-            if (++i == 1) {
+            if (++i === 1) {
               send(payload.substr(0, 5));
               ws.send('foobar');
               ws.send('baz');
-            }
-            else {
+            } else {
               send(payload.substr(5, 5), true);
             }
           });
@@ -1235,15 +1198,13 @@ describe('WebSocket', function () {
         var receivedIndex = 0;
         srv.on('message', function (data, flags) {
           ++receivedIndex;
-          if (receivedIndex == 1) {
+          if (receivedIndex === 1) {
             assert.ok(!flags.binary);
             assert.equal(payload, data);
-          }
-          else if (receivedIndex == 2) {
+          } else if (receivedIndex === 2) {
             assert.ok(!flags.binary);
             assert.equal('foobar', data);
-          }
-          else {
+          } else {
             assert.ok(!flags.binary);
             assert.equal('baz', data);
             srv.close();
@@ -1262,31 +1223,30 @@ describe('WebSocket', function () {
           var i = 0;
           ws.stream(function (error, send) {
             assert.ok(!error);
-            if (++i == 1) {
+            if (++i === 1) {
               send(payload.substr(0, 5));
               var i2 = 0;
               ws.stream(function (error, send) {
                 assert.ok(!error);
-                if (++i2 == 1) send('foo');
+                if (++i2 === 1) send('foo');
                 else send('bar', true);
               });
               ws.send('baz');
+            } else {
+              send(payload.substr(5, 5), true);
             }
-            else send(payload.substr(5, 5), true);
           });
         });
         var receivedIndex = 0;
         srv.on('message', function (data, flags) {
           ++receivedIndex;
-          if (receivedIndex == 1) {
+          if (receivedIndex === 1) {
             assert.ok(!flags.binary);
             assert.equal(payload, data);
-          }
-          else if (receivedIndex == 2) {
+          } else if (receivedIndex === 2) {
             assert.ok(!flags.binary);
             assert.equal('foobar', data);
-          }
-          else if (receivedIndex == 3) {
+          } else if (receivedIndex === 3) {
             assert.ok(!flags.binary);
             assert.equal('baz', data);
             setTimeout(function () {
@@ -1294,8 +1254,9 @@ describe('WebSocket', function () {
               ws.terminate();
               done();
             }, 1000);
+          } else {
+            throw new Error('more messages than we actually sent just arrived');
           }
-          else throw new Error('more messages than we actually sent just arrived');
         });
       });
     });
@@ -1308,11 +1269,10 @@ describe('WebSocket', function () {
           var i = 0;
           ws.stream(function (error, send) {
             assert.ok(!error);
-            if (++i == 1) {
+            if (++i === 1) {
               send(payload.substr(0, 5));
               ws.ping('foobar');
-            }
-            else {
+            } else {
               send(payload.substr(5, 5), true);
             }
           });
@@ -1321,7 +1281,7 @@ describe('WebSocket', function () {
         srv.on('message', function (data, flags) {
           assert.ok(!flags.binary);
           assert.equal(payload, data);
-          if (++receivedIndex == 2) {
+          if (++receivedIndex === 2) {
             srv.close();
             ws.terminate();
             done();
@@ -1329,7 +1289,7 @@ describe('WebSocket', function () {
         });
         srv.on('ping', function (data) {
           assert.equal('foobar', data);
-          if (++receivedIndex == 2) {
+          if (++receivedIndex === 2) {
             srv.close();
             ws.terminate();
             done();
@@ -1346,11 +1306,10 @@ describe('WebSocket', function () {
           var i = 0;
           ws.stream(function (error, send) {
             assert.ok(!error);
-            if (++i == 1) {
+            if (++i === 1) {
               send(payload.substr(0, 5));
               ws.pong('foobar');
-            }
-            else {
+            } else {
               send(payload.substr(5, 5), true);
             }
           });
@@ -1359,7 +1318,7 @@ describe('WebSocket', function () {
         srv.on('message', function (data, flags) {
           assert.ok(!flags.binary);
           assert.equal(payload, data);
-          if (++receivedIndex == 2) {
+          if (++receivedIndex === 2) {
             srv.close();
             ws.terminate();
             done();
@@ -1367,7 +1326,7 @@ describe('WebSocket', function () {
         });
         srv.on('pong', function (data) {
           assert.equal('foobar', data);
-          if (++receivedIndex == 2) {
+          if (++receivedIndex === 2) {
             srv.close();
             ws.terminate();
             done();
@@ -1384,14 +1343,12 @@ describe('WebSocket', function () {
         ws.on('open', function () {
           var i = 0;
           ws.stream(function (error, send) {
-            if (++i == 1) {
+            if (++i === 1) {
               send(payload.substr(0, 5));
               ws.close(1000, 'foobar');
-            }
-            else if (i == 2) {
+            } else if (i === 2) {
               send(payload.substr(5, 5), true);
-            }
-            else if (i == 3) {
+            } else if (i === 3) {
               assert.ok(error);
               errorGiven = true;
             }
@@ -1444,8 +1401,7 @@ describe('WebSocket', function () {
         ws.on('open', function () {
           try {
             ws.close('error');
-          }
-          catch (e) {
+          } catch (e) {
             srv.close();
             ws.terminate();
             done();
@@ -1460,8 +1416,7 @@ describe('WebSocket', function () {
         ws.on('open', function () {
           try {
             ws.close(1004);
-          }
-          catch (e) {
+          } catch (e) {
             srv.close();
             ws.terminate();
             done();
@@ -1476,7 +1431,7 @@ describe('WebSocket', function () {
         ws.on('open', function () {
           ws.close(1000);
         });
-        srv.on('close', function (code, message, flags) {
+        srv.on('close', function (code, message) {
           assert.equal('', message);
           srv.close();
           ws.terminate();
@@ -1600,7 +1555,6 @@ describe('WebSocket', function () {
     it('should work the same as the EventEmitter api', function (done) {
       server.createServer(++port, function (srv) {
         var ws = new WebSocket('ws://localhost:' + port);
-        var listener = function () {};
         var message = 0;
         var close = 0;
         var open = 0;
@@ -1796,139 +1750,113 @@ describe('WebSocket', function () {
 
   describe('ssl', function () {
     it('can connect to secure websocket server', function (done) {
-      var options = {
-        key: fs.readFileSync('test/fixtures/key.pem'),
-        cert: fs.readFileSync('test/fixtures/certificate.pem')
-      };
-      var app = https.createServer(options, function (req, res) {
-        res.writeHead(200);
-        res.end();
+      const server = https.createServer({
+        cert: fs.readFileSync('test/fixtures/certificate.pem'),
+        key: fs.readFileSync('test/fixtures/key.pem')
       });
-      var wss = new WebSocketServer({server: app});
-      app.listen(++port, function () {
-        var ws = new WebSocket('wss://localhost:' + port);
-      });
-      wss.on('connection', function (ws) {
-        app.close();
-        ws.terminate();
+      const wss = new WebSocketServer({ server });
+
+      wss.on('connection', (ws) => {
         wss.close();
-        done();
+        server.close(done);
       });
+
+      server.listen(++port, () => new WebSocket('wss://localhost:' + port));
     });
 
     it('can connect to secure websocket server with client side certificate', function (done) {
-      var options = {
-        key: fs.readFileSync('test/fixtures/key.pem'),
+      const server = https.createServer({
         cert: fs.readFileSync('test/fixtures/certificate.pem'),
         ca: [fs.readFileSync('test/fixtures/ca1-cert.pem')],
+        key: fs.readFileSync('test/fixtures/key.pem'),
         requestCert: true
-      };
-      var clientOptions = {
-        key: fs.readFileSync('test/fixtures/agent1-key.pem'),
-        cert: fs.readFileSync('test/fixtures/agent1-cert.pem')
-      };
-      var app = https.createServer(options, function (req, res) {
-        res.writeHead(200);
-        res.end();
       });
-      var success = false;
-      var wss = new WebSocketServer({
-        server: app,
-        verifyClient: function (info) {
+
+      let success = false;
+      const wss = new WebSocketServer({
+        verifyClient: (info) => {
           success = !!info.req.client.authorized;
           return true;
-        }
+        },
+        server
       });
-      app.listen(++port, function () {
-        var ws = new WebSocket('wss://localhost:' + port, clientOptions);
-      });
-      wss.on('connection', function (ws) {
-        app.close();
-        ws.terminate();
+
+      wss.on('connection', (ws) => {
+        assert.ok(success);
+        server.close(done);
         wss.close();
-        success.should.be.ok;
-        done();
+      });
+
+      server.listen(++port, () => {
+        const ws = new WebSocket(`wss://localhost:${port}`, {
+          cert: fs.readFileSync('test/fixtures/agent1-cert.pem'),
+          key: fs.readFileSync('test/fixtures/agent1-key.pem')
+        });
       });
     });
 
     it('cannot connect to secure websocket server via ws://', function (done) {
-      var options = {
-        key: fs.readFileSync('test/fixtures/key.pem'),
-        cert: fs.readFileSync('test/fixtures/certificate.pem')
-      };
-      var app = https.createServer(options, function (req, res) {
-        res.writeHead(200);
-        res.end();
+      const server = https.createServer({
+        cert: fs.readFileSync('test/fixtures/certificate.pem'),
+        key: fs.readFileSync('test/fixtures/key.pem')
       });
-      var wss = new WebSocketServer({server: app});
-      app.listen(++port, function () {
-        var ws = new WebSocket('ws://localhost:' + port, { rejectUnauthorized: false });
-        ws.on('error', function () {
-          app.close();
-          ws.terminate();
+      const wss = new WebSocketServer({ server });
+
+      server.listen(++port, () => {
+        const ws = new WebSocket(`ws://localhost:${port}`, {
+          rejectUnauthorized: false
+        });
+
+        ws.on('error', () => {
+          server.close(done);
           wss.close();
-          done();
         });
       });
     });
 
     it('can send and receive text data', function (done) {
-      var options = {
-        key: fs.readFileSync('test/fixtures/key.pem'),
-        cert: fs.readFileSync('test/fixtures/certificate.pem')
-      };
-      var app = https.createServer(options, function (req, res) {
-        res.writeHead(200);
-        res.end();
+      const server = https.createServer({
+        cert: fs.readFileSync('test/fixtures/certificate.pem'),
+        key: fs.readFileSync('test/fixtures/key.pem')
       });
-      var wss = new WebSocketServer({server: app});
-      app.listen(++port, function () {
-        var ws = new WebSocket('wss://localhost:' + port);
-        ws.on('open', function () {
-          ws.send('foobar');
-        });
-      });
-      wss.on('connection', function (ws) {
-        ws.on('message', function (message, flags) {
-          message.should.eql('foobar');
-          app.close();
-          ws.terminate();
+      const wss = new WebSocketServer({ server });
+
+      wss.on('connection', (ws) => {
+        ws.on('message', (message, flags) => {
+          assert.strictEqual(message, 'foobar');
+          server.close(done);
           wss.close();
-          done();
         });
+      });
+
+      server.listen(++port, () => {
+        const ws = new WebSocket(`wss://localhost:${port}`);
+
+        ws.on('open', () => ws.send('foobar'));
       });
     });
 
     it('can send and receive very long binary data', function (done) {
-      var options = {
-        key: fs.readFileSync('test/fixtures/key.pem'),
-        cert: fs.readFileSync('test/fixtures/certificate.pem')
-      };
-      var app = https.createServer(options, function (req, res) {
-        res.writeHead(200);
-        res.end();
+      const buf = crypto.randomBytes(5 * 1024 * 1024);
+      const server = https.createServer({
+        cert: fs.readFileSync('test/fixtures/certificate.pem'),
+        key: fs.readFileSync('test/fixtures/key.pem')
       });
-      crypto.randomBytes(5 * 1024 * 1024, function (ex, buf) {
-        if (ex) throw ex;
-        var wss = new WebSocketServer({server: app});
-        app.listen(++port, function () {
-          var ws = new WebSocket('wss://localhost:' + port);
-          ws.on('open', function () {
-            ws.send(buf, {binary: true});
-          });
-          ws.on('message', function (message, flags) {
-            flags.binary.should.be.ok;
-            areArraysEqual(buf, message).should.be.ok;
-            app.close();
-            ws.terminate();
-            wss.close();
-            done();
-          });
-        });
-        wss.on('connection', function (ws) {
-          ws.on('message', function (message, flags) {
-            ws.send(message, {binary: true});
-          });
+      const wss = new WebSocketServer({ server });
+
+      wss.on('connection', (ws) => {
+        ws.on('message', (message) => ws.send(message));
+      });
+
+      server.listen(++port, () => {
+        const ws = new WebSocket('wss://localhost:' + port);
+
+        ws.on('open', () => ws.send(buf));
+        ws.on('message', (message, flags) => {
+          assert.strictEqual(flags.binary, true);
+          assert.ok(buf.equals(message));
+          server.close(done);
+          wss.close();
         });
       });
     });
@@ -1938,11 +1866,11 @@ describe('WebSocket', function () {
     describe('#supports', function () {
       describe('#binary', function () {
         it('returns true', function (done) {
-          var wss = new WebSocketServer({port: ++port}, function () {
-            var ws = new WebSocket('ws://localhost:' + port);
+          const wss = new WebSocketServer({ port: ++port }, () => {
+            const ws = new WebSocket(`ws://localhost:${port}`);
           });
-          wss.on('connection', function (client) {
-            assert.equal(true, client.supports.binary);
+          wss.on('connection', (client) => {
+            assert.strictEqual(client.supports.binary, true);
             wss.close();
             done();
           });
@@ -1953,43 +1881,50 @@ describe('WebSocket', function () {
 
   describe('host and origin headers', function () {
     it('includes the host header with port number', function (done) {
-      var srv = http.createServer();
-      srv.listen(++port, function () {
-        srv.on('upgrade', function (req, socket, upgradeHeade) {
-          assert.equal('localhost:' + port, req.headers['host']);
-          srv.close();
-          done();
+      const server = http.createServer();
+
+      server.listen(++port, () => {
+        server.on('upgrade', (req, socket, head) => {
+          assert.strictEqual(req.headers['host'], `localhost:${port}`);
+          server.close(done);
+          socket.destroy();
         });
-        var ws = new WebSocket('ws://localhost:' + port);
+
+        const ws = new WebSocket(`ws://localhost:${port}`);
       });
     });
 
     it('lacks default origin header', function (done) {
-      var srv = http.createServer();
-      srv.listen(++port, function () {
-        srv.on('upgrade', function (req, socket, upgradeHeade) {
-          should(req.headers).not.have.property('origin');
-          srv.close();
-          done();
+      const server = http.createServer();
+
+      server.listen(++port, () => {
+        server.on('upgrade', (req, socket, head) => {
+          assert.strictEqual(req.headers['origin'], undefined);
+          server.close(done);
+          socket.destroy();
         });
-        var ws = new WebSocket('ws://localhost:' + port);
+
+        const ws = new WebSocket(`ws://localhost:${port}`);
       });
     });
 
     it('honors origin set in options', function (done) {
-      var srv = http.createServer();
-      srv.listen(++port, function () {
-        var options = {origin: 'https://example.com:8000'};
-        srv.on('upgrade', function (req, socket, upgradeHeade) {
-          assert.equal(options.origin, req.headers['origin']);
-          srv.close();
-          done();
+      const server = http.createServer();
+
+      server.listen(++port, function () {
+        const options = { origin: 'https://example.com:8000' };
+
+        server.on('upgrade', function (req, socket, head) {
+          assert.strictEqual(req.headers['origin'], options.origin);
+          server.close(done);
+          socket.destroy();
         });
-        var ws = new WebSocket('ws://localhost:' + port, options);
+
+        const ws = new WebSocket(`ws://localhost:${port}`, options);
       });
     });
 
-    it('excludes default ports from host header', function (done) {
+    it('excludes default ports from host header', function () {
       // can't create a server listening on ports 80 or 443
       // so we need to expose the method that does this
       var buildHostHeader = WebSocket.buildHostHeader;
@@ -2001,13 +1936,12 @@ describe('WebSocket', function () {
       assert.equal('localhost', host);
       host = buildHostHeader(true, 'localhost', 8443);
       assert.equal('localhost:8443', host);
-      done();
     });
   });
 
   describe('permessage-deflate', function () {
     it('is enabled by default', function (done) {
-      var srv = http.createServer(function (req, res) {});
+      var srv = http.createServer();
       var wss = new WebSocketServer({server: srv, perMessageDeflate: true});
       srv.listen(++port, function () {
         var ws = new WebSocket('ws://localhost:' + port);
@@ -2024,7 +1958,7 @@ describe('WebSocket', function () {
     });
 
     it('can be disabled', function (done) {
-      var srv = http.createServer(function (req, res) {});
+      var srv = http.createServer();
       var wss = new WebSocketServer({server: srv, perMessageDeflate: true});
       srv.listen(++port, function () {
         var ws = new WebSocket('ws://localhost:' + port, {perMessageDeflate: false});
@@ -2038,7 +1972,7 @@ describe('WebSocket', function () {
     });
 
     it('can send extension parameters', function (done) {
-      var srv = http.createServer(function (req, res) {});
+      var srv = http.createServer();
       var wss = new WebSocketServer({server: srv, perMessageDeflate: true});
       srv.listen(++port, function () {
         var ws = new WebSocket('ws://localhost:' + port, {

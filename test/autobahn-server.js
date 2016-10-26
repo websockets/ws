@@ -1,4 +1,7 @@
-var WebSocketServer = require('../').Server;
+'use strict';
+
+var WebSocket = require('../');
+var WebSocketServer = WebSocket.Server;
 
 process.on('uncaughtException', function (err) {
   console.log('Caught exception: ', err, err.stack);
@@ -11,8 +14,7 @@ process.on('SIGINT', function () {
     ws.on('close', function () {
       process.exit();
     });
-  }
-  catch (e) {
+  } catch (e) {
     process.exit();
   }
 });

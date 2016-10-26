@@ -1,14 +1,15 @@
-var PerMessageDeflate = require('../lib/PerMessageDeflate');
-var Extensions = require('../lib/Extensions');
+'use strict';
+
+const PerMessageDeflate = require('../lib/PerMessageDeflate');
+const Extensions = require('../lib/Extensions');
 require('should');
 
 describe('PerMessageDeflate', function () {
   describe('#ctor', function () {
     it('throws TypeError when called without new', function (done) {
       try {
-        var perMessageDeflate = PerMessageDeflate();
-      }
-      catch (e) {
+        PerMessageDeflate();
+      } catch (e) {
         e.should.be.instanceof(TypeError);
         done();
       }
@@ -232,7 +233,7 @@ describe('PerMessageDeflate', function () {
             if (err) return done(err);
             perMessageDeflate.decompress(compressed2, true, function (err, data2) {
               if (err) return done(err);
-              new Buffer.concat([data1, data2]).should.eql(new Buffer([1, 2, 3, 4]));
+              Buffer.concat([data1, data2]).should.eql(new Buffer([1, 2, 3, 4]));
               done();
             });
           });
