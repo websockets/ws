@@ -1,4 +1,4 @@
-function onFilesSelected(e) {
+function onFilesSelected (e) {
   var button = e.srcElement;
   button.disabled = true;
   var progress = document.querySelector('div#progress');
@@ -8,12 +8,12 @@ function onFilesSelected(e) {
   var filesSent = 0;
   if (totalFiles) {
     var uploader = new Uploader('ws://localhost:8080', function () {
-      Array.prototype.slice.call(files, 0).forEach(function(file) {
+      Array.prototype.slice.call(files, 0).forEach(function (file) {
         if (file.name == '.') {
           --totalFiles;
           return;
         }
-        uploader.sendFile(file, function(error) {
+        uploader.sendFile(file, function (error) {
           if (error) {
             console.log(error);
             return;
@@ -25,15 +25,15 @@ function onFilesSelected(e) {
       });
     });
   }
-  uploader.ondone = function() {
+  uploader.ondone = function () {
     uploader.close();
     progress.innerHTML = '100% done, ' + totalFiles + ' files sent.';
-  }
+  };
 }
 
-window.onload = function() {
+window.onload = function () {
   var importButtons = document.querySelectorAll('[type="file"]');
-  Array.prototype.slice.call(importButtons, 0).forEach(function(importButton) {
+  Array.prototype.slice.call(importButtons, 0).forEach(function (importButton) {
     importButton.addEventListener('change', onFilesSelected, false);
   });
-}
+};
