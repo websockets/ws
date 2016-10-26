@@ -1,9 +1,9 @@
-var http = require('http')
-  , util = require('util')
-  , crypto = require('crypto')
-  , events = require('events')
-  , Sender = require('../lib/Sender')
-  , Receiver = require('../lib/Receiver');
+var http = require('http'),
+  util = require('util'),
+  crypto = require('crypto'),
+  events = require('events'),
+  Sender = require('../lib/Sender'),
+  Receiver = require('../lib/Receiver');
 
 module.exports = {
   handlers: {
@@ -12,7 +12,7 @@ module.exports = {
     closeAfterConnect: closeAfterConnectHandler,
     return401: return401
   },
-  createServer: function(port, handler, cb) {
+  createServer: function (port, handler, cb) {
     if (handler && !cb) {
       cb = handler;
       handler = null;
@@ -22,11 +22,11 @@ module.exports = {
       res.end('okay');
     });
     var srv = new Server(webServer);
-    webServer.on('upgrade', function(req, socket) {
+    webServer.on('upgrade', function (req, socket) {
       webServer._socket = socket;
       (handler || validServer)(srv, req, socket);
     });
-    webServer.listen(port, '127.0.0.1', function() { cb(srv); });
+    webServer.listen(port, '127.0.0.1', function () { cb(srv); });
   }
 };
 
@@ -34,7 +34,7 @@ module.exports = {
  * Test strategies
  */
 
-function validServer(server, req, socket) {
+function validServer (server, req, socket) {
   if (typeof req.headers.upgrade === 'undefined' ||
     req.headers.upgrade.toLowerCase() !== 'websocket') {
     throw new Error('invalid headers');
@@ -49,14 +49,14 @@ function validServer(server, req, socket) {
   // calc key
   var key = req.headers['sec-websocket-key'];
   var shasum = crypto.createHash('sha1');
-  shasum.update(key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11", 'binary');
+  shasum.update(key + '258EAFA5-E914-47DA-95CA-C5AB0DC85B11', 'binary');
   key = shasum.digest('base64');
 
   var headers = [
-      'HTTP/1.1 101 Switching Protocols'
-    , 'Upgrade: websocket'
-    , 'Connection: Upgrade'
-    , 'Sec-WebSocket-Accept: ' + key
+    'HTTP/1.1 101 Switching Protocols',
+    'Upgrade: websocket',
+    'Connection: Upgrade',
+    'Sec-WebSocket-Accept: ' + key
   ];
 
   socket.write(headers.concat('', '').join('\r\n'));
@@ -85,7 +85,7 @@ function validServer(server, req, socket) {
   };
   receiver.onclose = function (code, message, flags) {
     flags = flags || {};
-    sender.close(code, message, false, function(err) {
+    sender.close(code, message, false, function (err) {
       server.emit('close', code, message, flags);
       socket.end();
     });
@@ -93,12 +93,12 @@ function validServer(server, req, socket) {
   socket.on('data', function (data) {
     receiver.add(data);
   });
-  socket.on('end', function() {
+  socket.on('end', function () {
     socket.end();
   });
 }
 
-function invalidRequestHandler(server, req, socket) {
+function invalidRequestHandler (server, req, socket) {
   if (typeof req.headers.upgrade === 'undefined' ||
     req.headers.upgrade.toLowerCase() !== 'websocket') {
     throw new Error('invalid headers');
@@ -113,21 +113,21 @@ function invalidRequestHandler(server, req, socket) {
   // calc key
   var key = req.headers['sec-websocket-key'];
   var shasum = crypto.createHash('sha1');
-  shasum.update(key + "bogus", 'binary');
+  shasum.update(key + 'bogus', 'binary');
   key = shasum.digest('base64');
 
   var headers = [
-      'HTTP/1.1 101 Switching Protocols'
-    , 'Upgrade: websocket'
-    , 'Connection: Upgrade'
-    , 'Sec-WebSocket-Accept: ' + key
+    'HTTP/1.1 101 Switching Protocols',
+    'Upgrade: websocket',
+    'Connection: Upgrade',
+    'Sec-WebSocket-Accept: ' + key
   ];
 
   socket.write(headers.concat('', '').join('\r\n'));
   socket.end();
 }
 
-function closeAfterConnectHandler(server, req, socket) {
+function closeAfterConnectHandler (server, req, socket) {
   if (typeof req.headers.upgrade === 'undefined' ||
     req.headers.upgrade.toLowerCase() !== 'websocket') {
     throw new Error('invalid headers');
@@ -142,25 +142,24 @@ function closeAfterConnectHandler(server, req, socket) {
   // calc key
   var key = req.headers['sec-websocket-key'];
   var shasum = crypto.createHash('sha1');
-  shasum.update(key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11", 'binary');
+  shasum.update(key + '258EAFA5-E914-47DA-95CA-C5AB0DC85B11', 'binary');
   key = shasum.digest('base64');
 
   var headers = [
-      'HTTP/1.1 101 Switching Protocols'
-    , 'Upgrade: websocket'
-    , 'Connection: Upgrade'
-    , 'Sec-WebSocket-Accept: ' + key
+    'HTTP/1.1 101 Switching Protocols',
+    'Upgrade: websocket',
+    'Connection: Upgrade',
+    'Sec-WebSocket-Accept: ' + key
   ];
 
   socket.write(headers.concat('', '').join('\r\n'));
   socket.end();
 }
 
-
-function return401(server, req, socket) {
+function return401 (server, req, socket) {
   var headers = [
-      'HTTP/1.1 401 Unauthorized'
-    , 'Content-type: text/html'
+    'HTTP/1.1 401 Unauthorized',
+    'Content-type: text/html'
   ];
 
   socket.write(headers.concat('', '').join('\r\n'));
@@ -172,13 +171,13 @@ function return401(server, req, socket) {
  * Server object, which will do the actual emitting
  */
 
-function Server(webServer) {
+function Server (webServer) {
   this.webServer = webServer;
 }
 
 util.inherits(Server, events.EventEmitter);
 
-Server.prototype.close = function() {
+Server.prototype.close = function () {
   this.webServer.close();
   if (this._socket) this._socket.end();
-}
+};
