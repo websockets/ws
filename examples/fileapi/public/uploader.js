@@ -1,3 +1,4 @@
+/* global WebSocket */
 function Uploader (url, cb) {
   this.ws = new WebSocket(url);
   if (cb) this.ws.onopen = cb;
@@ -8,15 +9,16 @@ function Uploader (url, cb) {
   var self = this;
   this.ws.onmessage = function (event) {
     var data = JSON.parse(event.data);
-    if (data.event == 'complete') {
-      if (data.path != self.sending.path) {
+    var callback;
+    if (data.event === 'complete') {
+      if (data.path !== self.sending.path) {
         self.sendQueue = [];
         self.sending = null;
         self.sendCallback = null;
         throw new Error('Got message for wrong file!');
       }
       self.sending = null;
-      var callback = self.sendCallback;
+      callback = self.sendCallback;
       self.sendCallback = null;
       if (callback) callback();
       if (self.sendQueue.length === 0 && self.ondone) self.ondone(null);
@@ -24,11 +26,10 @@ function Uploader (url, cb) {
         var args = self.sendQueue.pop();
         setTimeout(function () { self.sendFile.apply(self, args); }, 0);
       }
-    }
-    else if (data.event == 'error') {
+    } else if (data.event === 'error') {
       self.sendQueue = [];
       self.sending = null;
-      var callback = self.sendCallback;
+      callback = self.sendCallback;
       self.sendCallback = null;
       var error = new Error('Server reported send error for file ' + data.path);
       if (callback) callback(error);
@@ -38,7 +39,7 @@ function Uploader (url, cb) {
 }
 
 Uploader.prototype.sendFile = function (file, cb) {
-  if (this.ws.readyState != WebSocket.OPEN) throw new Error('Not connected');
+  if (this.ws.readyState !== WebSocket.OPEN) throw new Error('Not connected');
   if (this.sending) {
     this.sendQueue.push(arguments);
     return;

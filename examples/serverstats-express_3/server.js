@@ -1,9 +1,10 @@
-var WebSocketServer = require('../../').Server,
-  http = require('http'),
-  express = require('express'),
-  app = express();
+var WebSocketServer = require('../../').Server;
+var http = require('http');
+var express = require('express');
+var path = require('path');
+var app = express();
 
-app.use(express.static(__dirname + '/public'));
+app.use(express.static(path.join(__dirname, '/public')));
 
 var server = http.createServer(app);
 server.listen(8080);

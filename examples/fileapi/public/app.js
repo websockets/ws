@@ -1,3 +1,4 @@
+/* global Uploader */
 function onFilesSelected (e) {
   var button = e.srcElement;
   button.disabled = true;
@@ -9,7 +10,7 @@ function onFilesSelected (e) {
   if (totalFiles) {
     var uploader = new Uploader('ws://localhost:8080', function () {
       Array.prototype.slice.call(files, 0).forEach(function (file) {
-        if (file.name == '.') {
+        if (file.name === '.') {
           --totalFiles;
           return;
         }
