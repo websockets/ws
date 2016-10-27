@@ -1,183 +1,165 @@
 'use strict';
 
+const EventEmitter = require('events');
 const crypto = require('crypto');
-const events = require('events');
 const http = require('http');
-const util = require('util');
 
 const Receiver = require('../lib/Receiver');
 const Sender = require('../lib/Sender');
 
 module.exports = {
   handlers: {
-    valid: validServer,
-    invalidKey: invalidRequestHandler,
     closeAfterConnect: closeAfterConnectHandler,
-    return401: return401
+    invalidKey: invalidRequestHandler,
+    return401: return401,
+    valid: validServer
   },
-  createServer: function (port, handler, cb) {
+  createServer: (port, handler, cb) => {
     if (handler && !cb) {
       cb = handler;
       handler = null;
     }
-    const webServer = http.createServer(function (req, res) {
-      res.writeHead(200, {'Content-Type': 'text/plain'});
-      res.end('okay');
-    });
+
+    const webServer = http.createServer();
     const srv = new Server(webServer);
-    webServer.on('upgrade', function (req, socket) {
+
+    webServer.on('upgrade', (req, socket) => {
       webServer._socket = socket;
       (handler || validServer)(srv, req, socket);
     });
-    webServer.listen(port, '127.0.0.1', function () { cb(srv); });
+
+    webServer.listen(port, '127.0.0.1', () => cb(srv));
   }
 };
 
-/**
- * Test strategies
- */
-
 function validServer (server, req, socket) {
-  if (typeof req.headers.upgrade === 'undefined' ||
-    req.headers.upgrade.toLowerCase() !== 'websocket') {
+  if (!req.headers.upgrade || req.headers.upgrade !== 'websocket') {
     throw new Error('invalid headers');
   }
 
   if (!req.headers['sec-websocket-key']) {
-    socket.end();
     throw new Error('websocket key is missing');
   }
 
   // calc key
-  let key = req.headers['sec-websocket-key'];
-  const shasum = crypto.createHash('sha1');
-  shasum.update(key + '258EAFA5-E914-47DA-95CA-C5AB0DC85B11', 'binary');
-  key = shasum.digest('base64');
+  const key = crypto.createHash('sha1')
+    .update(`${req.headers['sec-websocket-key']}258EAFA5-E914-47DA-95CA-C5AB0DC85B11`, 'latin1')
+    .digest('base64');
 
-  const headers = [
-    'HTTP/1.1 101 Switching Protocols',
-    'Upgrade: websocket',
-    'Connection: Upgrade',
-    'Sec-WebSocket-Accept: ' + key
-  ];
-
-  socket.write(headers.concat('', '').join('\r\n'));
   socket.setTimeout(0);
   socket.setNoDelay(true);
 
+  socket.write(
+    'HTTP/1.1 101 Switching Protocols\r\n' +
+    'Upgrade: websocket\r\n' +
+    'Connection: Upgrade\r\n' +
+    `Sec-WebSocket-Accept:${key}\r\n` +
+    '\r\n'
+  );
+
   const sender = new Sender(socket);
   const receiver = new Receiver();
-  receiver.ontext = function (message, flags) {
+
+  receiver.ontext = (message, flags) => {
     server.emit('message', message, flags);
     sender.send(message);
   };
-  receiver.onbinary = function (message, flags) {
+  receiver.onbinary = (message, flags) => {
     flags = flags || {};
     flags.binary = true;
     server.emit('message', message, flags);
-    sender.send(message, {binary: true});
+    sender.send(message, { binary: true });
   };
-  receiver.onping = function (message, flags) {
+  receiver.onping = (message, flags) => {
     flags = flags || {};
     server.emit('ping', message, flags);
   };
-  receiver.onpong = function (message, flags) {
+  receiver.onpong = (message, flags) => {
     flags = flags || {};
     server.emit('pong', message, flags);
   };
-  receiver.onclose = function (code, message, flags) {
+  receiver.onclose = (code, message, flags) => {
     flags = flags || {};
-    sender.close(code, message, false, function () {
+    sender.close(code, message, false, () => {
       server.emit('close', code, message, flags);
       socket.end();
     });
   };
-  socket.on('data', function (data) {
-    receiver.add(data);
-  });
-  socket.on('end', function () {
-    socket.end();
-  });
+  socket.on('data', (data) => receiver.add(data));
+  socket.on('end', () => socket.end());
 }
 
 function invalidRequestHandler (server, req, socket) {
-  if (typeof req.headers.upgrade === 'undefined' ||
-    req.headers.upgrade.toLowerCase() !== 'websocket') {
+  if (!req.headers.upgrade || req.headers.upgrade !== 'websocket') {
     throw new Error('invalid headers');
   }
 
   if (!req.headers['sec-websocket-key']) {
-    socket.end();
     throw new Error('websocket key is missing');
   }
 
   // calc key
-  let key = req.headers['sec-websocket-key'];
-  const shasum = crypto.createHash('sha1');
-  shasum.update(key + 'bogus', 'binary');
-  key = shasum.digest('base64');
+  const key = crypto.createHash('sha1')
+    .update(`${req.headers['sec-websocket-key']}bogus`, 'latin1')
+    .digest('base64');
 
-  const headers = [
-    'HTTP/1.1 101 Switching Protocols',
-    'Upgrade: websocket',
-    'Connection: Upgrade',
-    'Sec-WebSocket-Accept: ' + key
-  ];
-
-  socket.write(headers.concat('', '').join('\r\n'));
+  socket.write(
+    'HTTP/1.1 101 Switching Protocols\r\n' +
+    'Upgrade: websocket\r\n' +
+    'Connection: Upgrade\r\n' +
+    `Sec-WebSocket-Accept:${key}\r\n` +
+    '\r\n'
+  );
   socket.end();
 }
 
 function closeAfterConnectHandler (server, req, socket) {
-  if (typeof req.headers.upgrade === 'undefined' ||
-    req.headers.upgrade.toLowerCase() !== 'websocket') {
+  if (!req.headers.upgrade || req.headers.upgrade !== 'websocket') {
     throw new Error('invalid headers');
   }
 
   if (!req.headers['sec-websocket-key']) {
-    socket.end();
     throw new Error('websocket key is missing');
   }
 
   // calc key
-  let key = req.headers['sec-websocket-key'];
-  const shasum = crypto.createHash('sha1');
-  shasum.update(key + '258EAFA5-E914-47DA-95CA-C5AB0DC85B11', 'binary');
-  key = shasum.digest('base64');
+  const key = crypto.createHash('sha1')
+    .update(`${req.headers['sec-websocket-key']}258EAFA5-E914-47DA-95CA-C5AB0DC85B11`, 'latin1')
+    .digest('base64');
 
-  const headers = [
-    'HTTP/1.1 101 Switching Protocols',
-    'Upgrade: websocket',
-    'Connection: Upgrade',
-    'Sec-WebSocket-Accept: ' + key
-  ];
-
-  socket.write(headers.concat('', '').join('\r\n'));
+  socket.write(
+    'HTTP/1.1 101 Switching Protocols\r\n' +
+    'Upgrade: websocket\r\n' +
+    'Connection: Upgrade\r\n' +
+    `Sec-WebSocket-Accept:${key}\r\n` +
+    '\r\n'
+  );
   socket.end();
 }
 
 function return401 (server, req, socket) {
-  const headers = [
-    'HTTP/1.1 401 Unauthorized',
-    'Content-type: text/html'
-  ];
-
-  socket.write(headers.concat('', '').join('\r\n'));
-  socket.write('Not allowed!');
+  socket.write(
+    `HTTP/1.1 401 ${http.STATUS_CODES[401]}\r\n` +
+    'Connection: close\r\n' +
+    'Content-type: text/html\r\n' +
+    'Content-Length: 12\r\n' +
+    '\r\n' +
+    'Not allowed!'
+  );
   socket.end();
 }
 
 /**
  * Server object, which will do the actual emitting
  */
+class Server extends EventEmitter {
+  constructor (webServer) {
+    super();
+    this.webServer = webServer;
+  }
 
-function Server (webServer) {
-  this.webServer = webServer;
+  close (cb) {
+    this.webServer.close(cb);
+    if (this._socket) this._socket.end();
+  }
 }
-
-util.inherits(Server, events.EventEmitter);
-
-Server.prototype.close = function () {
-  this.webServer.close();
-  if (this._socket) this._socket.end();
-};
