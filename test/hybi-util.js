@@ -14,7 +14,7 @@ function mask (buf, maskString) {
 
   buf = Buffer.from(buf);
 
-  for (var i = 0; i < buf.length; ++i) {
+  for (let i = 0; i < buf.length; ++i) {
     buf[i] ^= _mask[i % 4];
   }
 
@@ -39,7 +39,7 @@ function pack (length, number) {
  * Returns a hex string representing the length of a message.
  */
 function getHybiLengthAsHexString (len, masked) {
-  var s;
+  let s;
 
   masked = masked ? 0x80 : 0;
 

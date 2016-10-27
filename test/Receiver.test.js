@@ -165,10 +165,10 @@ describe('Receiver', function () {
   it('can parse a fragmented masked text message of 300 B with a ping in the middle (2/2)', function (done) {
     const p = new Receiver();
     const msg = 'A'.repeat(300);
-    var pingMessage = 'Hello';
+    const pingMessage = 'Hello';
 
-    var fragment1 = msg.substr(0, 150);
-    var fragment2 = msg.substr(150);
+    const fragment1 = msg.substr(0, 150);
+    const fragment2 = msg.substr(150);
 
     const mask = '3483a868';
     const frame1 = '01FE' + util.pack(4, fragment1.length) + mask +
@@ -196,7 +196,7 @@ describe('Receiver', function () {
       assert.strictEqual(data.toString(), pingMessage);
     };
 
-    for (var i = 0; i < buffers.length; ++i) {
+    for (let i = 0; i < buffers.length; ++i) {
       p.add(buffers[i]);
     }
   });

@@ -1,96 +1,97 @@
 'use strict';
 
-const Sender = require('../lib/Sender');
+const assert = require('assert');
+
 const PerMessageDeflate = require('../lib/PerMessageDeflate');
-require('should');
+const Sender = require('../lib/Sender');
 
 describe('Sender', function () {
   describe('#ctor', function () {
-    it('throws TypeError when called without new', function (done) {
-      try {
-        Sender({ write: function () {} });
-      } catch (e) {
-        e.should.be.instanceof(TypeError);
-        done();
-      }
+    it('throws TypeError when called without new', function () {
+      assert.throws(Sender, TypeError);
     });
   });
 
   describe('#frameAndSend', function () {
     it('does not modify a masked binary buffer', function () {
-      var sender = new Sender({ write: function () {} });
-      var buf = new Buffer([1, 2, 3, 4, 5]);
+      const sender = new Sender({ write: () => {} });
+      const buf = Buffer.from([1, 2, 3, 4, 5]);
+
       sender.frameAndSend(2, buf, true, true);
-      buf[0].should.eql(1);
-      buf[1].should.eql(2);
-      buf[2].should.eql(3);
-      buf[3].should.eql(4);
-      buf[4].should.eql(5);
+
+      assert.ok(buf.equals(Buffer.from([1, 2, 3, 4, 5])));
     });
 
     it('does not modify a masked text buffer', function () {
-      var sender = new Sender({ write: function () {} });
-      var text = 'hi there';
-      sender.frameAndSend(1, Buffer.from(text), true, true);
-      text.should.eql('hi there');
+      const sender = new Sender({ write: () => {} });
+      const text = Buffer.from('hi there');
+
+      sender.frameAndSend(1, text, true, true);
+
+      assert.ok(text.equals(Buffer.from('hi there')));
     });
 
     it('sets rsv1 flag if compressed', function (done) {
-      var sender = new Sender({
-        write: function (data) {
-          (data[0] & 0x40).should.equal(0x40);
+      const sender = new Sender({
+        write: (data) => {
+          assert.strictEqual(data[0] & 0x40, 0x40);
           done();
         }
       });
+
       sender.frameAndSend(1, Buffer.from('hi'), true, false, true);
     });
   });
 
   describe('#send', function () {
     it('compresses data if compress option is enabled', function (done) {
-      var perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
-      perMessageDeflate.accept([{}]);
-
-      var sender = new Sender({
-        write: function (data) {
-          (data[0] & 0x40).should.equal(0x40);
+      const perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
+      const sender = new Sender({
+        write: (data) => {
+          assert.strictEqual(data[0] & 0x40, 0x40);
           done();
         }
       }, {
         'permessage-deflate': perMessageDeflate
       });
+
+      perMessageDeflate.accept([{}]);
+
       sender.send('hi', { compress: true });
     });
 
     it('does not compress data for small payloads', function (done) {
-      var perMessageDeflate = new PerMessageDeflate();
-      perMessageDeflate.accept([{}]);
-
-      var sender = new Sender({
-        write: function (data) {
-          (data[0] & 0x40).should.not.equal(0x40);
+      const perMessageDeflate = new PerMessageDeflate();
+      const sender = new Sender({
+        write: (data) => {
+          assert.notStrictEqual(data[0] & 0x40, 0x40);
           done();
         }
       }, {
         'permessage-deflate': perMessageDeflate
       });
+
+      perMessageDeflate.accept([{}]);
+
       sender.send('hi', { compress: true });
     });
 
     it('Should be able to handle many send calls while processing without crashing on flush', function (done) {
-      var messageCount = 0;
-      var maxMessages = 5000;
+      const maxMessages = 5000;
+      let messageCount = 0;
 
-      var sender = new Sender({
-        write: function (data) {
+      const sender = new Sender({
+        write: (data) => {
           messageCount++;
           if (messageCount > maxMessages) return done();
         }
       });
-      for (var i = 0; i < maxMessages; i++) {
+
+      for (let i = 0; i < maxMessages; i++) {
         sender.processing = true;
         sender.send('hi', { compress: false, fin: true, binary: false, mask: false });
       }
+
       sender.processing = false;
       sender.send('hi', { compress: false, fin: true, binary: false, mask: false });
     });
@@ -98,22 +99,23 @@ describe('Sender', function () {
 
   describe('#close', function () {
     it('should consume all data before closing', function (done) {
-      var perMessageDeflate = new PerMessageDeflate();
-      perMessageDeflate.accept([{}]);
+      const perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
 
-      var count = 0;
-      var sender = new Sender({
-        write: function (data) {
-          count++;
-        }
+      let count = 0;
+      const sender = new Sender({
+        write: (data) => count++
       }, {
         'permessage-deflate': perMessageDeflate
       });
-      sender.send('foo', {compress: true});
-      sender.send('bar', {compress: true});
-      sender.send('baz', {compress: true});
-      sender.close(1000, null, false, function (err) {
-        count.should.be.equal(4);
+
+      perMessageDeflate.accept([{}]);
+
+      sender.send('foo', { compress: true });
+      sender.send('bar', { compress: true });
+      sender.send('baz', { compress: true });
+
+      sender.close(1000, null, false, (err) => {
+        assert.strictEqual(count, 4);
         done(err);
       });
     });
