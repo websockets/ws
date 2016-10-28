@@ -18,7 +18,11 @@
     "url": "git://github.com/websockets/ws.git"
   },
   "scripts": {
-    "test": "make test"
+    "test-travis": "npm run lint && istanbul cover _mocha --report lcovonly -- test/*.test.js",
+    "coverage": "istanbul cover _mocha --report html -- test/*.test.js",
+    "integration": "npm run lint && mocha test/*.integration.js",
+    "test": "npm run lint && mocha test/*.test.js",
+    "lint": "eslint ."
   },
   "dependencies": {
     "ultron": "1.0.x"

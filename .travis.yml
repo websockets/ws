@@ -5,3 +5,5 @@ node_js:
   - "7"
   - "6"
   - "4"
+script:
+  - "npm run test-travis"

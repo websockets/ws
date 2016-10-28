@@ -657,9 +657,9 @@ describe('WebSocketServer', function () {
         server.close(done);
       });
 
-      server.listen(++port, () => {
-        const ws = new WebSocket('wss://localhost:' + port);
-      });
+      server.listen(++port, () => new WebSocket(`wss://localhost:${port}`, {
+        rejectUnauthorized: false
+      }));
     });
 
     it('verifyClient has secure:false for non-ssl connections', function (done) {
