@@ -1765,7 +1765,9 @@ describe('WebSocket', function () {
         server.close(done);
       });
 
-      server.listen(++port, () => new WebSocket('wss://localhost:' + port));
+      server.listen(++port, () => new WebSocket(`wss://localhost:${port}`, {
+        rejectUnauthorized: false
+      }));
     });
 
     it('can connect to secure websocket server with client side certificate', function (done) {
@@ -1794,7 +1796,8 @@ describe('WebSocket', function () {
       server.listen(++port, () => {
         const ws = new WebSocket(`wss://localhost:${port}`, {
           cert: fs.readFileSync('test/fixtures/agent1-cert.pem'),
-          key: fs.readFileSync('test/fixtures/agent1-key.pem')
+          key: fs.readFileSync('test/fixtures/agent1-key.pem'),
+          rejectUnauthorized: false
         });
       });
     });
@@ -1834,7 +1837,9 @@ describe('WebSocket', function () {
       });
 
       server.listen(++port, () => {
-        const ws = new WebSocket(`wss://localhost:${port}`);
+        const ws = new WebSocket(`wss://localhost:${port}`, {
+          rejectUnauthorized: false
+        });
 
         ws.on('open', () => ws.send('foobar'));
       });
@@ -1853,7 +1858,9 @@ describe('WebSocket', function () {
       });
 
       server.listen(++port, () => {
-        const ws = new WebSocket('wss://localhost:' + port);
+        const ws = new WebSocket(`wss://localhost:${port}`, {
+          rejectUnauthorized: false
+        });
 
         ws.on('open', () => ws.send(buf));
         ws.on('message', (message, flags) => {
