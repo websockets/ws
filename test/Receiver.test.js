@@ -122,7 +122,7 @@ describe('Receiver', function () {
     const p = new Receiver();
 
     p.onping = function (data) {
-      assert.strictEqual(data, null);
+      assert.ok(data.equals(Buffer.alloc(0)));
       done();
     };
 
@@ -312,41 +312,41 @@ describe('Receiver', function () {
     });
   });
 
-  it('resets `currentPayloadLength` only on final frame (unfragmented)', function () {
+  it('resets `totalPayloadLength` only on final frame (unfragmented)', function () {
     const p = new Receiver({}, 10);
 
-    assert.strictEqual(p.currentPayloadLength, 0);
+    assert.strictEqual(p.totalPayloadLength, 0);
     p.add(Buffer.from('810548656c6c6f', 'hex'));
-    assert.strictEqual(p.currentPayloadLength, 0);
+    assert.strictEqual(p.totalPayloadLength, 0);
   });
 
-  it('resets `currentPayloadLength` only on final frame (fragmented)', function () {
+  it('resets `totalPayloadLength` only on final frame (fragmented)', function () {
     const p = new Receiver({}, 10);
 
     const frame1 = '01024865';
     const frame2 = '80036c6c6f';
 
-    assert.strictEqual(p.currentPayloadLength, 0);
+    assert.strictEqual(p.totalPayloadLength, 0);
     p.add(Buffer.from(frame1, 'hex'));
-    assert.strictEqual(p.currentPayloadLength, 2);
+    assert.strictEqual(p.totalPayloadLength, 2);
     p.add(Buffer.from(frame2, 'hex'));
-    assert.strictEqual(p.currentPayloadLength, 0);
+    assert.strictEqual(p.totalPayloadLength, 0);
   });
 
-  it('resets `currentPayloadLength` only on final frame (fragmented + ping)', function () {
+  it('resets `totalPayloadLength` only on final frame (fragmented + ping)', function () {
     const p = new Receiver({}, 10);
 
     const frame1 = '01024865';
     const frame2 = '8900';
     const frame3 = '80036c6c6f';
 
-    assert.strictEqual(p.currentPayloadLength, 0);
+    assert.strictEqual(p.totalPayloadLength, 0);
     p.add(Buffer.from(frame1, 'hex'));
-    assert.strictEqual(p.currentPayloadLength, 2);
+    assert.strictEqual(p.totalPayloadLength, 2);
     p.add(Buffer.from(frame2, 'hex'));
-    assert.strictEqual(p.currentPayloadLength, 2);
+    assert.strictEqual(p.totalPayloadLength, 2);
     p.add(Buffer.from(frame3, 'hex'));
-    assert.strictEqual(p.currentPayloadLength, 0);
+    assert.strictEqual(p.totalPayloadLength, 0);
   });
 
   it('will raise an error on a 200 KiB long masked binary message when maxpayload is 20 KiB', function (done) {
