@@ -79,7 +79,7 @@ describe('Sender', function () {
     it('compresses all frames in a fragmented message', function (done) {
       let messageCount = 0;
       let messageLength = 16;
-      const perMessageDeflate = new PerMessageDeflate({ threshold: 2 });
+      const perMessageDeflate = new PerMessageDeflate({ threshold: 3 });
       const sender = new Sender({
         write: (data) => {
           assert.strictEqual(data.length, messageLength);
@@ -100,7 +100,7 @@ describe('Sender', function () {
     it('compresses no frames in a fragmented message', function (done) {
       let messageCount = 0;
       let messageLength = 4;
-      const perMessageDeflate = new PerMessageDeflate({ threshold: 2 });
+      const perMessageDeflate = new PerMessageDeflate({ threshold: 3 });
       const sender = new Sender({
         write: (data) => {
           assert.strictEqual(data.length, messageLength);
@@ -118,7 +118,7 @@ describe('Sender', function () {
       sender.send('123', { compress: true, fin: true });
     });
 
-    it('compresses empty first fragment', function (done) {
+    it('compresses null as first fragment', function (done) {
       let messageCount = 0;
       let messageLength = 3;
       const perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
@@ -139,7 +139,29 @@ describe('Sender', function () {
       sender.send('data', { compress: true, fin: true });
     });
 
-    it('compresses empty last fragment', function (done) {
+    it('compresses empty buffer as first fragment', function (done) {
+      let messageCount = 0;
+      // let messageLength = 3;
+      const perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
+      const sender = new Sender({
+        write: (data) => {
+          console.log(data);
+          // assert.strictEqual(data.length, messageLength);
+          messageCount++;
+          if (messageCount > 1) return done();
+          // messageLength = 13;
+        }
+      }, {
+        'permessage-deflate': perMessageDeflate
+      });
+
+      perMessageDeflate.accept([{}]);
+
+      sender.send(Buffer.alloc(0), { compress: true, fin: false });
+      sender.send('data', { compress: true, fin: true });
+    });
+
+    it('compresses null last fragment', function (done) {
       let messageCount = 0;
       let messageLength = 17;
       const perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
@@ -158,6 +180,27 @@ describe('Sender', function () {
 
       sender.send('data', { compress: true, fin: false });
       sender.send(null, { compress: true, fin: true });
+    });
+
+    it('compresses empty buffer as last fragment', function (done) {
+      let messageCount = 0;
+      let messageLength = 17;
+      const perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
+      const sender = new Sender({
+        write: (data) => {
+          assert.strictEqual(data.length, messageLength);
+          messageCount++;
+          if (messageCount > 1) return done();
+          messageLength = 3;
+        }
+      }, {
+        'permessage-deflate': perMessageDeflate
+      });
+
+      perMessageDeflate.accept([{}]);
+
+      sender.send('data', { compress: true, fin: false });
+      sender.send(Buffer.alloc(0), { compress: true, fin: true });
     });
 
     it('Should be able to handle many send calls while processing without crashing on flush', function (done) {
