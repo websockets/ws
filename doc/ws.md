@@ -65,6 +65,7 @@ If `handleProtocols` is not set then the handshake is accepted regardless the va
 * `threshold` Number: Payloads smaller than this will not be compressed. Default 1024 bytes.
 
 If a property is empty then either an offered configuration or a default value is used.
+When sending a fragmented message the length of the first fragment is compared to the threshold. This determines if compression is used for the entire message.
 
 ### server.close([callback])
 
