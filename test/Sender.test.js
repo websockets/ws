@@ -141,15 +141,14 @@ describe('Sender', function () {
 
     it('compresses empty buffer as first fragment', function (done) {
       let messageCount = 0;
-      // let messageLength = 3;
+      let messageLength = 3;
       const perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
       const sender = new Sender({
         write: (data) => {
-          console.log(data);
-          // assert.strictEqual(data.length, messageLength);
+          assert.strictEqual(data.length, messageLength);
           messageCount++;
           if (messageCount > 1) return done();
-          // messageLength = 13;
+          messageLength = 13;
         }
       }, {
         'permessage-deflate': perMessageDeflate
