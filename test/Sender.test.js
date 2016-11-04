@@ -118,6 +118,48 @@ describe('Sender', function () {
       sender.send('123', { compress: true, fin: true });
     });
 
+    it('compresses empty first fragment', function (done) {
+      let messageCount = 0;
+      let messageLength = 3;
+      const perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
+      const sender = new Sender({
+        write: (data) => {
+          assert.strictEqual(data.length, messageLength);
+          messageCount++;
+          if (messageCount > 1) return done();
+          messageLength = 13;
+        }
+      }, {
+        'permessage-deflate': perMessageDeflate
+      });
+
+      perMessageDeflate.accept([{}]);
+
+      sender.send(null, { compress: true, fin: false });
+      sender.send('data', { compress: true, fin: true });
+    });
+
+    it('compresses empty last fragment', function (done) {
+      let messageCount = 0;
+      let messageLength = 17;
+      const perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
+      const sender = new Sender({
+        write: (data) => {
+          assert.strictEqual(data.length, messageLength);
+          messageCount++;
+          if (messageCount > 1) return done();
+          messageLength = 3;
+        }
+      }, {
+        'permessage-deflate': perMessageDeflate
+      });
+
+      perMessageDeflate.accept([{}]);
+
+      sender.send('data', { compress: true, fin: false });
+      sender.send(null, { compress: true, fin: true });
+    });
+
     it('Should be able to handle many send calls while processing without crashing on flush', function (done) {
       const maxMessages = 5000;
       let messageCount = 0;
