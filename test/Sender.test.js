@@ -31,7 +31,7 @@ describe('Sender', function () {
       assert.ok(text.equals(Buffer.from('hi there')));
     });
 
-    it('sets rsv1 flag if compressed', function (done) {
+    it('sets RSV1 bit if compressed', function (done) {
       const sender = new Sender({
         write: (data) => {
           assert.strictEqual(data[0] & 0x40, 0x40);
@@ -77,15 +77,18 @@ describe('Sender', function () {
     });
 
     it('compresses all frames in a fragmented message', function (done) {
-      let messageCount = 0;
-      let messageLength = 16;
+      const fragments = [];
       const perMessageDeflate = new PerMessageDeflate({ threshold: 3 });
       const sender = new Sender({
         write: (data) => {
-          assert.strictEqual(data.length, messageLength);
-          messageCount++;
-          if (messageCount > 1) return done();
-          messageLength = 11;
+          fragments.push(data);
+          if (fragments.length !== 2) return;
+
+          assert.strictEqual(fragments[0][0] & 0x40, 0x40);
+          assert.strictEqual(fragments[0].length, 16);
+          assert.strictEqual(fragments[1][0] & 0x40, 0x00);
+          assert.strictEqual(fragments[1].length, 11);
+          done();
         }
       }, {
         'permessage-deflate': perMessageDeflate
@@ -98,15 +101,18 @@ describe('Sender', function () {
     });
 
     it('compresses no frames in a fragmented message', function (done) {
-      let messageCount = 0;
-      let messageLength = 4;
+      const fragments = [];
       const perMessageDeflate = new PerMessageDeflate({ threshold: 3 });
       const sender = new Sender({
         write: (data) => {
-          assert.strictEqual(data.length, messageLength);
-          messageCount++;
-          if (messageCount > 1) return done();
-          messageLength = 5;
+          fragments.push(data);
+          if (fragments.length !== 2) return;
+
+          assert.strictEqual(fragments[0][0] & 0x40, 0x00);
+          assert.strictEqual(fragments[0].length, 4);
+          assert.strictEqual(fragments[1][0] & 0x40, 0x00);
+          assert.strictEqual(fragments[1].length, 5);
+          done();
         }
       }, {
         'permessage-deflate': perMessageDeflate
@@ -119,15 +125,18 @@ describe('Sender', function () {
     });
 
     it('compresses null as first fragment', function (done) {
-      let messageCount = 0;
-      let messageLength = 3;
+      const fragments = [];
       const perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
       const sender = new Sender({
         write: (data) => {
-          assert.strictEqual(data.length, messageLength);
-          messageCount++;
-          if (messageCount > 1) return done();
-          messageLength = 13;
+          fragments.push(data);
+          if (fragments.length !== 2) return;
+
+          assert.strictEqual(fragments[0][0] & 0x40, 0x40);
+          assert.strictEqual(fragments[0].length, 3);
+          assert.strictEqual(fragments[1][0] & 0x40, 0x00);
+          assert.strictEqual(fragments[1].length, 13);
+          done();
         }
       }, {
         'permessage-deflate': perMessageDeflate
@@ -140,15 +149,18 @@ describe('Sender', function () {
     });
 
     it('compresses empty buffer as first fragment', function (done) {
-      let messageCount = 0;
-      let messageLength = 3;
+      const fragments = [];
       const perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
       const sender = new Sender({
         write: (data) => {
-          assert.strictEqual(data.length, messageLength);
-          messageCount++;
-          if (messageCount > 1) return done();
-          messageLength = 13;
+          fragments.push(data);
+          if (fragments.length !== 2) return;
+
+          assert.strictEqual(fragments[0][0] & 0x40, 0x40);
+          assert.strictEqual(fragments[0].length, 3);
+          assert.strictEqual(fragments[1][0] & 0x40, 0x00);
+          assert.strictEqual(fragments[1].length, 13);
+          done();
         }
       }, {
         'permessage-deflate': perMessageDeflate
@@ -161,15 +173,18 @@ describe('Sender', function () {
     });
 
     it('compresses null last fragment', function (done) {
-      let messageCount = 0;
-      let messageLength = 17;
+      const fragments = [];
       const perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
       const sender = new Sender({
         write: (data) => {
-          assert.strictEqual(data.length, messageLength);
-          messageCount++;
-          if (messageCount > 1) return done();
-          messageLength = 3;
+          fragments.push(data);
+          if (fragments.length !== 2) return;
+
+          assert.strictEqual(fragments[0][0] & 0x40, 0x40);
+          assert.strictEqual(fragments[0].length, 17);
+          assert.strictEqual(fragments[1][0] & 0x40, 0x00);
+          assert.strictEqual(fragments[1].length, 3);
+          done();
         }
       }, {
         'permessage-deflate': perMessageDeflate
@@ -182,15 +197,18 @@ describe('Sender', function () {
     });
 
     it('compresses empty buffer as last fragment', function (done) {
-      let messageCount = 0;
-      let messageLength = 17;
+      const fragments = [];
       const perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
       const sender = new Sender({
         write: (data) => {
-          assert.strictEqual(data.length, messageLength);
-          messageCount++;
-          if (messageCount > 1) return done();
-          messageLength = 3;
+          fragments.push(data);
+          if (fragments.length !== 2) return;
+
+          assert.strictEqual(fragments[0][0] & 0x40, 0x40);
+          assert.strictEqual(fragments[0].length, 17);
+          assert.strictEqual(fragments[1][0] & 0x40, 0x00);
+          assert.strictEqual(fragments[1].length, 3);
+          done();
         }
       }, {
         'permessage-deflate': perMessageDeflate
@@ -202,7 +220,7 @@ describe('Sender', function () {
       sender.send(Buffer.alloc(0), { compress: true, fin: true });
     });
 
-    it('Should be able to handle many send calls while processing without crashing on flush', function (done) {
+    it('handles many send calls while processing without crashing on flush', function (done) {
       const maxMessages = 5000;
       let messageCount = 0;
 
