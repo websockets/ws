@@ -60,31 +60,24 @@ function validServer (server, req, socket) {
   const sender = new Sender(socket);
   const receiver = new Receiver();
 
+  receiver.onping = (message, flags) => server.emit('ping', message, flags);
+  receiver.onpong = (message, flags) => server.emit('pong', message, flags);
   receiver.ontext = (message, flags) => {
     server.emit('message', message, flags);
-    sender.send(message);
+    sender.send(message, { fin: true });
   };
   receiver.onbinary = (message, flags) => {
-    flags = flags || {};
     flags.binary = true;
     server.emit('message', message, flags);
-    sender.send(message, { binary: true });
-  };
-  receiver.onping = (message, flags) => {
-    flags = flags || {};
-    server.emit('ping', message, flags);
-  };
-  receiver.onpong = (message, flags) => {
-    flags = flags || {};
-    server.emit('pong', message, flags);
+    sender.send(message, { binary: true, fin: true });
   };
   receiver.onclose = (code, message, flags) => {
-    flags = flags || {};
     sender.close(code, message, false, () => {
       server.emit('close', code, message, flags);
       socket.end();
     });
   };
+
   socket.on('data', (data) => receiver.add(data));
   socket.on('end', () => socket.end());
 }
