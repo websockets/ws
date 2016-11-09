@@ -17,7 +17,7 @@ describe('Sender', function () {
       const sender = new Sender({ write: () => {} });
       const buf = Buffer.from([1, 2, 3, 4, 5]);
 
-      sender.frameAndSend(2, buf, true, true);
+      sender.frameAndSend(2, buf, true, true, true);
 
       assert.ok(buf.equals(Buffer.from([1, 2, 3, 4, 5])));
     });
@@ -26,7 +26,7 @@ describe('Sender', function () {
       const sender = new Sender({ write: () => {} });
       const text = Buffer.from('hi there');
 
-      sender.frameAndSend(1, text, true, true);
+      sender.frameAndSend(1, text, true, true, true);
 
       assert.ok(text.equals(Buffer.from('hi there')));
     });
@@ -39,7 +39,7 @@ describe('Sender', function () {
         }
       });
 
-      sender.frameAndSend(1, Buffer.from('hi'), true, false, true);
+      sender.frameAndSend(1, Buffer.from('hi'), false, true, false, true);
     });
   });
 
@@ -57,7 +57,7 @@ describe('Sender', function () {
 
       perMessageDeflate.accept([{}]);
 
-      sender.send('hi', { compress: true });
+      sender.send('hi', { compress: true, fin: true });
     });
 
     it('does not compress data for small payloads', function (done) {
@@ -73,7 +73,7 @@ describe('Sender', function () {
 
       perMessageDeflate.accept([{}]);
 
-      sender.send('hi', { compress: true });
+      sender.send('hi', { compress: true, fin: true });
     });
 
     it('compresses all frames in a fragmented message', function (done) {
@@ -221,23 +221,25 @@ describe('Sender', function () {
     });
 
     it('handles many send calls while processing without crashing on flush', function (done) {
-      const maxMessages = 5000;
-      let messageCount = 0;
-
+      let cnt = 0;
+      const perMessageDeflate = new PerMessageDeflate();
       const sender = new Sender({
-        write: (data) => {
-          messageCount++;
-          if (messageCount > maxMessages) return done();
+        write: () => {
+          if (++cnt > 1e4) done();
         }
+      }, {
+        'permessage-deflate': perMessageDeflate
       });
 
-      for (let i = 0; i < maxMessages; i++) {
+      perMessageDeflate.accept([{}]);
+
+      for (let i = 0; i < 1e4; i++) {
         sender.processing = true;
-        sender.send('hi', { compress: false, fin: true, binary: false, mask: false });
+        sender.send('hi', { compress: false, fin: true });
       }
 
       sender.processing = false;
-      sender.send('hi', { compress: false, fin: true, binary: false, mask: false });
+      sender.send('hi', { compress: false, fin: true });
     });
   });
 
@@ -254,9 +256,9 @@ describe('Sender', function () {
 
       perMessageDeflate.accept([{}]);
 
-      sender.send('foo', { compress: true });
-      sender.send('bar', { compress: true });
-      sender.send('baz', { compress: true });
+      sender.send('foo', { compress: true, fin: true });
+      sender.send('bar', { compress: true, fin: true });
+      sender.send('baz', { compress: true, fin: true });
 
       sender.close(1000, null, false, (err) => {
         assert.strictEqual(count, 4);
