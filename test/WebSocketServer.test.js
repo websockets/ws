@@ -109,48 +109,6 @@ describe('WebSocketServer', function () {
       });
     });
 
-    it('can have two different instances listening on the same http server with two different paths', function (done) {
-      const server = http.createServer();
-
-      server.listen(++port, () => {
-        const wss1 = new WebSocketServer({ server, path: '/wss1' });
-        const wss2 = new WebSocketServer({ server, path: '/wss2' });
-        let doneCount = 0;
-
-        wss1.on('connection', (client) => {
-          wss1.close();
-          if (++doneCount === 2) {
-            server.close(done);
-          }
-        });
-
-        wss2.on('connection', (client) => {
-          wss2.close();
-          if (++doneCount === 2) {
-            server.close(done);
-          }
-        });
-
-        /* eslint-disable no-unused-vars */
-        const ws1 = new WebSocket(`ws://localhost:${port}/wss1`);
-        const ws2 = new WebSocket(`ws://localhost:${port}/wss2?foo=1`);
-        /* eslint-enable no-unused-vars */
-      });
-    });
-
-    it('cannot have two different instances listening on the same http server with the same path', function (done) {
-      const server = http.createServer();
-      const wss1 = new WebSocketServer({ server: server, path: '/wss1' });
-
-      try {
-        // eslint-disable-next-line no-unused-vars
-        const wss2 = new WebSocketServer({ server: server, path: '/wss1' });
-      } catch (e) {
-        wss1.close();
-        done();
-      }
-    });
-
     it('will not crash when it receives an unhandled opcode', function (done) {
       const wss = new WebSocketServer({ port: 8080 });
 
@@ -226,27 +184,6 @@ describe('WebSocketServer', function () {
         assert.strictEqual(server.listeners('upgrade').length, 0);
         assert.strictEqual(server.listeners('error').length, 0);
 
-        server.close(done);
-      });
-    });
-
-    it('cleans up websocket data on a precreated server', function (done) {
-      const server = http.createServer();
-
-      server.listen(++port, () => {
-        const wss1 = new WebSocketServer({ server, path: '/wss1' });
-        const wss2 = new WebSocketServer({ server, path: '/wss2' });
-
-        assert.strictEqual(typeof server._webSocketPaths, 'object');
-        assert.strictEqual(Object.keys(server._webSocketPaths).length, 2);
-
-        wss1.close();
-
-        assert.strictEqual(Object.keys(server._webSocketPaths).length, 1);
-
-        wss2.close();
-
-        assert.strictEqual(typeof server._webSocketPaths, 'undefined');
         server.close(done);
       });
     });
