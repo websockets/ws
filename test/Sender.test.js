@@ -85,9 +85,9 @@ describe('Sender', function () {
           if (fragments.length !== 2) return;
 
           assert.strictEqual(fragments[0][0] & 0x40, 0x40);
-          assert.strictEqual(fragments[0].length, 16);
+          assert.strictEqual(fragments[0].length, 11);
           assert.strictEqual(fragments[1][0] & 0x40, 0x00);
-          assert.strictEqual(fragments[1].length, 11);
+          assert.strictEqual(fragments[1].length, 6);
           done();
         }
       }, {
@@ -135,7 +135,7 @@ describe('Sender', function () {
           assert.strictEqual(fragments[0][0] & 0x40, 0x40);
           assert.strictEqual(fragments[0].length, 3);
           assert.strictEqual(fragments[1][0] & 0x40, 0x00);
-          assert.strictEqual(fragments[1].length, 13);
+          assert.strictEqual(fragments[1].length, 8);
           done();
         }
       }, {
@@ -159,7 +159,7 @@ describe('Sender', function () {
           assert.strictEqual(fragments[0][0] & 0x40, 0x40);
           assert.strictEqual(fragments[0].length, 3);
           assert.strictEqual(fragments[1][0] & 0x40, 0x00);
-          assert.strictEqual(fragments[1].length, 13);
+          assert.strictEqual(fragments[1].length, 8);
           done();
         }
       }, {
@@ -181,7 +181,7 @@ describe('Sender', function () {
           if (fragments.length !== 2) return;
 
           assert.strictEqual(fragments[0][0] & 0x40, 0x40);
-          assert.strictEqual(fragments[0].length, 17);
+          assert.strictEqual(fragments[0].length, 12);
           assert.strictEqual(fragments[1][0] & 0x40, 0x00);
           assert.strictEqual(fragments[1].length, 3);
           done();
@@ -205,7 +205,7 @@ describe('Sender', function () {
           if (fragments.length !== 2) return;
 
           assert.strictEqual(fragments[0][0] & 0x40, 0x40);
-          assert.strictEqual(fragments[0].length, 17);
+          assert.strictEqual(fragments[0].length, 12);
           assert.strictEqual(fragments[1][0] & 0x40, 0x00);
           assert.strictEqual(fragments[1].length, 3);
           done();
