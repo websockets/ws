@@ -765,7 +765,7 @@ describe('WebSocketServer', function () {
 
     it('selects the last protocol via protocol handler', function (done) {
       const wss = new WebSocketServer({
-        handleProtocols: (ps, cb) => cb(true, ps[ps.length - 1]),
+        handleProtocols: (ps) => ps[ps.length - 1],
         port: ++port
       }, () => {
         const ws = new WebSocket(`ws://localhost:${port}`, ['prot1', 'prot2']);
@@ -780,7 +780,7 @@ describe('WebSocketServer', function () {
 
     it('client detects invalid server protocol', function (done) {
       const wss = new WebSocketServer({
-        handleProtocols: (ps, cb) => cb(true, 'prot3'),
+        handleProtocols: (ps) => 'prot3',
         port: ++port
       }, () => {
         const ws = new WebSocket(`ws://localhost:${port}`, ['prot1', 'prot2']);
@@ -795,22 +795,7 @@ describe('WebSocketServer', function () {
 
     it('client detects no server protocol', function (done) {
       const wss = new WebSocketServer({
-        handleProtocols: (ps, cb) => cb(true),
-        port: ++port
-      }, () => {
-        const ws = new WebSocket(`ws://localhost:${port}`, ['prot1', 'prot2']);
-
-        ws.on('open', () => done(new Error('connection must not be established')));
-        ws.on('error', () => {
-          wss.close();
-          done();
-        });
-      });
-    });
-
-    it('client refuses server protocols', function (done) {
-      const wss = new WebSocketServer({
-        handleProtocols: (ps, cb) => cb(false),
+        handleProtocols: (ps) => {},
         port: ++port
       }, () => {
         const ws = new WebSocket(`ws://localhost:${port}`, ['prot1', 'prot2']);
@@ -825,7 +810,7 @@ describe('WebSocketServer', function () {
 
     it('server detects unauthorized protocol handler', function (done) {
       const wss = new WebSocketServer({
-        handleProtocols: (ps, cb) => cb(false),
+        handleProtocols: (ps) => false,
         port: ++port
       }, () => {
         const req = http.request({
@@ -834,7 +819,7 @@ describe('WebSocketServer', function () {
             'Upgrade': 'websocket',
             'Sec-WebSocket-Key': 'dGhlIHNhbXBsZSBub25jZQ==',
             'Sec-WebSocket-Version': 13,
-            'Sec-WebSocket-Origin': 'http://foobar.com'
+            'Origin': 'http://foobar.com'
           },
           host: '127.0.0.1',
           port
@@ -842,35 +827,6 @@ describe('WebSocketServer', function () {
 
         req.on('response', (res) => {
           assert.strictEqual(res.statusCode, 401);
-          wss.close();
-          done();
-        });
-
-        req.end();
-      });
-    });
-
-    it('server detects invalid protocol handler', function (done) {
-      const wss = new WebSocketServer({
-        handleProtocols: (ps, cb) => {
-          // not calling callback is an error and shouldn't timeout
-        },
-        port: ++port
-      }, () => {
-        const req = http.request({
-          headers: {
-            'Connection': 'Upgrade',
-            'Upgrade': 'websocket',
-            'Sec-WebSocket-Key': 'dGhlIHNhbXBsZSBub25jZQ==',
-            'Sec-WebSocket-Version': 13,
-            'Sec-WebSocket-Origin': 'http://foobar.com'
-          },
-          host: '127.0.0.1',
-          port
-        });
-
-        req.on('response', (res) => {
-          assert.strictEqual(res.statusCode, 501);
           wss.close();
           done();
         });
