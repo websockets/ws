@@ -1,31 +1,13 @@
 'use strict';
 
-var WebSocket = require('../');
-var WebSocketServer = WebSocket.Server;
+const WebSocket = require('../');
 
-process.on('uncaughtException', function (err) {
-  console.log('Caught exception: ', err, err.stack);
+const port = process.argv.length > 2 ? parseInt(process.argv[2]) : 9001;
+const wss = new WebSocket.Server({ port }, () => {
+  console.log(`Listening to port ${port}. Use extra argument to define the port`);
 });
 
-process.on('SIGINT', function () {
-  try {
-    console.log('Updating reports and shutting down');
-    var ws = new WebSocket('ws://localhost:9001/updateReports?agent=ws');
-    ws.on('close', function () {
-      process.exit();
-    });
-  } catch (e) {
-    process.exit();
-  }
-});
-
-var wss = new WebSocketServer({port: 8181});
-wss.on('connection', function (ws) {
-  console.log('new connection');
-  ws.on('message', function (data, flags) {
-    ws.send(flags.buffer, {binary: flags.binary === true});
-  });
-  ws.on('error', function () {
-    console.log('error', arguments);
-  });
+wss.on('connection', (ws) => {
+  ws.on('message', (data) => ws.send(data));
+  ws.on('error', (e) => console.error(e));
 });
