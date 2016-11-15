@@ -45,13 +45,12 @@ If `verifyClient` is not set then the handshake is automatically accepted.
 
 ### options.handleProtocols
 
-`handleProtocols` receives two arguments:
-* `protocols` Array: The list of WebSocket sub-protocols indicated by the client in the Sec-WebSocket-Protocol header.
-* `cb` Function: A callback that must be called by the user upon inspection of the protocols. Arguments in this callback are:
-  * `result` Boolean: Whether the user accepts or not the handshake.
-  * `protocol` String: If `result` is `true` then this field sets the value of the Sec-WebSocket-Protocol header in the HTTP 101 response.
+`handleProtocols` takes a single argument:
+* `protocols` Array: The list of WebSocket sub-protocols indicated by the client in the `Sec-WebSocket-Protocol` header.
 
-If `handleProtocols` is not set then the handshake is accepted regardless the value of Sec-WebSocket-Protocol header. If it is set but the user does not invoke the `cb` callback then the handshake is rejected with error HTTP 501.
+If returned value is `false` then the handshake is rejected with the HTTP 401 status code, otherwise the returned value sets the value of the `Sec-WebSocket-Protocol` header in the HTTP 101 response.
+
+If `handleProtocols` is not set then the handshake is automatically accepted.
 
 ### options.perMessageDeflate
 
