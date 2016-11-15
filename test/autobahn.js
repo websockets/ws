@@ -24,7 +24,7 @@ function nextTest () {
   ws.on('error', (e) => console.error(e));
 }
 
-var ws = new WebSocket('ws://localhost:9001/getCaseCount');
+const ws = new WebSocket('ws://localhost:9001/getCaseCount');
 ws.on('message', (data) => {
   testCount = parseInt(data);
 });
