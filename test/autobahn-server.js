@@ -23,7 +23,7 @@ var wss = new WebSocketServer({port: 8181});
 wss.on('connection', function (ws) {
   console.log('new connection');
   ws.on('message', function (data, flags) {
-    ws.send(flags.buffer, {binary: flags.binary === true});
+    ws.send(data, {binary: flags.binary === true});
   });
   ws.on('error', function () {
     console.log('error', arguments);

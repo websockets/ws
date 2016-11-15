@@ -36,7 +36,7 @@ function nextTest () {
   console.log('Running test case ' + currentTest + '/' + testCount);
   ws = new WebSocket('ws://localhost:9001/runCase?case=' + currentTest + '&agent=ws');
   ws.on('message', function (data, flags) {
-    ws.send(flags.buffer, {binary: flags.binary === true, mask: true});
+    ws.send(data, {binary: flags.binary === true});
   });
   ws.on('close', function (data) {
     currentTest += 1;
