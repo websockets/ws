@@ -31,19 +31,30 @@ describe('WebSocketServer', function () {
     it('emits an error if http server bind fails', function (done) {
       const wss1 = new WebSocketServer({ port: 50003 });
       const wss2 = new WebSocketServer({ port: 50003 });
-      wss2.on('error', () => {
-        wss1.close();
-        done();
-      });
+
+      wss2.on('error', () => wss1.close(done));
     });
 
     it('starts a server on a given port', function (done) {
       const wss = new WebSocketServer({ port: ++port }, () => {
         const ws = new WebSocket(`ws://localhost:${port}`);
       });
-      wss.on('connection', (client) => {
-        wss.close();
-        done();
+
+      wss.on('connection', (client) => wss.close(done));
+    });
+
+    it('binds the server on any IPv6 address when available', function (done) {
+      const wss = new WebSocketServer({ port: ++port }, () => {
+        const address = wss._server.address().address;
+
+        // The Trusty build environment does not have IPv6 connectivity.
+        if (process.env.TRAVIS) {
+          assert.strictEqual(address, '0.0.0.0');
+        } else {
+          assert.strictEqual(address, '::');
+        }
+
+        wss.close(done);
       });
     });
 
@@ -70,15 +81,14 @@ describe('WebSocketServer', function () {
           res.on('data', (chunk) => { body += chunk; });
           res.on('end', () => {
             assert.strictEqual(body, http.STATUS_CODES[426]);
-            wss.close();
-            done();
+            wss.close(done);
           });
         });
       });
     });
 
     // Don't test this on Windows. It throws errors for obvious reasons.
-    if (!/^win/i.test(process.platform)) {
+    if (process.platform !== 'win32') {
       it('uses a precreated http server listening on unix socket', function (done) {
         const server = http.createServer();
         const sockPath = `/tmp/ws_socket_${new Date().getTime()}.${Math.floor(Math.random() * 1000)}`;
@@ -110,13 +120,13 @@ describe('WebSocketServer', function () {
     });
 
     it('will not crash when it receives an unhandled opcode', function (done) {
-      const wss = new WebSocketServer({ port: 8080 });
+      const wss = new WebSocketServer({ port: ++port });
 
       wss.on('connection', (ws) => {
-        ws.onerror = () => done();
+        ws.onerror = () => wss.close(done);
       });
 
-      const ws = new WebSocket('ws://localhost:8080/');
+      const ws = new WebSocket(`ws://localhost:${port}/`);
 
       ws.onopen = () => {
         ws._socket.write(new Buffer([5]));
