@@ -5,6 +5,7 @@
 const assert = require('assert');
 const https = require('https');
 const http = require('http');
+const net = require('net');
 const fs = require('fs');
 
 const WebSocket = require('..');
@@ -723,6 +724,43 @@ describe('WebSocketServer', function () {
       wss.on('connection', (ws) => {
         wss.close();
         done();
+      });
+    });
+
+    it('doesn\'t emit the `connection` event if socket is closed prematurely', function (done) {
+      const server = http.createServer();
+
+      server.listen(++port, () => {
+        const wss = new WebSocketServer({
+          verifyClient: (o, cb) => setTimeout(cb, 100, true),
+          server
+        });
+
+        wss.on('connection', () => {
+          throw new Error('connection event emitted');
+        });
+
+        const socket = net.connect({ host: 'localhost', port }, () => {
+          socket.write([
+            'GET / HTTP/1.1',
+            'Host: localhost',
+            'Upgrade: websocket',
+            'Connection: Upgrade',
+            'Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==',
+            'Sec-WebSocket-Version: 13',
+            '',
+            ''
+          ].join('\r\n'));
+        });
+
+        socket.on('end', () => {
+          wss.close();
+          server.close(done);
+        });
+
+        socket.setTimeout(50, () => {
+          socket.end();
+        });
       });
     });
 
