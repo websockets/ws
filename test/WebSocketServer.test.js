@@ -45,15 +45,7 @@ describe('WebSocketServer', function () {
 
     it('binds the server on any IPv6 address when available', function (done) {
       const wss = new WebSocketServer({ port: ++port }, () => {
-        const address = wss._server.address().address;
-
-        // The Trusty build environment does not have IPv6 connectivity.
-        if (process.env.TRAVIS) {
-          assert.strictEqual(address, '0.0.0.0');
-        } else {
-          assert.strictEqual(address, '::');
-        }
-
+        assert.strictEqual(wss._server.address().address, '::');
         wss.close(done);
       });
     });
