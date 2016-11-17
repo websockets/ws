@@ -758,9 +758,7 @@ describe('WebSocketServer', function () {
           server.close(done);
         });
 
-        socket.setTimeout(50, () => {
-          socket.end();
-        });
+        socket.setTimeout(50, () => socket.end());
       });
     });
 
