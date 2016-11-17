@@ -30,10 +30,11 @@ describe('WebSocketServer', function () {
     });
 
     it('emits an error if http server bind fails', function (done) {
-      const wss1 = new WebSocketServer({ port: 50003 });
-      const wss2 = new WebSocketServer({ port: 50003 });
+      const wss1 = new WebSocketServer({ port: 50003 }, () => {
+        const wss2 = new WebSocketServer({ port: 50003 });
 
-      wss2.on('error', () => wss1.close(done));
+        wss2.on('error', () => wss1.close(done));
+      });
     });
 
     it('starts a server on a given port', function (done) {
