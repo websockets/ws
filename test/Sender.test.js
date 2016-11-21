@@ -221,11 +221,11 @@ describe('Sender', function () {
     });
 
     it('handles many send calls while processing without crashing on flush', function (done) {
-      let cnt = 0;
+      let count = 0;
       const perMessageDeflate = new PerMessageDeflate();
       const sender = new Sender({
         write: () => {
-          if (++cnt > 1e4) done();
+          if (++count > 1e4) done();
         }
       }, {
         'permessage-deflate': perMessageDeflate
@@ -249,7 +249,10 @@ describe('Sender', function () {
 
       let count = 0;
       const sender = new Sender({
-        write: (data) => count++
+        write: (data, cb) => {
+          count++;
+          if (cb) cb();
+        }
       }, {
         'permessage-deflate': perMessageDeflate
       });
@@ -260,9 +263,9 @@ describe('Sender', function () {
       sender.send('bar', { compress: true, fin: true });
       sender.send('baz', { compress: true, fin: true });
 
-      sender.close(1000, null, false, (err) => {
+      sender.close(1000, null, false, () => {
         assert.strictEqual(count, 4);
-        done(err);
+        done();
       });
     });
   });
