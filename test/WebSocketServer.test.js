@@ -23,12 +23,6 @@ describe('WebSocketServer', function () {
       assert.throws(() => new WebSocketServer({}));
     });
 
-    it('should return a new instance if called without new', function () {
-      const wss = WebSocketServer({ noServer: true });
-
-      assert.ok(wss instanceof WebSocketServer);
-    });
-
     it('emits an error if http server bind fails', function (done) {
       const wss1 = new WebSocketServer({ port: 50003 }, () => {
         const wss2 = new WebSocketServer({ port: 50003 });
