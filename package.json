@@ -36,7 +36,7 @@
     "eslint-plugin-promise": "~3.4.0",
     "eslint-plugin-standard": "2.0.x",
     "istanbul": "0.4.x",
-    "mocha": "3.1.x",
+    "mocha": "~3.2.0",
     "utf-8-validate": "1.2.x"
   }
 }
