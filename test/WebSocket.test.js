@@ -325,8 +325,8 @@ describe('WebSocket', function () {
     });
 
     it('can handle error before request is upgraded', function (done) {
-        // Here, we don't create a server, to guarantee that the connection will
-        // fail before the request is upgraded
+      // Here, we don't create a server, to guarantee that the connection will
+      // fail before the request is upgraded
       const ws = new WebSocket(`ws://localhost:${++port}`);
 
       ws.on('open', () => assert.fail(null, null, 'connect shouldnt be raised here'));
@@ -1618,39 +1618,24 @@ describe('WebSocket', function () {
       });
     });
 
-    it('should remove event listeners added with addEventListener', function (done) {
-      server.createServer(++port, (srv) => {
-        const message = () => {};
-        const open = () => {};
-        const ws = new WebSocket(`ws://localhost:${port}`);
+    it('should remove event listeners added with addEventListener', function () {
+      const message = () => {};
+      const open = () => {};
+      const ws = new WebSocket(`ws://localhost:${++port}`);
 
-        ws.addEventListener('message', message);
-        ws.addEventListener('open', open);
+      ws.on('error', () => {});
 
-        assert.notStrictEqual(
-          ws.listeners('message').find((listener) => listener._listener === message),
-          undefined
-        );
-        assert.notStrictEqual(
-          ws.listeners('open').find((listener) => listener._listener === open),
-          undefined
-        );
+      ws.addEventListener('message', message);
+      ws.addEventListener('open', open);
 
-        ws.removeEventListener('message', message);
-        ws.removeEventListener('open', open);
+      assert.strictEqual(ws.listeners('message')[0]._listener, message);
+      assert.strictEqual(ws.listeners('open')[0]._listener, open);
 
-        assert.strictEqual(
-          ws.listeners('message').find((listener) => listener._listener === message),
-          undefined
-        );
-        assert.strictEqual(
-          ws.listeners('open').find((listener) => listener._listener === open),
-          undefined
-        );
+      ws.removeEventListener('message', message);
+      ws.removeEventListener('open', open);
 
-        srv.close(done);
-        ws.close();
-      });
+      assert.strictEqual(ws.listeners('message').length, 0);
+      assert.strictEqual(ws.listeners('open').length, 0);
     });
 
     it('should receive valid CloseEvent when server closes with code 1000', function (done) {
