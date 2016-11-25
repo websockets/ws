@@ -25,18 +25,18 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "ultron": "1.0.x"
+    "ultron": "~1.0.2"
   },
   "devDependencies": {
-    "benchmark": "2.1.x",
-    "bufferutil": "1.2.x",
-    "eslint": "3.10.x",
-    "eslint-config-semistandard": "7.0.x",
-    "eslint-config-standard": "6.2.x",
+    "benchmark": "~2.1.2",
+    "bufferutil": "~1.2.1",
+    "eslint": "~3.10.2",
+    "eslint-config-semistandard": "~7.0.0",
+    "eslint-config-standard": "~6.2.1",
     "eslint-plugin-promise": "~3.4.0",
-    "eslint-plugin-standard": "2.0.x",
-    "istanbul": "0.4.x",
+    "eslint-plugin-standard": "~2.0.1",
+    "istanbul": "~0.4.5",
     "mocha": "~3.2.0",
-    "utf-8-validate": "1.2.x"
+    "utf-8-validate": "~1.2.1"
   }
 }
