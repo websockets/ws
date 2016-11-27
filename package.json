@@ -29,7 +29,7 @@
   },
   "devDependencies": {
     "benchmark": "~2.1.2",
-    "bufferutil": "~1.2.1",
+    "bufferutil": "~1.3.0",
     "eslint": "~3.11.0",
     "eslint-config-semistandard": "~7.0.0",
     "eslint-config-standard": "~6.2.1",
