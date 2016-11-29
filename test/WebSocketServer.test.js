@@ -91,6 +91,21 @@ describe('WebSocketServer', function () {
           });
         });
       });
+
+      it('uses http server listening on unix socket at /foo path', function (done) {
+        var srv = http.createServer();
+        var sockPath = '/tmp/ws_socket_'+new Date().getTime()+'.'+Math.floor(Math.random() * 1000);
+        srv.listen(sockPath, function () {
+          var wss = new WebSocketServer({server: srv, path: '/foo'});
+          var ws = new WebSocket('ws+unix://'+sockPath+':/foo?param1=bar');
+
+          wss.on('connection', function(client) {
+            wss.close();
+            srv.close();
+            done();
+          });
+        });
+      });
     }
 
     it('emits path specific connection event', function (done) {
