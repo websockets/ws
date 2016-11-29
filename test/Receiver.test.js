@@ -53,15 +53,16 @@ describe('Receiver', function () {
     const msg = 'A'.repeat(200);
 
     const mask = '3483a868';
-    const frame = '81FE' + util.pack(4, msg.length) + mask +
-      util.mask(msg, mask).toString('hex');
+    const frame = Buffer.from('81FE' + util.pack(4, msg.length) + mask +
+      util.mask(msg, mask).toString('hex'), 'hex');
 
     p.ontext = function (data) {
       assert.strictEqual(data, msg);
       done();
     };
 
-    p.add(Buffer.from(frame, 'hex'));
+    p.add(frame.slice(0, 2));
+    setImmediate(() => p.add(frame.slice(2)));
   });
 
   it('can parse a really long masked text message', function (done) {
@@ -349,7 +350,227 @@ describe('Receiver', function () {
     assert.strictEqual(p.totalPayloadLength, 0);
   });
 
-  it('will raise an error on a 200 KiB long masked binary message when maxpayload is 20 KiB', function (done) {
+  it('raises an error when RSV1 is on and permessage-deflate is disabled', function (done) {
+    const p = new Receiver();
+
+    p.error = function (err, code) {
+      assert.ok(err instanceof Error);
+      assert.strictEqual(err.message, 'RSV1 must be clear');
+      assert.strictEqual(code, 1002);
+      done();
+    };
+
+    p.add(Buffer.from([0xc2, 0x80, 0x00, 0x00, 0x00, 0x00]));
+  });
+
+  it('raises an error when RSV1 is on and opcode is 0', function (done) {
+    const perMessageDeflate = new PerMessageDeflate();
+    perMessageDeflate.accept([{}]);
+
+    const p = new Receiver({ 'permessage-deflate': perMessageDeflate });
+
+    p.error = function (err, code) {
+      assert.ok(err instanceof Error);
+      assert.strictEqual(err.message, 'RSV1 must be clear');
+      assert.strictEqual(code, 1002);
+      done();
+    };
+
+    p.add(Buffer.from([0x40, 0x00]));
+  });
+
+  it('raises an error when RSV2 is on', function (done) {
+    const p = new Receiver();
+
+    p.error = function (err, code) {
+      assert.ok(err instanceof Error);
+      assert.strictEqual(err.message, 'RSV2 and RSV3 must be clear');
+      assert.strictEqual(code, 1002);
+      done();
+    };
+
+    p.add(Buffer.from([0xa2, 0x00]));
+  });
+
+  it('raises an error when RSV3 is on', function (done) {
+    const p = new Receiver();
+
+    p.error = function (err, code) {
+      assert.ok(err instanceof Error);
+      assert.strictEqual(err.message, 'RSV2 and RSV3 must be clear');
+      assert.strictEqual(code, 1002);
+      done();
+    };
+
+    p.add(Buffer.from([0x92, 0x00]));
+  });
+
+  it('raises an error if the first frame in a fragmented message has opcode 0', function (done) {
+    const p = new Receiver();
+
+    p.error = function (err, code) {
+      assert.ok(err instanceof Error);
+      assert.strictEqual(err.message, 'invalid opcode: 0');
+      assert.strictEqual(code, 1002);
+      done();
+    };
+
+    p.add(Buffer.from([0x00, 0x00]));
+  });
+
+  it('raises an error if a frame has opcode 1 in the middle of a fragmented message', function (done) {
+    const p = new Receiver();
+
+    p.error = function (err, code) {
+      assert.ok(err instanceof Error);
+      assert.strictEqual(err.message, 'invalid opcode: 1');
+      assert.strictEqual(code, 1002);
+      done();
+    };
+
+    p.add(Buffer.from([0x01, 0x00]));
+    p.add(Buffer.from([0x01, 0x00]));
+  });
+
+  it('raises an error if a frame has opcode 2 in the middle of a fragmented message', function (done) {
+    const p = new Receiver();
+
+    p.error = function (err, code) {
+      assert.ok(err instanceof Error);
+      assert.strictEqual(err.message, 'invalid opcode: 2');
+      assert.strictEqual(code, 1002);
+      done();
+    };
+
+    p.add(Buffer.from([0x01, 0x00]));
+    p.add(Buffer.from([0x02, 0x00]));
+  });
+
+  it('raises an error when a control frame has the FIN bit off', function (done) {
+    const p = new Receiver();
+
+    p.error = function (err, code) {
+      assert.ok(err instanceof Error);
+      assert.strictEqual(err.message, 'FIN must be set');
+      assert.strictEqual(code, 1002);
+      done();
+    };
+
+    p.add(Buffer.from([0x09, 0x00]));
+  });
+
+  it('raises an error when a control frame has the RSV1 bit on', function (done) {
+    const perMessageDeflate = new PerMessageDeflate();
+    perMessageDeflate.accept([{}]);
+
+    const p = new Receiver({ 'permessage-deflate': perMessageDeflate });
+
+    p.error = function (err, code) {
+      assert.ok(err instanceof Error);
+      assert.strictEqual(err.message, 'RSV1 must be clear');
+      assert.strictEqual(code, 1002);
+      done();
+    };
+
+    p.add(Buffer.from([0xc9, 0x00]));
+  });
+
+  it('raises an error when a control frame has the FIN bit off', function (done) {
+    const p = new Receiver();
+
+    p.error = function (err, code) {
+      assert.ok(err instanceof Error);
+      assert.strictEqual(err.message, 'FIN must be set');
+      assert.strictEqual(code, 1002);
+      done();
+    };
+
+    p.add(Buffer.from([0x09, 0x00]));
+  });
+
+  it('raises an error when a control frame has a payload bigger than 125 B', function (done) {
+    const p = new Receiver();
+
+    p.error = function (err, code) {
+      assert.ok(err instanceof Error);
+      assert.strictEqual(err.message, 'invalid payload length');
+      assert.strictEqual(code, 1002);
+      done();
+    };
+
+    p.add(Buffer.from([0x89, 0x7e]));
+  });
+
+  it('raises an error when a data frame has a payload bigger than 2^53 - 1 B', function (done) {
+    const p = new Receiver();
+
+    p.error = function (err, code) {
+      assert.ok(err instanceof Error);
+      assert.strictEqual(err.message, 'max payload size exceeded');
+      assert.strictEqual(code, 1009);
+      done();
+    };
+
+    p.add(Buffer.from([0x82, 0x7f]));
+    setImmediate(() => p.add(Buffer.from([
+      0x00, 0x20, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00
+    ])));
+  });
+
+  it('raises an error if a text frame contains invalid UTF-8 data', function (done) {
+    const p = new Receiver();
+
+    p.error = function (err, code) {
+      assert.ok(err instanceof Error);
+      assert.strictEqual(err.message, 'invalid utf8 sequence');
+      assert.strictEqual(code, 1007);
+      done();
+    };
+
+    p.add(Buffer.from([0x81, 0x04, 0xce, 0xba, 0xe1, 0xbd]));
+  });
+
+  it('raises an error if a close frame has a payload of 1 B', function (done) {
+    const p = new Receiver();
+
+    p.error = function (err, code) {
+      assert.ok(err instanceof Error);
+      assert.strictEqual(err.message, 'invalid payload length');
+      assert.strictEqual(code, 1002);
+      done();
+    };
+
+    p.add(Buffer.from([0x88, 0x01, 0x00]));
+  });
+
+  it('raises an error if a close frame contains a invalid close code', function (done) {
+    const p = new Receiver();
+
+    p.error = function (err, code) {
+      assert.ok(err instanceof Error);
+      assert.strictEqual(err.message, 'invalid status code: 0');
+      assert.strictEqual(code, 1002);
+      done();
+    };
+
+    p.add(Buffer.from([0x88, 0x02, 0x00, 0x00]));
+  });
+
+  it('raises an error if a close frame contains invalid UTF-8 data', function (done) {
+    const p = new Receiver();
+
+    p.error = function (err, code) {
+      assert.ok(err instanceof Error);
+      assert.strictEqual(err.message, 'invalid utf8 sequence');
+      assert.strictEqual(code, 1007);
+      done();
+    };
+
+    p.add(Buffer.from([0x88, 0x06, 0x03, 0xef, 0xce, 0xba, 0xe1, 0xbd]));
+  });
+
+  it('raises an error on a 200 KiB long masked binary message when `maxPayload` is 20 KiB', function (done) {
     const p = new Receiver({}, 20 * 1024);
     const msg = crypto.randomBytes(200 * 1024);
 
@@ -357,7 +578,9 @@ describe('Receiver', function () {
     const frame = '82' + util.getHybiLengthAsHexString(msg.length, true) + mask +
       util.mask(msg, mask).toString('hex');
 
-    p.error = function (reason, code) {
+    p.error = function (err, code) {
+      assert.ok(err instanceof Error);
+      assert.strictEqual(err.message, 'max payload size exceeded');
       assert.strictEqual(code, 1009);
       done();
     };
@@ -365,14 +588,16 @@ describe('Receiver', function () {
     p.add(Buffer.from(frame, 'hex'));
   });
 
-  it('will raise an error on a 200 KiB long unmasked binary message when maxpayload is 20 KiB', function (done) {
+  it('raises an error on a 200 KiB long unmasked binary message when maxpayload is 20 KiB', function (done) {
     const p = new Receiver({}, 20 * 1024);
     const msg = crypto.randomBytes(200 * 1024);
 
     const frame = '82' + util.getHybiLengthAsHexString(msg.length, false) +
       msg.toString('hex');
 
-    p.error = function (reason, code) {
+    p.error = function (err, code) {
+      assert.ok(err instanceof Error);
+      assert.strictEqual(err.message, 'max payload size exceeded');
       assert.strictEqual(code, 1009);
       done();
     };
@@ -380,50 +605,53 @@ describe('Receiver', function () {
     p.add(Buffer.from(frame, 'hex'));
   });
 
-  it('will raise an error on a compressed message that exceeds maxpayload of 3 B', function (done) {
-    const perMessageDeflate = new PerMessageDeflate({}, false, 3);
+  it('raises an error on a compressed message that exceeds `maxPayload`', function (done) {
+    const perMessageDeflate = new PerMessageDeflate({}, false, 25);
     perMessageDeflate.accept([{}]);
 
-    const p = new Receiver({ 'permessage-deflate': perMessageDeflate }, 3);
-    const buf = Buffer.from('Hellooooooooooooooooooooooooooooooooooooooo');
+    const p = new Receiver({ 'permessage-deflate': perMessageDeflate }, 25);
+    const buf = Buffer.from('A'.repeat(50));
 
-    p.onerror = function (reason, code) {
+    p.onerror = function (err, code) {
+      assert.ok(err instanceof Error);
+      assert.strictEqual(err.message, 'max payload size exceeded');
       assert.strictEqual(code, 1009);
       done();
     };
 
-    perMessageDeflate.compress(buf, true, function (err, compressed) {
+    perMessageDeflate.compress(buf, true, function (err, data) {
       if (err) return done(err);
 
-      p.add(Buffer.from([0xc1, compressed.length]));
-      p.add(compressed);
+      p.add(Buffer.from([0xc1, data.length]));
+      p.add(data);
     });
   });
 
-  it('will raise an error on a compressed fragment that exceeds maxpayload of 2 B', function (done) {
-    const perMessageDeflate = new PerMessageDeflate({}, false, 2);
+  it('raises an error if the sum of fragment lengths exceeds `maxPayload`', function (done) {
+    const perMessageDeflate = new PerMessageDeflate({}, false, 25);
     perMessageDeflate.accept([{}]);
 
-    const p = new Receiver({ 'permessage-deflate': perMessageDeflate }, 2);
-    const buf1 = Buffer.from('foooooooooooooooooooooooooooooooooooooooooooooo');
-    const buf2 = Buffer.from('baaaarrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr');
+    const p = new Receiver({ 'permessage-deflate': perMessageDeflate }, 25);
+    const buf = Buffer.from('A'.repeat(15));
 
-    p.onerror = function (reason, code) {
+    p.onerror = function (err, code) {
+      assert.ok(err instanceof Error);
+      assert.strictEqual(err.message, 'max payload size exceeded');
       assert.strictEqual(code, 1009);
       done();
     };
 
-    perMessageDeflate.compress(buf1, false, function (err, compressed1) {
+    perMessageDeflate.compress(buf, false, function (err, fragment1) {
       if (err) return done(err);
 
-      p.add(Buffer.from([0x41, compressed1.length]));
-      p.add(compressed1);
+      p.add(Buffer.from([0x41, fragment1.length]));
+      p.add(fragment1);
 
-      perMessageDeflate.compress(buf2, true, function (err, compressed2) {
+      perMessageDeflate.compress(buf, true, function (err, fragment2) {
         if (err) return done(err);
 
-        p.add(Buffer.from([0x80, compressed2.length]));
-        p.add(compressed2);
+        p.add(Buffer.from([0x80, fragment2.length]));
+        p.add(fragment2);
       });
     });
   });
