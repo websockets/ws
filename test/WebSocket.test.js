@@ -1894,24 +1894,6 @@ describe('WebSocket', function () {
     });
   });
 
-  describe('protocol support discovery', function () {
-    describe('#supports', function () {
-      describe('#binary', function () {
-        it('returns true', function (done) {
-          const wss = new WebSocketServer({ port: ++port }, () => {
-            const ws = new WebSocket(`ws://localhost:${port}`);
-          });
-
-          wss.on('connection', (client) => {
-            assert.strictEqual(client.supports.binary, true);
-            wss.close();
-            done();
-          });
-        });
-      });
-    });
-  });
-
   describe('host and origin headers', function () {
     it('includes the host header with port number', function (done) {
       const server = http.createServer();
