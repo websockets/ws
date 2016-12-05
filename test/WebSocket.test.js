@@ -7,7 +7,6 @@ const crypto = require('crypto');
 const https = require('https');
 const http = require('http');
 const fs = require('fs');
-const os = require('os');
 
 const server = require('./testserver');
 const WebSocket = require('..');
@@ -42,24 +41,21 @@ describe('WebSocket', function () {
     });
 
     it('should accept the localAddress option', function (done) {
-      // explore existing interfaces
-      const devs = os.networkInterfaces();
-      const localAddresses = [];
+      //
+      // Skip this test on macOS as by default all loopback addresses other
+      // than 127.0.0.1 are disabled.
+      //
+      if (process.platform === 'darwin') return done();
 
-      Object.keys(devs).forEach((name) => {
-        devs[name].forEach((ifc) => {
-          if (!ifc.internal && ifc.family === 'IPv4') {
-            localAddresses.push(ifc.address);
-          }
+      const wss = new WebSocketServer({ host: '127.0.0.1', port: ++port }, () => {
+        const ws = new WebSocket(`ws://localhost:${port}`, {
+          localAddress: '127.0.0.2'
         });
       });
 
-      const wss = new WebSocketServer({ port: ++port }, () => {
-        const ws = new WebSocket(`ws://localhost:${port}`, {
-          localAddress: localAddresses[0]
-        });
-
-        ws.on('open', () => wss.close(done));
+      wss.on('connection', (ws) => {
+        assert.strictEqual(ws.upgradeReq.connection.remoteAddress, '127.0.0.2');
+        wss.close(done);
       });
     });
 
