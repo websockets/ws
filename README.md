@@ -1,7 +1,8 @@
 # ws: a node.js websocket library
 
 [![Version npm](https://img.shields.io/npm/v/ws.svg)](https://www.npmjs.com/package/ws)
-[![Build Status](https://img.shields.io/travis/websockets/ws/master.svg)](https://travis-ci.org/websockets/ws)
+[![Linux Build](https://img.shields.io/travis/websockets/ws/master.svg)](https://travis-ci.org/websockets/ws)
+[![Windows Build](https://ci.appveyor.com/api/projects/status/github/websockets/ws?branch=master&svg=true)](https://ci.appveyor.com/project/lpinca/ws)
 [![Coverage Status](https://img.shields.io/coveralls/websockets/ws/master.svg)](https://coveralls.io/r/websockets/ws?branch=master)
 
 `ws` is a simple to use WebSocket implementation, up-to-date against RFC-6455,
