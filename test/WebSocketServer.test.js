@@ -1046,3 +1046,18 @@ describe('WebSocketServer', function () {
     });
   });
 });
+
+describe('WebSocket.createServer', function () {
+  it('creates a `WebSocketServer` instance', function () {
+    const wss = WebSocket.createServer({ noServer: true });
+
+    assert.ok(wss instanceof WebSocketServer);
+  });
+
+  it('can add a listener for the `connection` event', function () {
+    const connectionListener = () => {};
+    const wss = WebSocket.createServer({ noServer: true }, connectionListener);
+
+    assert.strictEqual(wss.listeners('connection')[0], connectionListener);
+  });
+});

@@ -1,49 +1,60 @@
-'use strict';
-
 /*!
  * ws: a node.js websocket client
  * Copyright(c) 2011 Einar Otto Stangvik <einaros@gmail.com>
  * MIT Licensed
  */
 
-var WS = module.exports = require('./lib/WebSocket');
+'use strict';
+
+const WS = module.exports = require('./lib/WebSocket');
 
 WS.Server = require('./lib/WebSocketServer');
-WS.Sender = require('./lib/Sender');
 WS.Receiver = require('./lib/Receiver');
+WS.Sender = require('./lib/Sender');
 
 /**
- * Create a new WebSocket server.
+ * A factory function, which returns a new `WebSocketServer`.
  *
- * @param {Object} options Server options
- * @param {Function} fn Optional connection listener.
- * @returns {WS.Server}
- * @api public
+ * @param {Object} options Configuration options
+ * @param {Function} fn A listener for the `connection` event
+ * @return {WebSocketServer}
+ * @public
  */
 WS.createServer = function createServer (options, fn) {
-  var server = new WS.Server(options);
+  const server = new WS.Server(options);
 
-  if (typeof fn === 'function') {
-    server.on('connection', fn);
-  }
-
+  if (fn) server.on('connection', fn);
   return server;
 };
 
 /**
- * Create a new WebSocket connection.
+ * A factory function, which returns a new `WebSocket` and automatically
+ * connectes to the supplied address.
  *
- * @param {String} address The URL/address we need to connect to.
- * @param {Function} fn Open listener.
- * @returns {WS}
- * @api public
+ * @param {String} address The URL to which to connect
+ * @param {(String|String[])} protocols The list of subprotocols
+ * @param {Object} options Connection options
+ * @param {Function} fn A listener for the `open` event
+ * @return {WebSocket}
+ * @public
  */
-WS.connect = WS.createConnection = function connect (address, fn) {
-  var client = new WS(address);
-
-  if (typeof fn === 'function') {
-    client.on('open', fn);
+WS.connect = WS.createConnection = function connect (address, protocols, options, fn) {
+  if (typeof protocols === 'function') {
+    fn = protocols;
+    protocols = options = null;
+  } else if (typeof protocols === 'object' && !Array.isArray(protocols)) {
+    fn = options;
+    options = protocols;
+    protocols = null;
   }
 
+  if (typeof options === 'function') {
+    fn = options;
+    options = null;
+  }
+
+  const client = new WS(address, protocols, options);
+
+  if (fn) client.on('open', fn);
   return client;
 };

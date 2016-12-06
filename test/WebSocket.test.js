@@ -2250,3 +2250,64 @@ describe('WebSocket', function () {
     });
   });
 });
+
+describe('WebSocket.connect', function () {
+  it('creates a `WebSocket` instance', function (done) {
+    const wss = new WebSocketServer({ port: ++port }, () => {
+      const ws = WebSocket.connect(`ws://localhost:${port}`);
+
+      ws.on('open', () => wss.close(done));
+    });
+  });
+
+  it('can add a listener for the `open` event', function (done) {
+    const wss = new WebSocketServer({ port: ++port }, () => {
+      const ws = WebSocket.connect(`ws://localhost:${port}`, () => {
+        wss.close(done);
+      });
+    });
+  });
+
+  it('allows to specify a subprotocol', function (done) {
+    const wss = new WebSocketServer({ port: ++port }, () => {
+      const ws = WebSocket.connect(`ws://localhost:${port}`, 'foo', () => {
+        assert.strictEqual(ws.protocol, 'foo');
+        wss.close(done);
+      });
+    });
+  });
+
+  it('allows to specify a list of subprotocols', function (done) {
+    const wss = new WebSocketServer({ port: ++port }, () => {
+      const ws = WebSocket.connect(`ws://localhost:${port}`, ['foo', 'bar'], () => {
+        assert.strictEqual(ws.protocol, 'foo');
+        wss.close(done);
+      });
+    });
+  });
+
+  it('allows to use connection options', function (done) {
+    const wss = new WebSocketServer({ port: ++port }, () => {
+      const ws = WebSocket.connect(`ws://localhost:${port}`, {
+        protocolVersion: 8
+      }, () => {
+        assert.strictEqual(ws.protocolVersion, 8);
+        wss.close(done);
+      });
+    });
+  });
+
+  it('allows to specify a subprotocol and use connection options', function (done) {
+    const wss = new WebSocketServer({ port: ++port }, () => {
+      const ws = WebSocket.connect(`ws://localhost:${port}`, 'foo', {
+        protocolVersion: 8
+      });
+
+      ws.on('open', () => {
+        assert.strictEqual(ws.protocolVersion, 8);
+        assert.strictEqual(ws.protocol, 'foo');
+        wss.close(done);
+      });
+    });
+  });
+});
