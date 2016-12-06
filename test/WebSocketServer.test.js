@@ -75,23 +75,25 @@ describe('WebSocketServer', function () {
       });
     });
 
-    // Don't test this on Windows. It throws errors for obvious reasons.
-    if (process.platform !== 'win32') {
-      it('uses a precreated http server listening on unix socket', function (done) {
-        const server = http.createServer();
-        const sockPath = `/tmp/ws_socket_${new Date().getTime()}.${Math.floor(Math.random() * 1000)}`;
+    it('uses a precreated http server listening on unix socket', function (done) {
+      //
+      // Skip this test on Windows as it throws errors for obvious reasons.
+      //
+      if (process.platform === 'win32') return done();
 
-        server.listen(sockPath, () => {
-          const wss = new WebSocketServer({ server });
-          const ws = new WebSocket(`ws+unix://${sockPath}`);
+      const server = http.createServer();
+      const sockPath = `/tmp/ws_socket_${new Date().getTime()}.${Math.floor(Math.random() * 1000)}`;
 
-          wss.on('connection', (ws) => {
-            wss.close();
-            server.close(done);
-          });
+      server.listen(sockPath, () => {
+        const wss = new WebSocketServer({ server });
+        const ws = new WebSocket(`ws+unix://${sockPath}`);
+
+        wss.on('connection', (ws) => {
+          wss.close();
+          server.close(done);
         });
       });
-    }
+    });
 
     it('emits path specific connection event', function (done) {
       const server = http.createServer();
@@ -134,7 +136,7 @@ describe('WebSocketServer', function () {
       });
     });
 
-    it('will close all clients', function (done) {
+    it('closes all clients', function (done) {
       const wss = new WebSocketServer({ port: ++port }, () => {
         const ws = new WebSocket(`ws://localhost:${port}`);
         ws.on('close', () => {
@@ -171,18 +173,24 @@ describe('WebSocketServer', function () {
       });
     });
 
+    it('invokes the callback in noServer mode', function (done) {
+      const wss = new WebSocketServer({ noServer: true });
+
+      wss.close(done);
+    });
+
     it('cleans event handlers on precreated server', function (done) {
       const server = http.createServer();
+      const wss = new WebSocketServer({ server });
 
       server.listen(++port, () => {
-        const wss = new WebSocketServer({ server });
-        wss.close();
+        wss.close(() => {
+          assert.strictEqual(server.listeners('listening').length, 0);
+          assert.strictEqual(server.listeners('upgrade').length, 0);
+          assert.strictEqual(server.listeners('error').length, 0);
 
-        assert.strictEqual(server.listeners('listening').length, 0);
-        assert.strictEqual(server.listeners('upgrade').length, 0);
-        assert.strictEqual(server.listeners('error').length, 0);
-
-        server.close(done);
+          server.close(done);
+        });
       });
     });
   });
