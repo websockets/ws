@@ -1614,24 +1614,47 @@ describe('WebSocket', function () {
       });
     });
 
-    it('should remove event listeners added with addEventListener', function () {
-      const message = () => {};
-      const open = () => {};
+    it('registers listeners for custom events with addEventListener', function () {
+      const listener = () => {};
       const ws = new WebSocket(`ws://localhost:${++port}`);
 
       ws.on('error', () => {});
 
-      ws.addEventListener('message', message);
-      ws.addEventListener('open', open);
+      ws.addEventListener('foo', listener);
+      assert.strictEqual(ws.listeners('foo')[0], listener);
 
-      assert.strictEqual(ws.listeners('message')[0]._listener, message);
-      assert.strictEqual(ws.listeners('open')[0]._listener, open);
+      //
+      // Fails silently when the `listener` is not a function.
+      //
+      ws.addEventListener('bar', {});
+      assert.strictEqual(ws.listeners('bar').length, 0);
+    });
 
-      ws.removeEventListener('message', message);
-      ws.removeEventListener('open', open);
+    it('removes event listeners added with addEventListener', function () {
+      const listener = () => {};
+      const ws = new WebSocket(`ws://localhost:${++port}`);
+
+      ws.on('error', () => {});
+
+      ws.addEventListener('message', listener);
+      ws.addEventListener('open', listener);
+      ws.addEventListener('foo', listener);
+
+      assert.strictEqual(ws.listeners('message')[0]._listener, listener);
+      assert.strictEqual(ws.listeners('open')[0]._listener, listener);
+      assert.strictEqual(ws.listeners('foo')[0], listener);
+
+      ws.removeEventListener('message', () => {});
+
+      assert.strictEqual(ws.listeners('message').length, 1);
+
+      ws.removeEventListener('message', listener);
+      ws.removeEventListener('open', listener);
+      ws.removeEventListener('foo', listener);
 
       assert.strictEqual(ws.listeners('message').length, 0);
       assert.strictEqual(ws.listeners('open').length, 0);
+      assert.strictEqual(ws.listeners('foo').length, 0);
     });
 
     it('should receive valid CloseEvent when server closes with code 1000', function (done) {
