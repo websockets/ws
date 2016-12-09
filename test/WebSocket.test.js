@@ -20,13 +20,6 @@ class CustomAgent extends http.Agent {
 
 describe('WebSocket', function () {
   describe('#ctor', function () {
-    it('should return a new instance if called without new', function (done) {
-      const ws = WebSocket('ws://localhost');
-
-      assert.ok(ws instanceof WebSocket);
-      ws.on('error', () => done());
-    });
-
     it('throws an error when using an invalid url', function () {
       assert.throws(
         () => new WebSocket('echo.websocket.org'),
