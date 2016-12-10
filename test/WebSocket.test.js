@@ -14,6 +14,10 @@ const WebSocket = require('..');
 const WebSocketServer = WebSocket.Server;
 let port = 20000;
 
+class CustomAgent extends http.Agent {
+  createConnection () {}
+}
+
 describe('WebSocket', function () {
   describe('#ctor', function () {
     it('should return a new instance if called without new', function (done) {
@@ -23,21 +27,39 @@ describe('WebSocket', function () {
       ws.on('error', () => done());
     });
 
-    it('throws exception for invalid url', function () {
-      assert.throws(() => new WebSocket('echo.websocket.org'));
+    it('throws an error when using an invalid url', function () {
+      assert.throws(
+        () => new WebSocket('echo.websocket.org'),
+        /^Error: invalid url$/
+      );
     });
   });
 
   describe('options', function () {
     it('should accept an `agent` option', function (done) {
-      const agent = { addRequest: () => done() };
+      const agent = new CustomAgent();
+
+      agent.createConnection = () => {
+        done();
+      };
+
       const ws = new WebSocket('ws://localhost', { agent });
     });
 
     // GH-227
-    it('should accept the `options` object as the 3rd argument', function (done) {
-      const agent = { addRequest: () => done() };
-      const ws = new WebSocket('ws://localhost', [], { agent });
+    it('should accept the `options` object as the 3rd argument', function () {
+      const ws = new WebSocket('ws://localhost', [], {
+        agent: new CustomAgent()
+      });
+    });
+
+    it('throws an error when using an invalid `protocolVersion`', function () {
+      const options = { agent: new CustomAgent(), protocolVersion: 1000 };
+
+      assert.throws(
+        () => new WebSocket('ws://localhost', options),
+        /^Error: unsupported protocol version$/
+      );
     });
 
     it('should accept the localAddress option', function (done) {
@@ -264,8 +286,9 @@ describe('WebSocket', function () {
         });
 
         it('is property of instance', function () {
-          const ws = new WebSocket('ws://localhost');
-          ws.on('error', () => {});
+          const ws = new WebSocket('ws://localhost', {
+            agent: new CustomAgent()
+          });
 
           assert.strictEqual(ws[state], readyStates[state]);
         });
@@ -996,11 +1019,16 @@ describe('WebSocket', function () {
     });
   });
 
-  describe('W3C API emulation', function () {
+  describe('WHATWG API emulation', function () {
     it('should not throw errors when getting and setting', function (done) {
       server.createServer(++port, (srv) => {
-        const ws = new WebSocket(`ws://localhost:${port}`);
         const listener = () => {};
+        const ws = new WebSocket(`ws://localhost:${port}`);
+
+        assert.strictEqual(ws.onmessage, undefined);
+        assert.strictEqual(ws.onclose, undefined);
+        assert.strictEqual(ws.onerror, undefined);
+        assert.strictEqual(ws.onopen, undefined);
 
         ws.onmessage = listener;
         ws.onerror = listener;
@@ -1010,15 +1038,25 @@ describe('WebSocket', function () {
         assert.strictEqual(ws.binaryType, 'nodebuffer');
         ws.binaryType = 'arraybuffer';
         assert.strictEqual(ws.binaryType, 'arraybuffer');
+        ws.binaryType = 'nodebuffer';
+        assert.strictEqual(ws.binaryType, 'nodebuffer');
 
-        assert.strictEqual(ws.onopen, listener);
         assert.strictEqual(ws.onmessage, listener);
         assert.strictEqual(ws.onclose, listener);
         assert.strictEqual(ws.onerror, listener);
+        assert.strictEqual(ws.onopen, listener);
 
         srv.close(done);
         ws.terminate();
       });
+    });
+
+    it('should throw an error when setting an invalid binary type', function () {
+      const ws = new WebSocket('ws://localhost', { agent: new CustomAgent() });
+
+      assert.throws(() => {
+        ws.binaryType = 'foo';
+      }, /^SyntaxError: unsupported binaryType: must be either "nodebuffer" or "arraybuffer"$/);
     });
 
     it('should work the same as the EventEmitter api', function (done) {
@@ -1064,9 +1102,7 @@ describe('WebSocket', function () {
 
     it('registers listeners for custom events with addEventListener', function () {
       const listener = () => {};
-      const ws = new WebSocket(`ws://localhost:${++port}`);
-
-      ws.on('error', () => {});
+      const ws = new WebSocket('ws://localhost', { agent: new CustomAgent() });
 
       ws.addEventListener('foo', listener);
       assert.strictEqual(ws.listeners('foo')[0], listener);
@@ -1080,9 +1116,7 @@ describe('WebSocket', function () {
 
     it('removes event listeners added with addEventListener', function () {
       const listener = () => {};
-      const ws = new WebSocket(`ws://localhost:${++port}`);
-
-      ws.on('error', () => {});
+      const ws = new WebSocket('ws://localhost', { agent: new CustomAgent() });
 
       ws.addEventListener('message', listener);
       ws.addEventListener('open', listener);
@@ -1094,7 +1128,7 @@ describe('WebSocket', function () {
 
       ws.removeEventListener('message', () => {});
 
-      assert.strictEqual(ws.listeners('message').length, 1);
+      assert.strictEqual(ws.listeners('message')[0]._listener, listener);
 
       ws.removeEventListener('message', listener);
       ws.removeEventListener('open', listener);
@@ -1367,7 +1401,7 @@ describe('WebSocket', function () {
 
       server.listen(++port, () => {
         server.on('upgrade', (req, socket, head) => {
-          assert.strictEqual(req.headers['host'], `localhost:${port}`);
+          assert.strictEqual(req.headers.host, `localhost:${port}`);
           server.close(done);
           socket.destroy();
         });
@@ -1381,7 +1415,7 @@ describe('WebSocket', function () {
 
       server.listen(++port, () => {
         server.on('upgrade', (req, socket, head) => {
-          assert.strictEqual(req.headers['origin'], undefined);
+          assert.strictEqual(req.headers.origin, undefined);
           server.close(done);
           socket.destroy();
         });
@@ -1390,14 +1424,33 @@ describe('WebSocket', function () {
       });
     });
 
-    it('honors origin set in options', function (done) {
+    it('honors origin set in options (1/2)', function (done) {
       const server = http.createServer();
 
       server.listen(++port, () => {
         const options = { origin: 'https://example.com:8000' };
 
         server.on('upgrade', (req, socket, head) => {
-          assert.strictEqual(req.headers['origin'], options.origin);
+          assert.strictEqual(req.headers.origin, options.origin);
+          server.close(done);
+          socket.destroy();
+        });
+
+        const ws = new WebSocket(`ws://localhost:${port}`, options);
+      });
+    });
+
+    it('honors origin set in options (2/2)', function (done) {
+      const server = http.createServer();
+
+      server.listen(++port, () => {
+        const options = {
+          origin: 'https://example.com:8000',
+          protocolVersion: 8
+        };
+
+        server.on('upgrade', (req, socket, head) => {
+          assert.strictEqual(req.headers['sec-websocket-origin'], options.origin);
           server.close(done);
           socket.destroy();
         });
