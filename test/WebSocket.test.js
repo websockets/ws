@@ -15,7 +15,7 @@ const WebSocketServer = WebSocket.Server;
 let port = 20000;
 
 class CustomAgent extends http.Agent {
-  createConnection () {}
+  addRequest () {}
 }
 
 describe('WebSocket', function () {
@@ -39,7 +39,7 @@ describe('WebSocket', function () {
     it('should accept an `agent` option', function (done) {
       const agent = new CustomAgent();
 
-      agent.createConnection = () => {
+      agent.addRequest = () => {
         done();
       };
 
