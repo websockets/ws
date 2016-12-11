@@ -1453,17 +1453,26 @@ describe('WebSocket', function () {
     });
 
     it('excludes default ports from host header', function () {
-      // can't create a server listening on ports 80 or 443
-      // so we need to expose the method that does this
-      const buildHostHeader = WebSocket.buildHostHeader;
-      let host = buildHostHeader(false, 'localhost', 80);
-      assert.strictEqual(host, 'localhost');
-      host = buildHostHeader(false, 'localhost', 88);
-      assert.strictEqual(host, 'localhost:88');
-      host = buildHostHeader(true, 'localhost', 443);
-      assert.strictEqual(host, 'localhost');
-      host = buildHostHeader(true, 'localhost', 8443);
-      assert.strictEqual(host, 'localhost:8443');
+      const httpsAgent = new https.Agent();
+      const httpAgent = new http.Agent();
+      const values = [];
+      let ws;
+
+      httpsAgent.addRequest = httpAgent.addRequest = (req) => {
+        values.push(req._headers.host);
+      };
+
+      ws = new WebSocket('wss://localhost:8443', { agent: httpsAgent });
+      ws = new WebSocket('wss://localhost:443', { agent: httpsAgent });
+      ws = new WebSocket('ws://localhost:88', { agent: httpAgent });
+      ws = new WebSocket('ws://localhost:80', { agent: httpAgent });
+
+      assert.deepStrictEqual(values, [
+        'localhost:8443',
+        'localhost',
+        'localhost:88',
+        'localhost'
+      ]);
     });
   });
 
