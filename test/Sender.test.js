@@ -43,13 +43,38 @@ describe('Sender', function () {
     });
   });
 
+  describe('#ping', function () {
+    it('works with multiple types of data', function (done) {
+      let count = 0;
+      const sender = new Sender({
+        write: (data) => {
+          if (++count < 4) {
+            assert.ok(data.equals(Buffer.from([0x89, 0x02, 0x68, 0x69])));
+          } else {
+            assert.ok(data.equals(Buffer.from([0x89, 0x02, 0x31, 0x30])));
+            done();
+          }
+        }
+      });
+
+      const array = new Uint8Array([0x68, 0x69]);
+      const options = { mask: false };
+
+      sender.ping(array.buffer, options);
+      sender.ping(array, options);
+      sender.ping('hi', options);
+      sender.ping(10, options);
+    });
+  });
+
   describe('#send', function () {
     it('compresses data if compress option is enabled', function (done) {
       const perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
+      let count = 0;
       const sender = new Sender({
         write: (data) => {
           assert.strictEqual(data[0] & 0x40, 0x40);
-          done();
+          if (++count === 4) done();
         }
       }, {
         'permessage-deflate': perMessageDeflate
@@ -57,7 +82,13 @@ describe('Sender', function () {
 
       perMessageDeflate.accept([{}]);
 
-      sender.send('hi', { compress: true, fin: true });
+      const options = { compress: true, fin: true };
+      const array = new Uint8Array([0x68, 0x69]);
+
+      sender.send(array.buffer, options);
+      sender.send(array, options);
+      sender.send('hi', options);
+      sender.send(100, options);
     });
 
     it('does not compress data for small payloads', function (done) {
