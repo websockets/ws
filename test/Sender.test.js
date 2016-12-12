@@ -17,7 +17,13 @@ describe('Sender', function () {
       const sender = new Sender({ write: () => {} });
       const buf = Buffer.from([1, 2, 3, 4, 5]);
 
-      sender.frameAndSend(2, buf, true, true, true);
+      sender.frameAndSend(buf, {
+        readOnly: true,
+        rsv1: false,
+        mask: true,
+        opcode: 2,
+        fin: true
+      });
 
       assert.ok(buf.equals(Buffer.from([1, 2, 3, 4, 5])));
     });
@@ -26,7 +32,13 @@ describe('Sender', function () {
       const sender = new Sender({ write: () => {} });
       const text = Buffer.from('hi there');
 
-      sender.frameAndSend(1, text, true, true, true);
+      sender.frameAndSend(text, {
+        readOnly: true,
+        rsv1: false,
+        mask: true,
+        opcode: 1,
+        fin: true
+      });
 
       assert.ok(text.equals(Buffer.from('hi there')));
     });
@@ -39,7 +51,13 @@ describe('Sender', function () {
         }
       });
 
-      sender.frameAndSend(1, Buffer.from('hi'), false, true, false, true);
+      sender.frameAndSend(Buffer.from('hi'), {
+        readOnly: false,
+        mask: false,
+        rsv1: true,
+        opcode: 1,
+        fin: true
+      });
     });
   });
 

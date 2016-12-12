@@ -17,20 +17,35 @@ const data3 = crypto.randomBytes(64 * 1024);
 const data4 = crypto.randomBytes(200 * 1024);
 const data5 = crypto.randomBytes(1024 * 1024);
 
+const opts1 = {
+  readOnly: false,
+  mask: false,
+  rsv1: false,
+  opcode: 2,
+  fin: true
+};
+const opts2 = {
+  readOnly: true,
+  rsv1: false,
+  mask: true,
+  opcode: 2,
+  fin: true
+};
+
 const suite = new benchmark.Suite();
 var sender = new Sender();
 sender._socket = { write () {} };
 
-suite.add('frameAndSend, unmasked (64 B)', () => sender.frameAndSend(0x2, data1, false, true, false));
-suite.add('frameAndSend, masked (64 B)', () => sender.frameAndSend(0x2, data1, true, true, true));
-suite.add('frameAndSend, unmasked (16 KiB)', () => sender.frameAndSend(0x2, data2, false, true, false));
-suite.add('frameAndSend, masked (16 KiB)', () => sender.frameAndSend(0x2, data2, true, true, true));
-suite.add('frameAndSend, unmasked (64 KiB)', () => sender.frameAndSend(0x2, data3, false, true, false));
-suite.add('frameAndSend, masked (64 KiB)', () => sender.frameAndSend(0x2, data3, true, true, true));
-suite.add('frameAndSend, unmasked (200 KiB)', () => sender.frameAndSend(0x2, data4, false, true, false));
-suite.add('frameAndSend, masked (200 KiB)', () => sender.frameAndSend(0x2, data4, true, true, true));
-suite.add('frameAndSend, unmasked (1 MiB)', () => sender.frameAndSend(0x2, data5, false, true, false));
-suite.add('frameAndSend, masked (1 MiB)', () => sender.frameAndSend(0x2, data5, true, true, true));
+suite.add('frameAndSend, unmasked (64 B)', () => sender.frameAndSend(data1, opts1));
+suite.add('frameAndSend, masked (64 B)', () => sender.frameAndSend(data1, opts2));
+suite.add('frameAndSend, unmasked (16 KiB)', () => sender.frameAndSend(data2, opts1));
+suite.add('frameAndSend, masked (16 KiB)', () => sender.frameAndSend(data2, opts2));
+suite.add('frameAndSend, unmasked (64 KiB)', () => sender.frameAndSend(data3, opts1));
+suite.add('frameAndSend, masked (64 KiB)', () => sender.frameAndSend(data3, opts2));
+suite.add('frameAndSend, unmasked (200 KiB)', () => sender.frameAndSend(data4, opts1));
+suite.add('frameAndSend, masked (200 KiB)', () => sender.frameAndSend(data4, opts2));
+suite.add('frameAndSend, unmasked (1 MiB)', () => sender.frameAndSend(data5, opts1));
+suite.add('frameAndSend, masked (1 MiB)', () => sender.frameAndSend(data5, opts2));
 
 suite.on('cycle', (e) => console.log(e.target.toString()));
 
