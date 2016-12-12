@@ -3,4 +3,5 @@ examples/
 bench/
 test/
 doc/
+appveyor.yml
 .*
