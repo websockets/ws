@@ -22,7 +22,7 @@ Construct a new server object.
 
 Either `port` or `server` must be provided, otherwise you might enable
 `noServer` if you want to pass the requests directly. Please note that the
-`callback` is only used when you supply the a `port` number in the options.
+`callback` is only used when you supply a `port` number in the options.
 
 ### options.verifyClient
 
