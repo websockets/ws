@@ -2,242 +2,407 @@
 
 ## Class: WebSocket.Server
 
-This class is a WebSocket server. It is an `EventEmitter`.
+This class represents a WebSocket server. It extends the `EventEmitter`.
 
-### new WebSocket.Server([options], [callback])
+### new WebSocket.Server(options[, callback])
 
-* `options` Object
-  * `host` String
-  * `port` Number
-  * `server` http.Server
-  * `verifyClient` Function
-  * `handleProtocols` Function
-  * `path` String
-  * `noServer` Boolean
-  * `clientTracking` Boolean
-  * `perMessageDeflate` Boolean|Object
-* `callback` Function
+- `options` {Object}
+  - `host` {String} The hostname where to bind the server.
+  - `port` {Number} The port where to bind the server.
+  - `backlog` {Number} The maximum length of the queue of pending connections.
+  - `server` {http.Server|https.Server} A pre-created Node.js HTTP server.
+  - `verifyClient` {Function} A function which can be used to validate incoming
+    connections. See description below.
+  - `handleProtocols` {Function} A function which can be used to handle the
+    WebSocket subprotocols. See description below.
+  - `path` {String} Accept only connections matching this path.
+  - `noServer` {Boolean} Enable no server mode.
+  - `clientTracking` {Boolean} Specifies whether or not to track clients.
+  - `perMessageDeflate` {Boolean|Object} Enable/disable permessage-deflate.
+  - `maxPayload` {Number} The maximum allowed message size in bytes.
+- `callback` {Function}
 
-Construct a new server object.
+Create a new server instance. One of `port`, `server` or `noServer` must be
+provided or an error is thrown.
 
-Either `port` or `server` must be provided, otherwise you might enable
-`noServer` if you want to pass the requests directly. Please note that the
-`callback` is only used when you supply a `port` number in the options.
 
-### options.verifyClient
+If `verifyClient` is not set then the handshake is automatically accepted. If
+it is is provided with a single argument then that is:
 
-`verifyClient` can be used in two different ways. If it is provided with two arguments then those are:
-* `info` Object:
-  * `origin` String: The value in the Origin header indicated by the client.
-  * `req` http.ClientRequest: The client HTTP GET request.
-  * `secure` Boolean: `true` if `req.connection.authorized` or `req.connection.encrypted` is set.
-* `cb` Function: A callback that must be called by the user upon inspection of the `info` fields. Arguments in this callback are:
-  * `result` Boolean: Whether the user accepts or not the handshake.
-  * `code` Number: If `result` is `false` this field determines the HTTP error status code to be sent to the client.
-  * `name` String: If `result` is `false` this field determines the HTTP reason phrase.
+- `info` {Object}
+  - `origin` {String} The value in the Origin header indicated by the client.
+  - `req` {http.IncomingMessage} The client HTTP GET request.
+  - `secure` {Boolean} `true` if `req.connection.authorized` or
+    `req.connection.encrypted` is set.
 
-If `verifyClient` is provided with a single argument then that is:
-* `info` Object: Same as above.
+The return value (Boolean) of the function determines whether or not to accept
+the handshake.
 
-In this case the return code (Boolean) of the function determines whether the handshake is accepted or not.
+if `verifyClient` is provided with two arguments then those are:
 
-If `verifyClient` is not set then the handshake is automatically accepted.
+- `info` {Object} Same as above.
+- `cb` {Function} A callback that must be called by the user upon inspection
+  of the `info` fields. Arguments in this callback are:
+  - `result` {Boolean} Whether or not to accept the handshake.
+  - `code` {Number} When `result` is `false` this field determines the HTTP
+    error status code to be sent to the client.
+  - `name` {String} When `result` is `false` this field determines the HTTP
+    reason phrase.
 
-### options.handleProtocols
 
-`handleProtocols` takes a single argument:
-* `protocols` Array: The list of WebSocket sub-protocols indicated by the client in the `Sec-WebSocket-Protocol` header.
+If `handleProtocols` is not set then the handshake is automatically accepted,
+otherwise the function takes a single argument:
 
-If returned value is `false` then the handshake is rejected with the HTTP 401 status code, otherwise the returned value sets the value of the `Sec-WebSocket-Protocol` header in the HTTP 101 response.
+- `protocols` {Array} The list of WebSocket subprotocols indicated by the
+  client in the `Sec-WebSocket-Protocol` header.
 
-If `handleProtocols` is not set then the handshake is automatically accepted.
+If returned value is `false` then the handshake is rejected with the HTTP 401
+status code, otherwise the returned value sets the value of the
+`Sec-WebSocket-Protocol` header in the HTTP 101 response.
 
-### options.perMessageDeflate
+`perMessageDeflate` can be used to control the behavior of
+[permessage-deflate extension][permessage-deflate].
+The extension is disabled when `false`. Defaults to `true`. If an object is
+provided then that is extension parameters:
 
-`perMessageDeflate` can be used to control the behavior of [permessage-deflate extension](https://tools.ietf.org/html/draft-ietf-hybi-permessage-compression-19). The extension is disabled when `false`. Defaults to `true`. If an object is provided then that is extension parameters:
+- `serverNoContextTakeover` {Boolean} Whether to use context take over or not.
+- `clientNoContextTakeover` {Boolean} The value to be requested to clients
+  whether to use context take over or not.
+- `serverMaxWindowBits` {Number} The value of windowBits.
+- `clientMaxWindowBits` {Number} The value of max windowBits to be requested
+  to clients.
+- `memLevel` {Number} The value of memLevel.
+- `threshold` {Number} Payloads smaller than this will not be compressed.
+  Defaults to 1024 bytes.
 
-* `serverNoContextTakeover` Boolean: Whether to use context take over or not.
-* `clientNoContextTakeover` Boolean: The value to be requested to clients whether to use context take over or not.
-* `serverMaxWindowBits` Number: The value of windowBits.
-* `clientMaxWindowBits` Number: The value of max windowBits to be requested to clients.
-* `memLevel` Number: The value of memLevel.
-* `threshold` Number: Payloads smaller than this will not be compressed. Default 1024 bytes.
+If a property is empty then either an offered configuration or a default value
+is used.
+When sending a fragmented message the length of the first fragment is compared
+to the threshold. This determines if compression is used for the entire message.
 
-If a property is empty then either an offered configuration or a default value is used.
-When sending a fragmented message the length of the first fragment is compared to the threshold. This determines if compression is used for the entire message.
 
-### server.close([callback])
-
-Close the server and terminate all clients, calls callback when done with an error if one occurred.
-
-### server.handleUpgrade(request, socket, upgradeHead, callback)
-
-Handles a HTTP Upgrade request. `request` is an instance of `http.ServerRequest`, `socket` is an instance of `net.Socket`.
-
-When the Upgrade was successfully, the `callback` will be called with a `WebSocket` object as parameter.
-
-### Event: 'error'
-
-`function (error) { }`
-
-If the underlying server emits an error, it will be forwarded here.
-
-### Event: 'headers'
-
-`function (headers) { }`
-
-Emitted with the object of HTTP headers that are going to be written to the `Stream` as part of the handshake.
+`callback` will be added as a listener for the `listening` event when the
+HTTP server is created internally and that is when the `port` option is
+provided.
 
 ### Event: 'connection'
 
-`function (socket) { }`
+- `socket` {WebSocket}
 
-When a new WebSocket connection is established. `socket` is an object of type `WebSocket`.
-
-
-## Class: WebSocket
-
-This class represents a WebSocket connection. It is an `EventEmitter`.
-
-### new WebSocket(address, [protocols], [options])
-
-* `address` String
-* `protocols` String|Array
-* `options` Object
-  * `protocol` String
-  * `agent` Agent
-  * `headers` Object
-  * `protocolVersion` Number
-    -- the following only apply if `address` is a String
-  * `host` String
-  * `origin` String
-  * `pfx` String|Buffer
-  * `key` String|Buffer
-  * `passphrase` String
-  * `cert` String|Buffer
-  * `ca` Array
-  * `ciphers` String
-  * `rejectUnauthorized` Boolean
-  * `perMessageDeflate` Boolean|Object
-  * `localAddress` String
-
-Instantiating with an `address` creates a new WebSocket client object. If `address` is an Array (request, socket, rest), it is instantiated as a Server client (e.g. called from the `WebSocket.Server`).
-
-### options.perMessageDeflate
-
-Parameters of permessage-deflate extension which have the same form with the one for `WebSocket.Server` except the direction of requests. (e.g. `serverNoContextTakeover` is the value to be requested to the server)
-
-### websocket.bytesReceived
-
-Received bytes count.
-
-### websocket.readyState
-
-Possible states are `WebSocket.CONNECTING`, `WebSocket.OPEN`, `WebSocket.CLOSING`, `WebSocket.CLOSED`.
-
-### websocket.protocolVersion
-
-The WebSocket protocol version used for this connection, `8`, `13`.
-
-### websocket.url
-
-The URL of the WebSocket server (only for clients)
-
-### websocket.upgradeReq
-
-The http request that initiated the upgrade. Useful for parsing authorty headers, cookie headers and other information to associate a specific Websocket to a specific Client. This is only available for WebSockets constructed by a Server.
-
-### websocket.close([code], [data])
-
-Gracefully closes the connection, after sending a description message
-
-### websocket.pause()
-
-Pause the client stream
-
-### websocket.ping([data], [options], [dontFailWhenClosed])
-
-Sends a ping. `data` is sent, `options` is an object with members `mask` and `binary`. `dontFailWhenClosed` indicates whether or not to throw if the connection isnt open.
-
-### websocket.pong([data], [options], [dontFailWhenClosed])
-
-Sends a pong. `data` is sent, `options` is an object with members `mask` and `binary`. `dontFailWhenClosed` indicates whether or not to throw if the connection isnt open.
-
-
-### websocket.resume()
-
-Resume the client stream
-
-### websocket.send(data, [options], [callback])
-
-* `data` Any The data to send.
-* `options` Object An options object.
-  * `compress` Boolean Specifies whether `data` should be compressed or not.
-    Defaults to `true` when permessage-deflate is enabled.
-  * `binary` Boolean Specifies whether `data` should be sent as a binary or not.
-    Default is autodetected.
-  * `mask` Boolean Specifies whether `data` should be masked or not. Defaults
-    to `true` when `websocket` is not a server client.
-  * `fin` Boolean Specifies whether `data` is the last fragment of a message or
-    not. Defaults to `true`.
-* `callback` Function An optional callback which is invoked when the send
-  completes.
-
-Sends `data` through the connection.
-
-### websocket.stream([options], callback)
-
-Streams data through calls to a user supplied function. `options` can be an object with members `mask` and `binary`.  `callback` is executed on successive ticks of which send is `function (data, final)`.
-
-### websocket.terminate()
-
-Immediately shuts down the connection
-
-### websocket.onopen
-### websocket.onerror
-### websocket.onclose
-### websocket.onmessage
-
-Emulates the W3C Browser based WebSocket interface using function members.
-
-### websocket.addEventListener(method, listener)
-
-Emulates the W3C Browser based WebSocket interface using addEventListener.
+Emitted when the handshake is complete. `socket` is an instance of `WebSocket`.
 
 ### Event: 'error'
 
-`function (error) { }`
+- `error` {Error}
 
-If the client emits an error, this event is emitted (errors from the underlying `net.Socket` are forwarded here).
+Emitted when an error occurs on the underlying server.
+
+### Event: 'headers'
+
+- `headers` {Array}
+
+Emitted before the response headers are written to the socket as part of the
+handshake. This allows you to inspect/modify the headers before they are sent.
+
+### Event: 'listening'
+
+Emitted when the underlying server has been bound.
+
+### server.clients
+
+- {Set}
+
+A set that stores all connected clients. Please note that this property is only
+added when the `clientTracking` is truthy.
+
+### server.close([callback])
+
+Close the server and terminate all clients, calls callback when done.
+
+### server.handleUpgrade(request, socket, head, callback)
+
+- `request` {http.IncomingMessage} The client HTTP GET request.
+- `socket` {net.Socket} The network socket between the server and client.
+- `head` {Buffer} The first packet of the upgraded stream.
+- `callback` {Function}.
+
+Handle a HTTP upgrade request. When the HTTP server is created internally or
+when the HTTP server is passed via the `server` option, this method is called
+automatically. When operating in "noServer" mode, this method must be called
+manually.
+
+If the upgrade is successfull, the `callback` is called with a `WebSocket`
+object as parameter.
+
+### server.shouldHandle(request)
+
+- `request` {http.IncomingMessage} The client HTTP GET request.
+
+See if a given request should be handled by this server.
+By default this method validates the pathname of the request, matching it
+against the `path` option if provided.
+The return value, `true` or `false`, determines whether or not to accept the
+handshake.
+
+This method can be overriden when a custom handling logic is required.
+
+## Class: WebSocket
+
+This class represents a WebSocket. It extends the `EventEmitter`.
+
+### Ready state constants
+
+|Constant   | Value | Description                                      |
+|-----------|-------|--------------------------------------------------|
+|CONNECTING | 0     | The connection is not yet open.                  |
+|OPEN       | 1     | The connection is open and ready to communicate. |
+|CLOSING    | 2     | The connection is in the process of closing.     |
+|CLOSED     | 3     | The connection is closed.                        |
+
+### new WebSocket(address[, protocols][, options])
+
+- `address` {String} The URL to which to connect.
+- `protocols` {String|Array} The list of subprotocols.
+- `options` {Object}
+  - `protocol` {String} Value of the `Sec-WebSocket-Protocol` header.
+  - `perMessageDeflate` {Boolean|Object} Enable/disable permessage-deflate.
+  - `localAddress` {String} Local interface to bind for network connections.
+  - `protocolVersion` {Number} Value of the `Sec-WebSocket-Version` header.
+  - `headers` {Object} An object with custom headers to send along with the
+    request.
+  - `origin` {String} Value of the `Origin` or `Sec-WebSocket-Origin` header
+    depending on the `protocolVersion`.
+  - `agent` {http.Agent|https.Agent} Use the specified Agent,
+  - `host` {String} Value of the `Host` header.
+  - `checkServerIdentity` {Function} A function to validate the server hostname.
+  - `rejectUnauthorized` {Boolean} Verify or not the server certificate.
+  - `passphrase` {String} The passphrase for the private key or pfx.
+  - `ciphers` {String} The ciphers to use or exclude
+  - `cert` {String|Array|Buffer} The certificate key.
+  - `key` {String|Array|Buffer} The private key.
+  - `pfx` {String|Buffer} The private key, certificate, and CA certs.
+  - `ca` {Array} Trusted certificates.
+
+`perMessageDeflate` parameters are the same of the server, the only difference
+is the direction of requests (e.g. `serverNoContextTakeover` is the value to be
+requested to the server).
+
+Create a new WebSocket instance.
 
 ### Event: 'close'
 
-`function (code, message) { }`
+- `code` {Number}
+- `reason` {String}
 
-Is emitted when the connection is closed. `code` is defined in the WebSocket specification.
+Emitted when the connection is closed. `code` is a numeric value indicating the
+status code explaining why the connection has been closed. `reason` is a
+human-readable string explaining why the connection has been closed.
 
-The `close` event is also emitted when then underlying `net.Socket` closes the connection (`end` or `close`).
+### Event: 'error'
+
+- `error` {Error}
+
+Emitted when an error occurs. Errors from the underlying `net.Socket` are
+forwarded here.
 
 ### Event: 'message'
 
-`function (data, flags) { }`
+- `data` {String|Buffer}
+- `flags` {Object}
+  - `binary` {Boolean} Specifies if `data` is binary.
+  - `masked` {Boolean} Specifies if `data` was masked.
 
-Is emitted when data is received. `flags` is an object with member `binary`.
-
-### Event: 'ping'
-
-`function (data, flags) { }`
-
-Is emitted when a ping is received. `flags` is an object with member `binary`.
-
-### Event: 'pong'
-
-`function (data, flags) { }`
-
-Is emitted when a pong is received. `flags` is an object with member `binary`.
+Emitted when a message is received from the server.
 
 ### Event: 'open'
 
-`function () { }`
-
 Emitted when the connection is established.
+
+### Event: 'ping'
+
+- `data` {Buffer}
+- `flags` {Object}
+  - `binary` {Boolean} Specifies if `data` is binary.
+  - `masked` {Boolean} Specifies if `data` was masked.
+
+Emitted when a ping is received from the server.
+
+### Event: 'pong'
+
+- `data` {Buffer}
+- `flags` {Object}
+  - `binary` {Boolean} Specifies if `data` is binary.
+  - `masked` {Boolean} Specifies if `data` was masked.
+
+Emitted when a pong is received from the server.
+
+### Event: 'unexpected-response'
+
+- `request` {http.ClientRequest}
+- `response` {http.IncomingMessage}
+
+Emitted when the server response is not the expected one, for example a 401
+response. This event gives the ability to read the response in order to extract
+useful information. If the server sends an invalid response and there isn't a
+listener for this event, an error is emitted.
+
+### websocket.addEventListener(type, listener)
+
+- `type` {String} A string representing the event type to listen for.
+- `listener` {Function} The listener to add.
+
+Register an event listener emulating the `EventTarget` interface.
+
+### websocket.binaryType
+
+- {String}
+
+A string indicating the type of binary data being transmitted by the connection.
+This should be either "nodebuffer" or "arraybuffer". Defaults to "nodebuffer".
+
+### websocket.bufferedAmount
+
+- {Number}
+
+The number of bytes of data that have been queued using calls to `send()` but
+not yet transmitted to the network.
+
+### websocket.bytesReceived
+
+- {Number}
+
+Received bytes count.
+
+### websocket.close([code][, reason])
+
+- `code` {Number} A numeric value indicating the status code explaining why
+  the connection is being closed.
+- `reason` {String} A human-readable string explaining why the connection is
+  closing.
+
+Initiate a closing handshake.
+
+### websocket.extensions
+
+- {Object}
+
+An object containing the negotiated extensions.
+
+### websocket.onclose
+
+- {Function}
+
+An event listener to be called when connection is closed. The listener receives
+a `CloseEvent` named "close".
+
+### websocket.onerror
+
+- {Function}
+
+An event listener to be called when an error occurs. The listener receives
+an `Error` instance.
+
+### websocket.onmessage
+
+- {Function}
+
+An event listener to be called when a message is received from the server. The
+listener receives a `MessageEvent` named "message".
+
+### websocket.onopen
+
+- {Function}
+
+An event listener to be called when the connection is established. The listener
+receives an `OpenEvent` named "open".
+
+### websocket.pause()
+
+Pause the socket.
+
+### websocket.ping([data[, options[, dontFailWhenClosed]]])
+
+- `data` {Any} The data to send in the ping frame.
+- `options` {Object}
+  - `mask` {Boolean} Specifies whether `data` should be masked or not. Defaults
+    to `true` when `websocket` is not a server client.
+- `dontFailWhenClosed` {Boolean} Specifies whether or not to throw an error if
+  the connection is not open.
+
+Send a ping.
+
+### websocket.pong([data[, options[, dontFailWhenClosed]]])
+
+- `data` {Any} The data to send in the ping frame.
+- `options` {Object}
+  - `mask` {Boolean} Specifies whether `data` should be masked or not. Defaults
+    to `true` when `websocket` is not a server client.
+- `dontFailWhenClosed` {Boolean} Specifies whether or not to throw an error if
+  the connection is not open.
+
+Send a pong.
+
+### websocket.protocol
+
+- {String}
+
+The subprotocol selected by the server.
+
+### websocket.protocolVersion
+
+- {Number}
+
+The WebSocket protocol version used for this connection, 8 or 13.
+
+### websocket.readyState
+
+- {Number}
+
+The current state of the connection. This is one of the ready state constants.
+
+### websocket.removeEventListener(type, listener)
+
+- `type` {String} A string representing the event type to remove.
+- `listener` {Function} The listener to remove.
+
+Removes an event listener emulating the `EventTarget` interface.
+
+### websocket.resume()
+
+Resume the socket
+
+### websocket.send(data, [options][, callback])
+
+- `data` {Any} The data to send.
+- `options` {Object}
+  - `compress` {Boolean} Specifies whether `data` should be compressed or not.
+    Defaults to `true` when permessage-deflate is enabled.
+  - `binary` {Boolean} Specifies whether `data` should be sent as a binary or not.
+    Default is autodetected.
+  - `mask` {Boolean} Specifies whether `data` should be masked or not. Defaults
+    to `true` when `websocket` is not a server client.
+  - `fin` {Boolean} Specifies whether `data` is the last fragment of a message or
+    not. Defaults to `true`.
+- `callback` {Function} An optional callback which is invoked when `data` is
+  written out.
+
+Sends `data` through the connection.
+
+### websocket.terminate()
+
+Send a FIN packet to the other peer.
+
+### websocket.upgradeReq
+
+- {http.IncomingMessage}
+
+The http GET request sent by the client. Useful for parsing authorty headers,
+cookie headers, and other information. This is only available for server clients.
+
+### websocket.url
+
+- {String}
+
+The URL of the WebSocket server. Server clients don't have this attribute.
+
+[permessage-deflate]: https://tools.ietf.org/html/draft-ietf-hybi-permessage-compression-19
