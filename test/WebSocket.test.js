@@ -945,7 +945,7 @@ describe('WebSocket', function () {
       server.createServer(++port, (srv) => {
         const ws = new WebSocket(`ws://localhost:${port}`);
 
-        ws.on('open', () => ws.close(1000, 'some reason', { mask: true }));
+        ws.on('open', () => ws.close(1000, 'some reason'));
 
         srv.on('close', (code, message, flags) => {
           assert.ok(flags.masked);
@@ -963,7 +963,7 @@ describe('WebSocket', function () {
 
         ws.on('open', () => {
           connectedOnce = true;
-          ws.close(1000, 'some reason', {mask: true});
+          ws.close(1000, 'some reason');
         });
 
         ws.on('close', () => {
@@ -974,27 +974,27 @@ describe('WebSocket', function () {
       });
     });
 
-    it('consumes all data when the server socket closed', function (done) {
-      const wss = new WebSocketServer({ port: ++port }, () => {
-        wss.on('connection', (conn) => {
-          conn.send('foo');
-          conn.send('bar');
-          conn.send('baz');
-          conn.close();
-        });
-
+    it('permits all buffered data to be delivered', function (done) {
+      const wss = new WebSocketServer({
+        perMessageDeflate: { threshold: 0 },
+        port: ++port
+      }, () => {
         const ws = new WebSocket(`ws://localhost:${port}`);
         const messages = [];
 
-        ws.on('message', (message) => {
-          messages.push(message);
-          if (messages.length === 3) {
-            assert.deepStrictEqual(messages, ['foo', 'bar', 'baz']);
-
-            wss.close(done);
-            ws.terminate();
-          }
+        ws.on('message', (message) => messages.push(message));
+        ws.on('close', (code) => {
+          assert.strictEqual(code, 1000);
+          assert.deepStrictEqual(messages, ['foo', 'bar', 'baz']);
+          wss.close(done);
         });
+      });
+
+      wss.on('connection', (ws) => {
+        ws.send('foo');
+        ws.send('bar');
+        ws.send('baz');
+        ws.close();
       });
     });
 
@@ -1610,6 +1610,30 @@ describe('WebSocket', function () {
 
       wss.on('connection', (ws) => {
         ws.on('message', (message) => ws.send(message, { compress: true }));
+      });
+    });
+
+    it('consumes all received data when connection is closed abnormally', function (done) {
+      const wss = new WebSocketServer({
+        perMessageDeflate: { threshold: 0 },
+        port: ++port
+      }, () => {
+        const ws = new WebSocket(`ws://localhost:${port}`);
+        const messages = [];
+
+        ws.on('message', (message) => messages.push(message));
+        ws.on('close', (code) => {
+          assert.strictEqual(code, 1006);
+          assert.deepStrictEqual(messages, ['foo', 'bar', 'baz', 'qux']);
+          wss.close(done);
+        });
+      });
+
+      wss.on('connection', (ws) => {
+        ws.send('foo');
+        ws.send('bar');
+        ws.send('baz');
+        ws.send('qux', () => ws._socket.end());
       });
     });
 

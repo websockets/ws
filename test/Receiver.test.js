@@ -538,7 +538,7 @@ describe('Receiver', function () {
     p.add(Buffer.from([0x88, 0x01, 0x00]));
   });
 
-  it('raises an error if a close frame contains a invalid close code', function (done) {
+  it('raises an error if a close frame contains an invalid close code', function (done) {
     const p = new Receiver();
 
     p.error = function (err, code) {
@@ -582,7 +582,7 @@ describe('Receiver', function () {
     p.add(Buffer.from(frame, 'hex'));
   });
 
-  it('raises an error on a 200 KiB long unmasked binary message when maxpayload is 20 KiB', function (done) {
+  it('raises an error on a 200 KiB long unmasked binary message when `maxPayload` is 20 KiB', function (done) {
     const p = new Receiver({}, 20 * 1024);
     const msg = crypto.randomBytes(200 * 1024);
 
@@ -650,13 +650,9 @@ describe('Receiver', function () {
     });
   });
 
-  it('will not crash if another message is received after receiving a message that exceeds maxpayload', function (done) {
-    const perMessageDeflate = new PerMessageDeflate({}, false, 2);
-    perMessageDeflate.accept([{}]);
-
-    const p = new Receiver({ 'permessage-deflate': perMessageDeflate }, 2);
-    const buf1 = Buffer.from('foooooooooooooooooooooooooooooooooooooooooooooo');
-    const buf2 = Buffer.from('baaaarrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr');
+  it('doesn\'t crash if data is received after `maxPayload` is exceeded', function (done) {
+    const p = new Receiver({}, 5);
+    const buf = crypto.randomBytes(10);
 
     let gotError = false;
 
@@ -665,46 +661,140 @@ describe('Receiver', function () {
       assert.strictEqual(code, 1009);
     };
 
-    perMessageDeflate.compress(buf1, false, function (err, compressed1) {
-      if (err) return done(err);
+    p.add(Buffer.from([0x82, buf.length]));
 
-      p.add(Buffer.from([0x41, compressed1.length]));
-      p.add(compressed1);
+    assert.ok(gotError);
+    assert.strictEqual(p.onerror, null);
 
-      assert.ok(gotError);
-      assert.strictEqual(p.onerror, null);
-
-      perMessageDeflate.compress(buf2, true, function (err, compressed2) {
-        if (err) return done(err);
-
-        p.add(Buffer.from([0x80, compressed2.length]));
-        p.add(compressed2);
-        done();
-      });
-    });
+    p.add(buf);
+    done();
   });
 
-  it('can cleanup when consuming data', function (done) {
+  it('consumes all data before calling `cleanup` callback (1/4)', function (done) {
     const perMessageDeflate = new PerMessageDeflate();
     perMessageDeflate.accept([{}]);
 
     const p = new Receiver({ 'permessage-deflate': perMessageDeflate });
     const buf = Buffer.from('Hello');
+    const results = [];
 
-    perMessageDeflate.compress(buf, true, function (err, compressed) {
+    p.onmessage = (message) => results.push(message);
+
+    perMessageDeflate.compress(buf, true, (err, data) => {
       if (err) return done(err);
 
-      const data = Buffer.concat([Buffer.from([0xc1, compressed.length]), compressed]);
+      const frame = Buffer.concat([Buffer.from([0xc1, data.length]), data]);
 
-      p.add(data);
-      p.add(data);
+      p.add(frame);
+      p.add(frame);
 
       assert.strictEqual(p.state, 5);
-      assert.strictEqual(p.bufferedBytes, data.length);
+      assert.strictEqual(p.bufferedBytes, frame.length);
 
-      p.cleanup();
+      p.cleanup(() => {
+        assert.deepStrictEqual(results, ['Hello', 'Hello']);
+        assert.strictEqual(p.onmessage, null);
+        done();
+      });
+    });
+  });
 
-      perMessageDeflate._inflate.flush(done);
+  it('consumes all data before calling `cleanup` callback (2/4)', function (done) {
+    const perMessageDeflate = new PerMessageDeflate();
+    perMessageDeflate.accept([{}]);
+
+    const p = new Receiver({ 'permessage-deflate': perMessageDeflate });
+    const buf = Buffer.from('Hello');
+    const results = [];
+
+    p.onclose = (code, reason) => results.push(code, reason);
+    p.onmessage = (message) => results.push(message);
+
+    perMessageDeflate.compress(buf, true, (err, data) => {
+      if (err) return done(err);
+
+      const textFrame = Buffer.concat([Buffer.from([0xc1, data.length]), data]);
+      const closeFrame = Buffer.from([0x88, 0x00]);
+
+      p.add(textFrame);
+      p.add(textFrame);
+      p.add(closeFrame);
+
+      assert.strictEqual(p.state, 5);
+      assert.strictEqual(p.bufferedBytes, textFrame.length + closeFrame.length);
+
+      p.cleanup(() => {
+        assert.deepStrictEqual(results, ['Hello', 'Hello', 1000, '']);
+        assert.strictEqual(p.onmessage, null);
+        done();
+      });
+    });
+  });
+
+  it('consumes all data before calling `cleanup` callback (3/4)', function (done) {
+    const perMessageDeflate = new PerMessageDeflate();
+    perMessageDeflate.accept([{}]);
+
+    const p = new Receiver({ 'permessage-deflate': perMessageDeflate });
+    const buf = Buffer.from('Hello');
+    const results = [];
+
+    p.onerror = (err, code) => results.push(err.message, code);
+    p.onmessage = (message) => results.push(message);
+
+    perMessageDeflate.compress(buf, true, (err, data) => {
+      if (err) return done(err);
+
+      const textFrame = Buffer.concat([Buffer.from([0xc1, data.length]), data]);
+      const invalidFrame = Buffer.from([0xa0, 0x00]);
+
+      p.add(textFrame);
+      p.add(textFrame);
+      p.add(invalidFrame);
+
+      assert.strictEqual(p.state, 5);
+      assert.strictEqual(p.bufferedBytes, textFrame.length + invalidFrame.length);
+
+      p.cleanup(() => {
+        assert.deepStrictEqual(results, [
+          'Hello',
+          'Hello',
+          'RSV2 and RSV3 must be clear',
+          1002
+        ]);
+        assert.strictEqual(p.onmessage, null);
+        done();
+      });
+    });
+  });
+
+  it('consumes all data before calling `cleanup` callback (4/4)', function (done) {
+    const perMessageDeflate = new PerMessageDeflate();
+    perMessageDeflate.accept([{}]);
+
+    const p = new Receiver({ 'permessage-deflate': perMessageDeflate });
+    const buf = Buffer.from('Hello');
+    const results = [];
+
+    p.onmessage = (message) => results.push(message);
+
+    perMessageDeflate.compress(buf, true, (err, data) => {
+      if (err) return done(err);
+
+      const textFrame = Buffer.concat([Buffer.from([0xc1, data.length]), data]);
+      const incompleteFrame = Buffer.from([0x82, 0x0a, 0x00, 0x00]);
+
+      p.add(textFrame);
+      p.add(incompleteFrame);
+
+      assert.strictEqual(p.state, 5);
+      assert.strictEqual(p.bufferedBytes, incompleteFrame.length);
+
+      p.cleanup(() => {
+        assert.deepStrictEqual(results, ['Hello']);
+        assert.strictEqual(p.onmessage, null);
+        done();
+      });
     });
   });
 });
