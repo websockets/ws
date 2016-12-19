@@ -692,7 +692,7 @@ describe('Receiver', function () {
 
   it('can cleanup when consuming data', function (done) {
     const perMessageDeflate = new PerMessageDeflate();
-    perMessageDeflate.accept([{}]);
+    perMessageDeflate.accept([{ server_no_context_takeover: [true] }]);
 
     const p = new Receiver({ 'permessage-deflate': perMessageDeflate });
     const buf = Buffer.from('Hello');
@@ -701,11 +701,15 @@ describe('Receiver', function () {
       if (err) return done(err);
 
       const data = Buffer.concat([Buffer.from([0xc1, compressed.length]), compressed]);
+
       p.add(data);
       p.add(data);
-      p.add(data);
+
+      assert.strictEqual(p.state, 5);
+      assert.strictEqual(p.bufferedBytes, data.length);
+
+      perMessageDeflate._inflate.on('close', done);
       p.cleanup();
-      setTimeout(done, 1000);
     });
   });
 });

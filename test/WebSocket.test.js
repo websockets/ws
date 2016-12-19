@@ -1523,11 +1523,11 @@ describe('WebSocket', function () {
       server.on('upgrade', (req, socket, head) => {
         const extensions = req.headers['sec-websocket-extensions'];
 
-        assert.notStrictEqual(extensions.indexOf('permessage-deflate'), -1);
-        assert.notStrictEqual(extensions.indexOf('server_no_context_takeover'), -1);
-        assert.notStrictEqual(extensions.indexOf('client_no_context_takeover'), -1);
-        assert.notStrictEqual(extensions.indexOf('server_max_window_bits=10'), -1);
-        assert.notStrictEqual(extensions.indexOf('client_max_window_bits'), -1);
+        assert.ok(extensions.includes('permessage-deflate'));
+        assert.ok(extensions.includes('server_no_context_takeover'));
+        assert.ok(extensions.includes('client_no_context_takeover'));
+        assert.ok(extensions.includes('server_max_window_bits=10'));
+        assert.ok(extensions.includes('client_max_window_bits'));
       });
 
       server.listen(++port, () => {
@@ -1549,25 +1549,22 @@ describe('WebSocket', function () {
 
     it('can send and receive text data', function (done) {
       const wss = new WebSocketServer({
-        perMessageDeflate: true,
+        perMessageDeflate: { threshold: 0 },
         port: ++port
       }, () => {
         const ws = new WebSocket(`ws://localhost:${port}`, {
-          perMessageDeflate: true
+          perMessageDeflate: { threshold: 0 }
         });
 
         ws.on('open', () => ws.send('hi', { compress: true }));
-        ws.on('message', (message, flags) => {
+        ws.on('message', (message) => {
           assert.strictEqual(message, 'hi');
-          wss.close();
-          done();
+          wss.close(done);
         });
       });
 
       wss.on('connection', (ws) => {
-        ws.on('message', (message, flags) => ws.send(message, {
-          compress: true
-        }));
+        ws.on('message', (message) => ws.send(message, { compress: true }));
       });
     });
 
@@ -1579,25 +1576,22 @@ describe('WebSocket', function () {
       }
 
       const wss = new WebSocketServer({
-        perMessageDeflate: true,
+        perMessageDeflate: { threshold: 0 },
         port: ++port
       }, () => {
         const ws = new WebSocket(`ws://localhost:${port}`, {
-          perMessageDeflate: true
+          perMessageDeflate: { threshold: 0 }
         });
 
         ws.on('open', () => ws.send(array, { compress: true }));
-        ws.on('message', (message, flags) => {
+        ws.on('message', (message) => {
           assert.ok(message.equals(Buffer.from(array.buffer)));
-          wss.close();
-          done();
+          wss.close(done);
         });
       });
 
       wss.on('connection', (ws) => {
-        ws.on('message', (message, flags) => ws.send(message, {
-          compress: true
-        }));
+        ws.on('message', (message) => ws.send(message, { compress: true }));
       });
     });
 
@@ -1609,25 +1603,22 @@ describe('WebSocket', function () {
       }
 
       const wss = new WebSocketServer({
-        perMessageDeflate: true,
+        perMessageDeflate: { threshold: 0 },
         port: ++port
       }, () => {
         const ws = new WebSocket(`ws://localhost:${port}`, {
-          perMessageDeflate: true
+          perMessageDeflate: { threshold: 0 }
         });
 
         ws.on('open', () => ws.send(array.buffer, { compress: true }));
-        ws.on('message', (message, flags) => {
+        ws.on('message', (message) => {
           assert.ok(message.equals(Buffer.from(array.buffer)));
-          wss.close();
-          done();
+          wss.close(done);
         });
       });
 
       wss.on('connection', (ws) => {
-        ws.on('message', (message, flags) => ws.send(message, {
-          compress: true
-        }));
+        ws.on('message', (message) => ws.send(message, { compress: true }));
       });
     });
 
@@ -1639,17 +1630,14 @@ describe('WebSocket', function () {
           });
 
           ws.on('open', () => ws.send('hi', { compress: true }));
-          ws.on('message', (message, flags) => {
+          ws.on('message', (message) => {
             assert.strictEqual(message, 'hi');
-            wss.close();
-            done();
+            wss.close(done);
           });
         });
 
         wss.on('connection', (ws) => {
-          ws.on('message', (message, flags) => ws.send(message, {
-            compress: true
-          }));
+          ws.on('message', (message) => ws.send(message, { compress: true }));
         });
       });
     });
@@ -1657,27 +1645,26 @@ describe('WebSocket', function () {
     describe('#close', function () {
       it('should not raise error callback, if any, if called during send data', function (done) {
         const wss = new WebSocketServer({
-          perMessageDeflate: true,
+          perMessageDeflate: { threshold: 0 },
           port: ++port
         }, () => {
           const ws = new WebSocket(`ws://localhost:${port}`, {
-            perMessageDeflate: true
+            perMessageDeflate: { threshold: 0 }
           });
-          let errorGiven = false;
 
           ws.on('open', () => {
-            ws.send('hi', (error) => {
-              errorGiven = !!error;
-            });
+            ws.send('hi', (error) => assert.ifError(error));
             ws.close();
           });
+        });
 
-          ws.on('close', () => {
-            setTimeout(() => {
-              assert.ok(!errorGiven);
-              wss.close();
-              done();
-            }, 1000);
+        wss.on('connection', (ws) => {
+          ws.on('message', (message) => {
+            assert.strictEqual(message, 'hi');
+            ws.on('close', (code) => {
+              assert.strictEqual(code, 1000);
+              wss.close(done);
+            });
           });
         });
       });
@@ -1686,52 +1673,42 @@ describe('WebSocket', function () {
     describe('#terminate', function () {
       it('will raise error callback, if any, if called during send data', function (done) {
         const wss = new WebSocketServer({
-          perMessageDeflate: true,
+          perMessageDeflate: { threshold: 0 },
           port: ++port
         }, () => {
           const ws = new WebSocket(`ws://localhost:${port}`, {
             perMessageDeflate: { threshold: 0 }
           });
-          let errorGiven = false;
 
           ws.on('open', () => {
             ws.send('hi', (error) => {
-              errorGiven = !!error;
+              assert.ok(error instanceof Error);
+              wss.close(done);
             });
             ws.terminate();
-          });
-
-          ws.on('close', () => {
-            setTimeout(() => {
-              assert.ok(errorGiven);
-              wss.close();
-              done();
-            }, 1000);
           });
         });
       });
 
       it('can call during receiving data', function (done) {
         const wss = new WebSocketServer({
-          perMessageDeflate: true,
+          perMessageDeflate: { threshold: 0 },
           port: ++port
         }, () => {
           const ws = new WebSocket(`ws://localhost:${port}`, {
-            perMessageDeflate: true
+            perMessageDeflate: { threshold: 0 }
           });
 
           wss.on('connection', (client) => {
             for (let i = 0; i < 10; i++) {
               client.send('hi');
             }
-            client.send('hi', () => ws.terminate());
-          });
-
-          ws.on('close', () => {
-            setTimeout(() => {
-              wss.close();
-              done();
-            }, 1000);
+            client.send('hi', () => {
+              ws.extensions['permessage-deflate']._inflate.on('close', () => {
+                wss.close(done);
+              });
+              ws.terminate();
+            });
           });
         });
       });
