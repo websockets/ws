@@ -2,6 +2,7 @@
   "author": "Einar Otto Stangvik <einaros@gmail.com> (http://2x.io)",
   "name": "ws",
   "description": "simple to use, blazing fast and thoroughly tested websocket client, server and console for node.js, up-to-date against RFC-6455",
+  "typings": "type-definitions/ws.d.ts",
   "version": "1.1.0",
   "license": "MIT",
   "main": "index.js",
