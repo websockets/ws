@@ -17,7 +17,7 @@ describe('Receiver', function () {
   it('can parse unmasked text message', function (done) {
     const p = new Receiver();
 
-    p.ontext = function (data) {
+    p.onmessage = function (data) {
       assert.strictEqual(data, 'Hello');
       done();
     };
@@ -40,7 +40,7 @@ describe('Receiver', function () {
   it('can parse masked text message', function (done) {
     const p = new Receiver();
 
-    p.ontext = function (data) {
+    p.onmessage = function (data) {
       assert.strictEqual(data, '5:::{"name":"echo"}');
       done();
     };
@@ -56,7 +56,7 @@ describe('Receiver', function () {
     const frame = Buffer.from('81FE' + util.pack(4, msg.length) + mask +
       util.mask(msg, mask).toString('hex'), 'hex');
 
-    p.ontext = function (data) {
+    p.onmessage = function (data) {
       assert.strictEqual(data, msg);
       done();
     };
@@ -73,7 +73,7 @@ describe('Receiver', function () {
     const frame = '81FF' + util.pack(16, msg.length) + mask +
       util.mask(msg, mask).toString('hex');
 
-    p.ontext = function (data) {
+    p.onmessage = function (data) {
       assert.strictEqual(data, msg);
       done();
     };
@@ -94,7 +94,7 @@ describe('Receiver', function () {
     const frame2 = '80FE' + util.pack(4, fragment2.length) + mask +
       util.mask(fragment2, mask).toString('hex');
 
-    p.ontext = function (data) {
+    p.onmessage = function (data) {
       assert.strictEqual(data, msg);
       done();
     };
@@ -148,7 +148,7 @@ describe('Receiver', function () {
 
     let gotPing = false;
 
-    p.ontext = function (data) {
+    p.onmessage = function (data) {
       assert.strictEqual(data, msg);
       assert.ok(gotPing);
       done();
@@ -187,7 +187,7 @@ describe('Receiver', function () {
 
     let gotPing = false;
 
-    p.ontext = function (data) {
+    p.onmessage = function (data) {
       assert.strictEqual(data, msg);
       assert.ok(gotPing);
       done();
@@ -210,8 +210,8 @@ describe('Receiver', function () {
     const frame = '82' + util.getHybiLengthAsHexString(msg.length, true) + mask +
       util.mask(msg, mask).toString('hex');
 
-    p.onbinary = function (data) {
-      assert.deepStrictEqual(data.toString('hex'), msg.toString('hex'));
+    p.onmessage = function (data) {
+      assert.ok(data.equals(msg));
       done();
     };
 
@@ -226,8 +226,8 @@ describe('Receiver', function () {
     const frame = '82' + util.getHybiLengthAsHexString(msg.length, true) + mask +
       util.mask(msg, mask).toString('hex');
 
-    p.onbinary = function (data) {
-      assert.deepStrictEqual(data, msg);
+    p.onmessage = function (data) {
+      assert.ok(data.equals(msg));
       done();
     };
 
@@ -242,8 +242,8 @@ describe('Receiver', function () {
     const frame = '82' + util.getHybiLengthAsHexString(msg.length, true) + mask +
       util.mask(msg, mask).toString('hex');
 
-    p.onbinary = function (data) {
-      assert.deepStrictEqual(data, msg);
+    p.onmessage = function (data) {
+      assert.ok(data.equals(msg));
       done();
     };
 
@@ -257,8 +257,8 @@ describe('Receiver', function () {
     const frame = '82' + util.getHybiLengthAsHexString(msg.length, false) +
       msg.toString('hex');
 
-    p.onbinary = function (data) {
-      assert.deepStrictEqual(data, msg);
+    p.onmessage = function (data) {
+      assert.ok(data.equals(msg));
       done();
     };
 
@@ -272,7 +272,7 @@ describe('Receiver', function () {
     const p = new Receiver({ 'permessage-deflate': perMessageDeflate });
     const buf = Buffer.from('Hello');
 
-    p.ontext = function (data) {
+    p.onmessage = function (data) {
       assert.strictEqual(data, 'Hello');
       done();
     };
@@ -293,7 +293,7 @@ describe('Receiver', function () {
     const buf1 = Buffer.from('foo');
     const buf2 = Buffer.from('bar');
 
-    p.ontext = function (data) {
+    p.onmessage = function (data) {
       assert.strictEqual(data, 'foobar');
       done();
     };

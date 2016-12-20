@@ -62,14 +62,9 @@ function validServer (server, req, socket) {
 
   receiver.onping = (message, flags) => server.emit('ping', message, flags);
   receiver.onpong = (message, flags) => server.emit('pong', message, flags);
-  receiver.ontext = (message, flags) => {
+  receiver.onmessage = (message, flags) => {
     server.emit('message', message, flags);
-    sender.send(message, { fin: true });
-  };
-  receiver.onbinary = (message, flags) => {
-    flags.binary = true;
-    server.emit('message', message, flags);
-    sender.send(message, { binary: true, fin: true });
+    sender.send(message, { binary: flags.binary, fin: true });
   };
   receiver.onclose = (code, message, flags) => {
     sender.close(code, message, false, () => {
