@@ -339,5 +339,36 @@ describe('PerMessageDeflate', function () {
         });
       });
     });
+
+    it('should call the callback when an error occurs (inflate)', function (done) {
+      const perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
+      const data = Buffer.from('something invalid');
+
+      perMessageDeflate.accept([{}]);
+      perMessageDeflate.decompress(data, true, (err) => {
+        assert.ok(err instanceof Error);
+        assert.strictEqual(err.errno, -3);
+        done();
+      });
+    });
+
+    it('should not call the callback twice when `maxPayload` is exceeded', function (done) {
+      const perMessageDeflate = new PerMessageDeflate({ threshold: 0 }, false, 25);
+      const buf = Buffer.from('A'.repeat(50));
+      const errors = [];
+
+      perMessageDeflate.accept([{}]);
+      perMessageDeflate.compress(buf, true, (err, data) => {
+        if (err) return done(err);
+
+        perMessageDeflate.decompress(data, true, (err) => errors.push(err));
+        perMessageDeflate._inflate.flush(() => {
+          assert.strictEqual(errors.length, 1);
+          assert.ok(errors[0] instanceof Error);
+          assert.strictEqual(errors[0].message, 'max payload size exceeded');
+          done();
+        });
+      });
+    });
   });
 });
