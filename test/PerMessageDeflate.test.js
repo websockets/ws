@@ -6,12 +6,6 @@ const PerMessageDeflate = require('../lib/PerMessageDeflate');
 const Extensions = require('../lib/Extensions');
 
 describe('PerMessageDeflate', function () {
-  describe('#ctor', function () {
-    it('throws TypeError when called without new', function () {
-      assert.throws(PerMessageDeflate, TypeError);
-    });
-  });
-
   describe('#offer', function () {
     it('should create default params', function () {
       const perMessageDeflate = new PerMessageDeflate();

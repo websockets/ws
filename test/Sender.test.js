@@ -6,12 +6,6 @@ const PerMessageDeflate = require('../lib/PerMessageDeflate');
 const Sender = require('../lib/Sender');
 
 describe('Sender', function () {
-  describe('#ctor', function () {
-    it('throws TypeError when called without new', function () {
-      assert.throws(Sender, TypeError);
-    });
-  });
-
   describe('#frameAndSend', function () {
     it('does not modify a masked binary buffer', function () {
       const sender = new Sender({ write: () => {} });

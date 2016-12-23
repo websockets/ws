@@ -8,12 +8,6 @@ const Receiver = require('../lib/Receiver');
 const util = require('./hybi-util');
 
 describe('Receiver', function () {
-  describe('#ctor', function () {
-    it('throws TypeError when called without new', function () {
-      assert.throws(Receiver, TypeError);
-    });
-  });
-
   it('can parse unmasked text message', function (done) {
     const p = new Receiver();
 
@@ -692,7 +686,7 @@ describe('Receiver', function () {
 
   it('can cleanup when consuming data', function (done) {
     const perMessageDeflate = new PerMessageDeflate();
-    perMessageDeflate.accept([{ server_no_context_takeover: [true] }]);
+    perMessageDeflate.accept([{}]);
 
     const p = new Receiver({ 'permessage-deflate': perMessageDeflate });
     const buf = Buffer.from('Hello');
@@ -708,8 +702,9 @@ describe('Receiver', function () {
       assert.strictEqual(p.state, 5);
       assert.strictEqual(p.bufferedBytes, data.length);
 
-      perMessageDeflate._inflate.on('close', done);
       p.cleanup();
+
+      perMessageDeflate._inflate.flush(done);
     });
   });
 });
