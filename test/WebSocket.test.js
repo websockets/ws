@@ -1390,65 +1390,56 @@ describe('WebSocket', function () {
 
   describe('host and origin headers', function () {
     it('includes the host header with port number', function (done) {
-      const server = http.createServer();
+      const agent = new CustomAgent();
 
-      server.listen(++port, () => {
-        server.on('upgrade', (req, socket, head) => {
-          assert.strictEqual(req.headers.host, `localhost:${port}`);
-          server.close(done);
-          socket.destroy();
-        });
+      agent.addRequest = (req) => {
+        assert.strictEqual(req._headers.host, `localhost:${port}`);
+        done();
+      };
 
-        const ws = new WebSocket(`ws://localhost:${port}`);
-      });
+      const ws = new WebSocket(`ws://localhost:${port}`, { agent });
     });
 
     it('lacks default origin header', function (done) {
-      const server = http.createServer();
+      const agent = new CustomAgent();
 
-      server.listen(++port, () => {
-        server.on('upgrade', (req, socket, head) => {
-          assert.strictEqual(req.headers.origin, undefined);
-          server.close(done);
-          socket.destroy();
-        });
+      agent.addRequest = (req) => {
+        assert.strictEqual(req._headers.origin, undefined);
+        done();
+      };
 
-        const ws = new WebSocket(`ws://localhost:${port}`);
-      });
+      const ws = new WebSocket(`ws://localhost:${port}`, { agent });
     });
 
     it('honors origin set in options (1/2)', function (done) {
-      const server = http.createServer();
+      const agent = new CustomAgent();
 
-      server.listen(++port, () => {
-        const options = { origin: 'https://example.com:8000' };
+      agent.addRequest = (req) => {
+        assert.strictEqual(req._headers.origin, 'https://example.com:8000');
+        done();
+      };
 
-        server.on('upgrade', (req, socket, head) => {
-          assert.strictEqual(req.headers.origin, options.origin);
-          server.close(done);
-          socket.destroy();
-        });
-
-        const ws = new WebSocket(`ws://localhost:${port}`, options);
+      const ws = new WebSocket(`ws://localhost:${port}`, {
+        origin: 'https://example.com:8000',
+        agent
       });
     });
 
     it('honors origin set in options (2/2)', function (done) {
-      const server = http.createServer();
+      const agent = new CustomAgent();
 
-      server.listen(++port, () => {
-        const options = {
-          origin: 'https://example.com:8000',
-          protocolVersion: 8
-        };
+      agent.addRequest = (req) => {
+        assert.strictEqual(
+          req._headers['sec-websocket-origin'],
+          'https://example.com:8000'
+        );
+        done();
+      };
 
-        server.on('upgrade', (req, socket, head) => {
-          assert.strictEqual(req.headers['sec-websocket-origin'], options.origin);
-          server.close(done);
-          socket.destroy();
-        });
-
-        const ws = new WebSocket(`ws://localhost:${port}`, options);
+      const ws = new WebSocket(`ws://localhost:${port}`, {
+        origin: 'https://example.com:8000',
+        protocolVersion: 8,
+        agent
       });
     });
 
