@@ -396,7 +396,7 @@ Send a FIN packet to the other peer.
 
 - {http.IncomingMessage}
 
-The http GET request sent by the client. Useful for parsing authorty headers,
+The http GET request sent by the client. Useful for parsing authority headers,
 cookie headers, and other information. This is only available for server clients.
 
 ### websocket.url
