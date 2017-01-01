@@ -309,39 +309,50 @@ describe('Receiver', function () {
 
   it('resets `totalPayloadLength` only on final frame (unfragmented)', function () {
     const p = new Receiver({}, 10);
+    let message;
+
+    p.onmessage = function (msg) {
+      message = msg;
+    };
 
     assert.strictEqual(p.totalPayloadLength, 0);
     p.add(Buffer.from('810548656c6c6f', 'hex'));
     assert.strictEqual(p.totalPayloadLength, 0);
+    assert.strictEqual(message, 'Hello');
   });
 
   it('resets `totalPayloadLength` only on final frame (fragmented)', function () {
     const p = new Receiver({}, 10);
+    let message;
 
-    const frame1 = '01024865';
-    const frame2 = '80036c6c6f';
+    p.onmessage = function (msg) {
+      message = msg;
+    };
 
     assert.strictEqual(p.totalPayloadLength, 0);
-    p.add(Buffer.from(frame1, 'hex'));
+    p.add(Buffer.from('01024865', 'hex'));
     assert.strictEqual(p.totalPayloadLength, 2);
-    p.add(Buffer.from(frame2, 'hex'));
+    p.add(Buffer.from('80036c6c6f', 'hex'));
     assert.strictEqual(p.totalPayloadLength, 0);
+    assert.strictEqual(message, 'Hello');
   });
 
   it('resets `totalPayloadLength` only on final frame (fragmented + ping)', function () {
     const p = new Receiver({}, 10);
+    const data = [];
 
-    const frame1 = '01024865';
-    const frame2 = '8900';
-    const frame3 = '80036c6c6f';
+    p.onmessage = p.onping = function (buf) {
+      data.push(buf.toString());
+    };
 
     assert.strictEqual(p.totalPayloadLength, 0);
-    p.add(Buffer.from(frame1, 'hex'));
+    p.add(Buffer.from('02024865', 'hex'));
     assert.strictEqual(p.totalPayloadLength, 2);
-    p.add(Buffer.from(frame2, 'hex'));
+    p.add(Buffer.from('8900', 'hex'));
     assert.strictEqual(p.totalPayloadLength, 2);
-    p.add(Buffer.from(frame3, 'hex'));
+    p.add(Buffer.from('80036c6c6f', 'hex'));
     assert.strictEqual(p.totalPayloadLength, 0);
+    assert.deepStrictEqual(data, ['', 'Hello']);
   });
 
   it('raises an error when RSV1 is on and permessage-deflate is disabled', function (done) {
