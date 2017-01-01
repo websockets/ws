@@ -43,8 +43,10 @@ const binaryDataPacket2 = createBinaryPacket(65535);
 const binaryDataPacket3 = createBinaryPacket(200 * 1024);
 const binaryDataPacket4 = createBinaryPacket(1024 * 1024);
 
-const receiver = new Receiver();
 const suite = new benchmark.Suite();
+const receiver = new Receiver();
+
+receiver.onmessage = receiver.onclose = receiver.onping = () => {};
 
 suite.add('ping message', () => receiver.add(pingPacket1));
 suite.add('ping with no data', () => receiver.add(pingPacket2));
