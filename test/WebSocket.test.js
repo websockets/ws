@@ -491,7 +491,7 @@ describe('WebSocket', function () {
         const ws = new WebSocket(`ws://localhost:${port}`);
 
         ws.on('error', () => {});
-        ws.ping('', {}, true);
+        ws.ping('', true, true);
 
         srv.close(done);
         ws.terminate();
@@ -550,7 +550,7 @@ describe('WebSocket', function () {
 
         const ws = new WebSocket(`ws://localhost:${port}`);
 
-        ws.on('open', () => ws.ping('hi', { mask: true }));
+        ws.on('open', () => ws.ping('hi', true));
       });
     });
   });
@@ -576,7 +576,7 @@ describe('WebSocket', function () {
         const ws = new WebSocket(`ws://localhost:${port}`);
 
         ws.on('error', () => {});
-        ws.pong('', {}, true);
+        ws.pong('', true, true);
 
         srv.close(done);
         ws.terminate();
@@ -621,7 +621,7 @@ describe('WebSocket', function () {
 
         const ws = new WebSocket(`ws://localhost:${port}`);
 
-        ws.on('open', () => ws.pong('hi', { mask: true }));
+        ws.on('open', () => ws.pong('hi', true));
       });
     });
   });

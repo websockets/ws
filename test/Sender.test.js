@@ -70,12 +70,11 @@ describe('Sender', function () {
       });
 
       const array = new Uint8Array([0x68, 0x69]);
-      const options = { mask: false };
 
-      sender.ping(array.buffer, options);
-      sender.ping(array, options);
-      sender.ping('hi', options);
-      sender.ping(10, options);
+      sender.ping(array.buffer, false);
+      sender.ping(array, false);
+      sender.ping('hi', false);
+      sender.ping(10, false);
     });
   });
 
