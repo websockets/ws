@@ -254,20 +254,12 @@ describe('WebSocket', function () {
       });
     });
 
-    /*
-     * Ready state constants
-     */
-
     const readyStates = {
       CONNECTING: 0,
       OPEN: 1,
       CLOSING: 2,
       CLOSED: 3
     };
-
-    /*
-     * Ready state constant tests
-     */
 
     Object.keys(readyStates).forEach((state) => {
       describe(`.${state}`, function () {
@@ -1393,6 +1385,8 @@ describe('WebSocket', function () {
     });
 
     it('can send and receive very long binary data', function (done) {
+      this.timeout(4000);
+
       const buf = crypto.randomBytes(5 * 1024 * 1024);
       const server = https.createServer({
         cert: fs.readFileSync('test/fixtures/certificate.pem'),
