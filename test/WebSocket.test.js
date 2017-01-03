@@ -1010,6 +1010,39 @@ describe('WebSocket', function () {
 
       wss.on('connection', (ws) => ws.close(1013));
     });
+
+    it('closes the connection when an error occurs', function (done) {
+      const server = http.createServer();
+      const wss = new WebSocketServer({ server });
+      let closed = false;
+
+      wss.on('connection', (ws) => {
+        ws.on('error', (err) => {
+          assert.ok(err instanceof Error);
+          assert.strictEqual(err.message, 'RSV2 and RSV3 must be clear');
+
+          ws.on('close', (code, reason) => {
+            assert.strictEqual(code, 1006);
+            assert.strictEqual(reason, '');
+
+            closed = true;
+          });
+        });
+      });
+
+      server.listen(++port, () => {
+        const ws = new WebSocket(`ws://localhost:${port}`);
+
+        ws.on('open', () => ws._socket.write(Buffer.from([0xa1, 0x00])));
+        ws.on('close', (code, reason) => {
+          assert.strictEqual(code, 1002);
+          assert.strictEqual(reason, '');
+          assert.ok(closed);
+
+          server.close(done);
+        });
+      });
+    });
   });
 
   describe('WHATWG API emulation', function () {
