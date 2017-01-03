@@ -60,12 +60,8 @@ describe('Sender', function () {
       let count = 0;
       const sender = new Sender({
         write: (data) => {
-          if (++count < 4) {
-            assert.ok(data.equals(Buffer.from([0x89, 0x02, 0x68, 0x69])));
-          } else {
-            assert.ok(data.equals(Buffer.from([0x89, 0x02, 0x31, 0x30])));
-            done();
-          }
+          assert.ok(data.equals(Buffer.from([0x89, 0x02, 0x68, 0x69])));
+          if (++count === 3) done();
         }
       });
 
@@ -74,7 +70,6 @@ describe('Sender', function () {
       sender.ping(array.buffer, false);
       sender.ping(array, false);
       sender.ping('hi', false);
-      sender.ping(10, false);
     });
   });
 
@@ -85,7 +80,7 @@ describe('Sender', function () {
       const sender = new Sender({
         write: (data) => {
           assert.strictEqual(data[0] & 0x40, 0x40);
-          if (++count === 4) done();
+          if (++count === 3) done();
         }
       }, {
         'permessage-deflate': perMessageDeflate
@@ -99,7 +94,6 @@ describe('Sender', function () {
       sender.send(array.buffer, options);
       sender.send(array, options);
       sender.send('hi', options);
-      sender.send(100, options);
     });
 
     it('does not compress data for small payloads', function (done) {

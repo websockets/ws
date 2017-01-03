@@ -517,17 +517,17 @@ describe('WebSocket', function () {
       });
     });
 
-    it('can send safely receive numbers as ping payload', function (done) {
+    it('can send numbers as ping payload', function (done) {
       server.createServer(++port, (srv) => {
         srv.on('ping', (message) => {
-          assert.strictEqual(message.toString(), '200');
+          assert.strictEqual(message.toString(), '0');
           srv.close(done);
           ws.terminate();
         });
 
         const ws = new WebSocket(`ws://localhost:${port}`);
 
-        ws.on('open', () => ws.ping(200));
+        ws.on('open', () => ws.ping(0));
       });
     });
 
@@ -602,6 +602,21 @@ describe('WebSocket', function () {
       });
     });
 
+    it('can send numbers as pong payload', function (done) {
+      const wss = new WebSocketServer({ port: ++port }, () => {
+        const ws = new WebSocket(`ws://localhost:${port}`);
+
+        ws.on('open', () => ws.pong(0));
+      });
+
+      wss.on('connection', (ws) => {
+        ws.on('pong', (message) => {
+          assert.strictEqual(message.toString(), '0');
+          wss.close(done);
+        });
+      });
+    });
+
     it('with encoded message is successfully transmitted to the server', function (done) {
       server.createServer(++port, (srv) => {
         srv.on('pong', (message, flags) => {
@@ -670,7 +685,22 @@ describe('WebSocket', function () {
       });
     });
 
-    it('send and receive binary data as an array', function (done) {
+    it('sends numbers as strings', function (done) {
+      const wss = new WebSocketServer({ port: ++port }, () => {
+        const ws = new WebSocket(`ws://localhost:${port}`);
+
+        ws.on('open', () => ws.send(0));
+      });
+
+      wss.on('connection', (ws) => {
+        ws.on('message', (msg) => {
+          assert.strictEqual(msg, '0');
+          wss.close(done);
+        });
+      });
+    });
+
+    it('can send binary data as an array', function (done) {
       server.createServer(++port, (srv) => {
         const array = new Float32Array(6);
 
@@ -688,14 +718,13 @@ describe('WebSocket', function () {
         ws.on('message', (message, flags) => {
           assert.ok(flags.binary);
           assert.ok(message.equals(buf));
+          srv.close(done);
           ws.terminate();
-          srv.close();
-          done();
         });
       });
     });
 
-    it('binary data can be sent and received as buffer', function (done) {
+    it('can send binary data as a buffer', function (done) {
       server.createServer(++port, (srv) => {
         const buf = Buffer.from('foobar');
         const ws = new WebSocket(`ws://localhost:${port}`);
