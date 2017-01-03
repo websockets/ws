@@ -320,25 +320,23 @@ receives an `OpenEvent` named "open".
 
 Pause the socket.
 
-### websocket.ping([data[, options[, dontFailWhenClosed]]])
+### websocket.ping([data[, mask[, failSilently]]])
 
 - `data` {Any} The data to send in the ping frame.
-- `options` {Object}
-  - `mask` {Boolean} Specifies whether `data` should be masked or not. Defaults
-    to `true` when `websocket` is not a server client.
-- `dontFailWhenClosed` {Boolean} Specifies whether or not to throw an error if
-  the connection is not open.
+- `mask` {Boolean} Specifies whether `data` should be masked or not. Defaults
+  to `true` when `websocket` is not a server client.
+- `failSilently` {Boolean} Specifies whether or not to throw an error if the
+  connection is not open.
 
 Send a ping.
 
-### websocket.pong([data[, options[, dontFailWhenClosed]]])
+### websocket.pong([data[, mask[, failSilently]]])
 
 - `data` {Any} The data to send in the ping frame.
-- `options` {Object}
-  - `mask` {Boolean} Specifies whether `data` should be masked or not. Defaults
-    to `true` when `websocket` is not a server client.
-- `dontFailWhenClosed` {Boolean} Specifies whether or not to throw an error if
-  the connection is not open.
+- `mask` {Boolean} Specifies whether `data` should be masked or not. Defaults
+  to `true` when `websocket` is not a server client.
+- `failSilently` {Boolean} Specifies whether or not to throw an error if the
+  connection is not open.
 
 Send a pong.
 
