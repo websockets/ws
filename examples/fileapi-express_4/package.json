@@ -10,7 +10,7 @@
     "node": "~0.6.8"
   },
   "dependencies": {
-    "express": "latest",
+    "express": "~4.0.0",
     "ansi": "https://github.com/einaros/ansi.js/tarball/master"
   },
   "devDependencies": {},

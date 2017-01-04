@@ -3,7 +3,8 @@ var express = require('express');
 var fs = require('fs');
 var util = require('util');
 var path = require('path');
-var app = express.createServer();
+var app = express();
+var server = require('http').Server(app);
 var events = require('events');
 var ansi = require('ansi');
 var cursor = ansi(process.stdout);
@@ -45,7 +46,7 @@ cursor.eraseData(2).goto(1, 1);
 app.use(express.static(path.join(__dirname, '/public')));
 
 var clientId = 0;
-var wss = new WebSocketServer({server: app});
+var wss = new WebSocketServer({server: server});
 wss.on('connection', function (ws) {
   var thisId = ++clientId;
   cursor.goto(1, 4 + thisId).eraseLine();
@@ -101,6 +102,6 @@ fs.mkdir(path.join(__dirname, '/uploaded'), function () {
   // ignore errors, most likely means directory exists
   console.log('Uploaded files will be saved to %s/uploaded.', __dirname);
   console.log('Remember to wipe this directory if you upload lots and lots.');
-  app.listen(8080);
+  server.listen(8080);
   console.log('Listening on http://localhost:8080');
 });
