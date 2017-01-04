@@ -102,6 +102,7 @@ fs.mkdir(path.join(__dirname, '/uploaded'), function () {
   // ignore errors, most likely means directory exists
   console.log('Uploaded files will be saved to %s/uploaded.', __dirname);
   console.log('Remember to wipe this directory if you upload lots and lots.');
-  server.listen(8080);
-  console.log('Listening on http://localhost:8080');
+  server.listen(8080, function () {
+    console.log('Listening on http://localhost:8080');
+  });
 });
