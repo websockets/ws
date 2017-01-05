@@ -202,10 +202,9 @@ describe('WebSocketServer', function () {
         const ws = new WebSocket(`ws://localhost:${port}`);
       });
 
-      wss.on('connection', (client) => {
+      wss.on('connection', (ws) => {
         assert.strictEqual(wss.clients.size, 1);
-        wss.close();
-        done();
+        wss.close(done);
       });
     });
 
@@ -213,12 +212,13 @@ describe('WebSocketServer', function () {
       const wss = new WebSocketServer({ port: ++port, clientTracking: false }, () => {
         assert.strictEqual(wss.clients, undefined);
         const ws = new WebSocket(`ws://localhost:${port}`);
+
+        ws.on('open', () => ws.close());
       });
 
-      wss.on('connection', (client) => {
+      wss.on('connection', (ws) => {
         assert.strictEqual(wss.clients, undefined);
-        wss.close();
-        done();
+        ws.on('close', () => wss.close(done));
       });
     });
 
@@ -226,14 +226,13 @@ describe('WebSocketServer', function () {
       const wss = new WebSocketServer({ port: ++port }, () => {
         const ws = new WebSocket(`ws://localhost:${port}`);
 
-        wss.on('connection', (client) => {
-          client.on('close', () => {
-            assert.strictEqual(wss.clients.size, 0);
-            wss.close();
-            done();
-          });
+        ws.on('open', () => ws.terminate());
+      });
 
-          ws.close();
+      wss.on('connection', (ws) => {
+        ws.on('close', () => {
+          assert.strictEqual(wss.clients.size, 0);
+          wss.close(done);
         });
       });
     });
@@ -242,14 +241,13 @@ describe('WebSocketServer', function () {
       const wss = new WebSocketServer({ port: ++port }, () => {
         const ws = new WebSocket(`ws://localhost:${port}`);
 
-        wss.on('connection', (client) => {
-          client.on('close', () => {
-            assert.strictEqual(wss.clients.size, 0);
-            wss.close();
-            done();
-          });
+        ws.on('open', () => ws.close());
+      });
 
-          ws.close();
+      wss.on('connection', (ws) => {
+        ws.on('close', () => {
+          assert.strictEqual(wss.clients.size, 0);
+          wss.close(done);
         });
       });
     });
