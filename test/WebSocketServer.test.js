@@ -238,7 +238,7 @@ describe('WebSocketServer', function () {
       });
     });
 
-    it('is updated when client closes the connection (1/2)', function (done) {
+    it('is updated when client closes the connection', function (done) {
       const wss = new WebSocketServer({ port: ++port }, () => {
         const ws = new WebSocket(`ws://localhost:${port}`);
 
@@ -251,21 +251,6 @@ describe('WebSocketServer', function () {
 
           ws.close();
         });
-      });
-    });
-
-    it('is updated when client closes the connection (2/2)', function (done) {
-      const wss = new WebSocketServer({ port: ++port }, () => {
-        const ws = new WebSocket(`ws://localhost:${port}`);
-
-        ws.onopen = () => ws.close();
-      });
-
-      wss.on('connection', (ws) => {
-        ws.onclose = () => {
-          assert.strictEqual(wss.clients.size, 0);
-          wss.close(done);
-        };
       });
     });
   });

@@ -420,6 +420,18 @@ describe('WebSocket', function () {
   });
 
   describe('#pause and #resume', function () {
+    it('throws an error when `readyState` is not `OPEN` (pause)', function () {
+      const ws = new WebSocket('ws://localhost', { agent: new CustomAgent() });
+
+      assert.throws(() => ws.pause(), /^Error: not opened$/);
+    });
+
+    it('throws an error when `readyState` is not `OPEN` (resume)', function () {
+      const ws = new WebSocket('ws://localhost', { agent: new CustomAgent() });
+
+      assert.throws(() => ws.resume(), /^Error: not opened$/);
+    });
+
     it('pauses the underlying stream', function (done) {
       // this test is sort-of racecondition'y, since an unlikely slow connection
       // to localhost can cause the test to succeed even when the stream pausing
@@ -1067,35 +1079,30 @@ describe('WebSocket', function () {
   });
 
   describe('WHATWG API emulation', function () {
-    it('should not throw errors when getting and setting', function (done) {
-      server.createServer(++port, (srv) => {
-        const listener = () => {};
-        const ws = new WebSocket(`ws://localhost:${port}`);
+    it('should not throw errors when getting and setting', function () {
+      const listener = () => {};
+      const ws = new WebSocket('ws://localhost', { agent: new CustomAgent() });
 
-        assert.strictEqual(ws.onmessage, undefined);
-        assert.strictEqual(ws.onclose, undefined);
-        assert.strictEqual(ws.onerror, undefined);
-        assert.strictEqual(ws.onopen, undefined);
+      assert.strictEqual(ws.onmessage, undefined);
+      assert.strictEqual(ws.onclose, undefined);
+      assert.strictEqual(ws.onerror, undefined);
+      assert.strictEqual(ws.onopen, undefined);
 
-        ws.onmessage = listener;
-        ws.onerror = listener;
-        ws.onclose = listener;
-        ws.onopen = listener;
+      ws.onmessage = listener;
+      ws.onerror = listener;
+      ws.onclose = listener;
+      ws.onopen = listener;
 
-        assert.strictEqual(ws.binaryType, 'nodebuffer');
-        ws.binaryType = 'arraybuffer';
-        assert.strictEqual(ws.binaryType, 'arraybuffer');
-        ws.binaryType = 'nodebuffer';
-        assert.strictEqual(ws.binaryType, 'nodebuffer');
+      assert.strictEqual(ws.binaryType, 'nodebuffer');
+      ws.binaryType = 'arraybuffer';
+      assert.strictEqual(ws.binaryType, 'arraybuffer');
+      ws.binaryType = 'nodebuffer';
+      assert.strictEqual(ws.binaryType, 'nodebuffer');
 
-        assert.strictEqual(ws.onmessage, listener);
-        assert.strictEqual(ws.onclose, listener);
-        assert.strictEqual(ws.onerror, listener);
-        assert.strictEqual(ws.onopen, listener);
-
-        srv.close(done);
-        ws.terminate();
-      });
+      assert.strictEqual(ws.onmessage, listener);
+      assert.strictEqual(ws.onclose, listener);
+      assert.strictEqual(ws.onerror, listener);
+      assert.strictEqual(ws.onopen, listener);
     });
 
     it('should throw an error when setting an invalid binary type', function () {
@@ -1134,17 +1141,36 @@ describe('WebSocket', function () {
       });
     });
 
-    it('should receive text data wrapped in a MessageEvent when using addEventListener', function (done) {
-      server.createServer(++port, (srv) => {
-        const ws = new WebSocket(`ws://localhost:${port}`);
+    it('doesn\'t return event listeners added with `on`', function () {
+      const listener = () => {};
+      const ws = new WebSocket('ws://localhost', { agent: new CustomAgent() });
 
-        ws.addEventListener('open', () => ws.send('hi'));
-        ws.addEventListener('message', (messageEvent) => {
-          assert.strictEqual(messageEvent.data, 'hi');
-          srv.close(done);
-          ws.terminate();
-        });
-      });
+      ws.on('open', listener);
+
+      assert.deepStrictEqual(ws.listeners('open'), [listener]);
+      assert.strictEqual(ws.onopen, undefined);
+    });
+
+    it('doesn\'t remove event listeners added with `on`', function () {
+      const listener = () => {};
+      const ws = new WebSocket('ws://localhost', { agent: new CustomAgent() });
+
+      ws.on('close', listener);
+      ws.onclose = listener;
+
+      let listeners = ws.listeners('close');
+
+      assert.strictEqual(listeners.length, 2);
+      assert.strictEqual(listeners[0], listener);
+      assert.strictEqual(listeners[1]._listener, listener);
+
+      ws.onclose = listener;
+
+      listeners = ws.listeners('close');
+
+      assert.strictEqual(listeners.length, 2);
+      assert.strictEqual(listeners[0], listener);
+      assert.strictEqual(listeners[1]._listener, listener);
     });
 
     it('registers listeners for custom events with addEventListener', function () {
@@ -1184,6 +1210,19 @@ describe('WebSocket', function () {
       assert.strictEqual(ws.listeners('message').length, 0);
       assert.strictEqual(ws.listeners('open').length, 0);
       assert.strictEqual(ws.listeners('foo').length, 0);
+    });
+
+    it('should receive text data wrapped in a MessageEvent when using addEventListener', function (done) {
+      server.createServer(++port, (srv) => {
+        const ws = new WebSocket(`ws://localhost:${port}`);
+
+        ws.addEventListener('open', () => ws.send('hi'));
+        ws.addEventListener('message', (messageEvent) => {
+          assert.strictEqual(messageEvent.data, 'hi');
+          srv.close(done);
+          ws.terminate();
+        });
+      });
     });
 
     it('should receive valid CloseEvent when server closes with code 1000', function (done) {
