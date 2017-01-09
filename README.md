@@ -42,8 +42,8 @@ compiler is installed on the host system.
 ### Sending and receiving text data
 
 ```js
-var WebSocket = require('ws');
-var ws = new WebSocket('ws://www.host.com/path');
+const WebSocket = require('ws');
+const ws = new WebSocket('ws://www.host.com/path');
 
 ws.on('open', function open() {
   ws.send('something');
@@ -58,8 +58,8 @@ ws.on('message', function(data, flags) {
 ### Sending binary data
 
 ```js
-var WebSocket = require('ws');
-var ws = new WebSocket('ws://www.host.com/path');
+const WebSocket = require('ws');
+const ws = new WebSocket('ws://www.host.com/path');
 
 ws.on('open', function open() {
   var array = new Float32Array(5);
@@ -79,8 +79,8 @@ data.
 ### Server example
 
 ```js
-var WebSocketServer = require('ws').Server
-  , wss = new WebSocketServer({ port: 8080 });
+const WebSocketServer = require('ws').Server;
+const wss = new WebSocketServer({ port: 8080 });
 
 wss.on('connection', function connection(ws) {
   ws.on('message', function incoming(message) {
@@ -94,13 +94,13 @@ wss.on('connection', function connection(ws) {
 ### ExpressJS example
 
 ```js
-var server = require('http').createServer()
-  , url = require('url')
-  , WebSocketServer = require('ws').Server
-  , wss = new WebSocketServer({ server: server })
-  , express = require('express')
-  , app = express()
-  , port = 4080;
+const server = require('http').createServer();
+const url = require('url');
+const WebSocketServer = require('ws').Server;
+const wss = new WebSocketServer({ server: server });
+const express = require('express');
+const app = express();
+const port = 4080;
 
 app.use(function (req, res) {
   res.send({ msg: "hello" });
@@ -125,8 +125,8 @@ server.listen(port, function () { console.log('Listening on ' + server.address()
 ### Server sending broadcast data
 
 ```js
-var WebSocketServer = require('ws').Server
-  , wss = new WebSocketServer({ port: 8080 });
+const WebSocketServer = require('ws').Server;
+const wss = new WebSocketServer({ port: 8080 });
 
 // Broadcast to all.
 wss.broadcast = function broadcast(data) {
@@ -169,8 +169,8 @@ catch (e) { /* handle error */ }
 ### echo.websocket.org demo
 
 ```js
-var WebSocket = require('ws');
-var ws = new WebSocket('ws://echo.websocket.org/', {
+const WebSocket = require('ws');
+const ws = new WebSocket('ws://echo.websocket.org/', {
   protocolVersion: 8,
   origin: 'http://websocket.org'
 });
