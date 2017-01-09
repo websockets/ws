@@ -25,7 +25,7 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "ultron": "~1.0.2"
+    "ultron": "~1.1.0"
   },
   "devDependencies": {
     "benchmark": "~2.1.2",
