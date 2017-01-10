@@ -95,39 +95,28 @@ describe('WebSocket', function () {
       wss.on('connection', (ws) => ws.send('foobar'));
     });
 
-    it('#url exposes the server url', function (done) {
-      server.createServer(++port, (srv) => {
-        const url = `ws://localhost:${port}`;
-        const ws = new WebSocket(url);
+    it('#url exposes the server url', function () {
+      const url = `ws://localhost:${port}`;
+      const ws = new WebSocket(url, { agent: new CustomAgent() });
 
-        assert.strictEqual(ws.url, url);
-
-        ws.on('close', () => srv.close(done));
-        ws.close();
-      });
+      assert.strictEqual(ws.url, url);
     });
 
-    it('#protocolVersion exposes the protocol version', function (done) {
-      server.createServer(++port, (srv) => {
-        const ws = new WebSocket(`ws://localhost:${port}`);
-
-        assert.strictEqual(ws.protocolVersion, 13);
-
-        ws.on('close', () => srv.close(done));
-        ws.close();
+    it('#protocolVersion exposes the protocol version', function () {
+      const ws = new WebSocket(`ws://localhost:${port}`, {
+        agent: new CustomAgent()
       });
+
+      assert.strictEqual(ws.protocolVersion, 13);
     });
 
     describe('#bufferedAmount', function () {
-      it('defaults to zero', function (done) {
-        server.createServer(++port, (srv) => {
-          const ws = new WebSocket(`ws://localhost:${port}`);
-
-          assert.strictEqual(ws.bufferedAmount, 0);
-
-          ws.on('close', () => srv.close(done));
-          ws.close();
+      it('defaults to zero', function () {
+        const ws = new WebSocket(`ws://localhost:${port}`, {
+          agent: new CustomAgent()
         });
+
+        assert.strictEqual(ws.bufferedAmount, 0);
       });
 
       it('defaults to zero upon "open"', function (done) {
@@ -203,15 +192,12 @@ describe('WebSocket', function () {
     });
 
     describe('#readyState', function () {
-      it('defaults to connecting', function (done) {
-        server.createServer(++port, (srv) => {
-          const ws = new WebSocket(`ws://localhost:${port}`);
-
-          assert.strictEqual(ws.readyState, WebSocket.CONNECTING);
-
-          ws.on('close', () => srv.close(done));
-          ws.close();
+      it('defaults to connecting', function () {
+        const ws = new WebSocket(`ws://localhost:${port}`, {
+          agent: new CustomAgent()
         });
+
+        assert.strictEqual(ws.readyState, WebSocket.CONNECTING);
       });
 
       it('set to open once connection is established', function (done) {
@@ -236,7 +222,7 @@ describe('WebSocket', function () {
             srv.close(done);
           });
 
-          ws.close(1001);
+          ws.on('open', () => ws.close(1001));
         });
       });
 
@@ -249,7 +235,7 @@ describe('WebSocket', function () {
             srv.close(done);
           });
 
-          ws.terminate();
+          ws.on('open', () => ws.terminate());
         });
       });
     });
@@ -308,23 +294,65 @@ describe('WebSocket', function () {
   });
 
   describe('connection establishing', function () {
-    it('can disconnect before connection is established', function (done) {
-      server.createServer(++port, (srv) => {
+    it('can terminate before connection is established (1/2)', function (done) {
+      const wss = new WebSocketServer({ port: ++port }, () => {
         const ws = new WebSocket(`ws://localhost:${port}`);
 
         ws.on('open', () => assert.fail(null, null, 'connect shouldnt be raised here'));
-        ws.on('close', () => srv.close(done));
+        ws.on('error', (err) => {
+          assert.ok(err instanceof Error);
+          assert.strictEqual(err.message, 'closed before the connection is established');
+          ws.on('close', () => wss.close(done));
+        });
         ws.terminate();
       });
     });
 
-    it('can close before connection is established', function (done) {
-      server.createServer(++port, (srv) => {
+    it('can terminate before connection is established (2/2)', function (done) {
+      const wss = new WebSocketServer({
+        verifyClient: (info, cb) => setTimeout(cb, 300, true),
+        port: ++port
+      }, () => {
         const ws = new WebSocket(`ws://localhost:${port}`);
 
         ws.on('open', () => assert.fail(null, null, 'connect shouldnt be raised here'));
-        ws.on('close', () => srv.close(done));
+        ws.on('error', (err) => {
+          assert.ok(err instanceof Error);
+          assert.strictEqual(err.message, 'closed before the connection is established');
+          ws.on('close', () => wss.close(done));
+        });
+        setTimeout(() => ws.terminate(), 150);
+      });
+    });
+
+    it('can close before connection is established (1/2)', function (done) {
+      const wss = new WebSocketServer({ port: ++port }, () => {
+        const ws = new WebSocket(`ws://localhost:${port}`);
+
+        ws.on('open', () => assert.fail(null, null, 'connect shouldnt be raised here'));
+        ws.on('error', (err) => {
+          assert.ok(err instanceof Error);
+          assert.strictEqual(err.message, 'closed before the connection is established');
+          ws.on('close', () => wss.close(done));
+        });
         ws.close(1001);
+      });
+    });
+
+    it('can close before connection is established (2/2)', function (done) {
+      const wss = new WebSocketServer({
+        verifyClient: (info, cb) => setTimeout(cb, 300, true),
+        port: ++port
+      }, () => {
+        const ws = new WebSocket(`ws://localhost:${port}`);
+
+        ws.on('open', () => assert.fail(null, null, 'connect shouldnt be raised here'));
+        ws.on('error', (err) => {
+          assert.ok(err instanceof Error);
+          assert.strictEqual(err.message, 'closed before the connection is established');
+          ws.on('close', () => wss.close(done));
+        });
+        setTimeout(() => ws.close(1001), 150);
       });
     });
 
@@ -803,15 +831,17 @@ describe('WebSocket', function () {
     });
 
     it('before connect should pass error through callback, if present', function (done) {
-      server.createServer(++port, (srv) => {
+      const wss = new WebSocketServer({ port: ++port }, () => {
         const ws = new WebSocket(`ws://localhost:${port}`);
 
-        ws.send('hi', (error) => {
-          assert.ok(error instanceof Error);
-          srv.close(done);
-          ws.terminate();
+        ws.send('hi', (err) => {
+          assert.ok(err instanceof Error);
+          assert.strictEqual(err.message, 'not opened');
+          ws.on('close', () => wss.close(done));
         });
       });
+
+      wss.on('connection', (ws) => ws.close());
     });
 
     it('without data should be successful', function (done) {
