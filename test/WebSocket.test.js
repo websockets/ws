@@ -80,6 +80,17 @@ describe('WebSocket', function () {
         /must be a valid IP: 123.456.789.428/
       );
     });
+
+    it('should accept the family option', function (done) {
+      const wss = new WebSocketServer({ host: '::1', port: ++port }, () => {
+        const ws = new WebSocket(`ws://localhost:${port}`, { family: 6 });
+      });
+
+      wss.on('connection', (ws) => {
+        assert.strictEqual(ws.upgradeReq.connection.remoteAddress, '::1');
+        wss.close(done);
+      });
+    });
   });
 
   describe('properties', function () {
