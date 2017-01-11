@@ -174,6 +174,7 @@ This class represents a WebSocket. It extends the `EventEmitter`.
     depending on the `protocolVersion`.
   - `agent` {http.Agent|https.Agent} Use the specified Agent,
   - `host` {String} Value of the `Host` header.
+  - `family` {Number} IP address family to use during hostname lookup (4 or 6).
   - `checkServerIdentity` {Function} A function to validate the server hostname.
   - `rejectUnauthorized` {Boolean} Verify or not the server certificate.
   - `passphrase` {String} The passphrase for the private key or pfx.
