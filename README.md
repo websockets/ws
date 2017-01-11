@@ -43,13 +43,14 @@ compiler is installed on the host system.
 
 ```js
 const WebSocket = require('ws');
+
 const ws = new WebSocket('ws://www.host.com/path');
 
 ws.on('open', function open() {
   ws.send('something');
 });
 
-ws.on('message', function(data, flags) {
+ws.on('message', function incoming(data, flags) {
   // flags.binary will be set if a binary data is received.
   // flags.masked will be set if the data was masked.
 });
@@ -59,28 +60,26 @@ ws.on('message', function(data, flags) {
 
 ```js
 const WebSocket = require('ws');
+
 const ws = new WebSocket('ws://www.host.com/path');
 
 ws.on('open', function open() {
-  var array = new Float32Array(5);
+  const array = new Float32Array(5);
 
   for (var i = 0; i < array.length; ++i) {
     array[i] = i / 2;
   }
 
-  ws.send(array, { binary: true, mask: true });
+  ws.send(array);
 });
 ```
-
-Setting `mask`, as done for the send options above, will cause the data to be
-masked according to the WebSocket protocol. The same option applies for text
-data.
 
 ### Server example
 
 ```js
-const WebSocketServer = require('ws').Server;
-const wss = new WebSocketServer({ port: 8080 });
+const WebSocket = require('ws');
+
+const wss = new WebSocket.Server({ port: 8080 });
 
 wss.on('connection', function connection(ws) {
   ws.on('message', function incoming(message) {
@@ -94,21 +93,23 @@ wss.on('connection', function connection(ws) {
 ### ExpressJS example
 
 ```js
-const server = require('http').createServer();
-const url = require('url');
-const WebSocketServer = require('ws').Server;
-const wss = new WebSocketServer({ server: server });
 const express = require('express');
+const http = require('http');
+const url = require('url');
+const WebSocket = require('ws');
+
 const app = express();
-const port = 4080;
 
 app.use(function (req, res) {
   res.send({ msg: "hello" });
 });
 
+const server = http.createServer(app);
+const wss = new WebSocket.Server({ server });
+
 wss.on('connection', function connection(ws) {
-  var location = url.parse(ws.upgradeReq.url, true);
-  // you might use location.query.access_token to authenticate or share sessions
+  const location = url.parse(ws.upgradeReq.url, true);
+  // You might use location.query.access_token to authenticate or share sessions
   // or ws.upgradeReq.headers.cookie (see http://stackoverflow.com/a/16395220/151312)
 
   ws.on('message', function incoming(message) {
@@ -118,28 +119,34 @@ wss.on('connection', function connection(ws) {
   ws.send('something');
 });
 
-server.on('request', app);
-server.listen(port, function () { console.log('Listening on ' + server.address().port) });
+server.listen(8080, function listening() {
+  console.log('Listening on %d', server.address().port);
+});
 ```
 
 ### Server sending broadcast data
 
 ```js
-const WebSocketServer = require('ws').Server;
-const wss = new WebSocketServer({ port: 8080 });
+const WebSocket = require('ws');
+
+const wss = new WebSocket.Server({ port: 8080 });
 
 // Broadcast to all.
 wss.broadcast = function broadcast(data) {
   wss.clients.forEach(function each(client) {
-    client.send(data);
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(data);
+    }
   });
 };
 
 wss.on('connection', function connection(ws) {
-  ws.on('message', function message(data) {
+  ws.on('message', function incoming(data) {
     // Broadcast to everyone else.
     wss.clients.forEach(function each(client) {
-      if (client !== ws) client.send(data);
+      if (client !== ws && client.readyState === WebSocket.OPEN) {
+        client.send(data);
+      }
     });
   });
 });
@@ -155,11 +162,11 @@ ws.send('something');
 // callback. The callback is also the only way of being notified that data has
 // actually been sent.
 ws.send('something', function ack(error) {
-  // if error is not defined, the send has been completed,
-  // otherwise the error object will indicate what failed.
+  // If error is not defined, the send has been completed, otherwise the error
+  // object will indicate what failed.
 });
 
-// Immediate errors can also be handled with try/catch-blocks, but **note** that
+// Immediate errors can also be handled with `try...catch`, but **note** that
 // since sends are inherently asynchronous, socket write failures will *not* be
 // captured when this technique is used.
 try { ws.send('something'); }
@@ -170,25 +177,25 @@ catch (e) { /* handle error */ }
 
 ```js
 const WebSocket = require('ws');
-const ws = new WebSocket('ws://echo.websocket.org/', {
-  protocolVersion: 8,
-  origin: 'http://websocket.org'
+
+const ws = new WebSocket('wss://echo.websocket.org/', {
+  origin: 'https://websocket.org'
 });
 
 ws.on('open', function open() {
   console.log('connected');
-  ws.send(Date.now().toString(), {mask: true});
+  ws.send(Date.now());
 });
 
 ws.on('close', function close() {
   console.log('disconnected');
 });
 
-ws.on('message', function message(data, flags) {
-  console.log('Roundtrip time: ' + (Date.now() - parseInt(data)) + 'ms', flags);
+ws.on('message', function incoming(data, flags) {
+  console.log(`Roundtrip time: ${Date.now() - data} ms`, flags);
 
   setTimeout(function timeout() {
-    ws.send(Date.now().toString(), {mask: true});
+    ws.send(Date.now());
   }, 500);
 });
 ```
@@ -198,18 +205,17 @@ ws.on('message', function message(data, flags) {
 For a full example with a browser client communicating with a ws server, see the
 examples folder.
 
-Note that the usage together with Express 3.0 is quite different from Express
-2.x. The difference is expressed in the two different serverstats-examples.
-
 Otherwise, see the test cases.
 
 ## API Docs
 
-See [`/doc/ws.md`](https://github.com/websockets/ws/blob/master/doc/ws.md) for Node.js-like docs for the ws classes.
+See [`/doc/ws.md`](https://github.com/websockets/ws/blob/master/doc/ws.md)
+for Node.js-like docs for the ws classes.
 
 ## Changelog
 
-We're using the GitHub [`releases`](https://github.com/websockets/ws/releases) for changelog entries.
+We're using the GitHub [`releases`](https://github.com/websockets/ws/releases)
+for changelog entries.
 
 ## License
 
