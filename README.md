@@ -1,4 +1,4 @@
-# ws: a node.js websocket library
+# ws: a node.js WebSocket library
 
 [![Version npm](https://img.shields.io/npm/v/ws.svg)](https://www.npmjs.com/package/ws)
 [![Linux Build](https://img.shields.io/travis/websockets/ws/master.svg)](https://travis-ci.org/websockets/ws)
@@ -16,7 +16,7 @@ for the full reports.
 * **HyBi drafts 07-12** (Use the option `protocolVersion: 8`)
 * **HyBi drafts 13-17** (Current default, alternatively option `protocolVersion: 13`)
 
-### Installing
+## Installing
 
 ```
 npm install --save ws
@@ -38,6 +38,46 @@ compiler is installed on the host system.
   validating the input that you receive for security purposes leading to double
   validation. But if you want to be 100% spec-conforming and have fast
   validation of UTF-8 then this module is a must.
+
+## API Docs
+
+See [`/doc/ws.md`](https://github.com/websockets/ws/blob/master/doc/ws.md)
+for Node.js-like docs for the ws classes.
+
+## WebSocket compression
+
+`ws` supports the [permessage-deflate extension][permessage-deflate] extension
+which enables the client and server to negotiate a compression algorithm and
+its parameters, and then selectively apply it to the data payloads of each
+WebSocket message.
+
+The extension is enabled by default but adds a significant overhead in terms of
+performance and memory comsumption. We suggest to use WebSocket compression
+only if it is really needed.
+
+To disable the extension you can set the `perMessageDeflate` option to `false`.
+On the server:
+
+```js
+const WebSocket = require('ws');
+
+const wss = new WebSocket.Server({
+  perMessageDeflate: false,
+  port: 8080
+});
+```
+
+On the client:
+
+```js
+const WebSocket = require('ws');
+
+const ws = new WebSocket('ws://www.host.com/path', {
+  perMessageDeflate: false
+});
+```
+
+## Usage examples
 
 ### Sending and receiving text data
 
@@ -90,6 +130,34 @@ wss.on('connection', function connection(ws) {
 });
 ```
 
+### Broadcast example
+
+```js
+const WebSocket = require('ws');
+
+const wss = new WebSocket.Server({ port: 8080 });
+
+// Broadcast to all.
+wss.broadcast = function broadcast(data) {
+  wss.clients.forEach(function each(client) {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(data);
+    }
+  });
+};
+
+wss.on('connection', function connection(ws) {
+  ws.on('message', function incoming(data) {
+    // Broadcast to everyone else.
+    wss.clients.forEach(function each(client) {
+      if (client !== ws && client.readyState === WebSocket.OPEN) {
+        client.send(data);
+      }
+    });
+  });
+});
+```
+
 ### ExpressJS example
 
 ```js
@@ -122,55 +190,6 @@ wss.on('connection', function connection(ws) {
 server.listen(8080, function listening() {
   console.log('Listening on %d', server.address().port);
 });
-```
-
-### Server sending broadcast data
-
-```js
-const WebSocket = require('ws');
-
-const wss = new WebSocket.Server({ port: 8080 });
-
-// Broadcast to all.
-wss.broadcast = function broadcast(data) {
-  wss.clients.forEach(function each(client) {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(data);
-    }
-  });
-};
-
-wss.on('connection', function connection(ws) {
-  ws.on('message', function incoming(data) {
-    // Broadcast to everyone else.
-    wss.clients.forEach(function each(client) {
-      if (client !== ws && client.readyState === WebSocket.OPEN) {
-        client.send(data);
-      }
-    });
-  });
-});
-```
-
-### Error handling best practices
-
-```js
-// If the WebSocket is closed before the following send is attempted
-ws.send('something');
-
-// Errors (both immediate and async write errors) can be detected in an optional
-// callback. The callback is also the only way of being notified that data has
-// actually been sent.
-ws.send('something', function ack(error) {
-  // If error is not defined, the send has been completed, otherwise the error
-  // object will indicate what failed.
-});
-
-// Immediate errors can also be handled with `try...catch`, but **note** that
-// since sends are inherently asynchronous, socket write failures will *not* be
-// captured when this technique is used.
-try { ws.send('something'); }
-catch (e) { /* handle error */ }
 ```
 
 ### echo.websocket.org demo
@@ -207,10 +226,26 @@ examples folder.
 
 Otherwise, see the test cases.
 
-## API Docs
+## Error handling best practices
 
-See [`/doc/ws.md`](https://github.com/websockets/ws/blob/master/doc/ws.md)
-for Node.js-like docs for the ws classes.
+```js
+// If the WebSocket is closed before the following send is attempted
+ws.send('something');
+
+// Errors (both immediate and async write errors) can be detected in an optional
+// callback. The callback is also the only way of being notified that data has
+// actually been sent.
+ws.send('something', function ack(error) {
+  // If error is not defined, the send has been completed, otherwise the error
+  // object will indicate what failed.
+});
+
+// Immediate errors can also be handled with `try...catch`, but **note** that
+// since sends are inherently asynchronous, socket write failures will *not* be
+// captured when this technique is used.
+try { ws.send('something'); }
+catch (e) { /* handle error */ }
+```
 
 ## Changelog
 
@@ -222,3 +257,4 @@ for changelog entries.
 [MIT](LICENSE)
 
 [archive]: http://web.archive.org/web/20130314230536/http://hobbycoding.posterous.com/the-fastest-websocket-module-for-nodejs
+[permessage-deflate]: https://tools.ietf.org/html/rfc7692
