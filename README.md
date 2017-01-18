@@ -5,8 +5,8 @@
 [![Windows Build](https://ci.appveyor.com/api/projects/status/github/websockets/ws?branch=master&svg=true)](https://ci.appveyor.com/project/lpinca/ws)
 [![Coverage Status](https://img.shields.io/coveralls/websockets/ws/master.svg)](https://coveralls.io/r/websockets/ws?branch=master)
 
-`ws` is a simple to use WebSocket implementation, up-to-date against RFC-6455,
-and [probably the fastest WebSocket library for node.js][archive].
+`ws` is a simple to use, blazing fast, and thoroughly tested WebSocket client
+and server implementation.
 
 Passes the quite extensive Autobahn test suite. See http://websockets.github.com/ws
 for the full reports.
@@ -256,5 +256,4 @@ for changelog entries.
 
 [MIT](LICENSE)
 
-[archive]: http://web.archive.org/web/20130314230536/http://hobbycoding.posterous.com/the-fastest-websocket-module-for-nodejs
 [permessage-deflate]: https://tools.ietf.org/html/rfc7692
