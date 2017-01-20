@@ -11,6 +11,7 @@
       }
     </style>
     <script>
+        // The following is pure javascript--not using any HTML framework etc.
       function updateStats(memuse) {
         document.getElementById('rss').innerHTML = memuse.rss;
         document.getElementById('heapTotal').innerHTML = memuse.heapTotal;
@@ -19,6 +20,7 @@
 
       var host = window.document.location.host.replace(/:.*/, '');
       var ws = new WebSocket('ws://' + host + ':8080');
+        // NOTE: ws.onmessage correlates with ws.send in server.js. In server.js, ws.send is within a timer (setInterval) that resets every 100ms; every 100ms ws.send is called, and ws.onmessage here responds.
       ws.onmessage = function (event) {
         updateStats(JSON.parse(event.data));
       };
