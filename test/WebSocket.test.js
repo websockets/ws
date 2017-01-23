@@ -131,19 +131,34 @@ describe('WebSocket', function () {
       });
 
       it('defaults to zero upon "open"', function (done) {
-        server.createServer(++port, (srv) => {
+        const wss = new WebSocketServer({ port: ++port }, () => {
           const ws = new WebSocket(`ws://localhost:${port}`);
 
           ws.onopen = () => {
             assert.strictEqual(ws.bufferedAmount, 0);
-
-            ws.on('close', () => srv.close(done));
-            ws.close();
+            wss.close(done);
           };
         });
       });
 
-      it('stress kernel write buffer', function (done) {
+      it('takes into account the data in the sender queue', function (done) {
+        const wss = new WebSocketServer({ port: ++port }, () => {
+          const ws = new WebSocket(`ws://localhost:${port}`);
+
+          ws.on('open', () => {
+            ws.send('foo');
+            ws.send('bar', (err) => {
+              assert.ifError(err);
+              assert.strictEqual(ws.bufferedAmount, 0);
+              wss.close(done);
+            });
+
+            assert.strictEqual(ws.bufferedAmount, 3);
+          });
+        });
+      });
+
+      it('takes into account the data in the socket queue', function (done) {
         const wss = new WebSocketServer({ port: ++port }, () => {
           const ws = new WebSocket(`ws://localhost:${port}`, {
             perMessageDeflate: false
@@ -152,7 +167,10 @@ describe('WebSocket', function () {
 
         wss.on('connection', (ws) => {
           while (true) {
-            if (ws.bufferedAmount > 0) break;
+            if (ws._socket.bufferSize > 0) {
+              assert.strictEqual(ws.bufferedAmount, ws._socket.bufferSize);
+              break;
+            }
             ws.send('hello'.repeat(1e4));
           }
           wss.close(done);

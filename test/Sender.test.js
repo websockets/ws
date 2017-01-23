@@ -73,6 +73,24 @@ describe('Sender', function () {
     });
   });
 
+  describe('#pong', function () {
+    it('works with multiple types of data', function (done) {
+      let count = 0;
+      const sender = new Sender({
+        write: (data) => {
+          assert.ok(data.equals(Buffer.from([0x8a, 0x02, 0x68, 0x69])));
+          if (++count === 3) done();
+        }
+      });
+
+      const array = new Uint8Array([0x68, 0x69]);
+
+      sender.pong(array.buffer, false);
+      sender.pong(array, false);
+      sender.pong('hi', false);
+    });
+  });
+
   describe('#send', function () {
     it('compresses data if compress option is enabled', function (done) {
       const perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
