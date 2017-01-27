@@ -1,15 +1,11 @@
 language: node_js
+dist: trusty
 sudo: false
 node_js:
+  - "7"
   - "6"
-  - "5"
   - "4"
-addons:
-  apt:
-    sources:
-      - ubuntu-toolchain-r-test
-    packages:
-      - gcc-4.9
-      - g++-4.9
-before_install:
-  - export CC="gcc-4.9" CXX="g++-4.9"
+script:
+  - "npm run test-travis"
+after_script:
+  - "npm install coveralls@2 && cat coverage/lcov.info | coveralls"

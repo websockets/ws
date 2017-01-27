@@ -1,0 +1,12 @@
+{
+  "name": "express-session",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "echo \"Hello!\""
+  },
+  "author": "",
+  "dependencies": {
+    "express": "4.14.0"
+  }
+}

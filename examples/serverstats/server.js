@@ -1,19 +1,24 @@
-var WebSocketServer = require('../../').Server
-  , http = require('http')
-  , express = require('express')
-  , app = express.createServer();
+var WebSocketServer = require('../../').Server;
+var express = require('express');
+var path = require('path');
+var app = express();
+var server = require('http').createServer();
 
-app.use(express.static(__dirname + '/public'));
-app.listen(8080);
+app.use(express.static(path.join(__dirname, '/public')));
 
-var wss = new WebSocketServer({server: app});
-wss.on('connection', function(ws) {
-  var id = setInterval(function() {
-    ws.send(JSON.stringify(process.memoryUsage()), function() { /* ignore errors */ });
+var wss = new WebSocketServer({server: server});
+wss.on('connection', function (ws) {
+  var id = setInterval(function () {
+    ws.send(JSON.stringify(process.memoryUsage()), function () { /* ignore errors */ });
   }, 100);
   console.log('started client interval');
-  ws.on('close', function() {
+  ws.on('close', function () {
     console.log('stopping client interval');
     clearInterval(id);
   });
+});
+
+server.on('request', app);
+server.listen(8080, function () {
+  console.log('Listening on http://localhost:8080');
 });

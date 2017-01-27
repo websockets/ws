@@ -1,0 +1,18 @@
+environment:
+  matrix:
+    - nodejs_version: "7"
+    - nodejs_version: "6"
+    - nodejs_version: "4"
+platform:
+  - x86
+  - x64
+matrix:
+  fast_finish: true
+install:
+  - ps: Install-Product node $env:nodejs_version $env:platform
+  - npm install
+test_script:
+  - node --version
+  - npm --version
+  - npm test
+build: off

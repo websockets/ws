@@ -1,51 +1,34 @@
-var WebSocket = require('../');
-var currentTest = 1;
-var lastTest = -1;
-var testCount = null;
+'use strict';
 
-process.on('uncaughtException', function(err) {
-  console.log('Caught exception: ', err, err.stack);
-});
+const WebSocket = require('../');
 
-process.on('SIGINT', function () {
-  try {
-    console.log('Updating reports and shutting down');
-    var ws = new WebSocket('ws://localhost:9001/updateReports?agent=ws');
-    ws.on('close', function() {
-      process.exit();
-    });
-  }
-  catch(e) {
-    process.exit();
-  }
-});
+let currentTest = 1;
+let testCount;
 
-function nextTest() {
-  if (currentTest > testCount || (lastTest != -1 && currentTest > lastTest)) {
-    console.log('Updating reports and shutting down');
-    var ws = new WebSocket('ws://localhost:9001/updateReports?agent=ws');
-    ws.on('close', function() {
-      process.exit();
-    });
+function nextTest () {
+  let ws;
+
+  if (currentTest > testCount) {
+    ws = new WebSocket('ws://localhost:9001/updateReports?agent=ws');
     return;
-  };
-  console.log('Running test case ' + currentTest + '/' + testCount);
-  var ws = new WebSocket('ws://localhost:9001/runCase?case=' + currentTest + '&agent=ws');
-  ws.on('message', function(data, flags) {
-    ws.send(flags.buffer, {binary: flags.binary === true, mask: true});
-  });
-  ws.on('close', function(data) {
-    currentTest += 1;
+  }
+
+  console.log(`Running test case ${currentTest}/${testCount}`);
+
+  ws = new WebSocket(`ws://localhost:9001/runCase?case=${currentTest}&agent=ws`);
+  ws.on('message', (data) => ws.send(data));
+  ws.on('close', () => {
+    currentTest++;
     process.nextTick(nextTest);
   });
-  ws.on('error', function(e) {});
+  ws.on('error', (e) => console.error(e));
 }
 
-var ws = new WebSocket('ws://localhost:9001/getCaseCount');
-ws.on('message', function(data, flags) {
+const ws = new WebSocket('ws://localhost:9001/getCaseCount');
+ws.on('message', (data) => {
   testCount = parseInt(data);
 });
-ws.on('close', function() {
+ws.on('close', () => {
   if (testCount > 0) {
     nextTest();
   }

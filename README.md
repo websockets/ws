@@ -1,22 +1,22 @@
-# ws: a node.js websocket library
+# ws: a node.js WebSocket library
 
-[![Build Status](https://travis-ci.org/websockets/ws.svg?branch=master)](https://travis-ci.org/websockets/ws)
+[![Version npm](https://img.shields.io/npm/v/ws.svg)](https://www.npmjs.com/package/ws)
+[![Linux Build](https://img.shields.io/travis/websockets/ws/master.svg)](https://travis-ci.org/websockets/ws)
+[![Windows Build](https://ci.appveyor.com/api/projects/status/github/websockets/ws?branch=master&svg=true)](https://ci.appveyor.com/project/lpinca/ws)
+[![Coverage Status](https://img.shields.io/coveralls/websockets/ws/master.svg)](https://coveralls.io/r/websockets/ws?branch=master)
 
-`ws` is a simple to use WebSocket implementation, up-to-date against RFC-6455,
-and [probably the fastest WebSocket library for node.js][archive].
+`ws` is a simple to use, blazing fast, and thoroughly tested WebSocket client
+and server implementation.
 
 Passes the quite extensive Autobahn test suite. See http://websockets.github.com/ws
 for the full reports.
 
 ## Protocol support
 
-* **Hixie draft 76** (Old and deprecated, but still in use by Safari and Opera.
-  Added to ws version 0.4.2, but server only. Can be disabled by setting the
-  `disableHixie` option to true.)
 * **HyBi drafts 07-12** (Use the option `protocolVersion: 8`)
 * **HyBi drafts 13-17** (Current default, alternatively option `protocolVersion: 13`)
 
-### Installing
+## Installing
 
 ```
 npm install --save ws
@@ -39,17 +39,58 @@ compiler is installed on the host system.
   validation. But if you want to be 100% spec-conforming and have fast
   validation of UTF-8 then this module is a must.
 
+## API Docs
+
+See [`/doc/ws.md`](https://github.com/websockets/ws/blob/master/doc/ws.md)
+for Node.js-like docs for the ws classes.
+
+## WebSocket compression
+
+`ws` supports the [permessage-deflate extension][permessage-deflate] extension
+which enables the client and server to negotiate a compression algorithm and
+its parameters, and then selectively apply it to the data payloads of each
+WebSocket message.
+
+The extension is enabled by default but adds a significant overhead in terms of
+performance and memory comsumption. We suggest to use WebSocket compression
+only if it is really needed.
+
+To disable the extension you can set the `perMessageDeflate` option to `false`.
+On the server:
+
+```js
+const WebSocket = require('ws');
+
+const wss = new WebSocket.Server({
+  perMessageDeflate: false,
+  port: 8080
+});
+```
+
+On the client:
+
+```js
+const WebSocket = require('ws');
+
+const ws = new WebSocket('ws://www.host.com/path', {
+  perMessageDeflate: false
+});
+```
+
+## Usage examples
+
 ### Sending and receiving text data
 
 ```js
-var WebSocket = require('ws');
-var ws = new WebSocket('ws://www.host.com/path');
+const WebSocket = require('ws');
+
+const ws = new WebSocket('ws://www.host.com/path');
 
 ws.on('open', function open() {
   ws.send('something');
 });
 
-ws.on('message', function(data, flags) {
+ws.on('message', function incoming(data, flags) {
   // flags.binary will be set if a binary data is received.
   // flags.masked will be set if the data was masked.
 });
@@ -58,29 +99,27 @@ ws.on('message', function(data, flags) {
 ### Sending binary data
 
 ```js
-var WebSocket = require('ws');
-var ws = new WebSocket('ws://www.host.com/path');
+const WebSocket = require('ws');
+
+const ws = new WebSocket('ws://www.host.com/path');
 
 ws.on('open', function open() {
-  var array = new Float32Array(5);
+  const array = new Float32Array(5);
 
   for (var i = 0; i < array.length; ++i) {
     array[i] = i / 2;
   }
 
-  ws.send(array, { binary: true, mask: true });
+  ws.send(array);
 });
 ```
-
-Setting `mask`, as done for the send options above, will cause the data to be
-masked according to the WebSocket protocol. The same option applies for text
-data.
 
 ### Server example
 
 ```js
-var WebSocketServer = require('ws').Server
-  , wss = new WebSocketServer({ port: 8080 });
+const WebSocket = require('ws');
+
+const wss = new WebSocket.Server({ port: 8080 });
 
 wss.on('connection', function connection(ws) {
   ws.on('message', function incoming(message) {
@@ -91,24 +130,54 @@ wss.on('connection', function connection(ws) {
 });
 ```
 
+### Broadcast example
+
+```js
+const WebSocket = require('ws');
+
+const wss = new WebSocket.Server({ port: 8080 });
+
+// Broadcast to all.
+wss.broadcast = function broadcast(data) {
+  wss.clients.forEach(function each(client) {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(data);
+    }
+  });
+};
+
+wss.on('connection', function connection(ws) {
+  ws.on('message', function incoming(data) {
+    // Broadcast to everyone else.
+    wss.clients.forEach(function each(client) {
+      if (client !== ws && client.readyState === WebSocket.OPEN) {
+        client.send(data);
+      }
+    });
+  });
+});
+```
+
 ### ExpressJS example
 
 ```js
-var server = require('http').createServer()
-  , url = require('url')
-  , WebSocketServer = require('ws').Server
-  , wss = new WebSocketServer({ server: server })
-  , express = require('express')
-  , app = express()
-  , port = 4080;
+const express = require('express');
+const http = require('http');
+const url = require('url');
+const WebSocket = require('ws');
+
+const app = express();
 
 app.use(function (req, res) {
   res.send({ msg: "hello" });
 });
 
+const server = http.createServer(app);
+const wss = new WebSocket.Server({ server });
+
 wss.on('connection', function connection(ws) {
-  var location = url.parse(ws.upgradeReq.url, true);
-  // you might use location.query.access_token to authenticate or share sessions
+  const location = url.parse(ws.upgradeReq.url, true);
+  // You might use location.query.access_token to authenticate or share sessions
   // or ws.upgradeReq.headers.cookie (see http://stackoverflow.com/a/16395220/151312)
 
   ws.on('message', function incoming(message) {
@@ -118,117 +187,34 @@ wss.on('connection', function connection(ws) {
   ws.send('something');
 });
 
-server.on('request', app);
-server.listen(port, function () { console.log('Listening on ' + server.address().port) });
-```
-
-### Parse ExpressJS sessions by WebSocket connection
-
-```js
-var WebSocketServer = require('ws').Server
-  , http = require('http')
-  , express = require('express')
-  , app = express();
-
-var bodyParser=require('body-parser');
-var session=require('express-session');
-var sessionParser=session({
-
-    secret: 'there is no spoon',
-    cookie: { maxAge: null },
-    // store: sessionStore,
-    resave: true,
-    saveUninitializes: true
-})
-
-app.use(sessionParser);
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended: true}));
-
-var server = http.createServer(app);
-var wss = new WebSocketServer({
-    server: server,
-    verifyClient: function (info, done){
-
-        sessionParser(info.req, {}, function(){
-
-            console.log('VERIFY', info.req.session);
-            // allow connection only if session is valid and a user is logged in
-            done(info.req.session && info.req.session.user && info.req.session.user.id);
-        });
-    }
+server.listen(8080, function listening() {
+  console.log('Listening on %d', server.address().port);
 });
-
-wss.on('connection', function(ws) {
-
-    ws.on('message', function(message) {
-
-        console.log(message, ws.upgradeReq.session);
-        if(message.type && canUserDo(ws.upgradeReq.session.user, message.type)){
-
-            // do stuff here and reply to the message
-        }
-    }
-});
-```
-
-### Server sending broadcast data
-
-```js
-var WebSocketServer = require('ws').Server
-  , wss = new WebSocketServer({ port: 8080 });
-
-wss.broadcast = function broadcast(data) {
-  wss.clients.forEach(function each(client) {
-    client.send(data);
-  });
-};
-```
-
-### Error handling best practices
-
-```js
-// If the WebSocket is closed before the following send is attempted
-ws.send('something');
-
-// Errors (both immediate and async write errors) can be detected in an optional
-// callback. The callback is also the only way of being notified that data has
-// actually been sent.
-ws.send('something', function ack(error) {
-  // if error is not defined, the send has been completed,
-  // otherwise the error object will indicate what failed.
-});
-
-// Immediate errors can also be handled with try/catch-blocks, but **note** that
-// since sends are inherently asynchronous, socket write failures will *not* be
-// captured when this technique is used.
-try { ws.send('something'); }
-catch (e) { /* handle error */ }
 ```
 
 ### echo.websocket.org demo
 
 ```js
-var WebSocket = require('ws');
-var ws = new WebSocket('ws://echo.websocket.org/', {
-  protocolVersion: 8,
-  origin: 'http://websocket.org'
+const WebSocket = require('ws');
+
+const ws = new WebSocket('wss://echo.websocket.org/', {
+  origin: 'https://websocket.org'
 });
 
 ws.on('open', function open() {
   console.log('connected');
-  ws.send(Date.now().toString(), {mask: true});
+  ws.send(Date.now());
 });
 
 ws.on('close', function close() {
   console.log('disconnected');
 });
 
-ws.on('message', function message(data, flags) {
-  console.log('Roundtrip time: ' + (Date.now() - parseInt(data)) + 'ms', flags);
+ws.on('message', function incoming(data, flags) {
+  console.log(`Roundtrip time: ${Date.now() - data} ms`, flags);
 
   setTimeout(function timeout() {
-    ws.send(Date.now().toString(), {mask: true});
+    ws.send(Date.now());
   }, 500);
 });
 ```
@@ -238,48 +224,36 @@ ws.on('message', function message(data, flags) {
 For a full example with a browser client communicating with a ws server, see the
 examples folder.
 
-Note that the usage together with Express 3.0 is quite different from Express
-2.x. The difference is expressed in the two different serverstats-examples.
-
 Otherwise, see the test cases.
 
-### Running the tests
+## Error handling best practices
 
+```js
+// If the WebSocket is closed before the following send is attempted
+ws.send('something');
+
+// Errors (both immediate and async write errors) can be detected in an optional
+// callback. The callback is also the only way of being notified that data has
+// actually been sent.
+ws.send('something', function ack(error) {
+  // If error is not defined, the send has been completed, otherwise the error
+  // object will indicate what failed.
+});
+
+// Immediate errors can also be handled with `try...catch`, but **note** that
+// since sends are inherently asynchronous, socket write failures will *not* be
+// captured when this technique is used.
+try { ws.send('something'); }
+catch (e) { /* handle error */ }
 ```
-make test
-```
-
-## API Docs
-
-See [`/doc/ws.md`](https://github.com/websockets/ws/blob/master/doc/ws.md) for Node.js-like docs for the ws classes.
 
 ## Changelog
 
-We're using the GitHub [`releases`](https://github.com/websockets/ws/releases) for changelog entries.
+We're using the GitHub [`releases`](https://github.com/websockets/ws/releases)
+for changelog entries.
 
 ## License
 
-(The MIT License)
+[MIT](LICENSE)
 
-Copyright (c) 2011 Einar Otto Stangvik &lt;einaros@gmail.com&gt;
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-'Software'), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-[archive]: http://web.archive.org/web/20130314230536/http://hobbycoding.posterous.com/the-fastest-websocket-module-for-nodejs
+[permessage-deflate]: https://tools.ietf.org/html/rfc7692

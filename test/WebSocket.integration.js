@@ -1,44 +1,49 @@
-var assert = require('assert')
-  , WebSocket = require('../')
-  , server = require('./testserver');
+'use strict';
 
-var port = 20000;
+const assert = require('assert');
 
-function getArrayBuffer(buf) {
-  var l = buf.length;
-  var arrayBuf = new ArrayBuffer(l);
-  var uint8View = new Uint8Array(arrayBuf);
+const WebSocket = require('..');
 
-  for (var i = 0; i < l; i++) {
-    uint8View[i] = buf[i];
-  }
-  return uint8View.buffer;
-}
-
-function areArraysEqual(x, y) {
-  if (x.length != y.length) return false;
-  for (var i = 0, l = x.length; i < l; ++i) {
-    if (x[i] !== y[i]) return false;
-  }
-  return true;
-}
-
-describe('WebSocket', function() {
-  it('communicates successfully with echo service', function(done) {
-    var ws = new WebSocket('ws://echo.websocket.org/', {protocolVersion: 13, origin: 'http://websocket.org'});
-    var str = Date.now().toString();
-    var dataReceived = false;
-    ws.on('open', function() {
-      ws.send(str, {mask: true});
+describe('WebSocket', function () {
+  it('communicates successfully with echo service (ws)', function (done) {
+    const ws = new WebSocket('ws://echo.websocket.org/', {
+      origin: 'ws://echo.websocket.org',
+      protocolVersion: 13
     });
-    ws.on('close', function() {
-      assert.equal(true, dataReceived);
+    const str = Date.now().toString();
+
+    let dataReceived = false;
+
+    ws.on('open', () => ws.send(str));
+    ws.on('close', () => {
+      assert.ok(dataReceived);
       done();
     });
-    ws.on('message', function(data, flags) {
-      assert.equal(str, data);
-      ws.terminate();
+    ws.on('message', (data) => {
       dataReceived = true;
+      assert.strictEqual(data, str);
+      ws.close();
+    });
+  });
+
+  it('communicates successfully with echo service (wss)', function (done) {
+    const ws = new WebSocket('wss://echo.websocket.org/', {
+      origin: 'wss://echo.websocket.org',
+      protocolVersion: 13
+    });
+    const str = Date.now().toString();
+
+    let dataReceived = false;
+
+    ws.on('open', () => ws.send(str));
+    ws.on('close', () => {
+      assert.ok(dataReceived);
+      done();
+    });
+    ws.on('message', (data) => {
+      dataReceived = true;
+      assert.strictEqual(data, str);
+      ws.close();
     });
   });
 });

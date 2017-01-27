@@ -1,12 +1,11 @@
 {
   "author": "Einar Otto Stangvik <einaros@gmail.com> (http://2x.io)",
   "name": "ws",
-  "description": "simple to use, blazing fast and thoroughly tested websocket client, server and console for node.js, up-to-date against RFC-6455",
-  "version": "1.1.0",
+  "description": "Simple to use, blazing fast and thoroughly tested websocket client and server for Node.js",
+  "version": "2.0.0-beta.2",
   "license": "MIT",
   "main": "index.js",
   "keywords": [
-    "Hixie",
     "HyBi",
     "Push",
     "RFC-6455",
@@ -19,22 +18,25 @@
     "url": "git://github.com/websockets/ws.git"
   },
   "scripts": {
-    "test": "make test"
+    "test-travis": "npm run lint && istanbul cover _mocha --report lcovonly -- test/*.test.js",
+    "coverage": "istanbul cover _mocha --report html -- test/*.test.js",
+    "integration": "npm run lint && mocha test/*.integration.js",
+    "test": "npm run lint && mocha test/*.test.js",
+    "lint": "eslint ."
   },
   "dependencies": {
-    "ultron": "1.0.x"
+    "ultron": "~1.1.0"
   },
   "devDependencies": {
-    "ansi": "0.3.x",
-    "benchmark": "0.3.x",
-    "bufferutil": "1.2.x",
-    "eslint": "^2.12.0",
-    "expect.js": "0.3.x",
-    "istanbul": "^0.4.1",
-    "mocha": "2.3.x",
-    "should": "8.0.x",
-    "tinycolor": "0.0.x",
-    "utf-8-validate": "1.2.x"
-  },
-  "gypfile": true
+    "benchmark": "~2.1.2",
+    "bufferutil": "~1.3.0",
+    "eslint": "~3.14.0",
+    "eslint-config-semistandard": "~7.0.0",
+    "eslint-config-standard": "~6.2.1",
+    "eslint-plugin-promise": "~3.4.0",
+    "eslint-plugin-standard": "~2.0.1",
+    "istanbul": "~0.4.5",
+    "mocha": "~3.2.0",
+    "utf-8-validate": "~2.0.0"
+  }
 }
