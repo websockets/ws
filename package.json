@@ -37,6 +37,6 @@
     "eslint-plugin-standard": "~2.0.1",
     "istanbul": "~0.4.5",
     "mocha": "~3.2.0",
-    "utf-8-validate": "~2.0.0"
+    "utf-8-validate": "~3.0.0"
   }
 }
