@@ -2,9 +2,7 @@
 
 const assert = require('assert');
 
-const validation = require('../lib/Validation');
-
-const Validation = validation.Validation;
+const isValidUTF8 = require('../lib/Validation');
 
 describe('Validation', function () {
   describe('isValidUTF8', function () {
@@ -27,7 +25,7 @@ describe('Validation', function () {
         'vulputate quis. Morbi ut pulvinar augue.'
       );
 
-      assert.ok(Validation.isValidUTF8(validBuffer));
+      assert.ok(isValidUTF8(validBuffer));
     });
 
     it('should return false for an erroneous string', function () {
@@ -37,16 +35,16 @@ describe('Validation', function () {
         0x65, 0x64, 0x69, 0x74, 0x65, 0x64
       ]);
 
-      assert.ok(!Validation.isValidUTF8(invalidBuffer));
+      assert.ok(!isValidUTF8(invalidBuffer));
     });
 
     it('should return true for valid cases from the autobahn test suite', function () {
-      assert.ok(Validation.isValidUTF8(Buffer.from([0xf0, 0x90, 0x80, 0x80])));
-      assert.ok(Validation.isValidUTF8(Buffer.from('\xf0\x90\x80\x80')));
+      assert.ok(isValidUTF8(Buffer.from([0xf0, 0x90, 0x80, 0x80])));
+      assert.ok(isValidUTF8(Buffer.from('\xf0\x90\x80\x80')));
     });
 
     it('should return false for erroneous autobahn strings', function () {
-      assert.ok(!Validation.isValidUTF8(Buffer.from([0xce, 0xba, 0xe1, 0xbd])));
+      assert.ok(!isValidUTF8(Buffer.from([0xce, 0xba, 0xe1, 0xbd])));
     });
   });
 });
