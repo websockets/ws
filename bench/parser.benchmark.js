@@ -18,7 +18,6 @@ const Receiver = require('../').Receiver;
 //
 Receiver.prototype.cleanup = function () {
   this.state = 0;
-  this.start();
 };
 
 function createBinaryPacket (length) {

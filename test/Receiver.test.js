@@ -307,6 +307,25 @@ describe('Receiver', function () {
     });
   });
 
+  it('can parse a buffer with thousands of frames', function (done) {
+    const buf = Buffer.allocUnsafe(40000);
+
+    for (let i = 0; i < buf.length; i += 2) {
+      buf[i] = 0x81;
+      buf[i + 1] = 0x00;
+    }
+
+    const p = new Receiver();
+    let counter = 0;
+
+    p.onmessage = function (data) {
+      assert.strictEqual(data, '');
+      if (++counter === 20000) done();
+    };
+
+    p.add(buf);
+  });
+
   it('resets `totalPayloadLength` only on final frame (unfragmented)', function () {
     const p = new Receiver({}, 10);
     let message;
@@ -699,7 +718,7 @@ describe('Receiver', function () {
       p.add(frame);
       p.add(frame);
 
-      assert.strictEqual(p.state, 5);
+      assert.strictEqual(p.state, 7);
       assert.strictEqual(p.bufferedBytes, frame.length);
 
       p.cleanup(() => {
@@ -731,7 +750,7 @@ describe('Receiver', function () {
       p.add(textFrame);
       p.add(closeFrame);
 
-      assert.strictEqual(p.state, 5);
+      assert.strictEqual(p.state, 7);
       assert.strictEqual(p.bufferedBytes, textFrame.length + closeFrame.length);
 
       p.cleanup(() => {
@@ -763,7 +782,7 @@ describe('Receiver', function () {
       p.add(textFrame);
       p.add(invalidFrame);
 
-      assert.strictEqual(p.state, 5);
+      assert.strictEqual(p.state, 7);
       assert.strictEqual(p.bufferedBytes, textFrame.length + invalidFrame.length);
 
       p.cleanup(() => {
@@ -798,7 +817,7 @@ describe('Receiver', function () {
       p.add(textFrame);
       p.add(incompleteFrame);
 
-      assert.strictEqual(p.state, 5);
+      assert.strictEqual(p.state, 7);
       assert.strictEqual(p.bufferedBytes, incompleteFrame.length);
 
       p.cleanup(() => {
