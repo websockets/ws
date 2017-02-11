@@ -143,7 +143,9 @@ describe('WebSocket', function () {
 
       it('takes into account the data in the sender queue', function (done) {
         const wss = new WebSocketServer({ port: ++port }, () => {
-          const ws = new WebSocket(`ws://localhost:${port}`);
+          const ws = new WebSocket(`ws://localhost:${port}`, {
+            perMessageDeflate: { threshold: 0 }
+          });
 
           ws.on('open', () => {
             ws.send('foo');
