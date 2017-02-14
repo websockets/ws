@@ -1,12 +1,14 @@
 {
-  "name": "express-session",
+  "name": "express-session-parse",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "echo \"Hello!\""
+    "start": "node index.js"
   },
   "author": "",
   "dependencies": {
-    "express": "4.14.0"
+    "express": "4.14.0",
+    "express-session": "1.15.0",
+    "node-uuid": "1.4.7"
   }
 }
