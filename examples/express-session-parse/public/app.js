@@ -1,36 +1,37 @@
+/* global fetch, WebSocket */
 var resultDiv = document.querySelector('div#result');
 
-function showMessage(message) {
+function showMessage (message) {
   resultDiv.innerHTML += '<br/>' + message;
   resultDiv.scrollTop = resultDiv.scrollHeight;
 }
 
-function handleResponseAsync(response) {
+function handleResponseAsync (response) {
   return Promise.resolve()
     .then(function () {
       if (response.ok) {
         response.json()
           .then(function (json) {
-            showMessage(JSON.stringify(json, null, 2))
+            showMessage(JSON.stringify(json, null, 2));
           });
       } else {
         showMessage('Network error');
       }
-    })
+    });
 }
-function openSession() {
+function openSession () {
   fetch('/session', {credentials: 'same-origin'})
     .then(function (response) {
-      handleResponseAsync(response)
+      handleResponseAsync(response);
     });
 }
-function closeSession() {
+function closeSession () {
   fetch('/session', {method: 'DELETE', credentials: 'same-origin'})
     .then(function (response) {
-      handleResponseAsync(response)
+      handleResponseAsync(response);
     });
 }
-function connectToWs() {
+function connectToWs () {
   var hostname = window.location.hostname;
   var port = window.location.port;
   var Socket = new WebSocket('ws://' + hostname + ':' + port);
@@ -42,5 +43,11 @@ function connectToWs() {
   };
   Socket.onclose = function () {
     showMessage('Web socket is closed');
-  }
+  };
 }
+
+window.onload = function () {
+  document.querySelector('button#openBtn').onclick = openSession;
+  document.querySelector('button#closeBtn').onclick = closeSession;
+  document.querySelector('button#connectWs').onclick = connectToWs;
+};
