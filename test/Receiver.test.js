@@ -718,7 +718,7 @@ describe('Receiver', function () {
       p.add(frame);
       p.add(frame);
 
-      assert.strictEqual(p.state, 7);
+      assert.strictEqual(p.state, 5);
       assert.strictEqual(p.bufferedBytes, frame.length);
 
       p.cleanup(() => {
@@ -750,7 +750,7 @@ describe('Receiver', function () {
       p.add(textFrame);
       p.add(closeFrame);
 
-      assert.strictEqual(p.state, 7);
+      assert.strictEqual(p.state, 5);
       assert.strictEqual(p.bufferedBytes, textFrame.length + closeFrame.length);
 
       p.cleanup(() => {
@@ -782,7 +782,7 @@ describe('Receiver', function () {
       p.add(textFrame);
       p.add(invalidFrame);
 
-      assert.strictEqual(p.state, 7);
+      assert.strictEqual(p.state, 5);
       assert.strictEqual(p.bufferedBytes, textFrame.length + invalidFrame.length);
 
       p.cleanup(() => {
@@ -817,7 +817,7 @@ describe('Receiver', function () {
       p.add(textFrame);
       p.add(incompleteFrame);
 
-      assert.strictEqual(p.state, 7);
+      assert.strictEqual(p.state, 5);
       assert.strictEqual(p.bufferedBytes, incompleteFrame.length);
 
       p.cleanup(() => {
