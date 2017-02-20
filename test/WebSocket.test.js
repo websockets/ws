@@ -194,7 +194,7 @@ describe('WebSocket', function () {
           assert.ok(req.headers.authorization);
           assert.strictEqual(
             req.headers.authorization,
-            `Basic ${new Buffer(auth).toString('base64')}`
+            `Basic ${Buffer.from(auth).toString('base64')}`
           );
 
           wss.close();

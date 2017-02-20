@@ -126,10 +126,7 @@ describe('WebSocketServer', function () {
 
       const ws = new WebSocket(`ws://localhost:${port}/`);
 
-      ws.onopen = () => {
-        ws._socket.write(new Buffer([5]));
-        ws.send('');
-      };
+      ws.onopen = () => ws._socket.write(Buffer.from([0x85, 0x00]));
     });
   });
 
