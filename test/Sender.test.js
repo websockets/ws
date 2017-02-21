@@ -178,30 +178,6 @@ describe('Sender', function () {
       sender.send('123', { compress: true, fin: true });
     });
 
-    it('compresses null as first fragment', function (done) {
-      const fragments = [];
-      const perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
-      const sender = new Sender({
-        write: (data) => {
-          fragments.push(data);
-          if (fragments.length !== 2) return;
-
-          assert.strictEqual(fragments[0][0] & 0x40, 0x40);
-          assert.strictEqual(fragments[0].length, 3);
-          assert.strictEqual(fragments[1][0] & 0x40, 0x00);
-          assert.strictEqual(fragments[1].length, 8);
-          done();
-        }
-      }, {
-        'permessage-deflate': perMessageDeflate
-      });
-
-      perMessageDeflate.accept([{}]);
-
-      sender.send(null, { compress: true, fin: false });
-      sender.send('data', { compress: true, fin: true });
-    });
-
     it('compresses empty buffer as first fragment', function (done) {
       const fragments = [];
       const perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
@@ -224,30 +200,6 @@ describe('Sender', function () {
 
       sender.send(Buffer.alloc(0), { compress: true, fin: false });
       sender.send('data', { compress: true, fin: true });
-    });
-
-    it('compresses null last fragment', function (done) {
-      const fragments = [];
-      const perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
-      const sender = new Sender({
-        write: (data) => {
-          fragments.push(data);
-          if (fragments.length !== 2) return;
-
-          assert.strictEqual(fragments[0][0] & 0x40, 0x40);
-          assert.strictEqual(fragments[0].length, 12);
-          assert.strictEqual(fragments[1][0] & 0x40, 0x00);
-          assert.strictEqual(fragments[1].length, 3);
-          done();
-        }
-      }, {
-        'permessage-deflate': perMessageDeflate
-      });
-
-      perMessageDeflate.accept([{}]);
-
-      sender.send('data', { compress: true, fin: false });
-      sender.send(null, { compress: true, fin: true });
     });
 
     it('compresses empty buffer as last fragment', function (done) {

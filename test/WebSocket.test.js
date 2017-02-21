@@ -811,7 +811,7 @@ describe('WebSocket', function () {
         ws.on('open', () => ws.send());
 
         srv.on('message', (message, flags) => {
-          assert.strictEqual(message, '');
+          assert.ok(message.equals(Buffer.alloc(0)));
           srv.close(done);
           ws.terminate();
         });
