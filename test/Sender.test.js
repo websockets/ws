@@ -6,12 +6,11 @@ const PerMessageDeflate = require('../lib/PerMessageDeflate');
 const Sender = require('../lib/Sender');
 
 describe('Sender', function () {
-  describe('#frameAndSend', function () {
-    it('does not modify a masked binary buffer', function () {
-      const sender = new Sender({ write: () => {} });
+  describe('.frame', function () {
+    it('does not mutate the input buffer if data is `readOnly`', function () {
       const buf = Buffer.from([1, 2, 3, 4, 5]);
 
-      sender.frameAndSend(buf, {
+      Sender.frame(buf, {
         readOnly: true,
         rsv1: false,
         mask: true,
@@ -22,36 +21,16 @@ describe('Sender', function () {
       assert.ok(buf.equals(Buffer.from([1, 2, 3, 4, 5])));
     });
 
-    it('does not modify a masked text buffer', function () {
-      const sender = new Sender({ write: () => {} });
-      const text = Buffer.from('hi there');
-
-      sender.frameAndSend(text, {
-        readOnly: true,
-        rsv1: false,
-        mask: true,
-        opcode: 1,
-        fin: true
-      });
-
-      assert.ok(text.equals(Buffer.from('hi there')));
-    });
-
-    it('sets RSV1 bit if compressed', function (done) {
-      const sender = new Sender({
-        write: (data) => {
-          assert.strictEqual(data[0] & 0x40, 0x40);
-          done();
-        }
-      });
-
-      sender.frameAndSend(Buffer.from('hi'), {
+    it('sets RSV1 bit if compressed', function () {
+      const list = Sender.frame(Buffer.from('hi'), {
         readOnly: false,
         mask: false,
         rsv1: true,
         opcode: 1,
         fin: true
       });
+
+      assert.strictEqual(list[0][0] & 0x40, 0x40);
     });
   });
 

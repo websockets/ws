@@ -33,19 +33,17 @@ const opts2 = {
 };
 
 const suite = new benchmark.Suite();
-var sender = new Sender();
-sender._socket = { write () {} };
 
-suite.add('frameAndSend, unmasked (64 B)', () => sender.frameAndSend(data1, opts1));
-suite.add('frameAndSend, masked (64 B)', () => sender.frameAndSend(data1, opts2));
-suite.add('frameAndSend, unmasked (16 KiB)', () => sender.frameAndSend(data2, opts1));
-suite.add('frameAndSend, masked (16 KiB)', () => sender.frameAndSend(data2, opts2));
-suite.add('frameAndSend, unmasked (64 KiB)', () => sender.frameAndSend(data3, opts1));
-suite.add('frameAndSend, masked (64 KiB)', () => sender.frameAndSend(data3, opts2));
-suite.add('frameAndSend, unmasked (200 KiB)', () => sender.frameAndSend(data4, opts1));
-suite.add('frameAndSend, masked (200 KiB)', () => sender.frameAndSend(data4, opts2));
-suite.add('frameAndSend, unmasked (1 MiB)', () => sender.frameAndSend(data5, opts1));
-suite.add('frameAndSend, masked (1 MiB)', () => sender.frameAndSend(data5, opts2));
+suite.add('frame, unmasked (64 B)', () => Sender.frame(data1, opts1));
+suite.add('frame, masked (64 B)', () => Sender.frame(data1, opts2));
+suite.add('frame, unmasked (16 KiB)', () => Sender.frame(data2, opts1));
+suite.add('frame, masked (16 KiB)', () => Sender.frame(data2, opts2));
+suite.add('frame, unmasked (64 KiB)', () => Sender.frame(data3, opts1));
+suite.add('frame, masked (64 KiB)', () => Sender.frame(data3, opts2));
+suite.add('frame, unmasked (200 KiB)', () => Sender.frame(data4, opts1));
+suite.add('frame, masked (200 KiB)', () => Sender.frame(data4, opts2));
+suite.add('frame, unmasked (1 MiB)', () => Sender.frame(data5, opts1));
+suite.add('frame, masked (1 MiB)', () => Sender.frame(data5, opts2));
 
 suite.on('cycle', (e) => console.log(e.target.toString()));
 
