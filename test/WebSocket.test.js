@@ -1172,19 +1172,19 @@ describe('WebSocket', function () {
       const ws = new WebSocket('ws://localhost', { agent: new CustomAgent() });
 
       ws.binaryType = 'nodebuffer';
-      assert.ok(ws.binaryType === 'nodebuffer');
+      assert.strictEqual(ws.binaryType, 'nodebuffer');
       ws.binaryType = 'foo';
-      assert.ok(ws.binaryType === 'nodebuffer');
+      assert.strictEqual(ws.binaryType, 'nodebuffer');
       ws.binaryType = 'arraybuffer';
-      assert.ok(ws.binaryType === 'arraybuffer');
+      assert.strictEqual(ws.binaryType, 'arraybuffer');
       ws.binaryType = '';
-      assert.ok(ws.binaryType === 'arraybuffer');
+      assert.strictEqual(ws.binaryType, 'arraybuffer');
       ws.binaryType = 'fragments';
-      assert.ok(ws.binaryType === 'fragments');
+      assert.strictEqual(ws.binaryType, 'fragments');
       ws.binaryType = 'buffer';
-      assert.ok(ws.binaryType === 'fragments');
+      assert.strictEqual(ws.binaryType, 'fragments');
       ws.binaryType = 'nodebuffer';
-      assert.ok(ws.binaryType === 'nodebuffer');
+      assert.strictEqual(ws.binaryType, 'nodebuffer');
     });
 
     it('should work the same as the EventEmitter api', function (done) {
@@ -1432,13 +1432,14 @@ describe('WebSocket', function () {
       });
     });
 
-    it('should allow to update binaryType after receiver created', function (done) {
+    it('should allow to update binaryType on the fly', function (done) {
       server.createServer(++port, (srv) => {
         const ws = new WebSocket(`ws://localhost:${port}`);
 
-        function testType (binaryType, callback) {
+        function testType (binaryType, next) {
           const buf = Buffer.from(binaryType);
           ws.binaryType = binaryType;
+
           ws.onmessage = (messageEvent) => {
             if (binaryType === 'nodebuffer') {
               assert.ok(Buffer.isBuffer(messageEvent.data));
@@ -1447,26 +1448,24 @@ describe('WebSocket', function () {
               assert.ok(messageEvent.data instanceof ArrayBuffer);
               assert.ok(Buffer.from(messageEvent.data).equals(buf));
             } else if (binaryType === 'fragments') {
-              assert.ok(Array.isArray(messageEvent.data));
-              assert.ok(messageEvent.data.length === 1);
-              assert.ok(Buffer.from(messageEvent.data[0]).equals(buf));
+              assert.deepStrictEqual(messageEvent.data, [buf]);
             }
-            callback();
+            next();
           };
+
           ws.send(buf);
         }
 
-        ws.onopen =
-          () => testType('nodebuffer',
-            () => testType('arraybuffer',
-              () => testType('fragments',
-                () => {
-                  srv.close(done);
-                  ws.terminate();
-                }
-              )
-            )
-          );
+        ws.onopen = () => {
+          testType('nodebuffer', () => {
+            testType('arraybuffer', () => {
+              testType('fragments', () => {
+                srv.close(done);
+                ws.terminate();
+              });
+            });
+          });
+        };
       });
     });
   });

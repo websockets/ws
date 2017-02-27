@@ -277,10 +277,10 @@ Register an event listener emulating the `EventTarget` interface.
 - {String}
 
 A string indicating the type of binary data being transmitted by the connection.
-This should be either "nodebuffer" or "arraybuffer" or "fragments". Defaults to "nodebuffer".
-Type "fragments" will emit the array of fragments as received from the sender,
-without copyfull concatenation, which is useful for the performance of binary protocols 
-transfering large messages with multiple fragments.
+This should be one of "nodebuffer", "arraybuffer" or "fragments". Defaults to
+"nodebuffer". Type "fragments" will emit the array of fragments as received from
+the sender, without copyfull concatenation, which is useful for the performance
+of binary protocols transfering large messages with multiple fragments.
 
 ### websocket.bufferedAmount
 
