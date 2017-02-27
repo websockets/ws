@@ -5,6 +5,7 @@ const crypto = require('crypto');
 
 const PerMessageDeflate = require('../lib/PerMessageDeflate');
 const Receiver = require('../lib/Receiver');
+const Sender = require('../lib/Sender');
 const util = require('./hybi-util');
 
 describe('Receiver', function () {
@@ -827,4 +828,85 @@ describe('Receiver', function () {
       });
     });
   });
+
+  it('can emit nodebuffer of fragmented binary message', function (done) {
+    const p = new Receiver();
+    const frags = [
+      crypto.randomBytes(7321),
+      crypto.randomBytes(137),
+      crypto.randomBytes(285787),
+      crypto.randomBytes(3)
+    ];
+
+    p.binaryType = 'nodebuffer';
+    p.onmessage = function (data) {
+      assert.ok(Buffer.isBuffer(data));
+      assert.ok(data.equals(Buffer.concat(frags)));
+      done();
+    };
+
+    addBinaryFragments(p, frags);
+  });
+
+  it('can emit arraybuffer of fragmented binary message', function (done) {
+    const p = new Receiver();
+    const frags = [
+      crypto.randomBytes(19221),
+      crypto.randomBytes(954),
+      crypto.randomBytes(623987)
+    ];
+
+    p.binaryType = 'arraybuffer';
+    p.onmessage = function (data) {
+      assert.ok(data instanceof ArrayBuffer);
+      assert.ok(Buffer.from(data).equals(Buffer.concat(frags)));
+      done();
+    };
+
+    addBinaryFragments(p, frags);
+  });
+
+  it('can emit fragments of fragmented binary message', function (done) {
+    const p = new Receiver();
+    const frags = [
+      crypto.randomBytes(17),
+      crypto.randomBytes(419872),
+      crypto.randomBytes(83),
+      crypto.randomBytes(9928),
+      crypto.randomBytes(1)
+    ];
+
+    p.binaryType = 'fragments';
+    p.onmessage = function (data) {
+      assert.ok(Array.isArray(data));
+      assert.ok(data.length === frags.length);
+      for (let i = 0; i < frags.length; ++i) {
+        assert.ok(Buffer.isBuffer(data[i]));
+        assert.ok(frags[i].equals(data[i]));
+      }
+      done();
+    };
+
+    addBinaryFragments(p, frags);
+  });
 });
+
+/**
+ * Adds a list of binary fragments to the receiver prefixing each one
+ * with info byte and length.
+ *
+ * @param {Receiver} receiver
+ * @param {Buffer[]} frags
+ * @private
+ */
+function addBinaryFragments (receiver, frags) {
+  for (let i = 0; i < frags.length; ++i) {
+    Sender.frame(frags[i], {
+      opcode: i === 0 ? 2 : 0,
+      fin: i + 1 === frags.length,
+      mask: false,
+      rsv1: false,
+      readOnly: true
+    }).forEach(buf => receiver.add(buf));
+  }
+}

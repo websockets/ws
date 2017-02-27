@@ -1168,12 +1168,23 @@ describe('WebSocket', function () {
       assert.strictEqual(ws.onopen, listener);
     });
 
-    it('should throw an error when setting an invalid binary type', function () {
+    it('should ignore when setting an invalid binary type', function () {
       const ws = new WebSocket('ws://localhost', { agent: new CustomAgent() });
 
-      assert.throws(() => {
-        ws.binaryType = 'foo';
-      }, /^SyntaxError: unsupported binaryType: must be either "nodebuffer" or "arraybuffer"$/);
+      ws.binaryType = 'nodebuffer';
+      assert.ok(ws.binaryType === 'nodebuffer');
+      ws.binaryType = 'foo';
+      assert.ok(ws.binaryType === 'nodebuffer');
+      ws.binaryType = 'arraybuffer';
+      assert.ok(ws.binaryType === 'arraybuffer');
+      ws.binaryType = '';
+      assert.ok(ws.binaryType === 'arraybuffer');
+      ws.binaryType = 'fragments';
+      assert.ok(ws.binaryType === 'fragments');
+      ws.binaryType = 'buffer';
+      assert.ok(ws.binaryType === 'fragments');
+      ws.binaryType = 'nodebuffer';
+      assert.ok(ws.binaryType === 'nodebuffer');
     });
 
     it('should work the same as the EventEmitter api', function (done) {
@@ -1418,6 +1429,44 @@ describe('WebSocket', function () {
           srv.close(done);
           ws.terminate();
         };
+      });
+    });
+
+    it('should allow to update binaryType after receiver created', function (done) {
+      server.createServer(++port, (srv) => {
+        const ws = new WebSocket(`ws://localhost:${port}`);
+
+        function testType (binaryType, callback) {
+          const buf = Buffer.from(binaryType);
+          ws.binaryType = binaryType;
+          ws.onmessage = (messageEvent) => {
+            if (binaryType === 'nodebuffer') {
+              assert.ok(Buffer.isBuffer(messageEvent.data));
+              assert.ok(messageEvent.data.equals(buf));
+            } else if (binaryType === 'arraybuffer') {
+              assert.ok(messageEvent.data instanceof ArrayBuffer);
+              assert.ok(Buffer.from(messageEvent.data).equals(buf));
+            } else if (binaryType === 'fragments') {
+              assert.ok(Array.isArray(messageEvent.data));
+              assert.ok(messageEvent.data.length === 1);
+              assert.ok(Buffer.from(messageEvent.data[0]).equals(buf));
+            }
+            callback();
+          };
+          ws.send(buf);
+        }
+
+        ws.onopen =
+          () => testType('nodebuffer',
+            () => testType('arraybuffer',
+              () => testType('fragments',
+                () => {
+                  srv.close(done);
+                  ws.terminate();
+                }
+              )
+            )
+          );
       });
     });
   });
