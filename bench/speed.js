@@ -69,7 +69,7 @@ if (cluster.isMaster) {
       if (++roundtrip !== roundtrips) return ws.send(data, { binary: useBinary });
 
       var elapsed = process.hrtime(time);
-      elapsed = elapsed[0] * 1e9 + elapsed[1];
+      elapsed = (elapsed[0] * 1e9) + elapsed[1];
 
       console.log(
         '%d roundtrips of %s %s data:\t%ss\t%s',
