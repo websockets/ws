@@ -51,7 +51,7 @@ describe('WebSocket', function () {
 
       assert.throws(
         () => new WebSocket('ws://localhost', options),
-        /^Error: unsupported protocol version$/
+        /^Error: unsupported protocol version: 1000 \(supported versions: 8, 13\)$/
       );
     });
 
