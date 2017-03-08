@@ -34,8 +34,8 @@ function makePathForFile (filePath, prefix, cb) {
     if (error) return cb(error);
     if (pieces.length === 0) return cb(null, incrementalPath);
     incrementalPath += '/' + pieces.shift();
-    fs.exists(incrementalPath, function (exists) {
-      if (!exists) fs.mkdir(incrementalPath, step);
+    fs.access(incrementalPath, function (err) {
+      if (err) fs.mkdir(incrementalPath, step);
       else process.nextTick(step);
     });
   }
