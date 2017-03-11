@@ -406,11 +406,11 @@ Resume the socket
 - `callback` {Function} An optional callback which is invoked when `data` is
   written out.
 
-Sends `data` through the connection.
+Send `data` through the connection.
 
 ### websocket.terminate()
 
-Send a FIN packet to the other peer.
+Forcibly close the connection.
 
 ### websocket.upgradeReq
 
