@@ -1129,6 +1129,21 @@ describe('WebSocket', function () {
         });
       });
     });
+
+    it('does nothing if the connection is already CLOSED', function (done) {
+      const wss = new WebSocketServer({ port: ++port }, () => {
+        const ws = new WebSocket(`ws://localhost:${port}`);
+
+        ws.on('close', (code) => {
+          assert.strictEqual(code, 1000);
+          assert.strictEqual(ws.readyState, WebSocket.CLOSED);
+          ws.close();
+          wss.close(done);
+        });
+      });
+
+      wss.on('connection', (ws) => ws.close());
+    });
   });
 
   describe('#terminate', function () {
@@ -1173,6 +1188,21 @@ describe('WebSocket', function () {
         ws.terminate();
         ws.on('close', () => done());
       });
+    });
+
+    it('does nothing if the connection is already CLOSED', function (done) {
+      const wss = new WebSocketServer({ port: ++port }, () => {
+        const ws = new WebSocket(`ws://localhost:${port}`);
+
+        ws.on('close', (code) => {
+          assert.strictEqual(code, 1006);
+          assert.strictEqual(ws.readyState, WebSocket.CLOSED);
+          ws.terminate();
+          wss.close(done);
+        });
+      });
+
+      wss.on('connection', (ws) => ws.terminate());
     });
   });
 
