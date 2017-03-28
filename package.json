@@ -18,10 +18,8 @@
     "url": "git://github.com/websockets/ws.git"
   },
   "scripts": {
-    "test-travis": "npm run lint && istanbul cover _mocha --report lcovonly -- test/*.test.js",
-    "coverage": "istanbul cover _mocha --report html -- test/*.test.js",
-    "integration": "npm run lint && mocha test/*.integration.js",
-    "test": "npm run lint && mocha test/*.test.js",
+    "test": "eslint . && nyc --reporter=html --reporter=text mocha test/*.test.js",
+    "integration": "eslint . && mocha test/*.integration.js",
     "lint": "eslint ."
   },
   "dependencies": {
@@ -36,8 +34,8 @@
     "eslint-plugin-node": "~4.2.0",
     "eslint-plugin-promise": "~3.5.0",
     "eslint-plugin-standard": "~2.1.0",
-    "istanbul": "~0.4.5",
     "mocha": "~3.2.0",
+    "nyc": "~10.2.0",
     "utf-8-validate": "~3.0.0"
   }
 }
