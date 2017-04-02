@@ -31,7 +31,7 @@ describe('WebSocket', function () {
   });
 
   describe('options', function () {
-    it('should accept an `agent` option', function (done) {
+    it('accepts an `agent` option', function (done) {
       const agent = new CustomAgent();
 
       agent.addRequest = () => {
@@ -41,11 +41,18 @@ describe('WebSocket', function () {
       const ws = new WebSocket('ws://localhost', { agent });
     });
 
-    // GH-227
-    it('should accept the `options` object as the 3rd argument', function () {
-      const ws = new WebSocket('ws://localhost', [], {
-        agent: new CustomAgent()
-      });
+    it('accepts the `options` object as the 3rd argument', function () {
+      const agent = new CustomAgent();
+      let count = 0;
+      let ws;
+
+      agent.addRequest = (req) => count++;
+
+      ws = new WebSocket('ws://localhost', undefined, { agent });
+      ws = new WebSocket('ws://localhost', null, { agent });
+      ws = new WebSocket('ws://localhost', [], { agent });
+
+      assert.strictEqual(count, 3);
     });
 
     it('throws an error when using an invalid `protocolVersion`', function () {
@@ -57,7 +64,7 @@ describe('WebSocket', function () {
       );
     });
 
-    it('should accept the localAddress option', function (done) {
+    it('accepts the localAddress option', function (done) {
       //
       // Skip this test on macOS as by default all loopback addresses other
       // than 127.0.0.1 are disabled.
@@ -76,14 +83,14 @@ describe('WebSocket', function () {
       });
     });
 
-    it('should accept the localAddress option whether it was wrong interface', function () {
+    it('accepts the localAddress option whether it was wrong interface', function () {
       assert.throws(
         () => new WebSocket(`ws://localhost:${port}`, { localAddress: '123.456.789.428' }),
         /must be a valid IP: 123.456.789.428/
       );
     });
 
-    it('should accept the family option', function (done) {
+    it('accepts the family option', function (done) {
       const wss = new WebSocketServer({ host: '::1', port: ++port }, () => {
         const ws = new WebSocket(`ws://localhost:${port}`, { family: 6 });
       });
