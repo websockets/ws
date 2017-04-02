@@ -6,11 +6,15 @@
 
 'use strict';
 
+const safeBuffer = require('safe-buffer');
 const benchmark = require('benchmark');
 const crypto = require('crypto');
 
 const util = require('../test/hybi-util');
-const Receiver = require('../').Receiver;
+const WebSocket = require('..');
+
+const Receiver = WebSocket.Receiver;
+const Buffer = safeBuffer.Buffer;
 
 //
 // Override the `cleanup` method to make the "close message" test work as
