@@ -1,5 +1,6 @@
 'use strict';
 
+const safeBuffer = require('safe-buffer');
 const assert = require('assert');
 const crypto = require('crypto');
 
@@ -7,6 +8,8 @@ const PerMessageDeflate = require('../lib/PerMessageDeflate');
 const Receiver = require('../lib/Receiver');
 const Sender = require('../lib/Sender');
 const util = require('./hybi-util');
+
+const Buffer = safeBuffer.Buffer;
 
 describe('Receiver', function () {
   it('can parse unmasked text message', function (done) {

@@ -1,9 +1,11 @@
 'use strict';
 
+const safeBuffer = require('safe-buffer');
 const cluster = require('cluster');
 
-const WebSocket = require('../');
+const WebSocket = require('..');
 
+const Buffer = safeBuffer.Buffer;
 const port = 8181;
 
 if (cluster.isMaster) {

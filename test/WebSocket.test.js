@@ -2,6 +2,7 @@
 
 'use strict';
 
+const safeBuffer = require('safe-buffer');
 const assert = require('assert');
 const crypto = require('crypto');
 const https = require('https');
@@ -11,6 +12,7 @@ const fs = require('fs');
 const constants = require('../lib/Constants');
 const WebSocket = require('..');
 
+const Buffer = safeBuffer.Buffer;
 const WebSocketServer = WebSocket.Server;
 let port = 20000;
 

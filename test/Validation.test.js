@@ -1,8 +1,11 @@
 'use strict';
 
+const safeBuffer = require('safe-buffer');
 const assert = require('assert');
 
 const isValidUTF8 = require('../lib/Validation');
+
+const Buffer = safeBuffer.Buffer;
 
 describe('Validation', function () {
   describe('isValidUTF8', function () {

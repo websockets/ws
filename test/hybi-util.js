@@ -6,6 +6,10 @@
 
 'use strict';
 
+const safeBuffer = require('safe-buffer');
+
+const Buffer = safeBuffer.Buffer;
+
 /**
  * Performs hybi07+ type masking.
  */
