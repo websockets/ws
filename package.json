@@ -2,7 +2,7 @@
   "author": "Einar Otto Stangvik <einaros@gmail.com> (http://2x.io)",
   "name": "ws",
   "description": "Simple to use, blazing fast and thoroughly tested websocket client and server for Node.js",
-  "version": "2.2.2",
+  "version": "2.2.3",
   "license": "MIT",
   "main": "index.js",
   "keywords": [
