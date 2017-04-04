@@ -327,6 +327,16 @@ describe('WebSocketServer', function () {
 
       assert.strictEqual(wss.shouldHandle({ url: '/bar' }), false);
     });
+
+    it('returns true for custom handler', function () {
+      const wss = new WebSocketServer({
+        noServer: true,
+        path: function (req) {
+          return req.url === '/bar';
+        }});
+
+      assert.strictEqual(wss.shouldHandle({ url: '/bar' }), true);
+    });
   });
 
   describe('#handleUpgrade', function () {
