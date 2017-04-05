@@ -38,5 +38,9 @@
     "mocha": "~3.2.0",
     "nyc": "~10.2.0",
     "utf-8-validate": "~3.0.0"
+  },
+  "browser": {
+    "utf-8-validate": false,
+    "bufferutil": false
   }
 }
