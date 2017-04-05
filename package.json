@@ -34,7 +34,7 @@
     "eslint-plugin-import": "~2.2.0",
     "eslint-plugin-node": "~4.2.0",
     "eslint-plugin-promise": "~3.5.0",
-    "eslint-plugin-standard": "~2.1.0",
+    "eslint-plugin-standard": "~2.2.0",
     "mocha": "~3.2.0",
     "nyc": "~10.2.0",
     "utf-8-validate": "~3.0.0"
