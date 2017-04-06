@@ -51,10 +51,11 @@ if `verifyClient` is provided with two arguments then those are:
 
 
 If `handleProtocols` is not set then the handshake is automatically accepted,
-otherwise the function takes a single argument:
+otherwise the function takes two arguments:
 
 - `protocols` {Array} The list of WebSocket subprotocols indicated by the
   client in the `Sec-WebSocket-Protocol` header.
+- `request` {http.IncomingMessage} The client HTTP GET request.
 
 If returned value is `false` then the handshake is rejected with the HTTP 401
 status code, otherwise the returned value sets the value of the
@@ -100,6 +101,7 @@ Emitted when an error occurs on the underlying server.
 ### Event: 'headers'
 
 - `headers` {Array}
+- `request` {http.IncomingMessage}
 
 Emitted before the response headers are written to the socket as part of the
 handshake. This allows you to inspect/modify the headers before they are sent.

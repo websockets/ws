@@ -801,7 +801,7 @@ describe('WebSocketServer', function () {
       const wss = new WebSocketServer({ port: ++port }, () => {
         const ws = new WebSocket(`ws://localhost:${port}`, ['prot1', 'prot2']);
 
-        ws.on('open', (client) => {
+        ws.on('open', () => {
           assert.strictEqual(ws.protocol, 'prot1');
           wss.close();
           done();
@@ -810,16 +810,17 @@ describe('WebSocketServer', function () {
     });
 
     it('selects the last protocol via protocol handler', function (done) {
-      const wss = new WebSocketServer({
-        handleProtocols: (ps) => ps[ps.length - 1],
-        port: ++port
-      }, () => {
+      const handleProtocols = (protocols, request) => {
+        assert.ok(request instanceof http.IncomingMessage);
+        assert.strictEqual(request.url, '/');
+        return protocols.pop();
+      };
+      const wss = new WebSocketServer({ handleProtocols, port: ++port }, () => {
         const ws = new WebSocket(`ws://localhost:${port}`, ['prot1', 'prot2']);
 
         ws.on('open', () => {
           assert.strictEqual(ws.protocol, 'prot2');
-          wss.close();
-          done();
+          wss.close(done);
         });
       });
     });
@@ -901,6 +902,24 @@ describe('WebSocketServer', function () {
       wss.on('connection', (ws) => {
         wss.close();
         done();
+      });
+    });
+
+    it('emits the `headers` event', function (done) {
+      const wss = new WebSocketServer({ port: ++port }, () => {
+        const ws = new WebSocket(`ws://localhost:${port}`);
+
+        wss.on('headers', (headers, request) => {
+          assert.deepStrictEqual(headers.slice(0, 3), [
+            'HTTP/1.1 101 Switching Protocols',
+            'Upgrade: websocket',
+            'Connection: Upgrade'
+          ]);
+          assert.ok(request instanceof http.IncomingMessage);
+          assert.strictEqual(request.url, '/');
+
+          wss.on('connection', () => wss.close(done));
+        });
       });
     });
   });
