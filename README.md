@@ -11,6 +11,8 @@ and server implementation.
 Passes the quite extensive Autobahn test suite. See http://websockets.github.io/ws/
 for the full reports.
 
+**Note for using `ws` in the browser**: This is a node.js library, and for the browser you should use the [native WebSocket API](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API/Writing_WebSocket_client_applications). The client in the docs are a reference to a back end with the role of a client in the WebSocket communication.
+
 ## Protocol support
 
 * **HyBi drafts 07-12** (Use the option `protocolVersion: 8`)
