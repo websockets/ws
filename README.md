@@ -11,7 +11,10 @@ and server implementation.
 Passes the quite extensive Autobahn test suite. See http://websockets.github.io/ws/
 for the full reports.
 
-**Note for using `ws` in the browser**: This is a node.js library, and for the browser you should use the [native WebSocket API](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API/Writing_WebSocket_client_applications). The client in the docs are a reference to a back end with the role of a client in the WebSocket communication.
+**Note**: This module does not work in the browser. The client in the docs is a
+reference to a back end with the role of a client in the WebSocket
+communication. Browser clients must use the native
+[`WebSocket`](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket) object.
 
 ## Protocol support
 
@@ -24,22 +27,18 @@ for the full reports.
 npm install --save ws
 ```
 
-### Opt-in for performance
+### Opt-in for performance and spec compliance
 
 There are 2 optional modules that can be installed along side with the `ws`
-module. These modules are binary addons which improve certain operations, but as
-they are binary addons they require compilation which can fail if no c++
-compiler is installed on the host system.
+module. These modules are binary addons which improve certain operations.
+Prebuilt binaries are available for the most popular platforms so you don't
+necessarily need to have a C++ compiler installed on your machine.
 
-- `npm install --save bufferutil`: Improves internal buffer operations which
-  allows for faster processing of masked WebSocket frames and general buffer
-  operations.
-- `npm install --save utf-8-validate`: The specification requires validation of
-  invalid UTF-8 chars, some of these validations could not be done in JavaScript
-  hence the need for a binary addon. In most cases you will already be
-  validating the input that you receive for security purposes leading to double
-  validation. But if you want to be 100% spec-conforming and have fast
-  validation of UTF-8 then this module is a must.
+- `npm install --save-optional bufferutil`: Allows to efficiently perform
+  operations such as masking and unmasking the data payload of the WebSocket
+  frames.
+- `npm install --save-optional utf-8-validate`: Allows to efficiently check
+  if a message contains valid UTF-8 as required by the spec.
 
 ## API Docs
 
