@@ -47,9 +47,9 @@ for Node.js-like docs for the ws classes.
 
 ## WebSocket compression
 
-`ws` supports the [permessage-deflate extension][permessage-deflate] extension
-which enables the client and server to negotiate a compression algorithm and
-its parameters, and then selectively apply it to the data payloads of each
+`ws` supports the [permessage-deflate extension][permessage-deflate] which
+enables the client and server to negotiate a compression algorithm and its
+parameters, and then selectively apply it to the data payloads of each
 WebSocket message.
 
 The extension is enabled by default but adds a significant overhead in terms of
