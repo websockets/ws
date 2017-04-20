@@ -333,9 +333,8 @@ describe('WebSocket', function () {
       const wss = new WebSocketServer({ port: ++port }, () => {
         const ws = new WebSocket(`ws://localhost:${port}`);
         ws.on('headers', (headers, res) => {
-          assert.equal(headers, res.headers);
-          wss.close();
-          done();
+          assert.strictEqual(headers, res.headers);
+          wss.close(done);
         });
       });
     });
