@@ -226,6 +226,15 @@ human-readable string explaining why the connection has been closed.
 Emitted when an error occurs. Errors from the underlying `net.Socket` are
 forwarded here.
 
+### Event: 'headers'
+
+- `headers` {Object}
+- `response` {http.IncomingMessage}
+
+Emitted when response headers are received from the server as part of the
+handshake.  This allows you to read headers from the server, for example
+'set-cookie' headers.
+
 ### Event: 'message'
 
 - `data` {String|Buffer}

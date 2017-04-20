@@ -328,6 +328,16 @@ describe('WebSocket', function () {
 
       wss.on('connection', (client) => client.pong());
     });
+
+    it('emits a headers event', function (done) {
+      const wss = new WebSocketServer({ port: ++port }, () => {
+        const ws = new WebSocket(`ws://localhost:${port}`);
+        ws.on('headers', (headers, res) => {
+          assert.strictEqual(headers, res.headers);
+          wss.close(done);
+        });
+      });
+    });
   });
 
   describe('connection establishing', function () {
