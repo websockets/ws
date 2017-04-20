@@ -999,6 +999,20 @@ describe('WebSocket', function () {
       });
     });
 
+    it('can be called from a listener of the headers event', function (done) {
+      const wss = new WebSocketServer({ port: ++port }, () => {
+        const ws = new WebSocket(`ws://localhost:${port}`);
+
+        ws.on('open', () => assert.fail(null, null, 'connect shouldnt be raised here'));
+        ws.on('error', (err) => {
+          assert.ok(err instanceof Error);
+          assert.strictEqual(err.message, 'closed before the connection is established');
+          ws.on('close', () => wss.close(done));
+        });
+        ws.on('headers', () => ws.close());
+      });
+    });
+
     it('throws an error if the first argument is invalid (1/2)', function (done) {
       const wss = new WebSocketServer({ port: ++port }, () => {
         const ws = new WebSocket(`ws://localhost:${port}`);
@@ -1206,6 +1220,20 @@ describe('WebSocket', function () {
         assert.strictEqual(err.code, 'ECONNREFUSED');
         ws.terminate();
         ws.on('close', () => done());
+      });
+    });
+
+    it('can be called from a listener of the headers event', function (done) {
+      const wss = new WebSocketServer({ port: ++port }, () => {
+        const ws = new WebSocket(`ws://localhost:${port}`);
+
+        ws.on('open', () => assert.fail(null, null, 'connect shouldnt be raised here'));
+        ws.on('error', (err) => {
+          assert.ok(err instanceof Error);
+          assert.strictEqual(err.message, 'closed before the connection is established');
+          ws.on('close', () => wss.close(done));
+        });
+        ws.on('headers', () => ws.terminate());
       });
     });
 
