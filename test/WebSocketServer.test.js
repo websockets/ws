@@ -264,8 +264,7 @@ describe('WebSocketServer', function () {
     it('exposes options passed to constructor', function (done) {
       const wss = new WebSocketServer({ port: ++port }, () => {
         assert.strictEqual(wss.options.port, port);
-        wss.close();
-        done();
+        wss.close(done);
       });
     });
   });
@@ -279,8 +278,7 @@ describe('WebSocketServer', function () {
 
       wss.on('connection', (client) => {
         assert.strictEqual(client.maxPayload, maxPayload);
-        wss.close();
-        done();
+        wss.close(done);
       });
     });
 
@@ -292,8 +290,7 @@ describe('WebSocketServer', function () {
 
       wss.on('connection', (client) => {
         assert.strictEqual(client._receiver.maxPayload, maxPayload);
-        wss.close();
-        done();
+        wss.close(done);
       });
     });
 
@@ -309,8 +306,7 @@ describe('WebSocketServer', function () {
           client._receiver.extensions[PerMessageDeflate.extensionName]._maxPayload,
           maxPayload
         );
-        wss.close();
-        done();
+        wss.close(done);
       });
     });
   });
@@ -363,8 +359,7 @@ describe('WebSocketServer', function () {
 
         req.on('response', (res) => {
           assert.strictEqual(res.statusCode, 400);
-          wss.close();
-          done();
+          wss.close(done);
         });
 
         req.end();
@@ -386,8 +381,7 @@ describe('WebSocketServer', function () {
 
         req.on('response', (res) => {
           assert.strictEqual(res.statusCode, 400);
-          wss.close();
-          done();
+          wss.close(done);
         });
 
         req.end();
@@ -409,8 +403,7 @@ describe('WebSocketServer', function () {
 
         req.on('response', (res) => {
           assert.strictEqual(res.statusCode, 400);
-          wss.close();
-          done();
+          wss.close(done);
         });
 
         req.end();
@@ -435,8 +428,7 @@ describe('WebSocketServer', function () {
 
         req.on('response', (res) => {
           assert.strictEqual(res.statusCode, 400);
-          wss.close();
-          done();
+          wss.close(done);
         });
 
         req.end();
@@ -462,8 +454,7 @@ describe('WebSocketServer', function () {
 
         req.on('response', (res) => {
           assert.strictEqual(res.statusCode, 400);
-          wss.close();
-          done();
+          wss.close(done);
         });
 
         req.end();
@@ -493,8 +484,7 @@ describe('WebSocketServer', function () {
 
         req.on('response', (res) => {
           assert.strictEqual(res.statusCode, 401);
-          wss.close();
-          done();
+          wss.close(done);
         });
 
         req.end();
@@ -525,10 +515,7 @@ describe('WebSocketServer', function () {
         req.end();
       });
 
-      wss.on('connection', (ws) => {
-        wss.close();
-        done();
-      });
+      wss.on('connection', (ws) => wss.close(done));
     });
 
     it('verifyClient gets client origin', function (done) {
@@ -555,8 +542,7 @@ describe('WebSocketServer', function () {
 
         req.on('response', (res) => {
           assert.ok(verifyClientCalled);
-          wss.close();
-          done();
+          wss.close(done);
         });
 
         req.end();
@@ -590,8 +576,7 @@ describe('WebSocketServer', function () {
 
         req.on('response', (res) => {
           assert.ok(verifyClientCalled);
-          wss.close();
-          done();
+          wss.close(done);
         });
 
         req.end();
@@ -666,8 +651,7 @@ describe('WebSocketServer', function () {
 
         req.on('response', (res) => {
           assert.strictEqual(res.statusCode, 401);
-          wss.close();
-          done();
+          wss.close(done);
         });
 
         req.end();
@@ -697,8 +681,7 @@ describe('WebSocketServer', function () {
 
         req.on('response', (res) => {
           assert.strictEqual(res.statusCode, 404);
-          wss.close();
-          done();
+          wss.close(done);
         });
 
         req.end();
@@ -729,10 +712,7 @@ describe('WebSocketServer', function () {
         req.end();
       });
 
-      wss.on('connection', (ws) => {
-        wss.close();
-        done();
-      });
+      wss.on('connection', (ws) => wss.close(done));
     });
 
     it('doesn\'t emit the `connection` event if socket is closed prematurely', function (done) {
@@ -791,8 +771,7 @@ describe('WebSocketServer', function () {
       wss.on('connection', (ws) => {
         ws.on('message', (data) => {
           assert.strictEqual(data, 'Hello');
-          wss.close();
-          done();
+          wss.close(done);
         });
       });
     });
@@ -803,8 +782,7 @@ describe('WebSocketServer', function () {
 
         ws.on('open', () => {
           assert.strictEqual(ws.protocol, 'prot1');
-          wss.close();
-          done();
+          wss.close(done);
         });
       });
     });
@@ -833,10 +811,7 @@ describe('WebSocketServer', function () {
         const ws = new WebSocket(`ws://localhost:${port}`, ['prot1', 'prot2']);
 
         ws.on('open', () => done(new Error('connection must not be established')));
-        ws.on('error', () => {
-          wss.close();
-          done();
-        });
+        ws.on('error', () => wss.close(done));
       });
     });
 
@@ -848,10 +823,7 @@ describe('WebSocketServer', function () {
         const ws = new WebSocket(`ws://localhost:${port}`, ['prot1', 'prot2']);
 
         ws.on('open', () => done(new Error('connection must not be established')));
-        ws.on('error', () => {
-          wss.close();
-          done();
-        });
+        ws.on('error', () => wss.close(done));
       });
     });
 
@@ -874,8 +846,7 @@ describe('WebSocketServer', function () {
 
         req.on('response', (res) => {
           assert.strictEqual(res.statusCode, 401);
-          wss.close();
-          done();
+          wss.close(done);
         });
 
         req.end();
@@ -899,10 +870,7 @@ describe('WebSocketServer', function () {
         req.end();
       });
 
-      wss.on('connection', (ws) => {
-        wss.close();
-        done();
-      });
+      wss.on('connection', (ws) => wss.close(done));
     });
 
     it('emits the `headers` event', function (done) {
@@ -942,8 +910,7 @@ describe('WebSocketServer', function () {
       wss.on('connection', (client) => {
         client.on('message', (message) => {
           assert.strictEqual(message, data);
-          wss.close();
-          done();
+          wss.close(done);
         });
 
         client.send(data);
@@ -959,8 +926,7 @@ describe('WebSocketServer', function () {
 
       wss.on('connection', (client) => {
         assert.strictEqual(client.protocol, 'hi');
-        wss.close();
-        done();
+        wss.close(done);
       });
     });
 
@@ -971,8 +937,7 @@ describe('WebSocketServer', function () {
 
       wss.on('connection', (client) => {
         assert.strictEqual(client.protocolVersion, 8);
-        wss.close();
-        done();
+        wss.close(done);
       });
     });
 
@@ -983,8 +948,7 @@ describe('WebSocketServer', function () {
 
       wss.on('connection', (client) => {
         assert.strictEqual(client.upgradeReq.httpVersion, '1.1');
-        wss.close();
-        done();
+        wss.close(done);
       });
     });
   });
@@ -1007,10 +971,7 @@ describe('WebSocketServer', function () {
         req.end();
       });
 
-      wss.on('connection', (ws) => {
-        wss.close();
-        done();
-      });
+      wss.on('connection', (ws) => wss.close(done));
     });
 
     it('does not accept connections with not defined extension parameter', function (done) {
@@ -1029,8 +990,7 @@ describe('WebSocketServer', function () {
 
         req.on('response', (res) => {
           assert.strictEqual(res.statusCode, 400);
-          wss.close();
-          done();
+          wss.close(done);
         });
 
         req.end();
@@ -1057,8 +1017,7 @@ describe('WebSocketServer', function () {
 
         req.on('response', (res) => {
           assert.strictEqual(res.statusCode, 400);
-          wss.close();
-          done();
+          wss.close(done);
         });
 
         req.end();

@@ -108,8 +108,7 @@ describe('WebSocket', function () {
         const ws = new WebSocket(`ws://localhost:${port}`, { perMessageDeflate: false });
         ws.on('message', () => {
           assert.strictEqual(ws.bytesReceived, 8);
-          wss.close();
-          done();
+          wss.close(done);
         });
       });
       wss.on('connection', (ws) => ws.send('foobar'));
@@ -308,10 +307,7 @@ describe('WebSocket', function () {
     it('emits a ping event', function (done) {
       const wss = new WebSocketServer({ port: ++port }, () => {
         const ws = new WebSocket(`ws://localhost:${port}`);
-        ws.on('ping', function () {
-          wss.close();
-          done();
-        });
+        ws.on('ping', () => wss.close(done));
       });
 
       wss.on('connection', (client) => client.ping());
@@ -320,10 +316,7 @@ describe('WebSocket', function () {
     it('emits a pong event', function (done) {
       const wss = new WebSocketServer({ port: ++port }, () => {
         const ws = new WebSocket(`ws://localhost:${port}`);
-        ws.on('pong', () => {
-          wss.close();
-          done();
-        });
+        ws.on('pong', () => wss.close(done));
       });
 
       wss.on('connection', (client) => client.pong());
@@ -515,8 +508,7 @@ describe('WebSocket', function () {
         let paused = true;
         serverClient.on('message', () => {
           assert.ok(!paused);
-          wss.close();
-          done();
+          wss.close(done);
         });
         serverClient.pause();
 
@@ -1427,9 +1419,7 @@ describe('WebSocket', function () {
         ws.addEventListener('close', (closeEvent) => {
           assert.ok(closeEvent.wasClean);
           assert.strictEqual(closeEvent.code, 1000);
-
-          wss.close();
-          done();
+          wss.close(done);
         });
       });
 
@@ -1444,9 +1434,7 @@ describe('WebSocket', function () {
           assert.ok(!closeEvent.wasClean);
           assert.strictEqual(closeEvent.code, 1001);
           assert.strictEqual(closeEvent.reason, 'some daft reason');
-
-          wss.close();
-          done();
+          wss.close(done);
         });
       });
 
