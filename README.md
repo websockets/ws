@@ -288,7 +288,7 @@ the `X-Forwarded-For` header.
 
 ```js
 wss.on('connection', function connection(ws) {
-  const ip = ws.upgradeReq['x-forwarded-for'];
+  const ip = ws.upgradeReq.headers['x-forwarded-for'];
 });
 ```
 </details>
