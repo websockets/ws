@@ -90,11 +90,11 @@ describe('WebSocketServer', function () {
       server.listen(sockPath, () => {
         const wss = new WebSocketServer({ server });
 
-        wss.on('connection', (ws) => {
+        wss.on('connection', (ws, req) => {
           if (wss.clients.size === 1) {
-            assert.strictEqual(ws.upgradeReq.url, '/foo?bar=bar');
+            assert.strictEqual(req.url, '/foo?bar=bar');
           } else {
-            assert.strictEqual(ws.upgradeReq.url, '/');
+            assert.strictEqual(req.url, '/');
             wss.close();
             server.close(done);
           }
@@ -923,17 +923,6 @@ describe('WebSocketServer', function () {
 
       wss.on('connection', (client) => {
         assert.strictEqual(client.protocolVersion, 8);
-        wss.close(done);
-      });
-    });
-
-    it('upgradeReq is the original request object', function (done) {
-      const wss = new WebSocketServer({ port: ++port }, () => {
-        const ws = new WebSocket(`ws://localhost:${port}`, { protocolVersion: 8 });
-      });
-
-      wss.on('connection', (client) => {
-        assert.strictEqual(client.upgradeReq.httpVersion, '1.1');
         wss.close(done);
       });
     });
