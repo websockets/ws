@@ -33,6 +33,8 @@ communication. Browser clients must use the native
   + [Other examples](#other-examples)
 * [Error handling best practices](#error-handling-best-practices)
 * [FAQ](#faq)
+  + [How to get the IP address of the client?](#how-to-get-the-ip-address-of-the-client)
+  + [How to detect and close broken connections?](#how-to-detect-and-close-broken-connections)
 * [Changelog](#changelog)
 * [License](#license)
 
@@ -269,8 +271,8 @@ catch (e) { /* handle error */ }
 
 ## FAQ
 
-<details>
-<summary><b>How to get the IP address of the client?</b></summary>
+### How to get the IP address of the client?
+
 The remote IP address can be obtained from the raw socket.
 
 ```js
@@ -291,10 +293,9 @@ wss.on('connection', function connection(ws) {
   const ip = ws.upgradeReq.headers['x-forwarded-for'];
 });
 ```
-</details>
 
-<details>
-<summary><b>How to detect and close broken connections?</b></summary>
+### How to detect and close broken connections?
+
 Sometimes the link between the server and the client can be interrupted in a
 way that keeps both the server and the client unware of the broken state of the
 connection (e.g. when pulling the cord).
@@ -328,7 +329,6 @@ const interval = setInterval(function ping() {
 
 Pong messages are automatically sent in reponse to ping messages as required
 by the spec.
-</details>
 
 ## Changelog
 
