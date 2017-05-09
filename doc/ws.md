@@ -89,8 +89,11 @@ provided.
 ### Event: 'connection'
 
 - `socket` {WebSocket}
+- `request` {http.IncomingMessage}
 
-Emitted when the handshake is complete. `socket` is an instance of `WebSocket`.
+Emitted when the handshake is complete. `request` is the http GET request sent
+by the client. Useful for parsing authority headers, cookie headers, and other
+information.
 
 ### Event: 'error'
 
@@ -422,13 +425,6 @@ Send `data` through the connection.
 ### websocket.terminate()
 
 Forcibly close the connection.
-
-### websocket.upgradeReq
-
-- {http.IncomingMessage}
-
-The http GET request sent by the client. Useful for parsing authority headers,
-cookie headers, and other information. This is only available for server clients.
 
 ### websocket.url
 
