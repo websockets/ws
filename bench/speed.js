@@ -17,7 +17,7 @@ if (cluster.isMaster) {
   }, () => cluster.fork());
 
   wss.on('connection', (ws) => {
-    ws.on('message', (data, flags) => ws.send(data, { binary: flags.binary || false }));
+    ws.on('message', (data) => ws.send(data));
   });
 
   cluster.on('exit', () => wss.close());
