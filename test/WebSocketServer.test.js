@@ -105,20 +105,6 @@ describe('WebSocketServer', function () {
       });
     });
 
-    it('emits path specific connection event', function (done) {
-      const server = http.createServer();
-
-      server.listen(++port, () => {
-        const wss = new WebSocketServer({ server });
-        const ws = new WebSocket(`ws://localhost:${port}/endpointName`);
-
-        wss.on('connection/endpointName', (ws) => {
-          wss.close();
-          server.close(done);
-        });
-      });
-    });
-
     it('will not crash when it receives an unhandled opcode', function (done) {
       const wss = new WebSocketServer({ port: ++port });
 
