@@ -63,14 +63,12 @@ const wss = new WebSocket.Server({
   server
 });
 
-wss.on('connection', (ws) => {
+wss.on('connection', (ws, req) => {
   ws.on('message', (message) => {
-    const session = ws.upgradeReq.session;
-
     //
     // Here we can now use session parameters.
     //
-    console.log(`WS message ${message} from user ${session.userId}`);
+    console.log(`WS message ${message} from user ${req.session.userId}`);
   });
 });
 
