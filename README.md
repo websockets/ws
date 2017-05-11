@@ -112,9 +112,8 @@ ws.on('open', function open() {
   ws.send('something');
 });
 
-ws.on('message', function incoming(data, flags) {
-  // flags.binary will be set if a binary data is received.
-  // flags.masked will be set if the data was masked.
+ws.on('message', function incoming(data) {
+  console.log(data);
 });
 ```
 
@@ -232,8 +231,8 @@ ws.on('close', function close() {
   console.log('disconnected');
 });
 
-ws.on('message', function incoming(data, flags) {
-  console.log(`Roundtrip time: ${Date.now() - data} ms`, flags);
+ws.on('message', function incoming(data) {
+  console.log(`Roundtrip time: ${Date.now() - data} ms`);
 
   setTimeout(function timeout() {
     ws.send(Date.now());

@@ -238,9 +238,6 @@ handshake.  This allows you to read headers from the server, for example
 ### Event: 'message'
 
 - `data` {String|Buffer}
-- `flags` {Object}
-  - `binary` {Boolean} Specifies if `data` is binary.
-  - `masked` {Boolean} Specifies if `data` was masked.
 
 Emitted when a message is received from the server.
 
@@ -251,18 +248,12 @@ Emitted when the connection is established.
 ### Event: 'ping'
 
 - `data` {Buffer}
-- `flags` {Object}
-  - `binary` {Boolean} Specifies if `data` is binary.
-  - `masked` {Boolean} Specifies if `data` was masked.
 
 Emitted when a ping is received from the server.
 
 ### Event: 'pong'
 
 - `data` {Buffer}
-- `flags` {Object}
-  - `binary` {Boolean} Specifies if `data` is binary.
-  - `masked` {Boolean} Specifies if `data` was masked.
 
 Emitted when a pong is received from the server.
 

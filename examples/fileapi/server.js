@@ -60,8 +60,8 @@ wss.on('connection', function (ws) {
 
   var filesReceived = 0;
   var currentFile = null;
-  ws.on('message', function (data, flags) {
-    if (!flags.binary) {
+  ws.on('message', function (data) {
+    if (typeof data === 'string') {
       currentFile = JSON.parse(data);
       // note: a real-world app would want to sanity check the data
     } else {

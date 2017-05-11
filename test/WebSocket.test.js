@@ -674,8 +674,7 @@ describe('WebSocket', function () {
         const ws = new WebSocket(`ws://localhost:${port}`);
 
         ws.on('open', () => ws.send(array, { compress: false }));
-        ws.on('message', (msg, flags) => {
-          assert.ok(flags.binary);
+        ws.on('message', (msg) => {
           assert.ok(msg.equals(Buffer.from(array.buffer)));
           wss.close(done);
         });
@@ -691,7 +690,7 @@ describe('WebSocket', function () {
         const ws = new WebSocket(`ws://localhost:${port}`);
 
         ws.on('open', () => ws.send('hi'));
-        ws.on('message', (message, flags) => {
+        ws.on('message', (message) => {
           assert.strictEqual(message, 'hi');
           wss.close(done);
         });
@@ -750,8 +749,7 @@ describe('WebSocket', function () {
         const ws = new WebSocket(`ws://localhost:${port}`);
 
         ws.on('open', () => ws.send(partial, { binary: true }));
-        ws.on('message', (message, flags) => {
-          assert.ok(flags.binary);
+        ws.on('message', (message) => {
           assert.ok(message.equals(buf));
           wss.close(done);
         });
@@ -768,8 +766,7 @@ describe('WebSocket', function () {
         const ws = new WebSocket(`ws://localhost:${port}`);
 
         ws.on('open', () => ws.send(buf, { binary: true }));
-        ws.on('message', (message, flags) => {
-          assert.ok(flags.binary);
+        ws.on('message', (message) => {
           assert.ok(message.equals(buf));
           wss.close(done);
         });
@@ -792,7 +789,6 @@ describe('WebSocket', function () {
 
         ws.on('open', () => ws.send(array.buffer));
         ws.onmessage = (event) => {
-          assert.ok(event.binary);
           assert.ok(event.data.equals(Buffer.from(array.buffer)));
           wss.close(done);
         };
@@ -811,7 +807,6 @@ describe('WebSocket', function () {
         ws.on('open', () => ws.send(buf));
 
         ws.onmessage = (event) => {
-          assert.ok(event.binary);
           assert.ok(event.data.equals(buf));
           wss.close(done);
         };
@@ -877,9 +872,8 @@ describe('WebSocket', function () {
       });
 
       wss.on('connection', (ws) => {
-        ws.on('message', (message, flags) => {
+        ws.on('message', (message) => {
           assert.strictEqual(message, 'hi');
-          assert.ok(!flags.masked);
           wss.close(done);
         });
       });
@@ -893,9 +887,8 @@ describe('WebSocket', function () {
       });
 
       wss.on('connection', (ws) => {
-        ws.on('message', (message, flags) => {
+        ws.on('message', (message) => {
           assert.strictEqual(message, 'hi');
-          assert.ok(flags.masked);
           wss.close(done);
         });
       });
@@ -915,9 +908,8 @@ describe('WebSocket', function () {
       });
 
       wss.on('connection', (ws) => {
-        ws.on('message', (message, flags) => {
+        ws.on('message', (message) => {
           assert.ok(message.equals(Buffer.from(array.buffer)));
-          assert.ok(flags.binary);
           wss.close(done);
         });
       });
@@ -937,10 +929,8 @@ describe('WebSocket', function () {
       });
 
       wss.on('connection', (ws) => {
-        ws.on('message', (message, flags) => {
+        ws.on('message', (message) => {
           assert.ok(message.equals(Buffer.from(array.buffer)));
-          assert.ok(flags.binary);
-          assert.ok(flags.masked);
           wss.close(done);
         });
       });
@@ -1493,13 +1483,12 @@ describe('WebSocket', function () {
       wss.on('connection', (client) => client.send('hi'));
     });
 
-    it('should pass binary data as a node.js Buffer by default', function (done) {
+    it('should pass binary data as a Node.js Buffer by default', function (done) {
       const wss = new WebSocketServer({ port: ++port }, () => {
         const ws = new WebSocket(`ws://localhost:${port}`);
 
         ws.onmessage = (evt) => {
           assert.ok(Buffer.isBuffer(evt.data));
-          assert.ok(evt.binary);
           wss.close(done);
         };
       });
@@ -1515,7 +1504,6 @@ describe('WebSocket', function () {
 
         ws.onmessage = (evt) => {
           assert.ok(evt.data instanceof ArrayBuffer);
-          assert.ok(evt.binary);
           wss.close(done);
         };
       });
@@ -1655,7 +1643,7 @@ describe('WebSocket', function () {
       const wss = new WebSocketServer({ server });
 
       wss.on('connection', (ws) => {
-        ws.on('message', (message, flags) => {
+        ws.on('message', (message) => {
           assert.strictEqual(message, 'foobar');
           server.close(done);
           wss.close();
@@ -1691,8 +1679,7 @@ describe('WebSocket', function () {
         });
 
         ws.on('open', () => ws.send(buf));
-        ws.on('message', (message, flags) => {
-          assert.strictEqual(flags.binary, true);
+        ws.on('message', (message) => {
           assert.ok(buf.equals(message));
 
           server.close(done);
