@@ -890,7 +890,7 @@ describe('WebSocketServer', function () {
       const wss = new WebSocketServer({ port: ++port }, () => {
         const ws = new WebSocket(`ws://localhost:${port}`);
 
-        ws.on('message', (message, flags) => ws.send(message));
+        ws.on('message', (message) => ws.send(message));
       });
 
       wss.on('connection', (client) => {
