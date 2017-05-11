@@ -77,8 +77,8 @@ describe('WebSocket', function () {
         });
       });
 
-      wss.on('connection', (ws) => {
-        assert.strictEqual(ws.upgradeReq.connection.remoteAddress, '127.0.0.2');
+      wss.on('connection', (ws, req) => {
+        assert.strictEqual(req.connection.remoteAddress, '127.0.0.2');
         wss.close(done);
       });
     });
@@ -95,8 +95,8 @@ describe('WebSocket', function () {
         const ws = new WebSocket(`ws://localhost:${port}`, { family: 6 });
       });
 
-      wss.on('connection', (ws) => {
-        assert.strictEqual(ws.upgradeReq.connection.remoteAddress, '::1');
+      wss.on('connection', (ws, req) => {
+        assert.strictEqual(req.connection.remoteAddress, '::1');
         wss.close(done);
       });
     });

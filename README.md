@@ -196,10 +196,10 @@ app.use(function (req, res) {
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
-wss.on('connection', function connection(ws) {
-  const location = url.parse(ws.upgradeReq.url, true);
+wss.on('connection', function connection(ws, req) {
+  const location = url.parse(req.url, true);
   // You might use location.query.access_token to authenticate or share sessions
-  // or ws.upgradeReq.headers.cookie (see http://stackoverflow.com/a/16395220/151312)
+  // or req.headers.cookie (see http://stackoverflow.com/a/16395220/151312)
 
   ws.on('message', function incoming(message) {
     console.log('received: %s', message);
@@ -279,8 +279,8 @@ const WebSocket = require('ws');
 
 const wss = new WebSocket.Server({ port: 8080 });
 
-wss.on('connection', function connection(ws) {
-  const ip = ws.upgradeReq.connection.remoteAddress;
+wss.on('connection', function connection(ws, req) {
+  const ip = req.connection.remoteAddress;
 });
 ```
 
@@ -288,8 +288,8 @@ When the server runs behing a proxy like NGINX, the de-facto standard is to use
 the `X-Forwarded-For` header.
 
 ```js
-wss.on('connection', function connection(ws) {
-  const ip = ws.upgradeReq.headers['x-forwarded-for'];
+wss.on('connection', function connection(ws, req) {
+  const ip = req.headers['x-forwarded-for'];
 });
 ```
 
