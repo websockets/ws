@@ -256,14 +256,14 @@ describe('WebSocketServer', function () {
   });
 
   describe('#maxpayload', function () {
-    it('maxpayload is passed on to clients,', function (done) {
+    it('maxpayload is passed on to clients', function (done) {
       const maxPayload = 20480;
       const wss = new WebSocketServer({ port: ++port, maxPayload }, () => {
         const ws = new WebSocket(`ws://localhost:${port}`);
       });
 
       wss.on('connection', (client) => {
-        assert.strictEqual(client.maxPayload, maxPayload);
+        assert.strictEqual(client._maxPayload, maxPayload);
         wss.close(done);
       });
     });
@@ -275,7 +275,7 @@ describe('WebSocketServer', function () {
       });
 
       wss.on('connection', (client) => {
-        assert.strictEqual(client._receiver.maxPayload, maxPayload);
+        assert.strictEqual(client._receiver._maxPayload, maxPayload);
         wss.close(done);
       });
     });
@@ -289,7 +289,7 @@ describe('WebSocketServer', function () {
 
       wss.on('connection', (client) => {
         assert.strictEqual(
-          client._receiver.extensions[PerMessageDeflate.extensionName]._maxPayload,
+          client._receiver._extensions[PerMessageDeflate.extensionName]._maxPayload,
           maxPayload
         );
         wss.close(done);
