@@ -65,15 +65,15 @@ describe('WebSocket', function () {
     });
 
     it('accepts the localAddress option', function (done) {
-      //
-      // Skip this test on macOS as by default all loopback addresses other
-      // than 127.0.0.1 are disabled.
-      //
-      if (process.platform === 'darwin') return done();
-
       const wss = new WebSocketServer({ host: '127.0.0.1', port: ++port }, () => {
         const ws = new WebSocket(`ws://localhost:${port}`, {
           localAddress: '127.0.0.2'
+        });
+
+        ws.on('error', (err) => {
+          // Skip this test on machines where 127.0.0.2 is disabled.
+          if (err.code === 'EADDRNOTAVAIL') return done();
+          throw err;
         });
       });
 
