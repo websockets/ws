@@ -283,9 +283,11 @@ describe('WebSocketServer', function () {
     it('maxpayload is passed on to permessage-deflate', function (done) {
       const PerMessageDeflate = require('../lib/PerMessageDeflate');
       const maxPayload = 20480;
-      const wss = new WebSocketServer({ port: ++port, maxPayload }, () => {
-        const ws = new WebSocket(`ws://localhost:${port}`);
-      });
+      const wss = new WebSocketServer({
+        perMessageDeflate: true,
+        port: ++port,
+        maxPayload
+      }, () => new WebSocket(`ws://localhost:${port}`));
 
       wss.on('connection', (client) => {
         assert.strictEqual(
@@ -930,7 +932,10 @@ describe('WebSocketServer', function () {
 
   describe('permessage-deflate', function () {
     it('accept connections with permessage-deflate extension', function (done) {
-      const wss = new WebSocketServer({ port: ++port }, () => {
+      const wss = new WebSocketServer({
+        perMessageDeflate: true,
+        port: ++port
+      }, () => {
         const req = http.request({
           headers: {
             'Connection': 'Upgrade',
@@ -950,7 +955,10 @@ describe('WebSocketServer', function () {
     });
 
     it('does not accept connections with not defined extension parameter', function (done) {
-      const wss = new WebSocketServer({ port: ++port }, () => {
+      const wss = new WebSocketServer({
+        perMessageDeflate: true,
+        port: ++port
+      }, () => {
         const req = http.request({
           headers: {
             'Connection': 'Upgrade',
@@ -977,7 +985,10 @@ describe('WebSocketServer', function () {
     });
 
     it('does not accept connections with invalid extension parameter', function (done) {
-      const wss = new WebSocketServer({ port: ++port }, () => {
+      const wss = new WebSocketServer({
+        perMessageDeflate: true,
+        port: ++port
+      }, () => {
         const req = http.request({
           headers: {
             'Connection': 'Upgrade',

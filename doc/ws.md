@@ -63,7 +63,7 @@ status code, otherwise the returned value sets the value of the
 
 `perMessageDeflate` can be used to control the behavior of
 [permessage-deflate extension][permessage-deflate].
-The extension is disabled when `false`. Defaults to `true`. If an object is
+The extension is disabled when `false` (default value). If an object is
 provided then that is extension parameters:
 
 - `serverNoContextTakeover` {Boolean} Whether to use context take over or not.
@@ -189,9 +189,9 @@ This class represents a WebSocket. It extends the `EventEmitter`.
   - `pfx` {String|Buffer} The private key, certificate, and CA certs.
   - `ca` {Array} Trusted certificates.
 
-`perMessageDeflate` parameters are the same of the server, the only difference
-is the direction of requests (e.g. `serverNoContextTakeover` is the value to be
-requested to the server).
+`perMessageDeflate` default value is `true`. When using an object, parameters
+are the same of the server. The only difference is the direction of requests
+(e.g. `serverNoContextTakeover` is the value to be requested to the server).
 
 Create a new WebSocket instance.
 
