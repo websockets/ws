@@ -73,23 +73,13 @@ enables the client and server to negotiate a compression algorithm and its
 parameters, and then selectively apply it to the data payloads of each
 WebSocket message.
 
-The extension is enabled by default but adds a significant overhead in terms of
-performance and memory comsumption. We suggest to use WebSocket compression
-only if it is really needed.
+The extension is disabled by default on the server and enabled by default on
+the client. It adds a significant overhead in terms of performance and memory
+comsumption so we suggest to enable it only if it is really needed.
 
-To disable the extension you can set the `perMessageDeflate` option to `false`.
-On the server:
-
-```js
-const WebSocket = require('ws');
-
-const wss = new WebSocket.Server({
-  perMessageDeflate: false,
-  port: 8080
-});
-```
-
-On the client:
+The client will only use the extension if it is supported and enabled on the
+server. To always disable the extension on the client set the
+`perMessageDeflate` option to `false`.
 
 ```js
 const WebSocket = require('ws');
