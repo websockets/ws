@@ -105,7 +105,7 @@ describe('WebSocket', function () {
   describe('properties', function () {
     it('#bytesReceived exposes number of bytes received', function (done) {
       const wss = new WebSocketServer({ port: ++port }, () => {
-        const ws = new WebSocket(`ws://localhost:${port}`, { perMessageDeflate: false });
+        const ws = new WebSocket(`ws://localhost:${port}`);
         ws.on('message', () => {
           assert.strictEqual(ws.bytesReceived, 8);
           wss.close(done);
@@ -150,7 +150,10 @@ describe('WebSocket', function () {
       });
 
       it('takes into account the data in the sender queue', function (done) {
-        const wss = new WebSocketServer({ port: ++port }, () => {
+        const wss = new WebSocketServer({
+          perMessageDeflate: true,
+          port: ++port
+        }, () => {
           const ws = new WebSocket(`ws://localhost:${port}`, {
             perMessageDeflate: { threshold: 0 }
           });
@@ -170,9 +173,7 @@ describe('WebSocket', function () {
 
       it('takes into account the data in the socket queue', function (done) {
         const wss = new WebSocketServer({ port: ++port }, () => {
-          const ws = new WebSocket(`ws://localhost:${port}`, {
-            perMessageDeflate: false
-          });
+          const ws = new WebSocket(`ws://localhost:${port}`);
         });
 
         wss.on('connection', (ws) => {
