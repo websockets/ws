@@ -240,7 +240,7 @@ handshake.  This allows you to read headers from the server, for example
 
 ### Event: 'message'
 
-- `data` {String|Buffer}
+- `data` {String|Buffer|ArrayBuffer|Buffer[]}
 
 Emitted when a message is received from the server.
 
