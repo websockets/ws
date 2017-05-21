@@ -5,7 +5,7 @@
 [![Windows Build](https://ci.appveyor.com/api/projects/status/github/websockets/ws?branch=master&svg=true)](https://ci.appveyor.com/project/lpinca/ws)
 [![Coverage Status](https://img.shields.io/coveralls/websockets/ws/master.svg)](https://coveralls.io/r/websockets/ws?branch=master)
 
-`ws` is a simple to use, blazing fast, and thoroughly tested WebSocket client
+ws is a simple to use, blazing fast, and thoroughly tested WebSocket client
 and server implementation.
 
 Passes the quite extensive Autobahn test suite. See http://websockets.github.io/ws/
@@ -35,6 +35,7 @@ communication. Browser clients must use the native
 * [FAQ](#faq)
   + [How to get the IP address of the client?](#how-to-get-the-ip-address-of-the-client)
   + [How to detect and close broken connections?](#how-to-detect-and-close-broken-connections)
+  + [How to connect via a proxy?](#how-to-connect-via-a-proxy)
 * [Changelog](#changelog)
 * [License](#license)
 
@@ -51,7 +52,7 @@ npm install --save ws
 
 ### Opt-in for performance and spec compliance
 
-There are 2 optional modules that can be installed along side with the `ws`
+There are 2 optional modules that can be installed along side with the ws
 module. These modules are binary addons which improve certain operations.
 Prebuilt binaries are available for the most popular platforms so you don't
 necessarily need to have a C++ compiler installed on your machine.
@@ -68,7 +69,7 @@ See [`/doc/ws.md`](./doc/ws.md) for Node.js-like docs for the ws classes.
 
 ## WebSocket compression
 
-`ws` supports the [permessage-deflate extension][permessage-deflate] which
+ws supports the [permessage-deflate extension][permessage-deflate] which
 enables the client and server to negotiate a compression algorithm and its
 parameters, and then selectively apply it to the data payloads of each
 WebSocket message.
@@ -319,6 +320,11 @@ const interval = setInterval(function ping() {
 Pong messages are automatically sent in reponse to ping messages as required
 by the spec.
 
+### How to connect via a proxy?
+
+Use a custom `http.Agent` implementation like [https-proxy-agent][] or
+[socks-proxy-agent][].
+
 ## Changelog
 
 We're using the GitHub [releases][changelog] for changelog entries.
@@ -327,5 +333,7 @@ We're using the GitHub [releases][changelog] for changelog entries.
 
 [MIT](LICENSE)
 
+[https-proxy-agent]: https://github.com/TooTallNate/node-https-proxy-agent
+[socks-proxy-agent]: https://github.com/TooTallNate/node-socks-proxy-agent
 [permessage-deflate]: https://tools.ietf.org/html/rfc7692
 [changelog]: https://github.com/websockets/ws/releases
