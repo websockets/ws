@@ -201,14 +201,14 @@ Create a new WebSocket instance.
 following URL scheme:
 
 ```
-ws+unix:///absolule/path/to/uds_socket:/pathname?search_params
+ws+unix:///absolute/path/to/uds_socket:/pathname?search_params
 ```
 
 Note that `:` is the separator between the socket path and the URL path. If
 the URL path is omitted
 
 ```
-ws+unix:///absolule/path/to/uds_socket
+ws+unix:///absolute/path/to/uds_socket
 ```
 
 it defaults to `/`.
@@ -359,7 +359,7 @@ Send a ping.
 
 ### websocket.pong([data[, mask[, failSilently]]])
 
-- `data` {Any} The data to send in the ping frame.
+- `data` {Any} The data to send in the pong frame.
 - `mask` {Boolean} Specifies whether `data` should be masked or not. Defaults
   to `true` when `websocket` is not a server client.
 - `failSilently` {Boolean} Specifies whether or not to throw an error if the
@@ -394,7 +394,7 @@ Removes an event listener emulating the `EventTarget` interface.
 
 ### websocket.resume()
 
-Resume the socket
+Resume the socket.
 
 ### websocket.send(data, [options][, callback])
 
