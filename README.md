@@ -76,7 +76,7 @@ WebSocket message.
 
 The extension is disabled by default on the server and enabled by default on
 the client. It adds a significant overhead in terms of performance and memory
-comsumption so we suggest to enable it only if it is really needed.
+consumption so we suggest to enable it only if it is really needed.
 
 The client will only use the extension if it is supported and enabled on the
 server. To always disable the extension on the client set the
