@@ -39,7 +39,7 @@
     "eslint-plugin-promise": "~3.5.0",
     "eslint-plugin-standard": "~3.0.0",
     "mocha": "~3.4.1",
-    "nyc": "~10.3.0",
+    "nyc": "~11.0.1",
     "utf-8-validate": "~3.0.0"
   }
 }
