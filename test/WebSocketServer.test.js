@@ -321,7 +321,11 @@ describe('WebSocketServer', function () {
         const wss = new WebSocketServer({ noServer: true });
 
         server.on('upgrade', (req, socket, head) => {
-          wss.handleUpgrade(req, socket, head, (client) => client.send('hello'));
+          wss.handleUpgrade(req, socket, head, (client, req) => {
+            assert.strictEqual(req.method, 'GET');
+            assert.strictEqual(req.url, '/');
+            client.send('hello');
+          });
         });
 
         const ws = new WebSocket(`ws://localhost:${port}`);
