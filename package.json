@@ -26,7 +26,7 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "safe-buffer": "~5.0.1",
+    "safe-buffer": "~5.1.0",
     "ultron": "~1.1.0"
   },
   "devDependencies": {
