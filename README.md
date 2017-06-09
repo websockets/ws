@@ -185,7 +185,7 @@ app.use(function (req, res) {
 });
 
 const server = http.createServer(app);
-const wss = new WebSocket.Server({ server });
+const wss = new WebSocket.Server({ server: server });
 
 wss.on('connection', function connection(ws, req) {
   const location = url.parse(req.url, true);
