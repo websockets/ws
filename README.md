@@ -275,7 +275,7 @@ wss.on('connection', function connection(ws, req) {
 });
 ```
 
-When the server runs behing a proxy like NGINX, the de-facto standard is to use
+When the server runs behind a proxy like NGINX, the de-facto standard is to use
 the `X-Forwarded-For` header.
 
 ```js
