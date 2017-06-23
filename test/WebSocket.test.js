@@ -714,39 +714,43 @@ describe('WebSocket', function () {
         socket.on('close', function () {
           assert.ok(socket.readyState === WebSocket.CLOSED);
           wss.removeAllListeners('connection');
+        });
+        setTimeout(function () {
           ws.close();
           done();
-        });
+        }, 100);
       });
     });
 
-    // it('without parameters, setKeepAlive should be executed with default values', function (done) {
-    //   var ws = new WebSocket('ws://localhost:' + port);
-    //   wss.on('connection', function (socket) {
-    //     socket.setKeepAlive();
-    //     assert.ok(socket._keepAliveEnabled);
-    //     console.log(socket._keepAliveInterval, ' ', 2000);
-    //     console.log(socket._keepAliveTimeout, ' ', 10000);
-    //     assert.strictEqual(socket._keepAliveInterval, 2000);
-    //     assert.strictEqual(socket._keepAliveTimeout, 10000);
-    //     wss.removeAllListeners('connection');
-    //     ws.close();
-    //     done();
-    //   });
-    // });
+    it('without parameters, setKeepAlive should be executed with default values', function (done) {
+      var ws = new WebSocket('ws://localhost:' + port);
+      wss.on('connection', function (socket) {
+        socket.setKeepAlive();
+        assert.ok(socket._keepAliveEnabled);
+        assert.strictEqual(socket._keepAliveInterval, 2000);
+        assert.strictEqual(socket._keepAliveTimeout, 10000);
+        wss.removeAllListeners('connection');
+      });
+      setTimeout(function () {
+        ws.close();
+        done();
+      }, 100);
+    });
 
-    // it('with true parameter, setKeepAlive should be executed with default values', function (done) {
-    //   var ws = new WebSocket('ws://localhost:' + port);
-    //   wss.on('connection', function (socket) {
-    //     socket.setKeepAlive(true);
-    //     assert.ok(socket._keepAliveEnabled);
-    //     assert.ok(socket._keepAliveInterval === 2000);
-    //     assert.ok(socket._keepAliveTimeout === 10000);
-    //     wss.removeAllListeners('connection');
-    //     ws.close();
-    //     done();
-    //   });
-    // });
+    it('with true parameter, setKeepAlive should be executed with default values', function (done) {
+      var ws = new WebSocket('ws://localhost:' + port);
+      wss.on('connection', function (socket) {
+        socket.setKeepAlive(true);
+        assert.ok(socket._keepAliveEnabled);
+        assert.ok(socket._keepAliveInterval === 2000);
+        assert.ok(socket._keepAliveTimeout === 10000);
+        wss.removeAllListeners('connection');
+      });
+      setTimeout(function () {
+        ws.close();
+        done();
+      }, 100);
+    });
 
     after(function () {
       wss.close();
