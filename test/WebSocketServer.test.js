@@ -1014,4 +1014,141 @@ describe('WebSocketServer', function () {
       });
     });
   });
+
+  describe('keepAlive', function () {
+    it('should set keepAlive with the full options', function (done) {
+      var wss = new WebSocketServer({
+        port: ++port,
+        keepAlive: {
+          interval: 200,
+          timeout: 500
+        }
+      });
+      var ws = new WebSocket('ws://localhost:' + port);
+      wss.on('connection', function (socket) {
+        assert.ok(socket._keepAliveEnabled);
+        assert.strictEqual(socket._keepAliveTimeout, 500);
+        assert.strictEqual(socket._keepAliveInterval, 200);
+        done();
+      });
+    });
+
+    it('should set keepAlive with only interval option', function (done) {
+      var wss = new WebSocketServer({
+        port: ++port,
+        keepAlive: {
+          interval: 200
+        }
+      });
+      var ws = new WebSocket('ws://localhost:' + port);
+      wss.on('connection', function (socket) {
+        assert.ok(socket._keepAliveEnabled);
+        assert.strictEqual(socket._keepAliveTimeout, 10000);
+        assert.strictEqual(socket._keepAliveInterval, 200);
+        done();
+      });
+    });
+
+    it('should set keepAlive with only timeout option', function (done) {
+      var wss = new WebSocketServer({
+        port: ++port,
+        keepAlive: {
+          timeout: 500
+        }
+      });
+      var ws = new WebSocket('ws://localhost:' + port);
+      wss.on('connection', function (socket) {
+        assert.ok(socket._keepAliveEnabled);
+        assert.strictEqual(socket._keepAliveTimeout, 500);
+        assert.strictEqual(socket._keepAliveInterval, 2000);
+        done();
+      });
+    });
+
+    it('should set keepAlive with default values', function (done) {
+      var wss = new WebSocketServer({
+        port: ++port,
+        keepAlive: true
+      });
+      var ws = new WebSocket('ws://localhost:' + port);
+      wss.on('connection', function (socket) {
+        assert.ok(socket._keepAliveEnabled);
+        assert.strictEqual(socket._keepAliveTimeout, 10000);
+        assert.strictEqual(socket._keepAliveInterval, 2000);
+        done();
+      });
+    });
+
+    it('should disable keepAlive with false option', function (done) {
+      var wss = new WebSocketServer({
+        port: ++port,
+        keepAlive: false
+      });
+      var ws = new WebSocket('ws://localhost:' + port);
+      wss.on('connection', function (socket) {
+        assert.ok(!socket._keepAliveEnabled);
+        done();
+      });
+    });
+
+    it('should be pinged 3 times or more in 700ms', function (done) {
+      var nbPing = 0;
+      var wss = new WebSocketServer({
+        port: ++port,
+        keepAlive: {
+          interval: 200,
+          timeout: 700
+        }
+      });
+      var ws = new WebSocket('ws://localhost:' + port);
+      ws.on('ping', function () {
+        nbPing++;
+      });
+      setTimeout(function () {
+        assert.ok(nbPing > 2);
+        ws.close();
+        wss.removeAllListeners('connection');
+        done();
+      }, 700);
+    });
+
+    it('When keepAlive is disabled websocket should be pinged 0 time in 700ms', function (done) {
+      var nbPing = 0;
+      var wss = new WebSocketServer({
+        port: ++port,
+        keepAlive: false
+      });
+      var ws = new WebSocket('ws://localhost:' + port);
+      ws.on('ping', function () {
+        nbPing++;
+      });
+      setTimeout(function () {
+        assert.strictEqual(nbPing, 0);
+        ws.close();
+        wss.removeAllListeners('connection');
+        done();
+      }, 700);
+    });
+
+    it('when websocket doesnt reply to a ping, WebSocketServer should close it', function (done) {
+      var wss = new WebSocketServer({
+        port: ++port,
+        keepAlive: {
+          interval: 200,
+          timeout: 1000
+        }
+      });
+      var ws = new WebSocket('ws://localhost:' + port);
+      ws.onopen = function () {
+        ws._receiver.onping = function () {};
+      };
+      wss.on('connection', function (socket) {
+        socket.on('close', function () {
+          assert.strictEqual(socket.readyState, WebSocket.CLOSED);
+          ws.close();
+          done();
+        });
+      });
+    });
+  });
 });

@@ -19,6 +19,7 @@ This class represents a WebSocket server. It extends the `EventEmitter`.
   - `noServer` {Boolean} Enable no server mode.
   - `clientTracking` {Boolean} Specifies whether or not to track clients.
   - `perMessageDeflate` {Boolean|Object} Enable/disable permessage-deflate.
+  - `keepAlive` {Boolean|Object} Enable ping/pong keep alive
   - `maxPayload` {Number} The maximum allowed message size in bytes.
 - `callback` {Function}
 
@@ -119,6 +120,11 @@ Emitted when the underlying server has been bound.
 
 A set that stores all connected clients. Please note that this property is only
 added when the `clientTracking` is truthy.
+
+### websocket.setKeepAlive([enabled], [interval], [timeout])
+
+Starts a ping pong protocol to check if the connection stays alive. The protocol closes the connection if the client doesn't reply to the ping request before the end of the timeout. enabled boolean enable or disable the keepAlive protocol, interval default: 2000 the time laps in milliseconds between a pong response and a ping request. timeout the maximum waiting time between a ping request and the pong response before closing the socket.
+/!\ Warning: The websocket client must respond to the ping request with a pong message. That is not necessarily the case if you use an other websocket client than WS.
 
 ### server.close([callback])
 

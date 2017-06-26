@@ -663,6 +663,100 @@ describe('WebSocket', function () {
     });
   });
 
+  describe('#setKeepAlive', function () {
+    var wss = null;
+
+    before(function (done) {
+      wss = new WebSocketServer({port: ++port}, done);
+    });
+
+    it('should be pinged 3 times or more in 700ms', function (done) {
+      var nbPing = 0;
+      var ws = new WebSocket('ws://localhost:' + port);
+      ws.on('ping', function () {
+        nbPing++;
+      });
+      wss.on('connection', function (socket) {
+        socket.setKeepAlive(true, 200, 400);
+      });
+      setTimeout(function () {
+        assert.ok(nbPing > 2);
+        ws.close();
+        wss.removeAllListeners('connection');
+        done();
+      }, 700);
+    });
+
+    it('When keepAlive is disabled websocket should be pinged 0 time in 700ms', function (done) {
+      var nbPing = 0;
+      var ws = new WebSocket('ws://localhost:' + port);
+      ws.on('ping', function () {
+        nbPing++;
+      });
+      wss.on('connection', function (socket) {
+        socket.setKeepAlive(false);
+      });
+      setTimeout(function () {
+        assert.strictEqual(nbPing, 0);
+        ws.close();
+        wss.removeAllListeners('connection');
+        done();
+      }, 700);
+    });
+
+    it('when websocket doesnt reply to a ping, WebSocketServer should close it', function (done) {
+      var ws = new WebSocket('ws://localhost:' + port);
+      ws.onopen = function () {
+        ws._receiver.onping = function () {};
+      };
+      wss.on('connection', function (socket) {
+        socket.setKeepAlive(true, 200, 1000);
+        socket.on('close', function () {
+          assert.ok(socket.readyState === WebSocket.CLOSED);
+          wss.removeAllListeners('connection');
+        });
+        setTimeout(function () {
+          ws.close();
+          done();
+        }, 100);
+      });
+    });
+
+    it('without parameters, setKeepAlive should be executed with default values', function (done) {
+      var ws = new WebSocket('ws://localhost:' + port);
+      wss.on('connection', function (socket) {
+        socket.setKeepAlive();
+        assert.ok(socket._keepAliveEnabled);
+        assert.strictEqual(socket._keepAliveInterval, 2000);
+        assert.strictEqual(socket._keepAliveTimeout, 10000);
+        wss.removeAllListeners('connection');
+      });
+      setTimeout(function () {
+        ws.close();
+        done();
+      }, 100);
+    });
+
+    it('with true parameter, setKeepAlive should be executed with default values', function (done) {
+      var ws = new WebSocket('ws://localhost:' + port);
+      wss.on('connection', function (socket) {
+        socket.setKeepAlive(true);
+        assert.ok(socket._keepAliveEnabled);
+        assert.ok(socket._keepAliveInterval === 2000);
+        assert.ok(socket._keepAliveTimeout === 10000);
+        wss.removeAllListeners('connection');
+      });
+      setTimeout(function () {
+        ws.close();
+        done();
+      }, 100);
+    });
+
+    after(function () {
+      wss.close();
+    });
+  });
+
   describe('#send', function () {
     it('very long binary data can be sent and received', function (done) {
       const wss = new WebSocketServer({ port: ++port }, () => {
