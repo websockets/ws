@@ -287,7 +287,7 @@ wss.on('connection', function connection(ws, req) {
 ### How to detect and close broken connections?
 
 Sometimes the link between the server and the client can be interrupted in a
-way that keeps both the server and the client unware of the broken state of the
+way that keeps both the server and the client unaware of the broken state of the
 connection (e.g. when pulling the cord).
 
 In these cases ping messages can be used as a means to verify that the remote
@@ -317,7 +317,7 @@ const interval = setInterval(function ping() {
 }, 30000);
 ```
 
-Pong messages are automatically sent in reponse to ping messages as required
+Pong messages are automatically sent in response to ping messages as required
 by the spec.
 
 ### How to connect via a proxy?
