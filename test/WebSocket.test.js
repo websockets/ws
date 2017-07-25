@@ -463,11 +463,10 @@ describe('WebSocket', function () {
     });
 
     it('emits an error if the opening handshake timeout expires', function (done) {
-      const timeout = 100;
       server.once('upgrade', (req, socket) => socket.on('end', socket.end));
 
       const ws = new WebSocket(`ws://localhost:${port}`, null, {
-        handshakeTimeout: timeout
+        handshakeTimeout: 100
       });
 
       ws.on('open', () => assert.fail(null, null, 'connect shouldn\'t be raised here'));
