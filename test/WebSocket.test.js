@@ -483,7 +483,6 @@ describe('WebSocket', function () {
       ws.on('open', () => assert.fail(null, null, 'connect shouldn\'t be raised here'));
       ws.on('error', (err) => {
         assert.ok(err instanceof Error);
-        assert.strictEqual(err.code, 'TIMEOUT');
         assert.strictEqual(err.message, 'opening handshake has timed out');
         done();
       });
