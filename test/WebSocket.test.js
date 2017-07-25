@@ -462,7 +462,7 @@ describe('WebSocket', function () {
       });
     });
 
-    it('error is emitted if server response exceeds timeout', function (done) {
+    it('emits an error if the opening handshake timeout expires', function (done) {
       const timeout = 100;
       server.once('upgrade', (req, socket) => {
         setTimeout(() => {
@@ -476,12 +476,15 @@ describe('WebSocket', function () {
         }, timeout * 1.5);
       });
 
-      const ws = new WebSocket(`ws://localhost:${port}`, null, { handshakeTimeout: timeout });
+      const ws = new WebSocket(`ws://localhost:${port}`, null, {
+        handshakeTimeout: timeout
+      });
 
-      ws.on('open', () => assert.fail(null, null, 'connect shouldnt be raised here'));
+      ws.on('open', () => assert.fail(null, null, 'connect shouldn\'t be raised here'));
       ws.on('error', (err) => {
         assert.ok(err instanceof Error);
-        assert.strictEqual(err.message, 'timeout');
+        assert.strictEqual(err.code, 'TIMEOUT');
+        assert.strictEqual(err.message, 'opening handshake has timed out');
         done();
       });
     });
