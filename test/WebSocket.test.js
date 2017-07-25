@@ -464,17 +464,7 @@ describe('WebSocket', function () {
 
     it('emits an error if the opening handshake timeout expires', function (done) {
       const timeout = 100;
-      server.once('upgrade', (req, socket) => {
-        setTimeout(() => {
-          socket.end(
-            `HTTP/1.1 401 ${http.STATUS_CODES[401]}\r\n` +
-            'Connection: close\r\n' +
-            'Content-type: text/html\r\n' +
-            `Content-Length: ${http.STATUS_CODES[401].length}\r\n` +
-            '\r\n'
-          );
-        }, timeout * 1.5);
-      });
+      server.once('upgrade', (req, socket) => socket.on('end', socket.end));
 
       const ws = new WebSocket(`ws://localhost:${port}`, null, {
         handshakeTimeout: timeout
