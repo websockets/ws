@@ -170,6 +170,7 @@ This class represents a WebSocket. It extends the `EventEmitter`.
 - `protocols` {String|Array} The list of subprotocols.
 - `options` {Object}
   - `protocol` {String} Value of the `Sec-WebSocket-Protocol` header.
+  - `handshakeTimeout` {Number} Timeout in milliseconds for the handshake request.
   - `perMessageDeflate` {Boolean|Object} Enable/disable permessage-deflate.
   - `localAddress` {String} Local interface to bind for network connections.
   - `protocolVersion` {Number} Value of the `Sec-WebSocket-Version` header.

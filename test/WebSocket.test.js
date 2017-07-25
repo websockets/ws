@@ -461,6 +461,30 @@ describe('WebSocket', function () {
         req.abort();
       });
     });
+
+    it('error is emitted if server response exceeds timeout', function (done) {
+      const timeout = 100;
+      server.once('upgrade', (req, socket) => {
+        setTimeout(() => {
+          socket.end(
+            `HTTP/1.1 401 ${http.STATUS_CODES[401]}\r\n` +
+            'Connection: close\r\n' +
+            'Content-type: text/html\r\n' +
+            `Content-Length: ${http.STATUS_CODES[401].length}\r\n` +
+            '\r\n'
+          );
+        }, timeout * 1.5);
+      });
+
+      const ws = new WebSocket(`ws://localhost:${port}`, null, { handshakeTimeout: timeout });
+
+      ws.on('open', () => assert.fail(null, null, 'connect shouldnt be raised here'));
+      ws.on('error', (err) => {
+        assert.ok(err instanceof Error);
+        assert.strictEqual(err.message, 'timeout');
+        done();
+      });
+    });
   });
 
   describe('connection with query string', function () {
