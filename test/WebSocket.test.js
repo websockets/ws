@@ -461,6 +461,21 @@ describe('WebSocket', function () {
         req.abort();
       });
     });
+
+    it('emits an error if the opening handshake timeout expires', function (done) {
+      server.once('upgrade', (req, socket) => socket.on('end', socket.end));
+
+      const ws = new WebSocket(`ws://localhost:${port}`, null, {
+        handshakeTimeout: 100
+      });
+
+      ws.on('open', () => assert.fail(null, null, 'connect shouldn\'t be raised here'));
+      ws.on('error', (err) => {
+        assert.ok(err instanceof Error);
+        assert.strictEqual(err.message, 'opening handshake has timed out');
+        done();
+      });
+    });
   });
 
   describe('connection with query string', function () {
