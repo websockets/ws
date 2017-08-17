@@ -10,10 +10,10 @@ const safeBuffer = require('safe-buffer');
 const benchmark = require('benchmark');
 const crypto = require('crypto');
 
-const util = require('../test/hybi-util');
 const WebSocket = require('..');
 
 const Receiver = WebSocket.Receiver;
+const Sender = WebSocket.Sender;
 const Buffer = safeBuffer.Buffer;
 
 //
@@ -21,44 +21,51 @@ const Buffer = safeBuffer.Buffer;
 // expected.
 //
 Receiver.prototype.cleanup = function () {
-  this.state = 0;
+  this._state = 0;
 };
 
-function createBinaryPacket (length) {
-  const message = crypto.randomBytes(length);
+const options = {
+  fin: true,
+  rsv1: false,
+  mask: true,
+  readOnly: false
+};
 
-  return Buffer.from('82' + util.getHybiLengthAsHexString(length, true) +
-    '3483a868' + util.mask(message, '3483a868').toString('hex'), 'hex');
+function createBinaryFrame (length) {
+  const list = Sender.frame(
+    crypto.randomBytes(length),
+    Object.assign({ opcode: 0x02 }, options)
+  );
+
+  return Buffer.concat(list);
 }
 
-const pingMessage = 'Hello';
-const pingPacket1 = Buffer.from('89' + util.pack(2, 0x80 | pingMessage.length) +
-  '3483a868' + util.mask(pingMessage, '3483a868').toString('hex'), 'hex');
+const pingFrame1 = Buffer.concat(Sender.frame(
+  crypto.randomBytes(5),
+  Object.assign({ opcode: 0x09 }, options)
+));
 
-const textMessage = 'a'.repeat(20);
-const maskedTextPacket = Buffer.from('81' + util.pack(2, 0x80 | textMessage.length) +
-  '61616161' + util.mask(textMessage, '61616161').toString('hex'), 'hex');
-
-const pingPacket2 = Buffer.from('8900', 'hex');
-const closePacket = Buffer.from('8800', 'hex');
-const binaryDataPacket = createBinaryPacket(125);
-const binaryDataPacket2 = createBinaryPacket(65535);
-const binaryDataPacket3 = createBinaryPacket(200 * 1024);
-const binaryDataPacket4 = createBinaryPacket(1024 * 1024);
+const textFrame = Buffer.from('819461616161' + '61'.repeat(20), 'hex');
+const pingFrame2 = Buffer.from('8900', 'hex');
+const closeFrame = Buffer.from('8800', 'hex');
+const binaryFrame1 = createBinaryFrame(125);
+const binaryFrame2 = createBinaryFrame(65535);
+const binaryFrame3 = createBinaryFrame(200 * 1024);
+const binaryFrame4 = createBinaryFrame(1024 * 1024);
 
 const suite = new benchmark.Suite();
 const receiver = new Receiver();
 
 receiver.onmessage = receiver.onclose = receiver.onping = () => {};
 
-suite.add('ping message', () => receiver.add(pingPacket1));
-suite.add('ping with no data', () => receiver.add(pingPacket2));
-suite.add('close message', () => receiver.add(closePacket));
-suite.add('masked text message (20 bytes)', () => receiver.add(maskedTextPacket));
-suite.add('binary data (125 bytes)', () => receiver.add(binaryDataPacket));
-suite.add('binary data (65535 bytes)', () => receiver.add(binaryDataPacket2));
-suite.add('binary data (200 KiB)', () => receiver.add(binaryDataPacket3));
-suite.add('binary data (1 MiB)', () => receiver.add(binaryDataPacket4));
+suite.add('ping frame (5 bytes payload)', () => receiver.add(pingFrame1));
+suite.add('ping frame (no payload)', () => receiver.add(pingFrame2));
+suite.add('close frame (no payload)', () => receiver.add(closeFrame));
+suite.add('text frame (20 bytes payload)', () => receiver.add(textFrame));
+suite.add('binary frame (125 bytes payload)', () => receiver.add(binaryFrame1));
+suite.add('binary frame (65535 bytes payload)', () => receiver.add(binaryFrame2));
+suite.add('binary frame (200 KiB payload)', () => receiver.add(binaryFrame3));
+suite.add('binary frame (1 MiB payload)', () => receiver.add(binaryFrame4));
 
 suite.on('cycle', (e) => console.log(e.target.toString()));
 
