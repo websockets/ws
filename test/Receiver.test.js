@@ -7,7 +7,6 @@ const crypto = require('crypto');
 const PerMessageDeflate = require('../lib/PerMessageDeflate');
 const Receiver = require('../lib/Receiver');
 const Sender = require('../lib/Sender');
-const util = require('./hybi-util');
 
 const Buffer = safeBuffer.Buffer;
 
@@ -50,9 +49,15 @@ describe('Receiver', function () {
     const p = new Receiver();
     const msg = 'A'.repeat(200);
 
-    const mask = '3483a868';
-    const frame = Buffer.from('81FE' + util.pack(4, msg.length) + mask +
-      util.mask(msg, mask).toString('hex'), 'hex');
+    const list = Sender.frame(Buffer.from(msg), {
+      fin: true,
+      rsv1: false,
+      opcode: 0x01,
+      mask: true,
+      readOnly: false
+    });
+
+    const frame = Buffer.concat(list);
 
     p.onmessage = function (data) {
       assert.strictEqual(data, msg);
@@ -67,16 +72,22 @@ describe('Receiver', function () {
     const p = new Receiver();
     const msg = 'A'.repeat(64 * 1024);
 
-    const mask = '3483a868';
-    const frame = '81FF' + util.pack(16, msg.length) + mask +
-      util.mask(msg, mask).toString('hex');
+    const list = Sender.frame(Buffer.from(msg), {
+      fin: true,
+      rsv1: false,
+      opcode: 0x01,
+      mask: true,
+      readOnly: false
+    });
+
+    const frame = Buffer.concat(list);
 
     p.onmessage = function (data) {
       assert.strictEqual(data, msg);
       done();
     };
 
-    p.add(Buffer.from(frame, 'hex'));
+    p.add(frame);
   });
 
   it('can parse a fragmented masked text message of 300 B', function (done) {
@@ -86,35 +97,46 @@ describe('Receiver', function () {
     const fragment1 = msg.substr(0, 150);
     const fragment2 = msg.substr(150);
 
-    const mask = '3483a868';
-    const frame1 = '01FE' + util.pack(4, fragment1.length) + mask +
-      util.mask(fragment1, mask).toString('hex');
-    const frame2 = '80FE' + util.pack(4, fragment2.length) + mask +
-      util.mask(fragment2, mask).toString('hex');
+    const options = { rsv1: false, mask: true, readOnly: false };
+
+    const frame1 = Buffer.concat(Sender.frame(
+      Buffer.from(fragment1),
+      Object.assign({ fin: false, opcode: 0x01 }, options)
+    ));
+    const frame2 = Buffer.concat(Sender.frame(
+      Buffer.from(fragment2),
+      Object.assign({ fin: true, opcode: 0x00 }, options)
+    ));
 
     p.onmessage = function (data) {
       assert.strictEqual(data, msg);
       done();
     };
 
-    p.add(Buffer.from(frame1, 'hex'));
-    p.add(Buffer.from(frame2, 'hex'));
+    p.add(frame1);
+    p.add(frame2);
   });
 
   it('can parse a ping message', function (done) {
     const p = new Receiver();
     const msg = 'Hello';
 
-    const mask = '3483a868';
-    const frame = '89' + util.getHybiLengthAsHexString(msg.length, true) + mask +
-      util.mask(msg, mask).toString('hex');
+    const list = Sender.frame(Buffer.from(msg), {
+      fin: true,
+      rsv1: false,
+      opcode: 0x09,
+      mask: true,
+      readOnly: false
+    });
+
+    const frame = Buffer.concat(list);
 
     p.onping = function (data) {
       assert.strictEqual(data.toString(), msg);
       done();
     };
 
-    p.add(Buffer.from(frame, 'hex'));
+    p.add(frame);
   });
 
   it('can parse a ping with no data', function (done) {
@@ -136,13 +158,20 @@ describe('Receiver', function () {
     const fragment1 = msg.substr(0, 150);
     const fragment2 = msg.substr(150);
 
-    const mask = '3483a868';
-    const frame1 = '01FE' + util.pack(4, fragment1.length) + mask +
-      util.mask(fragment1, mask).toString('hex');
-    const frame2 = '89' + util.getHybiLengthAsHexString(pingMessage.length, true) + mask +
-      util.mask(pingMessage, mask).toString('hex');
-    const frame3 = '80FE' + util.pack(4, fragment2.length) + mask +
-      util.mask(fragment2, mask).toString('hex');
+    const options = { rsv1: false, mask: true, readOnly: false };
+
+    const frame1 = Buffer.concat(Sender.frame(
+      Buffer.from(fragment1),
+      Object.assign({ fin: false, opcode: 0x01 }, options)
+    ));
+    const frame2 = Buffer.concat(Sender.frame(
+      Buffer.from(pingMessage),
+      Object.assign({ fin: true, opcode: 0x09 }, options)
+    ));
+    const frame3 = Buffer.concat(Sender.frame(
+      Buffer.from(fragment2),
+      Object.assign({ fin: true, opcode: 0x00 }, options)
+    ));
 
     let gotPing = false;
 
@@ -156,9 +185,9 @@ describe('Receiver', function () {
       assert.strictEqual(data.toString(), pingMessage);
     };
 
-    p.add(Buffer.from(frame1, 'hex'));
-    p.add(Buffer.from(frame2, 'hex'));
-    p.add(Buffer.from(frame3, 'hex'));
+    p.add(frame1);
+    p.add(frame2);
+    p.add(frame3);
   });
 
   it('can parse a fragmented masked text message of 300 B with a ping in the middle (2/2)', function (done) {
@@ -169,19 +198,30 @@ describe('Receiver', function () {
     const fragment1 = msg.substr(0, 150);
     const fragment2 = msg.substr(150);
 
-    const mask = '3483a868';
-    const frame1 = '01FE' + util.pack(4, fragment1.length) + mask +
-      util.mask(fragment1, mask).toString('hex');
-    const frame2 = '89' + util.getHybiLengthAsHexString(pingMessage.length, true) + mask +
-      util.mask(pingMessage, mask).toString('hex');
-    const frame3 = '80FE' + util.pack(4, fragment2.length) + mask +
-      util.mask(fragment2, mask).toString('hex');
+    const options = { rsv1: false, mask: true, readOnly: false };
 
-    let buffers = [];
+    const frame1 = Buffer.concat(Sender.frame(
+      Buffer.from(fragment1),
+      Object.assign({ fin: false, opcode: 0x01 }, options)
+    ));
+    const frame2 = Buffer.concat(Sender.frame(
+      Buffer.from(pingMessage),
+      Object.assign({ fin: true, opcode: 0x09 }, options)
+    ));
+    const frame3 = Buffer.concat(Sender.frame(
+      Buffer.from(fragment2),
+      Object.assign({ fin: true, opcode: 0x00 }, options)
+    ));
 
-    buffers = buffers.concat(util.splitBuffer(Buffer.from(frame1, 'hex')));
-    buffers = buffers.concat(util.splitBuffer(Buffer.from(frame2, 'hex')));
-    buffers = buffers.concat(util.splitBuffer(Buffer.from(frame3, 'hex')));
+    let chunks = [];
+    const splitBuffer = (buf) => {
+      const i = Math.floor(buf.length / 2);
+      return [buf.slice(0, i), buf.slice(i)];
+    };
+
+    chunks = chunks.concat(splitBuffer(frame1));
+    chunks = chunks.concat(splitBuffer(frame2));
+    chunks = chunks.concat(splitBuffer(frame3));
 
     let gotPing = false;
 
@@ -195,8 +235,8 @@ describe('Receiver', function () {
       assert.strictEqual(data.toString(), pingMessage);
     };
 
-    for (let i = 0; i < buffers.length; ++i) {
-      p.add(buffers[i]);
+    for (let i = 0; i < chunks.length; ++i) {
+      p.add(chunks[i]);
     }
   });
 
@@ -204,63 +244,88 @@ describe('Receiver', function () {
     const p = new Receiver();
     const msg = crypto.randomBytes(100);
 
-    const mask = '3483a868';
-    const frame = '82' + util.getHybiLengthAsHexString(msg.length, true) + mask +
-      util.mask(msg, mask).toString('hex');
+    const list = Sender.frame(msg, {
+      fin: true,
+      rsv1: false,
+      opcode: 0x02,
+      mask: true,
+      readOnly: true
+    });
+
+    const frame = Buffer.concat(list);
 
     p.onmessage = function (data) {
       assert.ok(data.equals(msg));
       done();
     };
 
-    p.add(Buffer.from(frame, 'hex'));
+    p.add(frame);
   });
 
   it('can parse a 256 B long masked binary message', function (done) {
     const p = new Receiver();
     const msg = crypto.randomBytes(256);
 
-    const mask = '3483a868';
-    const frame = '82' + util.getHybiLengthAsHexString(msg.length, true) + mask +
-      util.mask(msg, mask).toString('hex');
+    const list = Sender.frame(msg, {
+      fin: true,
+      rsv1: false,
+      opcode: 0x02,
+      mask: true,
+      readOnly: true
+    });
+
+    const frame = Buffer.concat(list);
 
     p.onmessage = function (data) {
       assert.ok(data.equals(msg));
       done();
     };
 
-    p.add(Buffer.from(frame, 'hex'));
+    p.add(frame);
   });
 
   it('can parse a 200 KiB long masked binary message', function (done) {
     const p = new Receiver();
     const msg = crypto.randomBytes(200 * 1024);
 
-    const mask = '3483a868';
-    const frame = '82' + util.getHybiLengthAsHexString(msg.length, true) + mask +
-      util.mask(msg, mask).toString('hex');
+    const list = Sender.frame(msg, {
+      fin: true,
+      rsv1: false,
+      opcode: 0x02,
+      mask: true,
+      readOnly: true
+    });
+
+    const frame = Buffer.concat(list);
 
     p.onmessage = function (data) {
       assert.ok(data.equals(msg));
       done();
     };
 
-    p.add(Buffer.from(frame, 'hex'));
+    p.add(frame);
   });
 
   it('can parse a 200 KiB long unmasked binary message', function (done) {
     const p = new Receiver();
     const msg = crypto.randomBytes(200 * 1024);
 
-    const frame = '82' + util.getHybiLengthAsHexString(msg.length, false) +
-      msg.toString('hex');
+    const list = Sender.frame(msg, {
+      fin: true,
+      rsv1: false,
+      opcode: 0x02,
+      mask: false,
+      readOnly: true
+    });
+
+    const frame = Buffer.concat(list);
 
     p.onmessage = function (data) {
       assert.ok(data.equals(msg));
       done();
     };
 
-    p.add(Buffer.from(frame, 'hex'));
+    p.add(frame);
   });
 
   it('can parse compressed message', function (done) {
@@ -602,9 +667,15 @@ describe('Receiver', function () {
     const p = new Receiver({}, 20 * 1024);
     const msg = crypto.randomBytes(200 * 1024);
 
-    const mask = '3483a868';
-    const frame = '82' + util.getHybiLengthAsHexString(msg.length, true) + mask +
-      util.mask(msg, mask).toString('hex');
+    const list = Sender.frame(msg, {
+      fin: true,
+      rsv1: false,
+      opcode: 0x02,
+      mask: true,
+      readOnly: true
+    });
+
+    const frame = Buffer.concat(list);
 
     p.onerror = function (err, code) {
       assert.ok(err instanceof Error);
@@ -613,15 +684,22 @@ describe('Receiver', function () {
       done();
     };
 
-    p.add(Buffer.from(frame, 'hex'));
+    p.add(frame);
   });
 
   it('raises an error on a 200 KiB long unmasked binary message when `maxPayload` is 20 KiB', function (done) {
     const p = new Receiver({}, 20 * 1024);
     const msg = crypto.randomBytes(200 * 1024);
 
-    const frame = '82' + util.getHybiLengthAsHexString(msg.length, false) +
-      msg.toString('hex');
+    const list = Sender.frame(msg, {
+      fin: true,
+      rsv1: false,
+      opcode: 0x02,
+      mask: false,
+      readOnly: true
+    });
+
+    const frame = Buffer.concat(list);
 
     p.onerror = function (err, code) {
       assert.ok(err instanceof Error);
@@ -630,7 +708,7 @@ describe('Receiver', function () {
       done();
     };
 
-    p.add(Buffer.from(frame, 'hex'));
+    p.add(frame);
   });
 
   it('raises an error on a compressed message that exceeds `maxPayload`', function (done) {
