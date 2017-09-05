@@ -72,7 +72,8 @@ provided then that is extension parameters:
 - `serverMaxWindowBits` {Number} The value of windowBits.
 - `clientMaxWindowBits` {Number} The value of max windowBits to be requested
   to clients.
-- `memLevel` {Number} The value of memLevel.
+- `level` {Number} The value of zlib's `level` param (0-9, default 8).
+- `memLevel` {Number} The value of zlib's `memLevel` param (1-9, default 8).
 - `threshold` {Number} Payloads smaller than this will not be compressed.
   Defaults to 1024 bytes.
 
