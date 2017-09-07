@@ -257,24 +257,73 @@ describe('PerMessageDeflate', function () {
     it('should compress/decompress data with parameters', function (done) {
       const perMessageDeflate = new PerMessageDeflate({
         threshold: 0,
-        memLevel: 5
+        memLevel: 5,
+        level: 9
       });
       const extensions = Extensions.parse(
         'permessage-deflate; server_no_context_takeover; ' +
         'client_no_context_takeover; server_max_window_bits=10; ' +
         'client_max_window_bits=11'
       );
+      const srcData = 'Some compressible data, it\'s compressible.';
 
       perMessageDeflate.accept(extensions['permessage-deflate']);
 
-      perMessageDeflate.compress(Buffer.from([1, 2, 3]), true, (err, compressed) => {
+      perMessageDeflate.compress(Buffer.from(srcData, 'utf8'), true, (err, compressed) => {
         if (err) return done(err);
 
         perMessageDeflate.decompress(compressed, true, (err, data) => {
           if (err) return done(err);
 
-          assert.ok(data.equals(Buffer.from([1, 2, 3])));
+          assert.ok(data.equals(Buffer.from(srcData, 'utf8')));
           done();
+        });
+      });
+    });
+
+    it('should compress/decompress with level parameter', function (done) {
+      const perMessageDeflateLev9 = new PerMessageDeflate({
+        threshold: 0,
+        level: 9
+      });
+      const perMessageDeflateLev0 = new PerMessageDeflate({
+        threshold: 0,
+        level: 0
+      });
+      const extensionStr = (
+        'permessage-deflate; server_no_context_takeover; ' +
+        'client_no_context_takeover; server_max_window_bits=10; ' +
+        'client_max_window_bits=11'
+      );
+      const srcData = 'Some compressible data, it\'s compressible.';
+      const srcDataBuffer = Buffer.from(srcData, 'utf8');
+
+      perMessageDeflateLev0.accept(Extensions.parse(extensionStr)['permessage-deflate']);
+      perMessageDeflateLev9.accept(Extensions.parse(extensionStr)['permessage-deflate']);
+
+      perMessageDeflateLev0.compress(srcDataBuffer, true, (err, compressed1) => {
+        if (err) return done(err);
+
+        perMessageDeflateLev0.decompress(compressed1, true, (err, data1) => {
+          if (err) return done(err);
+
+          perMessageDeflateLev9.compress(srcDataBuffer, true, (err, compressed2) => {
+            if (err) return done(err);
+
+            perMessageDeflateLev9.decompress(compressed2, true, (err, data2) => {
+              if (err) return done(err);
+
+              // Level 0 compression actually adds a few bytes due to headers
+              assert.ok(compressed1.length > srcDataBuffer.length);
+              // Level 9 should not, of course.
+              assert.ok(compressed2.length < compressed1.length);
+              assert.ok(compressed2.length < srcDataBuffer.length);
+              // Ensure they both decompress back properly.
+              assert.ok(data1.equals(srcDataBuffer));
+              assert.ok(data2.equals(srcDataBuffer));
+              done();
+            });
+          });
         });
       });
     });
