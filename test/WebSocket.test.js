@@ -72,8 +72,8 @@ describe('WebSocket', function () {
 
         ws.on('error', (err) => {
           // Skip this test on machines where 127.0.0.2 is disabled.
-          if (err.code === 'EADDRNOTAVAIL') return done();
-          throw err;
+          if (err.code === 'EADDRNOTAVAIL') err = undefined;
+          wss.close(() => done(err));
         });
       });
 
