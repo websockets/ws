@@ -78,7 +78,7 @@ provided then that is extension parameters:
   Defaults to 1024 bytes.
 - `concurrencyLimit` {Number} The number of concurrent calls to zlib.
   Calls above this limit will be queued. Default 10. You usually won't
-  need to touch this option. See [concurrency-limit][this issue] for more
+  need to touch this option. See [this issue][concurrency-limit] for more
   details.
 
 If a property is empty then either an offered configuration or a default value
