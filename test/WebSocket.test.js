@@ -86,7 +86,7 @@ describe('WebSocket', function () {
     it('accepts the localAddress option whether it was wrong interface', function () {
       assert.throws(
         () => new WebSocket(`ws://localhost:${port}`, { localAddress: '123.456.789.428' }),
-        /must be a valid IP: 123.456.789.428/
+        /TypeError?: .* 123.456.789.428/
       );
     });
 
