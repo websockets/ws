@@ -99,6 +99,12 @@ describe('WebSocket', function () {
         const ws = new WebSocket(`ws://localhost:${port}`, { family: 6 });
       });
 
+      wss.on('error', (err) => {
+        // Skip this test on machines where IPv6 is not supported.
+        if (err.code === 'EADDRNOTAVAIL') err = undefined;
+        wss.close(() => done(err));
+      });
+
       wss.on('connection', (ws, req) => {
         assert.strictEqual(req.connection.remoteAddress, '::1');
         wss.close(done);
