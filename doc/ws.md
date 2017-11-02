@@ -183,12 +183,14 @@ This class represents a WebSocket. It extends the `EventEmitter`.
     request.
   - `origin` {String} Value of the `Origin` or `Sec-WebSocket-Origin` header
     depending on the `protocolVersion`.
-  - `agent` {http.Agent|https.Agent} Use the specified Agent,
+  - `agent` {http.Agent|https.Agent} Use the specified Agent.
   - `host` {String} Value of the `Host` header.
   - `family` {Number} IP address family to use during hostname lookup (4 or 6).
   - `checkServerIdentity` {Function} A function to validate the server hostname.
   - `rejectUnauthorized` {Boolean} Verify or not the server certificate.
   - `passphrase` {String} The passphrase for the private key or pfx.
+  - `ecdhCurve` {String} A named curve or a colon separated list of curve NIDs
+    or names to use for ECDH key agreement.
   - `ciphers` {String} The ciphers to use or exclude
   - `cert` {String|Array|Buffer} The certificate key.
   - `key` {String|Array|Buffer} The private key.
