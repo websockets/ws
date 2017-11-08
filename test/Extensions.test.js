@@ -6,13 +6,13 @@ const Extensions = require('../lib/Extensions');
 
 describe('Extensions', function () {
   describe('parse', function () {
-    it('should parse', function () {
+    it('parses a single extension', function () {
       const extensions = Extensions.parse('foo');
 
       assert.deepStrictEqual(extensions, { foo: [{}] });
     });
 
-    it('should parse params', function () {
+    it('parses params', function () {
       const extensions = Extensions.parse('foo; bar; baz=1; bar=2');
 
       assert.deepStrictEqual(extensions, {
@@ -20,7 +20,7 @@ describe('Extensions', function () {
       });
     });
 
-    it('should parse multiple extensions', function () {
+    it('parse multiple extensions', function () {
       const extensions = Extensions.parse('foo, bar; baz, foo; baz');
 
       assert.deepStrictEqual(extensions, {
@@ -29,29 +29,36 @@ describe('Extensions', function () {
       });
     });
 
-    it('should parse quoted params', function () {
+    it('parses quoted params', function () {
       const extensions = Extensions.parse('foo; bar="hi"');
 
       assert.deepStrictEqual(extensions, {
         foo: [{ bar: ['hi'] }]
       });
     });
+
+    it('ignores names that match Object.prototype properties', function () {
+      const parse = Extensions.parse;
+
+      assert.deepStrictEqual(parse('hasOwnProperty, toString'), {});
+      assert.deepStrictEqual(parse('foo; constructor'), { foo: [{}] });
+    });
   });
 
   describe('format', function () {
-    it('should format', function () {
+    it('formats a single extension', function () {
       const extensions = Extensions.format({ foo: {} });
 
       assert.strictEqual(extensions, 'foo');
     });
 
-    it('should format params', function () {
+    it('formats params', function () {
       const extensions = Extensions.format({ foo: { bar: [true, 2], baz: 1 } });
 
       assert.strictEqual(extensions, 'foo; bar; bar=2; baz=1');
     });
 
-    it('should format multiple extensions', function () {
+    it('formats multiple extensions', function () {
       const extensions = Extensions.format({
         foo: [{}, { baz: true }],
         bar: { baz: true }
