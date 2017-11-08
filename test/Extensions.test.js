@@ -29,6 +29,11 @@ describe('Extensions', function() {
         foo: [{ bar: ['hi'] }]
       });
     });
+
+    it('ignores names that match Object.prototype properties', function () {
+      Extensions.parse('hasOwnProperty, toString').should.eql({});
+      Extensions.parse('foo; constructor').should.eql({ foo: [{}] });
+    });
   });
 
   describe('format', function() {
