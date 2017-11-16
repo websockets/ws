@@ -174,13 +174,6 @@ describe('PerMessageDeflate', function () {
         assert.throws(() => perMessageDeflate.accept(extensions['permessage-deflate']));
       });
 
-      it('should throw an error if a parameter is undefined', function () {
-        const perMessageDeflate = new PerMessageDeflate();
-        const extensions = Extensions.parse('permessage-deflate; foo;');
-
-        assert.throws(() => perMessageDeflate.accept(extensions['permessage-deflate']));
-      });
-
       it('should throw an error if server_no_context_takeover has a value', function () {
         const perMessageDeflate = new PerMessageDeflate();
         const extensions = Extensions.parse('permessage-deflate; server_no_context_takeover=10');
