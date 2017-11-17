@@ -352,7 +352,7 @@ describe('WebSocket', function () {
 
     it('invalid server key is denied', function (done) {
       server.once('upgrade', (req, socket) => {
-        socket.on('end', () => socket.end());
+        socket.on('end', socket.end);
         socket.write(
           'HTTP/1.1 101 Switching Protocols\r\n' +
           'Upgrade: websocket\r\n' +
@@ -408,7 +408,7 @@ describe('WebSocket', function () {
 
       const ws = new WebSocket(`ws://localhost:${port}`);
 
-      ws.on('open', () => assert.fail(null, null, 'connect shouldnt be raised here'));
+      ws.on('open', () => done(new Error("unexpected 'open' event")));
       ws.on('error', (err) => {
         assert.ok(err instanceof Error);
         assert.strictEqual(err.message, 'unexpected server response (401)');
@@ -430,8 +430,8 @@ describe('WebSocket', function () {
 
       const ws = new WebSocket(`ws://localhost:${port}`);
 
-      ws.on('open', () => assert.fail(null, null, 'connect shouldnt be raised here'));
-      ws.on('error', () => assert.fail(null, null, 'error shouldnt be raised here'));
+      ws.on('open', () => done(new Error("unexpected 'open' event")));
+      ws.on('error', () => done(new Error("unexpected 'error' event")));
       ws.on('unexpected-response', (req, res) => {
         assert.strictEqual(res.statusCode, 401);
 
@@ -462,8 +462,8 @@ describe('WebSocket', function () {
 
       const ws = new WebSocket(`ws://localhost:${port}`);
 
-      ws.on('open', () => assert.fail(null, null, 'connect shouldnt be raised here'));
-      ws.on('error', () => assert.fail(null, null, 'error shouldnt be raised here'));
+      ws.on('open', () => done(new Error("unexpected 'open' event")));
+      ws.on('error', () => done(new Error("unexpected 'error' event")));
       ws.on('unexpected-response', (req, res) => {
         assert.strictEqual(res.statusCode, 401);
 
@@ -472,18 +472,73 @@ describe('WebSocket', function () {
       });
     });
 
-    it('emits an error if the opening handshake timeout expires', function (done) {
+    it('fails if the opening handshake timeout expires', function (done) {
       server.once('upgrade', (req, socket) => socket.on('end', socket.end));
 
       const ws = new WebSocket(`ws://localhost:${port}`, null, {
         handshakeTimeout: 100
       });
 
-      ws.on('open', () => assert.fail(null, null, 'connect shouldn\'t be raised here'));
+      ws.on('open', () => done(new Error("unexpected 'open' event")));
       ws.on('error', (err) => {
         assert.ok(err instanceof Error);
         assert.strictEqual(err.message, 'opening handshake has timed out');
         done();
+      });
+    });
+
+    it('fails if the Sec-WebSocket-Extensions response header is invalid', function (done) {
+      server.once('upgrade', (req, socket) => {
+        const key = crypto.createHash('sha1')
+          .update(req.headers['sec-websocket-key'] + constants.GUID, 'binary')
+          .digest('base64');
+
+        socket.end(
+          'HTTP/1.1 101 Switching Protocols\r\n' +
+          'Upgrade: websocket\r\n' +
+          'Connection: Upgrade\r\n' +
+          `Sec-WebSocket-Accept: ${key}\r\n` +
+          'Sec-WebSocket-Extensions: foo;=\r\n' +
+          '\r\n'
+        );
+      });
+
+      const ws = new WebSocket(`ws://localhost:${port}`);
+
+      ws.on('open', () => done(new Error("unexpected 'open' event")));
+      ws.on('error', (err) => {
+        assert.ok(err instanceof Error);
+        assert.strictEqual(err.message, 'invalid Sec-WebSocket-Extensions header');
+        ws.on('close', () => done());
+      });
+    });
+
+    it('fails if server sends a subprotocol when none was requested', function (done) {
+      server.once('upgrade', (req, socket) => {
+        const key = crypto.createHash('sha1')
+          .update(req.headers['sec-websocket-key'] + constants.GUID, 'binary')
+          .digest('base64');
+
+        socket.end(
+          'HTTP/1.1 101 Switching Protocols\r\n' +
+          'Upgrade: websocket\r\n' +
+          'Connection: Upgrade\r\n' +
+          `Sec-WebSocket-Accept: ${key}\r\n` +
+          'Sec-WebSocket-Protocol: foo\r\n' +
+          '\r\n'
+        );
+      });
+
+      const ws = new WebSocket(`ws://localhost:${port}`);
+
+      ws.on('open', () => done(new Error("unexpected 'open' event")));
+      ws.on('error', (err) => {
+        assert.ok(err instanceof Error);
+        assert.strictEqual(
+          err.message,
+          'server sent a subprotocol even though none requested'
+        );
+        ws.on('close', () => done());
       });
     });
   });
@@ -968,7 +1023,7 @@ describe('WebSocket', function () {
       const wss = new WebSocketServer({ port: ++port }, () => {
         const ws = new WebSocket(`ws://localhost:${port}`);
 
-        ws.on('open', () => assert.fail(null, null, 'connect shouldnt be raised here'));
+        ws.on('open', () => done(new Error("unexpected 'open' event")));
         ws.on('error', (err) => {
           assert.ok(err instanceof Error);
           assert.strictEqual(err.message, 'closed before the connection is established');
@@ -985,7 +1040,7 @@ describe('WebSocket', function () {
       }, () => {
         const ws = new WebSocket(`ws://localhost:${port}`);
 
-        ws.on('open', () => assert.fail(null, null, 'connect shouldnt be raised here'));
+        ws.on('open', () => done(new Error("unexpected 'open' event")));
         ws.on('error', (err) => {
           assert.ok(err instanceof Error);
           assert.strictEqual(err.message, 'closed before the connection is established');
@@ -998,7 +1053,7 @@ describe('WebSocket', function () {
     it('can be called from an error listener while connecting', function (done) {
       const ws = new WebSocket(`ws://localhost:${++port}`);
 
-      ws.on('open', () => assert.fail(null, null, 'connect shouldnt be raised here'));
+      ws.on('open', () => done(new Error("unexpected 'open' event")));
       ws.on('error', (err) => {
         assert.ok(err instanceof Error);
         assert.strictEqual(err.code, 'ECONNREFUSED');
@@ -1011,7 +1066,7 @@ describe('WebSocket', function () {
       const wss = new WebSocketServer({ port: ++port }, () => {
         const ws = new WebSocket(`ws://localhost:${port}`);
 
-        ws.on('open', () => assert.fail(null, null, 'connect shouldnt be raised here'));
+        ws.on('open', () => done(new Error("unexpected 'open' event")));
         ws.on('error', (err) => {
           assert.ok(err instanceof Error);
           assert.strictEqual(err.message, 'closed before the connection is established');
@@ -1192,7 +1247,7 @@ describe('WebSocket', function () {
       const wss = new WebSocketServer({ port: ++port }, () => {
         const ws = new WebSocket(`ws://localhost:${port}`);
 
-        ws.on('open', () => assert.fail(null, null, 'connect shouldnt be raised here'));
+        ws.on('open', () => done(new Error("unexpected 'open' event")));
         ws.on('error', (err) => {
           assert.ok(err instanceof Error);
           assert.strictEqual(err.message, 'closed before the connection is established');
@@ -1209,7 +1264,7 @@ describe('WebSocket', function () {
       }, () => {
         const ws = new WebSocket(`ws://localhost:${port}`);
 
-        ws.on('open', () => assert.fail(null, null, 'connect shouldnt be raised here'));
+        ws.on('open', () => done(new Error("unexpected 'open' event")));
         ws.on('error', (err) => {
           assert.ok(err instanceof Error);
           assert.strictEqual(err.message, 'closed before the connection is established');
@@ -1222,7 +1277,7 @@ describe('WebSocket', function () {
     it('can be called from an error listener while connecting', function (done) {
       const ws = new WebSocket(`ws://localhost:${++port}`);
 
-      ws.on('open', () => assert.fail(null, null, 'connect shouldnt be raised here'));
+      ws.on('open', () => done(new Error("unexpected 'open' event")));
       ws.on('error', (err) => {
         assert.ok(err instanceof Error);
         assert.strictEqual(err.code, 'ECONNREFUSED');
@@ -1235,7 +1290,7 @@ describe('WebSocket', function () {
       const wss = new WebSocketServer({ port: ++port }, () => {
         const ws = new WebSocket(`ws://localhost:${port}`);
 
-        ws.on('open', () => assert.fail(null, null, 'connect shouldnt be raised here'));
+        ws.on('open', () => done(new Error("unexpected 'open' event")));
         ws.on('error', (err) => {
           assert.ok(err instanceof Error);
           assert.strictEqual(err.message, 'closed before the connection is established');
