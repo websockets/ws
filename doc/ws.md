@@ -66,12 +66,11 @@ status code, otherwise the returned value sets the value of the
 The extension is disabled when `false` (default value). If an object is
 provided then that is extension parameters:
 
-- `serverNoContextTakeover` {Boolean} Whether to use context take over or not.
-- `clientNoContextTakeover` {Boolean} The value to be requested to clients
-  whether to use context take over or not.
-- `serverMaxWindowBits` {Number} The value of windowBits.
-- `clientMaxWindowBits` {Number} The value of max windowBits to be requested
-  to clients.
+- `serverNoContextTakeover` {Boolean} Whether to use context takeover or not.
+- `clientNoContextTakeover` {Boolean} Acknowledge disabling of client context
+  takeover.
+- `serverMaxWindowBits` {Number} The value of `windowBits`.
+- `clientMaxWindowBits` {Number} Request a custom client window size.
 - `level` {Number} The value of zlib's `level` param (0-9, default 8).
 - `memLevel` {Number} The value of zlib's `memLevel` param (1-9, default 8).
 - `threshold` {Number} Payloads smaller than this will not be compressed.
@@ -198,8 +197,9 @@ This class represents a WebSocket. It extends the `EventEmitter`.
   - `ca` {Array} Trusted certificates.
 
 `perMessageDeflate` default value is `true`. When using an object, parameters
-are the same of the server. The only difference is the direction of requests
-(e.g. `serverNoContextTakeover` is the value to be requested to the server).
+are the same of the server. The only difference is the direction of requests.
+For example, `serverNoContextTakeover` can be used to ask the server to
+disable context takeover.
 
 Create a new WebSocket instance.
 
