@@ -8,8 +8,8 @@
 ws is a simple to use, blazing fast, and thoroughly tested WebSocket client
 and server implementation.
 
-Passes the quite extensive Autobahn test suite. See http://websockets.github.io/ws/
-for the full reports.
+Passes the quite extensive Autobahn test suite: [server][server-report],
+[client][client-report].
 
 **Note**: This module does not work in the browser. The client in the docs is a
 reference to a back end with the role of a client in the WebSocket
@@ -335,5 +335,7 @@ We're using the GitHub [releases][changelog] for changelog entries.
 
 [https-proxy-agent]: https://github.com/TooTallNate/node-https-proxy-agent
 [socks-proxy-agent]: https://github.com/TooTallNate/node-socks-proxy-agent
+[client-report]: http://websockets.github.io/ws/autobahn/clients/
+[server-report]: http://websockets.github.io/ws/autobahn/servers/
 [permessage-deflate]: https://tools.ietf.org/html/rfc7692
 [changelog]: https://github.com/websockets/ws/releases
