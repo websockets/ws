@@ -1,4 +1,4 @@
 node_modules/
+.nyc_output/
 coverage/
 examples/
-npm-debug.log
