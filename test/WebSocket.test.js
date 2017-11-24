@@ -2183,7 +2183,7 @@ describe('WebSocket', function () {
         });
       });
 
-      it('can call during receiving data', function (done) {
+      it('can be used while data is being processed', function (done) {
         const wss = new WebSocket.Server({
           perMessageDeflate: { threshold: 0 },
           port: 0
@@ -2198,9 +2198,8 @@ describe('WebSocket', function () {
               client.send('hi');
             }
             client.send('hi', () => {
-              ws.extensions['permessage-deflate']._inflate.on('close', () => {
-                wss.close(done);
-              });
+              assert.strictEqual(ws._receiver._state, 5);
+              ws.on('close', () => wss.close(done));
               ws.terminate();
             });
           });
