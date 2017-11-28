@@ -7,6 +7,7 @@ const assert = require('assert');
 const crypto = require('crypto');
 const https = require('https');
 const http = require('http');
+const net = require('net');
 const fs = require('fs');
 
 const constants = require('../lib/Constants');
@@ -1146,6 +1147,45 @@ describe('WebSocket', function () {
       });
     });
 
+    it('emits an error if the close frame can not be sent', function (done) {
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const port = wss._server.address().port;
+        const socket = net.createConnection(port, () => {
+          socket.write(
+            'GET / HTTP/1.1\r\n' +
+            'Host: localhost\r\n' +
+            'Upgrade: websocket\r\n' +
+            'Connection: Upgrade\r\n' +
+            'Sec-WebSocket-Key: qqFVFwaCnSMXiqfezY/AZQ==\r\n' +
+            'Sec-WebSocket-Version: 13\r\n' +
+            '\r\n'
+          );
+          socket.destroy();
+        });
+
+        wss.on('connection', (ws) => {
+          //
+          // Remove our `'error'` listener from the socket to ensure that
+          // `WebSocket#finalize()` is not called before the `Sender#close()`
+          // callback.
+          //
+          const listeners = ws._socket.listeners('error');
+          ws._socket.removeListener('error', listeners[listeners.length - 1]);
+
+          ws.on('error', (err) => {
+            assert.ok(err instanceof Error);
+            assert.ok(err.message.startsWith('write E'));
+            ws.on('close', (code, message) => {
+              assert.strictEqual(message, '');
+              assert.strictEqual(code, 1006);
+              wss.close(done);
+            });
+          });
+          ws.close();
+        });
+      });
+    });
+
     it('works when close reason is not specified', function (done) {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const port = wss._server.address().port;
@@ -1220,6 +1260,7 @@ describe('WebSocket', function () {
         ws.send('foo');
         ws.send('bar');
         ws.send('baz');
+        ws.close();
         ws.close();
       });
     });
@@ -1363,6 +1404,75 @@ describe('WebSocket', function () {
       });
 
       wss.on('connection', (ws) => ws.terminate());
+    });
+  });
+
+  describe('abnormal closures', function () {
+    it('ignores close frame data if connection is forcibly closed', function (done) {
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const port = wss._server.address().port;
+        const ws = new WebSocket(`ws://localhost:${port}`);
+        const emitClose = ws.emitClose;
+        const messages = [];
+
+        ws.on('message', (message) => {
+          messages.push(message);
+          if (messages.length > 1) ws.terminate();
+        });
+
+        ws.emitClose = (error) => {
+          assert.deepStrictEqual(messages, ['', '', '']);
+          assert.strictEqual(ws._closeMessage, 'foo');
+          assert.strictEqual(ws._closeCode, 4000);
+          assert.strictEqual(error, true);
+          emitClose.call(ws, error);
+        };
+
+        ws.on('close', (code, message) => {
+          assert.strictEqual(message, '');
+          assert.strictEqual(code, 1006);
+          wss.close(done);
+        });
+      });
+
+      wss.on('connection', (ws) => {
+        const buf = Buffer.from('81008100810088050fa0666f6f', 'hex');
+        ws._socket.write(buf);
+      });
+    });
+
+    it('closes with 1006 if close frame is received but not sent', function (done) {
+      const wss = new WebSocket.Server({
+        perMessageDeflate: { threshold: 0 },
+        port: 0
+      }, () => {
+        const port = wss._server.address().port;
+        const ws = new WebSocket(`ws://localhost:${port}`);
+        const emitClose = ws.emitClose;
+        const messages = [];
+
+        ws.on('message', (message) => messages.push(message));
+
+        ws.emitClose = (error) => {
+          assert.deepStrictEqual(messages, ['', '', '']);
+          assert.strictEqual(ws._closeFrameSent, false);
+          assert.strictEqual(ws._closeMessage, 'foo');
+          assert.strictEqual(ws._closeCode, 4000);
+          assert.strictEqual(error, undefined);
+          emitClose.call(ws, error);
+        };
+
+        ws.on('close', (code, message) => {
+          assert.strictEqual(message, '');
+          assert.strictEqual(code, 1006);
+          wss.close(done);
+        });
+      });
+
+      wss.on('connection', (ws) => {
+        const buf = Buffer.from('c10100c10100c1010088050fa0666f6f', 'hex');
+        ws._socket.end(buf);
+      });
     });
   });
 
