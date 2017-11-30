@@ -21,7 +21,7 @@
     "lib"
   ],
   "scripts": {
-    "test": "eslint . && nyc --reporter=html --reporter=text mocha test/*.test.js",
+    "test": "eslint . && nyc --reporter=html --reporter=text mocha --exit test/*.test.js",
     "integration": "eslint . && mocha test/*.integration.js",
     "lint": "eslint ."
   },
