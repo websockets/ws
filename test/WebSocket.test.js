@@ -6,9 +6,11 @@ const safeBuffer = require('safe-buffer');
 const assert = require('assert');
 const crypto = require('crypto');
 const https = require('https');
+const dns = require('dns');
 const http = require('http');
 const net = require('net');
 const fs = require('fs');
+const os = require('os');
 
 const constants = require('../lib/Constants');
 const WebSocket = require('..');
@@ -100,25 +102,38 @@ describe('WebSocket', function () {
     });
 
     it('accepts the family option', function (done) {
-      const wss = new WebSocket.Server({ host: '::1', port: 0 }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`, { family: 6 });
+      const re = process.platform === 'win32' ? /Loopback Pseudo-Interface/ : /lo/;
+      const ifaces = os.networkInterfaces();
+      const hasIPv6 = Object.keys(ifaces).some((name) => {
+        return re.test(name) && ifaces[name].some((info) => info.family === 'IPv6');
       });
 
-      wss.on('error', (err) => {
-        wss.close(() => {
-          //
-          // Skip this test on machines where IPv6 is not supported.
-          //
-          if (err.code === 'EADDRNOTAVAIL') return this.skip();
+      //
+      // Skip this test on machines where IPv6 is not supported.
+      //
+      if (!hasIPv6) return this.skip();
 
-          done(err);
+      dns.lookup('localhost', { family: 6, all: true }, (err, addresses) => {
+        //
+        // Skip this test if localhost does not resolve to ::1.
+        //
+        if (err) {
+          return err.code === 'ENOTFOUND' || err.code === 'EAI_AGAIN'
+            ? this.skip()
+            : done(err);
+        }
+
+        if (!addresses.some((val) => val.address === '::1')) return this.skip();
+
+        const wss = new WebSocket.Server({ host: '::1', port: 0 }, () => {
+          const port = wss._server.address().port;
+          const ws = new WebSocket(`ws://localhost:${port}`, { family: 6 });
         });
-      });
 
-      wss.on('connection', (ws, req) => {
-        assert.strictEqual(req.connection.remoteAddress, '::1');
-        wss.close(done);
+        wss.on('connection', (ws, req) => {
+          assert.strictEqual(req.connection.remoteAddress, '::1');
+          wss.close(done);
+        });
       });
     });
   });
