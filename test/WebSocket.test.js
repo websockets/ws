@@ -71,9 +71,14 @@ describe('WebSocket', function () {
         });
 
         ws.on('error', (err) => {
-          // Skip this test on machines where 127.0.0.2 is disabled.
-          if (err.code === 'EADDRNOTAVAIL') err = undefined;
-          wss.close(() => done(err));
+          wss.close(() => {
+            //
+            // Skip this test on machines where 127.0.0.2 is disabled.
+            //
+            if (err.code === 'EADDRNOTAVAIL') return this.skip();
+
+            done(err);
+          });
         });
       });
 
@@ -101,9 +106,14 @@ describe('WebSocket', function () {
       });
 
       wss.on('error', (err) => {
-        // Skip this test on machines where IPv6 is not supported.
-        if (err.code === 'EADDRNOTAVAIL') err = undefined;
-        wss.close(() => done(err));
+        wss.close(() => {
+          //
+          // Skip this test on machines where IPv6 is not supported.
+          //
+          if (err.code === 'EADDRNOTAVAIL') return this.skip();
+
+          done(err);
+        });
       });
 
       wss.on('connection', (ws, req) => {

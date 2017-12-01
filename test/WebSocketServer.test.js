@@ -83,7 +83,7 @@ describe('WebSocketServer', function () {
       //
       // Skip this test on Windows as it throws errors for obvious reasons.
       //
-      if (process.platform === 'win32') return done();
+      if (process.platform === 'win32') return this.skip();
 
       const server = http.createServer();
       const sockPath = `/tmp/ws.${crypto.randomBytes(16).toString('hex')}.socket`;
