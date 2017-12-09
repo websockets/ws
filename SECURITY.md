@@ -30,5 +30,5 @@ all vulnerabilities to the [Node Security Project](https://nodesecurity.io/).
 
 ## History
 
-04 Jan 2016: [Buffer vulnerablity](https://github.com/websockets/ws/releases/tag/1.0.1)
-08 Nov 2017: [DoS vulnerablity](https://github.com/websockets/ws/releases/tag/3.3.1)
+- 04 Jan 2016: [Buffer vulnerability](https://github.com/websockets/ws/releases/tag/1.0.1)
+- 08 Nov 2017: [DoS vulnerability](https://github.com/websockets/ws/releases/tag/3.3.1)
