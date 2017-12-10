@@ -6,8 +6,8 @@ const safeBuffer = require('safe-buffer');
 const assert = require('assert');
 const crypto = require('crypto');
 const https = require('https');
-const dns = require('dns');
 const http = require('http');
+const dns = require('dns');
 const net = require('net');
 const fs = require('fs');
 const os = require('os');
@@ -1189,14 +1189,6 @@ describe('WebSocket', function () {
         });
 
         wss.on('connection', (ws) => {
-          //
-          // Remove our `'error'` listener from the socket to ensure that
-          // `WebSocket#finalize()` is not called before the `Sender#close()`
-          // callback.
-          //
-          const listeners = ws._socket.listeners('error');
-          ws._socket.removeListener('error', listeners[listeners.length - 1]);
-
           ws.on('error', (err) => {
             assert.ok(err instanceof Error);
             assert.ok(err.message.startsWith('write E'));
@@ -1304,39 +1296,6 @@ describe('WebSocket', function () {
       wss.on('connection', (ws) => ws.close(1013));
     });
 
-    it('closes the connection when an error occurs', function (done) {
-      const server = http.createServer();
-      const wss = new WebSocket.Server({ server });
-      let closed = false;
-
-      wss.on('connection', (ws) => {
-        ws.on('error', (err) => {
-          assert.ok(err instanceof Error);
-          assert.strictEqual(err.message, 'RSV2 and RSV3 must be clear');
-
-          ws.on('close', (code, reason) => {
-            assert.strictEqual(code, 1006);
-            assert.strictEqual(reason, '');
-
-            closed = true;
-          });
-        });
-      });
-
-      server.listen(0, () => {
-        const ws = new WebSocket(`ws://localhost:${server.address().port}`);
-
-        ws.on('open', () => ws._socket.write(Buffer.from([0xa1, 0x00])));
-        ws.on('close', (code, reason) => {
-          assert.strictEqual(code, 1002);
-          assert.strictEqual(reason, '');
-          assert.ok(closed);
-
-          server.close(done);
-        });
-      });
-    });
-
     it('does nothing if the connection is already CLOSED', function (done) {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const port = wss._server.address().port;
@@ -1429,75 +1388,6 @@ describe('WebSocket', function () {
       });
 
       wss.on('connection', (ws) => ws.terminate());
-    });
-  });
-
-  describe('abnormal closures', function () {
-    it('ignores close frame data if connection is forcibly closed', function (done) {
-      const wss = new WebSocket.Server({ port: 0 }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
-        const emitClose = ws.emitClose;
-        const messages = [];
-
-        ws.on('message', (message) => {
-          messages.push(message);
-          if (messages.length > 1) ws.terminate();
-        });
-
-        ws.emitClose = (error) => {
-          assert.deepStrictEqual(messages, ['', '', '']);
-          assert.strictEqual(ws._closeMessage, 'foo');
-          assert.strictEqual(ws._closeCode, 4000);
-          assert.strictEqual(error, true);
-          emitClose.call(ws, error);
-        };
-
-        ws.on('close', (code, message) => {
-          assert.strictEqual(message, '');
-          assert.strictEqual(code, 1006);
-          wss.close(done);
-        });
-      });
-
-      wss.on('connection', (ws) => {
-        const buf = Buffer.from('81008100810088050fa0666f6f', 'hex');
-        ws._socket.write(buf);
-      });
-    });
-
-    it('closes with 1006 if close frame is received but not sent', function (done) {
-      const wss = new WebSocket.Server({
-        perMessageDeflate: { threshold: 0 },
-        port: 0
-      }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
-        const emitClose = ws.emitClose;
-        const messages = [];
-
-        ws.on('message', (message) => messages.push(message));
-
-        ws.emitClose = (error) => {
-          assert.deepStrictEqual(messages, ['', '', '']);
-          assert.strictEqual(ws._closeFrameSent, false);
-          assert.strictEqual(ws._closeMessage, 'foo');
-          assert.strictEqual(ws._closeCode, 4000);
-          assert.strictEqual(error, undefined);
-          emitClose.call(ws, error);
-        };
-
-        ws.on('close', (code, message) => {
-          assert.strictEqual(message, '');
-          assert.strictEqual(code, 1006);
-          wss.close(done);
-        });
-      });
-
-      wss.on('connection', (ws) => {
-        const buf = Buffer.from('c10100c10100c1010088050fa0666f6f', 'hex');
-        ws._socket.end(buf);
-      });
     });
   });
 
@@ -1677,6 +1567,7 @@ describe('WebSocket', function () {
 
         ws.addEventListener('close', (closeEvent) => {
           assert.ok(closeEvent.wasClean);
+          assert.strictEqual(closeEvent.reason, '');
           assert.strictEqual(closeEvent.code, 1000);
           wss.close(done);
         });
@@ -1685,43 +1576,15 @@ describe('WebSocket', function () {
       wss.on('connection', (client) => client.close(1000));
     });
 
-    it('should assign "true" to wasClean when server closes with code 3000', function (done) {
-      const wss = new WebSocket.Server({ port: 0 }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
-
-        ws.addEventListener('close', (closeEvent) => {
-          assert.ok(closeEvent.wasClean);
-          wss.close(done);
-        });
-      });
-
-      wss.on('connection', (client) => client.close(3000));
-    });
-
-    it('should assign "true" to wasClean when server closes with code 4999', function (done) {
-      const wss = new WebSocket.Server({ port: 0 }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
-
-        ws.addEventListener('close', (closeEvent) => {
-          assert.ok(closeEvent.wasClean);
-          wss.close(done);
-        });
-      });
-
-      wss.on('connection', (client) => client.close(4999));
-    });
-
     it('should receive valid CloseEvent when server closes with code 1001', function (done) {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const port = wss._server.address().port;
         const ws = new WebSocket(`ws://localhost:${port}`);
 
         ws.addEventListener('close', (closeEvent) => {
-          assert.ok(!closeEvent.wasClean);
-          assert.strictEqual(closeEvent.code, 1001);
+          assert.ok(closeEvent.wasClean);
           assert.strictEqual(closeEvent.reason, 'some daft reason');
+          assert.strictEqual(closeEvent.code, 1001);
           wss.close(done);
         });
       });
@@ -2320,24 +2183,33 @@ describe('WebSocket', function () {
 
       it('can be used while data is being processed', function (done) {
         const wss = new WebSocket.Server({
-          perMessageDeflate: { threshold: 0 },
+          perMessageDeflate: true,
           port: 0
         }, () => {
           const port = wss._server.address().port;
-          const ws = new WebSocket(`ws://localhost:${port}`, {
-            perMessageDeflate: { threshold: 0 }
-          });
+          const ws = new WebSocket(`ws://localhost:${port}`);
+          const messages = [];
 
-          wss.on('connection', (client) => {
-            for (let i = 0; i < 10; i++) {
-              client.send('hi');
-            }
-            client.send('hi', () => {
+          ws.on('message', (message) => {
+            if (messages.push(message) > 1) return;
+
+            process.nextTick(() => {
               assert.strictEqual(ws._receiver._state, 5);
-              ws.on('close', () => wss.close(done));
               ws.terminate();
             });
           });
+
+          ws.on('close', (code, reason) => {
+            assert.deepStrictEqual(messages, ['', '', '', '']);
+            assert.strictEqual(code, 1006);
+            assert.strictEqual(reason, '');
+            wss.close(done);
+          });
+        });
+
+        wss.on('connection', (ws) => {
+          const buf = Buffer.from('c10100c10100c10100c10100', 'hex');
+          ws._socket.write(buf);
         });
       });
     });
