@@ -27,7 +27,7 @@ provided or an error is thrown.
 
 
 If `verifyClient` is not set then the handshake is automatically accepted. If
-it is is provided with a single argument then that is:
+it is provided with a single argument then that is:
 
 - `info` {Object}
   - `origin` {String} The value in the Origin header indicated by the client.
