@@ -1203,6 +1203,34 @@ describe('WebSocket', function () {
       });
     });
 
+    it('sends the close status code only when necessary', function (done) {
+      let sent;
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const port = wss._server.address().port;
+        const ws = new WebSocket(`ws://localhost:${port}`);
+
+        ws.on('open', () => {
+          ws._socket.once('data', (data) => {
+            sent = data;
+          });
+        });
+      });
+
+      wss.on('connection', (ws) => {
+        ws._socket.once('data', (received) => {
+          assert.ok(received.slice(0, 2).equals(Buffer.from([0x88, 0x80])));
+          assert.ok(sent.equals(Buffer.from([0x88, 0x00])));
+
+          ws.on('close', (code, reason) => {
+            assert.strictEqual(code, 1000);
+            assert.strictEqual(reason, '');
+            wss.close(done);
+          });
+        });
+        ws.close();
+      });
+    });
+
     it('works when close reason is not specified', function (done) {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const port = wss._server.address().port;

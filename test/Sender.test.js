@@ -267,7 +267,7 @@ describe('Sender', function () {
       sender.send('bar', { compress: true, fin: true });
       sender.send('baz', { compress: true, fin: true });
 
-      sender.close(1000, null, false, () => {
+      sender.close(1000, undefined, false, () => {
         assert.strictEqual(count, 4);
         done();
       });
