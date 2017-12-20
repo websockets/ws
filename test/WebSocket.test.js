@@ -1222,7 +1222,7 @@ describe('WebSocket', function () {
           assert.ok(sent.equals(Buffer.from([0x88, 0x00])));
 
           ws.on('close', (code, reason) => {
-            assert.strictEqual(code, 1000);
+            assert.strictEqual(code, 1005);
             assert.strictEqual(reason, '');
             wss.close(done);
           });
@@ -1295,7 +1295,7 @@ describe('WebSocket', function () {
 
         ws.on('message', (message) => messages.push(message));
         ws.on('close', (code) => {
-          assert.strictEqual(code, 1000);
+          assert.strictEqual(code, 1005);
           assert.deepStrictEqual(messages, ['foo', 'bar', 'baz']);
           wss.close(done);
         });
@@ -1330,7 +1330,7 @@ describe('WebSocket', function () {
         const ws = new WebSocket(`ws://localhost:${port}`);
 
         ws.on('close', (code) => {
-          assert.strictEqual(code, 1000);
+          assert.strictEqual(code, 1005);
           assert.strictEqual(ws.readyState, WebSocket.CLOSED);
           ws.close();
           wss.close(done);
@@ -2180,7 +2180,7 @@ describe('WebSocket', function () {
           ws.on('message', (message) => {
             assert.strictEqual(message, 'hi');
             ws.on('close', (code) => {
-              assert.strictEqual(code, 1000);
+              assert.strictEqual(code, 1005);
               wss.close(done);
             });
           });
