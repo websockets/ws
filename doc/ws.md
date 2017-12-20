@@ -308,7 +308,7 @@ not yet transmitted to the network.
 
 Received bytes count.
 
-### websocket.close([code][, reason])
+### websocket.close([code[, reason]])
 
 - `code` {Number} A numeric value indicating the status code explaining why
   the connection is being closed.
