@@ -26,7 +26,7 @@ describe('Receiver', function () {
     const p = new Receiver();
 
     p.onclose = function (code, data) {
-      assert.strictEqual(code, 1000);
+      assert.strictEqual(code, 1005);
       assert.strictEqual(data, '');
       done();
     };
@@ -836,7 +836,7 @@ describe('Receiver', function () {
       assert.strictEqual(p._bufferedBytes, textFrame.length + closeFrame.length);
 
       p.cleanup(() => {
-        assert.deepStrictEqual(results, ['Hello', 'Hello', 1000, '']);
+        assert.deepStrictEqual(results, ['Hello', 'Hello', 1005, '']);
         assert.strictEqual(p.onmessage, null);
         done();
       });
