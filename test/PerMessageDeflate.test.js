@@ -162,6 +162,16 @@ describe('PerMessageDeflate', function () {
 
         assert.throws(() => perMessageDeflate.accept(extensions['permessage-deflate']));
       });
+
+      it('uses the config value if client_max_window_bits is not specified', function () {
+        const perMessageDeflate = new PerMessageDeflate({
+          clientMaxWindowBits: 10
+        });
+
+        assert.deepStrictEqual(perMessageDeflate.accept([{}]), {
+          client_max_window_bits: 10
+        });
+      });
     });
 
     describe('validate parameters', function () {
@@ -189,17 +199,33 @@ describe('PerMessageDeflate', function () {
       });
 
       it('should throw an error if server_max_window_bits has an invalid value', function () {
-        const perMessageDeflate = new PerMessageDeflate();
-        const extensions = Extensions.parse('permessage-deflate; server_max_window_bits=7');
+        const perMessageDeflate = new PerMessageDeflate({}, true);
 
+        let extensions = Extensions.parse('permessage-deflate; server_max_window_bits=7');
+        assert.throws(() => perMessageDeflate.accept(extensions['permessage-deflate']));
+
+        extensions = Extensions.parse('permessage-deflate; server_max_window_bits');
         assert.throws(() => perMessageDeflate.accept(extensions['permessage-deflate']));
       });
 
       it('should throw an error if client_max_window_bits has an invalid value', function () {
         const perMessageDeflate = new PerMessageDeflate();
-        const extensions = Extensions.parse('permessage-deflate; client_max_window_bits=16');
 
+        let extensions = Extensions.parse('permessage-deflate; client_max_window_bits=16');
         assert.throws(() => perMessageDeflate.accept(extensions['permessage-deflate']));
+
+        extensions = Extensions.parse('permessage-deflate; client_max_window_bits');
+        assert.throws(() => perMessageDeflate.accept(extensions['permessage-deflate']));
+      });
+
+      it('throws an error if a parameter has an invalid name', function () {
+        const perMessageDeflate = new PerMessageDeflate();
+        const extensions = Extensions.parse('permessage-deflate;foo');
+
+        assert.throws(
+          () => perMessageDeflate.accept(extensions['permessage-deflate']),
+          /^Error: Not defined extension parameter \(foo\)$/
+        );
       });
     });
   });

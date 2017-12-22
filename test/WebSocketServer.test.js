@@ -943,34 +943,7 @@ describe('WebSocketServer', function () {
       wss.on('connection', (ws) => wss.close(done));
     });
 
-    it('does not accept connections with invalid extension parameters (name)', function (done) {
-      const wss = new WebSocket.Server({
-        perMessageDeflate: true,
-        port: 0
-      }, () => {
-        const req = http.get({
-          port: wss._server.address().port,
-          headers: {
-            'Connection': 'Upgrade',
-            'Upgrade': 'websocket',
-            'Sec-WebSocket-Key': 'dGhlIHNhbXBsZSBub25jZQ==',
-            'Sec-WebSocket-Version': 13,
-            'Sec-WebSocket-Extensions': 'permessage-deflate; foo=15'
-          }
-        });
-
-        req.on('response', (res) => {
-          assert.strictEqual(res.statusCode, 400);
-          wss.close(done);
-        });
-      });
-
-      wss.on('connection', (ws) => {
-        done(new Error('connection must not be established'));
-      });
-    });
-
-    it('does not accept connections with invalid extension parameters (value)', function (done) {
+    it('does not accept connections with invalid extension parameters', function (done) {
       const wss = new WebSocket.Server({
         perMessageDeflate: true,
         port: 0
