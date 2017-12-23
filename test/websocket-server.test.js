@@ -277,7 +277,6 @@ describe('WebSocketServer', function () {
     });
 
     it('maxpayload is passed on to permessage-deflate', function (done) {
-      const PerMessageDeflate = require('../lib/PerMessageDeflate');
       const maxPayload = 20480;
       const wss = new WebSocket.Server({
         perMessageDeflate: true,
@@ -290,7 +289,7 @@ describe('WebSocketServer', function () {
 
       wss.on('connection', (client) => {
         assert.strictEqual(
-          client._receiver._extensions[PerMessageDeflate.extensionName]._maxPayload,
+          client._receiver._extensions['permessage-deflate']._maxPayload,
           maxPayload
         );
         wss.close(done);

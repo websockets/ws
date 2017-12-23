@@ -4,9 +4,9 @@ const safeBuffer = require('safe-buffer');
 const assert = require('assert');
 const crypto = require('crypto');
 
-const PerMessageDeflate = require('../lib/PerMessageDeflate');
-const Receiver = require('../lib/Receiver');
-const Sender = require('../lib/Sender');
+const PerMessageDeflate = require('../lib/permessage-deflate');
+const Receiver = require('../lib/receiver');
+const Sender = require('../lib/sender');
 
 const Buffer = safeBuffer.Buffer;
 
