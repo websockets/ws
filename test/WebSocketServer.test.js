@@ -879,8 +879,11 @@ describe('WebSocketServer', function () {
 
       wss.on('connection', (ws) => {
         ws.on('error', (err) => {
-          assert.ok(err instanceof Error);
-          assert.strictEqual(err.message, 'invalid opcode: 5');
+          assert.ok(err instanceof RangeError);
+          assert.strictEqual(
+            err.message,
+            'Invalid WebSocket frame: invalid opcode 5'
+          );
 
           ws.on('close', (code, reason) => {
             assert.strictEqual(code, 1002);

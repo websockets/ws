@@ -224,7 +224,7 @@ describe('PerMessageDeflate', function () {
 
         assert.throws(
           () => perMessageDeflate.accept(extensions['permessage-deflate']),
-          /^Error: Not defined extension parameter \(foo\)$/
+          /^Error: Unknown parameter "foo"$/
         );
       });
     });
@@ -429,8 +429,8 @@ describe('PerMessageDeflate', function () {
         perMessageDeflate.decompress(data, true, (err) => errors.push(err));
         perMessageDeflate._inflate.flush(() => {
           assert.strictEqual(errors.length, 1);
-          assert.ok(errors[0] instanceof Error);
-          assert.strictEqual(errors[0].message, 'max payload size exceeded');
+          assert.ok(errors[0] instanceof RangeError);
+          assert.strictEqual(errors[0].message, 'Max payload size exceeded');
           done();
         });
       });

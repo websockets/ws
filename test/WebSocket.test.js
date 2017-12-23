@@ -26,7 +26,7 @@ describe('WebSocket', function () {
     it('throws an error when using an invalid url', function () {
       assert.throws(
         () => new WebSocket('echo.websocket.org'),
-        /^Error: invalid url$/
+        /^Error: Invalid URL: echo\.websocket\.org$/
       );
     });
   });
@@ -61,7 +61,7 @@ describe('WebSocket', function () {
 
       assert.throws(
         () => new WebSocket('ws://localhost', options),
-        /^Error: unsupported protocol version: 1000 \(supported versions: 8, 13\)$/
+        /^RangeError: Unsupported protocol version: 1000 \(supported versions: 8, 13\)$/
       );
     });
 
@@ -403,7 +403,7 @@ describe('WebSocket', function () {
 
       ws.on('error', (err) => {
         assert.ok(err instanceof Error);
-        assert.strictEqual(err.message, 'invalid server key');
+        assert.strictEqual(err.message, 'Invalid Sec-WebSocket-Accept header');
         done();
       });
     });
@@ -448,7 +448,7 @@ describe('WebSocket', function () {
       ws.on('open', () => done(new Error("unexpected 'open' event")));
       ws.on('error', (err) => {
         assert.ok(err instanceof Error);
-        assert.strictEqual(err.message, 'unexpected server response (401)');
+        assert.strictEqual(err.message, 'Unexpected server response: 401');
         done();
       });
     });
@@ -520,7 +520,7 @@ describe('WebSocket', function () {
       ws.on('open', () => done(new Error("unexpected 'open' event")));
       ws.on('error', (err) => {
         assert.ok(err instanceof Error);
-        assert.strictEqual(err.message, 'opening handshake has timed out');
+        assert.strictEqual(err.message, 'Opening handshake has timed out');
         done();
       });
     });
@@ -546,7 +546,7 @@ describe('WebSocket', function () {
       ws.on('open', () => done(new Error("unexpected 'open' event")));
       ws.on('error', (err) => {
         assert.ok(err instanceof Error);
-        assert.strictEqual(err.message, 'invalid Sec-WebSocket-Extensions header');
+        assert.strictEqual(err.message, 'Invalid Sec-WebSocket-Extensions header');
         ws.on('close', () => done());
       });
     });
@@ -574,7 +574,7 @@ describe('WebSocket', function () {
         assert.ok(err instanceof Error);
         assert.strictEqual(
           err.message,
-          'server sent a subprotocol even though none requested'
+          'Server sent a subprotocol but none was requested'
         );
         ws.on('close', () => done());
       });
@@ -605,13 +605,19 @@ describe('WebSocket', function () {
     it('throws an error when `readyState` is not `OPEN` (pause)', function () {
       const ws = new WebSocket('ws://localhost', { agent: new CustomAgent() });
 
-      assert.throws(() => ws.pause(), /^Error: not opened$/);
+      assert.throws(
+        () => ws.pause(),
+        /^Error: WebSocket is not open: readyState 0 \(CONNECTING\)$/
+      );
     });
 
     it('throws an error when `readyState` is not `OPEN` (resume)', function () {
       const ws = new WebSocket('ws://localhost', { agent: new CustomAgent() });
 
-      assert.throws(() => ws.resume(), /^Error: not opened$/);
+      assert.throws(
+        () => ws.resume(),
+        /^Error: WebSocket is not open: readyState 0 \(CONNECTING\)$/
+      );
     });
 
     it('pauses the underlying stream', function (done) {
@@ -662,7 +668,10 @@ describe('WebSocket', function () {
         agent: new CustomAgent()
       });
 
-      assert.throws(() => ws.ping(), /^Error: not opened$/);
+      assert.throws(
+        () => ws.ping(),
+        /^Error: WebSocket is not open: readyState 0 \(CONNECTING\)$/
+      );
     });
 
     it('before connect can silently fail', function () {
@@ -729,7 +738,10 @@ describe('WebSocket', function () {
         agent: new CustomAgent()
       });
 
-      assert.throws(() => ws.pong(), /^Error: not opened$/);
+      assert.throws(
+        () => ws.pong(),
+        /^Error: WebSocket is not open: readyState 0 \(CONNECTING\)$/
+      );
     });
 
     it('before connect can silently fail', function () {
@@ -958,7 +970,10 @@ describe('WebSocket', function () {
         agent: new CustomAgent()
       });
 
-      assert.throws(() => ws.send('hi'), /^Error: not opened$/);
+      assert.throws(
+        () => ws.send('hi'),
+        /^Error: WebSocket is not open: readyState 0 \(CONNECTING\)$/
+      );
     });
 
     it('before connect should pass error through callback, if present', function () {
@@ -968,7 +983,10 @@ describe('WebSocket', function () {
 
       ws.send('hi', (err) => {
         assert.ok(err instanceof Error);
-        assert.strictEqual(err.message, 'not opened');
+        assert.strictEqual(
+          err.message,
+          'WebSocket is not open: readyState 0 (CONNECTING)'
+        );
       });
     });
 
@@ -1088,7 +1106,10 @@ describe('WebSocket', function () {
         ws.on('open', () => done(new Error("unexpected 'open' event")));
         ws.on('error', (err) => {
           assert.ok(err instanceof Error);
-          assert.strictEqual(err.message, 'closed before the connection is established');
+          assert.strictEqual(
+            err.message,
+            'WebSocket was closed before the connection was established'
+          );
           ws.on('close', () => wss.close(done));
         });
         ws.close(1001);
@@ -1106,7 +1127,10 @@ describe('WebSocket', function () {
         ws.on('open', () => done(new Error("unexpected 'open' event")));
         ws.on('error', (err) => {
           assert.ok(err instanceof Error);
-          assert.strictEqual(err.message, 'closed before the connection is established');
+          assert.strictEqual(
+            err.message,
+            'WebSocket was closed before the connection was established'
+          );
           ws.on('close', () => wss.close(done));
         });
         setTimeout(() => ws.close(1001), 150);
@@ -1133,7 +1157,10 @@ describe('WebSocket', function () {
         ws.on('open', () => done(new Error("unexpected 'open' event")));
         ws.on('error', (err) => {
           assert.ok(err instanceof Error);
-          assert.strictEqual(err.message, 'closed before the connection is established');
+          assert.strictEqual(
+            err.message,
+            'WebSocket was closed before the connection was established'
+          );
           ws.on('close', () => wss.close(done));
         });
         ws.on('headers', () => ws.close());
@@ -1148,7 +1175,7 @@ describe('WebSocket', function () {
         ws.on('open', () => {
           assert.throws(
             () => ws.close('error'),
-            /^Error: first argument must be a valid error code number$/
+            /^TypeError: First argument must be a valid error code number$/
           );
 
           wss.close(done);
@@ -1164,7 +1191,7 @@ describe('WebSocket', function () {
         ws.on('open', () => {
           assert.throws(
             () => ws.close(1004),
-            /^Error: first argument must be a valid error code number$/
+            /^TypeError: First argument must be a valid error code number$/
           );
 
           wss.close(done);
@@ -1350,7 +1377,10 @@ describe('WebSocket', function () {
         ws.on('open', () => done(new Error("unexpected 'open' event")));
         ws.on('error', (err) => {
           assert.ok(err instanceof Error);
-          assert.strictEqual(err.message, 'closed before the connection is established');
+          assert.strictEqual(
+            err.message,
+            'WebSocket was closed before the connection was established'
+          );
           ws.on('close', () => wss.close(done));
         });
         ws.terminate();
@@ -1368,7 +1398,10 @@ describe('WebSocket', function () {
         ws.on('open', () => done(new Error("unexpected 'open' event")));
         ws.on('error', (err) => {
           assert.ok(err instanceof Error);
-          assert.strictEqual(err.message, 'closed before the connection is established');
+          assert.strictEqual(
+            err.message,
+            'WebSocket was closed before the connection was established'
+          );
           ws.on('close', () => wss.close(done));
         });
         setTimeout(() => ws.terminate(), 150);
@@ -1395,7 +1428,10 @@ describe('WebSocket', function () {
         ws.on('open', () => done(new Error("unexpected 'open' event")));
         ws.on('error', (err) => {
           assert.ok(err instanceof Error);
-          assert.strictEqual(err.message, 'closed before the connection is established');
+          assert.strictEqual(
+            err.message,
+            'WebSocket was closed before the connection was established'
+          );
           ws.on('close', () => wss.close(done));
         });
         ws.on('headers', () => ws.terminate());
