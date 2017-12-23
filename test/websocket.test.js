@@ -1656,52 +1656,31 @@ describe('WebSocket', function () {
       wss.on('connection', (client) => client.close(1001, 'some daft reason'));
     });
 
-    it('should have target set on Events', function (done) {
+    it('sets `target` and `type` on events', function (done) {
       const wss = new WebSocket.Server({ port: 0 }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
-
-        ws.addEventListener('open', (openEvent) => {
-          assert.strictEqual(openEvent.target, ws);
-        });
-        ws.addEventListener('message', (messageEvent) => {
-          assert.strictEqual(messageEvent.target, ws);
-          wss.close();
-        });
-        ws.addEventListener('close', (closeEvent) => {
-          assert.strictEqual(closeEvent.target, ws);
-          ws.emit('error', new Error('forced'));
-        });
-        ws.addEventListener('error', (errorEvent) => {
-          assert.strictEqual(errorEvent.message, 'forced');
-          assert.strictEqual(errorEvent.target, ws);
-
-          done();
-        });
-      });
-
-      wss.on('connection', (client) => client.send('hi'));
-    });
-
-    it('should have type set on Events', function (done) {
-      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const err = new Error('forced');
         const port = wss._server.address().port;
         const ws = new WebSocket(`ws://localhost:${port}`);
 
         ws.addEventListener('open', (openEvent) => {
           assert.strictEqual(openEvent.type, 'open');
+          assert.strictEqual(openEvent.target, ws);
         });
         ws.addEventListener('message', (messageEvent) => {
           assert.strictEqual(messageEvent.type, 'message');
+          assert.strictEqual(messageEvent.target, ws);
           wss.close();
         });
         ws.addEventListener('close', (closeEvent) => {
           assert.strictEqual(closeEvent.type, 'close');
-          ws.emit('error', new Error('forced'));
+          assert.strictEqual(closeEvent.target, ws);
+          ws.emit('error', err);
         });
         ws.addEventListener('error', (errorEvent) => {
           assert.strictEqual(errorEvent.message, 'forced');
           assert.strictEqual(errorEvent.type, 'error');
+          assert.strictEqual(errorEvent.target, ws);
+          assert.strictEqual(errorEvent.error, err);
 
           done();
         });
