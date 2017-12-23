@@ -12,7 +12,7 @@ const net = require('net');
 const fs = require('fs');
 const os = require('os');
 
-const constants = require('../lib/Constants');
+const constants = require('../lib/constants');
 const WebSocket = require('..');
 
 const Buffer = safeBuffer.Buffer;

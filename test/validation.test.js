@@ -3,11 +3,11 @@
 const safeBuffer = require('safe-buffer');
 const assert = require('assert');
 
-const validation = require('../lib/Validation');
+const validation = require('../lib/validation');
 
 const Buffer = safeBuffer.Buffer;
 
-describe('Validation', function () {
+describe('validation', function () {
   describe('isValidUTF8', function () {
     it('should return true for a valid utf8 string', function () {
       const validBuffer = Buffer.from(
