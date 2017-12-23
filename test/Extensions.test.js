@@ -49,11 +49,11 @@ describe('Extensions', function () {
       });
       assert.throws(
         () => Extensions.parse('foo;bar="baz"qux'),
-        /^Error: unexpected character at index 13$/
+        /^SyntaxError: Unexpected character at index 13$/
       );
       assert.throws(
         () => Extensions.parse('foo;bar="baz" qux'),
-        /^Error: unexpected character at index 14$/
+        /^SyntaxError: Unexpected character at index 14$/
       );
     });
 
@@ -92,7 +92,7 @@ describe('Extensions', function () {
       ].forEach((element) => {
         assert.throws(
           () => Extensions.parse(element[0]),
-          new RegExp(`^Error: unexpected character at index ${element[1]}$`)
+          new RegExp(`^SyntaxError: Unexpected character at index ${element[1]}$`)
         );
       });
     });
@@ -106,7 +106,7 @@ describe('Extensions', function () {
       ].forEach((element) => {
         assert.throws(
           () => Extensions.parse(element[0]),
-          new RegExp(`^Error: unexpected character at index ${element[1]}$`)
+          new RegExp(`^SyntaxError: Unexpected character at index ${element[1]}$`)
         );
       });
     });
@@ -130,7 +130,7 @@ describe('Extensions', function () {
       ].forEach((element) => {
         assert.throws(
           () => Extensions.parse(element[0]),
-          new RegExp(`^Error: unexpected character at index ${element[1]}$`)
+          new RegExp(`^SyntaxError: Unexpected character at index ${element[1]}$`)
         );
       });
     });
@@ -147,7 +147,7 @@ describe('Extensions', function () {
       ].forEach((header) => {
         assert.throws(
           () => Extensions.parse(header),
-          /^Error: unexpected end of input$/
+          /^SyntaxError: Unexpected end of input$/
         );
       });
     });
