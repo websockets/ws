@@ -381,12 +381,6 @@ Send a pong.
 
 The subprotocol selected by the server.
 
-### websocket.protocolVersion
-
-- {Number}
-
-The WebSocket protocol version used for this connection, 8 or 13.
-
 ### websocket.readyState
 
 - {Number}

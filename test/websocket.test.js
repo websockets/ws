@@ -158,14 +158,6 @@ describe('WebSocket', function () {
       assert.strictEqual(ws.url, url);
     });
 
-    it('#protocolVersion exposes the protocol version', function () {
-      const ws = new WebSocket('ws://localhost', {
-        agent: new CustomAgent()
-      });
-
-      assert.strictEqual(ws.protocolVersion, 13);
-    });
-
     describe('#bufferedAmount', function () {
       it('defaults to zero', function () {
         const ws = new WebSocket('ws://localhost', {

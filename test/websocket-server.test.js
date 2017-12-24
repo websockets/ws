@@ -906,20 +906,6 @@ describe('WebSocketServer', function () {
         wss.close(done);
       });
     });
-
-    it('protocolVersion is exposed', function (done) {
-      const wss = new WebSocket.Server({ port: 0 }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`, {
-          protocolVersion: 8
-        });
-      });
-
-      wss.on('connection', (client) => {
-        assert.strictEqual(client.protocolVersion, 8);
-        wss.close(done);
-      });
-    });
   });
 
   describe('permessage-deflate', function () {
