@@ -298,6 +298,8 @@ const WebSocket = require('ws');
 
 const wss = new WebSocket.Server({ port: 8080 });
 
+function noop() {}
+
 function heartbeat() {
   this.isAlive = true;
 }
@@ -312,7 +314,7 @@ const interval = setInterval(function ping() {
     if (ws.isAlive === false) return ws.terminate();
 
     ws.isAlive = false;
-    ws.ping('', false, true);
+    ws.ping(noop);
   });
 }, 30000);
 ```

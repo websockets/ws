@@ -355,23 +355,23 @@ receives an `OpenEvent` named "open".
 
 Pause the socket.
 
-### websocket.ping([data[, mask[, failSilently]]])
+### websocket.ping([data[, mask]][, callback])
 
 - `data` {Any} The data to send in the ping frame.
 - `mask` {Boolean} Specifies whether `data` should be masked or not. Defaults
   to `true` when `websocket` is not a server client.
-- `failSilently` {Boolean} Specifies whether or not to throw an error if the
-  connection is not open.
+- `callback` {Function} An optional callback which is invoked when the ping
+  frame is written out.
 
 Send a ping.
 
-### websocket.pong([data[, mask[, failSilently]]])
+### websocket.pong([data[, mask]][, callback])
 
 - `data` {Any} The data to send in the pong frame.
 - `mask` {Boolean} Specifies whether `data` should be masked or not. Defaults
   to `true` when `websocket` is not a server client.
-- `failSilently` {Boolean} Specifies whether or not to throw an error if the
-  connection is not open.
+- `callback` {Function} An optional callback which is invoked when the pong
+  frame is written out.
 
 Send a pong.
 
@@ -404,7 +404,7 @@ Removes an event listener emulating the `EventTarget` interface.
 
 Resume the socket.
 
-### websocket.send(data, [options][, callback])
+### websocket.send(data[, options][, callback])
 
 - `data` {Any} The data to send.
 - `options` {Object}
