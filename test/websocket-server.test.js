@@ -250,19 +250,6 @@ describe('WebSocketServer', function () {
   });
 
   describe('#maxpayload', function () {
-    it('maxpayload is passed on to clients', function (done) {
-      const maxPayload = 20480;
-      const wss = new WebSocket.Server({ port: 0, maxPayload }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
-      });
-
-      wss.on('connection', (client) => {
-        assert.strictEqual(client._maxPayload, maxPayload);
-        wss.close(done);
-      });
-    });
-
     it('maxpayload is passed on to hybi receivers', function (done) {
       const maxPayload = 20480;
       const wss = new WebSocket.Server({ port: 0, maxPayload }, () => {
