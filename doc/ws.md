@@ -302,12 +302,6 @@ of binary protocols transferring large messages with multiple fragments.
 The number of bytes of data that have been queued using calls to `send()` but
 not yet transmitted to the network.
 
-### websocket.bytesReceived
-
-- {Number}
-
-Received bytes count.
-
 ### websocket.close([code[, reason]])
 
 - `code` {Number} A numeric value indicating the status code explaining why

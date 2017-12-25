@@ -139,18 +139,6 @@ describe('WebSocket', function () {
   });
 
   describe('properties', function () {
-    it('#bytesReceived exposes number of bytes received', function (done) {
-      const wss = new WebSocket.Server({ port: 0 }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
-        ws.on('message', () => {
-          assert.strictEqual(ws.bytesReceived, 8);
-          wss.close(done);
-        });
-      });
-      wss.on('connection', (ws) => ws.send('foobar'));
-    });
-
     it('#url exposes the server url', function () {
       const url = 'ws://localhost';
       const ws = new WebSocket(url, { agent: new CustomAgent() });
