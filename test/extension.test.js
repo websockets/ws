@@ -6,7 +6,7 @@ const extension = require('../lib/extension');
 
 describe('extension', function () {
   describe('parse', function () {
-    it('returns an empty object if the argument is undefined', function () {
+    it('returns an empty object if the argument is `undefined`', function () {
       assert.deepStrictEqual(extension.parse(), {});
       assert.deepStrictEqual(extension.parse(''), {});
     });
@@ -57,7 +57,7 @@ describe('extension', function () {
       );
     });
 
-    it('works with names that match Object.prototype property names', function () {
+    it('works with names that match `Object.prototype` property names', function () {
       const parse = extension.parse;
 
       assert.deepStrictEqual(parse('hasOwnProperty, toString'), {

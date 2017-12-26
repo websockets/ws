@@ -10,7 +10,7 @@ const Buffer = safeBuffer.Buffer;
 
 describe('PerMessageDeflate', function () {
   describe('#offer', function () {
-    it('should create default params', function () {
+    it('creates an offer', function () {
       const perMessageDeflate = new PerMessageDeflate();
 
       assert.deepStrictEqual(
@@ -19,7 +19,7 @@ describe('PerMessageDeflate', function () {
       );
     });
 
-    it('should create params from options', function () {
+    it('uses the configuration options', function () {
       const perMessageDeflate = new PerMessageDeflate({
         serverNoContextTakeover: true,
         clientNoContextTakeover: true,
@@ -37,14 +37,72 @@ describe('PerMessageDeflate', function () {
   });
 
   describe('#accept', function () {
-    describe('as server', function () {
-      it('should accept empty offer', function () {
+    it('throws an error if a parameter has multiple values', function () {
+      const perMessageDeflate = new PerMessageDeflate();
+      const extensions = extension.parse(
+        'permessage-deflate; server_no_context_takeover; server_no_context_takeover'
+      );
+
+      assert.throws(
+        () => perMessageDeflate.accept(extensions['permessage-deflate']),
+        /^Error: Parameter "server_no_context_takeover" must have only a single value$/
+      );
+    });
+
+    it('throws an error if a parameter has an invalid name', function () {
+      const perMessageDeflate = new PerMessageDeflate();
+      const extensions = extension.parse('permessage-deflate;foo');
+
+      assert.throws(
+        () => perMessageDeflate.accept(extensions['permessage-deflate']),
+        /^Error: Unknown parameter "foo"$/
+      );
+    });
+
+    it('throws an error if client_no_context_takeover has a value', function () {
+      const perMessageDeflate = new PerMessageDeflate();
+      const extensions = extension.parse('permessage-deflate; client_no_context_takeover=10');
+
+      assert.throws(
+        () => perMessageDeflate.accept(extensions['permessage-deflate']),
+        /^TypeError: Invalid value for parameter "client_no_context_takeover": 10$/
+      );
+    });
+
+    it('throws an error if server_no_context_takeover has a value', function () {
+      const perMessageDeflate = new PerMessageDeflate();
+      const extensions = extension.parse('permessage-deflate; server_no_context_takeover=10');
+
+      assert.throws(
+        () => perMessageDeflate.accept(extensions['permessage-deflate']),
+        /^TypeError: Invalid value for parameter "server_no_context_takeover": 10$/
+      );
+    });
+
+    it('throws an error if server_max_window_bits has an invalid value', function () {
+      const perMessageDeflate = new PerMessageDeflate();
+
+      let extensions = extension.parse('permessage-deflate; server_max_window_bits=7');
+      assert.throws(
+        () => perMessageDeflate.accept(extensions['permessage-deflate']),
+        /^TypeError: Invalid value for parameter "server_max_window_bits": 7$/
+      );
+
+      extensions = extension.parse('permessage-deflate; server_max_window_bits');
+      assert.throws(
+        () => perMessageDeflate.accept(extensions['permessage-deflate']),
+        /^TypeError: Invalid value for parameter "server_max_window_bits": true$/
+      );
+    });
+
+    describe('As server', function () {
+      it('accepts an offer with no parameters', function () {
         const perMessageDeflate = new PerMessageDeflate({}, true);
 
         assert.deepStrictEqual(perMessageDeflate.accept([{}]), {});
       });
 
-      it('should accept offer', function () {
+      it('accepts an offer with parameters', function () {
         const perMessageDeflate = new PerMessageDeflate({}, true);
         const extensions = extension.parse(
           'permessage-deflate; server_no_context_takeover; ' +
@@ -60,7 +118,7 @@ describe('PerMessageDeflate', function () {
         });
       });
 
-      it('should prefer configuration than offer', function () {
+      it('prefers the configuration options', function () {
         const perMessageDeflate = new PerMessageDeflate({
           serverNoContextTakeover: true,
           clientNoContextTakeover: true,
@@ -79,7 +137,7 @@ describe('PerMessageDeflate', function () {
         });
       });
 
-      it('should fallback', function () {
+      it('accepts the first supported offer', function () {
         const perMessageDeflate = new PerMessageDeflate({ serverMaxWindowBits: 11 }, true);
         const extensions = extension.parse(
           'permessage-deflate; server_max_window_bits=10, permessage-deflate'
@@ -90,43 +148,65 @@ describe('PerMessageDeflate', function () {
         });
       });
 
-      it('should throw an error if server_no_context_takeover is unsupported', function () {
+      it('throws an error if server_no_context_takeover is unsupported', function () {
         const perMessageDeflate = new PerMessageDeflate({ serverNoContextTakeover: false }, true);
         const extensions = extension.parse('permessage-deflate; server_no_context_takeover');
 
-        assert.throws(() => perMessageDeflate.accept(extensions['permessage-deflate']));
+        assert.throws(
+          () => perMessageDeflate.accept(extensions['permessage-deflate']),
+          /^Error: None of the extension offers can be accepted$/
+        );
       });
 
-      it('should throw an error if server_max_window_bits is unsupported', function () {
+      it('throws an error if server_max_window_bits is unsupported', function () {
         const perMessageDeflate = new PerMessageDeflate({ serverMaxWindowBits: false }, true);
         const extensions = extension.parse('permessage-deflate; server_max_window_bits=10');
 
-        assert.throws(() => perMessageDeflate.accept(extensions['permessage-deflate']));
+        assert.throws(
+          () => perMessageDeflate.accept(extensions['permessage-deflate']),
+          /^Error: None of the extension offers can be accepted$/
+        );
       });
 
-      it('should throw an error if server_max_window_bits is less than configuration', function () {
+      it('throws an error if server_max_window_bits is less than configuration', function () {
         const perMessageDeflate = new PerMessageDeflate({ serverMaxWindowBits: 11 }, true);
         const extensions = extension.parse('permessage-deflate; server_max_window_bits=10');
 
-        assert.throws(() => perMessageDeflate.accept(extensions['permessage-deflate']));
+        assert.throws(
+          () => perMessageDeflate.accept(extensions['permessage-deflate']),
+          /^Error: None of the extension offers can be accepted$/
+        );
       });
 
-      it('should throw an error if client_max_window_bits is unsupported on client', function () {
+      it('throws an error if client_max_window_bits is unsupported on client', function () {
         const perMessageDeflate = new PerMessageDeflate({ clientMaxWindowBits: 10 }, true);
         const extensions = extension.parse('permessage-deflate');
 
-        assert.throws(() => perMessageDeflate.accept(extensions['permessage-deflate']));
+        assert.throws(
+          () => perMessageDeflate.accept(extensions['permessage-deflate']),
+          /^Error: None of the extension offers can be accepted$/
+        );
+      });
+
+      it('throws an error if client_max_window_bits has an invalid value', function () {
+        const perMessageDeflate = new PerMessageDeflate({}, true);
+
+        const extensions = extension.parse('permessage-deflate; client_max_window_bits=16');
+        assert.throws(
+          () => perMessageDeflate.accept(extensions['permessage-deflate']),
+          /^TypeError: Invalid value for parameter "client_max_window_bits": 16$/
+        );
       });
     });
 
-    describe('as client', function () {
-      it('should accept empty response', function () {
+    describe('As client', function () {
+      it('accepts a response with no parameters', function () {
         const perMessageDeflate = new PerMessageDeflate({});
 
         assert.deepStrictEqual(perMessageDeflate.accept([{}]), {});
       });
 
-      it('should accept response parameter', function () {
+      it('accepts a response with parameters', function () {
         const perMessageDeflate = new PerMessageDeflate({});
         const extensions = extension.parse(
           'permessage-deflate; server_no_context_takeover; ' +
@@ -142,25 +222,50 @@ describe('PerMessageDeflate', function () {
         });
       });
 
-      it('should throw an error if client_no_context_takeover is unsupported', function () {
+      it('throws an error if client_no_context_takeover is unsupported', function () {
         const perMessageDeflate = new PerMessageDeflate({ clientNoContextTakeover: false });
         const extensions = extension.parse('permessage-deflate; client_no_context_takeover');
 
-        assert.throws(() => perMessageDeflate.accept(extensions['permessage-deflate']));
+        assert.throws(
+          () => perMessageDeflate.accept(extensions['permessage-deflate']),
+          /^Error: Unexpected parameter "client_no_context_takeover"$/
+        );
       });
 
-      it('should throw an error if client_max_window_bits is unsupported', function () {
+      it('throws an error if client_max_window_bits is unsupported', function () {
         const perMessageDeflate = new PerMessageDeflate({ clientMaxWindowBits: false });
         const extensions = extension.parse('permessage-deflate; client_max_window_bits=10');
 
-        assert.throws(() => perMessageDeflate.accept(extensions['permessage-deflate']));
+        assert.throws(
+          () => perMessageDeflate.accept(extensions['permessage-deflate']),
+          /^Error: Unexpected or invalid parameter "client_max_window_bits"$/
+        );
       });
 
-      it('should throw an error if client_max_window_bits is greater than configuration', function () {
+      it('throws an error if client_max_window_bits is greater than configuration', function () {
         const perMessageDeflate = new PerMessageDeflate({ clientMaxWindowBits: 10 });
         const extensions = extension.parse('permessage-deflate; client_max_window_bits=11');
 
-        assert.throws(() => perMessageDeflate.accept(extensions['permessage-deflate']));
+        assert.throws(
+          () => perMessageDeflate.accept(extensions['permessage-deflate']),
+          /^Error: Unexpected or invalid parameter "client_max_window_bits"$/
+        );
+      });
+
+      it('throws an error if client_max_window_bits has an invalid value', function () {
+        const perMessageDeflate = new PerMessageDeflate();
+
+        let extensions = extension.parse('permessage-deflate; client_max_window_bits=16');
+        assert.throws(
+          () => perMessageDeflate.accept(extensions['permessage-deflate']),
+          /^TypeError: Invalid value for parameter "client_max_window_bits": 16$/
+        );
+
+        extensions = extension.parse('permessage-deflate; client_max_window_bits');
+        assert.throws(
+          () => perMessageDeflate.accept(extensions['permessage-deflate']),
+          /^TypeError: Invalid value for parameter "client_max_window_bits": true$/
+        );
       });
 
       it('uses the config value if client_max_window_bits is not specified', function () {
@@ -173,81 +278,27 @@ describe('PerMessageDeflate', function () {
         });
       });
     });
-
-    describe('validate parameters', function () {
-      it('should throw an error if a parameter has multiple values', function () {
-        const perMessageDeflate = new PerMessageDeflate();
-        const extensions = extension.parse(
-          'permessage-deflate; server_no_context_takeover; server_no_context_takeover'
-        );
-
-        assert.throws(() => perMessageDeflate.accept(extensions['permessage-deflate']));
-      });
-
-      it('should throw an error if server_no_context_takeover has a value', function () {
-        const perMessageDeflate = new PerMessageDeflate();
-        const extensions = extension.parse('permessage-deflate; server_no_context_takeover=10');
-
-        assert.throws(() => perMessageDeflate.accept(extensions['permessage-deflate']));
-      });
-
-      it('should throw an error if client_no_context_takeover has a value', function () {
-        const perMessageDeflate = new PerMessageDeflate();
-        const extensions = extension.parse('permessage-deflate; client_no_context_takeover=10');
-
-        assert.throws(() => perMessageDeflate.accept(extensions['permessage-deflate']));
-      });
-
-      it('should throw an error if server_max_window_bits has an invalid value', function () {
-        const perMessageDeflate = new PerMessageDeflate({}, true);
-
-        let extensions = extension.parse('permessage-deflate; server_max_window_bits=7');
-        assert.throws(() => perMessageDeflate.accept(extensions['permessage-deflate']));
-
-        extensions = extension.parse('permessage-deflate; server_max_window_bits');
-        assert.throws(() => perMessageDeflate.accept(extensions['permessage-deflate']));
-      });
-
-      it('should throw an error if client_max_window_bits has an invalid value', function () {
-        const perMessageDeflate = new PerMessageDeflate();
-
-        let extensions = extension.parse('permessage-deflate; client_max_window_bits=16');
-        assert.throws(() => perMessageDeflate.accept(extensions['permessage-deflate']));
-
-        extensions = extension.parse('permessage-deflate; client_max_window_bits');
-        assert.throws(() => perMessageDeflate.accept(extensions['permessage-deflate']));
-      });
-
-      it('throws an error if a parameter has an invalid name', function () {
-        const perMessageDeflate = new PerMessageDeflate();
-        const extensions = extension.parse('permessage-deflate;foo');
-
-        assert.throws(
-          () => perMessageDeflate.accept(extensions['permessage-deflate']),
-          /^Error: Unknown parameter "foo"$/
-        );
-      });
-    });
   });
 
-  describe('#compress/#decompress', function () {
-    it('should compress/decompress data', function (done) {
+  describe('#compress and #decompress', function () {
+    it('works with unfragmented messages', function (done) {
       const perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
+      const buf = Buffer.from([1, 2, 3]);
 
       perMessageDeflate.accept([{}]);
-      perMessageDeflate.compress(Buffer.from([1, 2, 3]), true, (err, compressed) => {
+      perMessageDeflate.compress(buf, true, (err, data) => {
         if (err) return done(err);
 
-        perMessageDeflate.decompress(compressed, true, (err, data) => {
+        perMessageDeflate.decompress(data, true, (err, data) => {
           if (err) return done(err);
 
-          assert.ok(data.equals(Buffer.from([1, 2, 3])));
+          assert.ok(data.equals(buf));
           done();
         });
       });
     });
 
-    it('should compress/decompress fragments', function (done) {
+    it('works with fragmented messages', function (done) {
       const perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
       const buf = Buffer.from([1, 2, 3, 4]);
 
@@ -265,7 +316,7 @@ describe('PerMessageDeflate', function () {
             perMessageDeflate.decompress(compressed2, true, (err, data2) => {
               if (err) return done(err);
 
-              assert.ok(Buffer.concat([data1, data2]).equals(Buffer.from([1, 2, 3, 4])));
+              assert.ok(Buffer.concat([data1, data2]).equals(buf));
               done();
             });
           });
@@ -273,7 +324,7 @@ describe('PerMessageDeflate', function () {
       });
     });
 
-    it('should compress/decompress data with parameters', function (done) {
+    it('works with the negotiated parameters', function (done) {
       const perMessageDeflate = new PerMessageDeflate({
         threshold: 0,
         memLevel: 5,
@@ -284,62 +335,54 @@ describe('PerMessageDeflate', function () {
         'client_no_context_takeover; server_max_window_bits=10; ' +
         'client_max_window_bits=11'
       );
-      const srcData = 'Some compressible data, it\'s compressible.';
+      const buf = Buffer.from("Some compressible data, it's compressible.");
 
       perMessageDeflate.accept(extensions['permessage-deflate']);
 
-      perMessageDeflate.compress(Buffer.from(srcData, 'utf8'), true, (err, compressed) => {
+      perMessageDeflate.compress(buf, true, (err, data) => {
         if (err) return done(err);
 
-        perMessageDeflate.decompress(compressed, true, (err, data) => {
+        perMessageDeflate.decompress(data, true, (err, data) => {
           if (err) return done(err);
 
-          assert.ok(data.equals(Buffer.from(srcData, 'utf8')));
+          assert.ok(data.equals(buf));
           done();
         });
       });
     });
 
-    it('should compress/decompress with level parameter', function (done) {
-      const perMessageDeflateLev9 = new PerMessageDeflate({
-        threshold: 0,
-        level: 9
-      });
-      const perMessageDeflateLev0 = new PerMessageDeflate({
-        threshold: 0,
-        level: 0
-      });
+    it('honors the `level` option', function (done) {
+      const lev9 = new PerMessageDeflate({ threshold: 0, level: 9 });
+      const lev0 = new PerMessageDeflate({ threshold: 0, level: 0 });
       const extensionStr = (
         'permessage-deflate; server_no_context_takeover; ' +
         'client_no_context_takeover; server_max_window_bits=10; ' +
         'client_max_window_bits=11'
       );
-      const srcData = 'Some compressible data, it\'s compressible.';
-      const srcDataBuffer = Buffer.from(srcData, 'utf8');
+      const buf = Buffer.from("Some compressible data, it's compressible.");
 
-      perMessageDeflateLev0.accept(extension.parse(extensionStr)['permessage-deflate']);
-      perMessageDeflateLev9.accept(extension.parse(extensionStr)['permessage-deflate']);
+      lev0.accept(extension.parse(extensionStr)['permessage-deflate']);
+      lev9.accept(extension.parse(extensionStr)['permessage-deflate']);
 
-      perMessageDeflateLev0.compress(srcDataBuffer, true, (err, compressed1) => {
+      lev0.compress(buf, true, (err, compressed1) => {
         if (err) return done(err);
 
-        perMessageDeflateLev0.decompress(compressed1, true, (err, data1) => {
+        lev0.decompress(compressed1, true, (err, decompressed1) => {
           if (err) return done(err);
 
-          perMessageDeflateLev9.compress(srcDataBuffer, true, (err, compressed2) => {
+          lev9.compress(buf, true, (err, compressed2) => {
             if (err) return done(err);
 
-            perMessageDeflateLev9.decompress(compressed2, true, (err, data2) => {
+            lev9.decompress(compressed2, true, (err, decompressed2) => {
               if (err) return done(err);
 
-              // Level 0 compression actually adds a few bytes due to headers
-              assert.ok(compressed1.length > srcDataBuffer.length);
+              // Level 0 compression actually adds a few bytes due to headers.
+              assert.ok(compressed1.length > buf.length);
               // Level 9 should not, of course.
-              assert.ok(compressed2.length < compressed1.length);
-              assert.ok(compressed2.length < srcDataBuffer.length);
+              assert.ok(compressed2.length < buf.length);
               // Ensure they both decompress back properly.
-              assert.ok(data1.equals(srcDataBuffer));
-              assert.ok(data2.equals(srcDataBuffer));
+              assert.ok(decompressed1.equals(buf));
+              assert.ok(decompressed2.equals(buf));
               done();
             });
           });
@@ -347,10 +390,10 @@ describe('PerMessageDeflate', function () {
       });
     });
 
-    it('should compress/decompress data with no context takeover', function (done) {
-      const perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
+    it("doesn't use contex takeover if not allowed", function (done) {
+      const perMessageDeflate = new PerMessageDeflate({ threshold: 0 }, true);
       const extensions = extension.parse(
-        'permessage-deflate; server_no_context_takeover; client_no_context_takeover'
+        'permessage-deflate;server_no_context_takeover'
       );
       const buf = Buffer.from('foofoo');
 
@@ -362,13 +405,14 @@ describe('PerMessageDeflate', function () {
         perMessageDeflate.decompress(compressed1, true, (err, data) => {
           if (err) return done(err);
 
+          assert.ok(data.equals(buf));
           perMessageDeflate.compress(data, true, (err, compressed2) => {
             if (err) return done(err);
 
+            assert.strictEqual(compressed2.length, compressed1.length);
             perMessageDeflate.decompress(compressed2, true, (err, data) => {
               if (err) return done(err);
 
-              assert.strictEqual(compressed2.length, compressed1.length);
               assert.ok(data.equals(buf));
               done();
             });
@@ -377,8 +421,8 @@ describe('PerMessageDeflate', function () {
       });
     });
 
-    it('should compress data between contexts when allowed', function (done) {
-      const perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
+    it('uses contex takeover if allowed', function (done) {
+      const perMessageDeflate = new PerMessageDeflate({ threshold: 0 }, true);
       const extensions = extension.parse('permessage-deflate');
       const buf = Buffer.from('foofoo');
 
@@ -390,13 +434,14 @@ describe('PerMessageDeflate', function () {
         perMessageDeflate.decompress(compressed1, true, (err, data) => {
           if (err) return done(err);
 
+          assert.ok(data.equals(buf));
           perMessageDeflate.compress(data, true, (err, compressed2) => {
             if (err) return done(err);
 
+            assert.ok(compressed2.length < compressed1.length);
             perMessageDeflate.decompress(compressed2, true, (err, data) => {
               if (err) return done(err);
 
-              assert.ok(compressed2.length < compressed1.length);
               assert.ok(data.equals(buf));
               done();
             });
@@ -405,7 +450,7 @@ describe('PerMessageDeflate', function () {
       });
     });
 
-    it('should call the callback when an error occurs (inflate)', function (done) {
+    it('calls the callback when an error occurs (inflate)', function (done) {
       const perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
       const data = Buffer.from('something invalid');
 
@@ -417,7 +462,7 @@ describe('PerMessageDeflate', function () {
       });
     });
 
-    it('should not call the callback twice when `maxPayload` is exceeded', function (done) {
+    it("doesn't call the callback twice when `maxPayload` is exceeded", function (done) {
       const perMessageDeflate = new PerMessageDeflate({ threshold: 0 }, false, 25);
       const buf = Buffer.from('A'.repeat(50));
       const errors = [];
