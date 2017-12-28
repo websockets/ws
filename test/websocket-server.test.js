@@ -713,9 +713,9 @@ describe('WebSocketServer', function () {
         const port = wss._server.address().port;
         const ws = new WebSocket(`ws://localhost:${port}`);
 
-        ws.on('headers', (headers) => {
+        ws.on('upgrade', (res) => {
           assert.strictEqual(
-            headers['sec-websocket-extensions'],
+            res.headers['sec-websocket-extensions'],
             'permessage-deflate; client_max_window_bits=8'
           );
 
