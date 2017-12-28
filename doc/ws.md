@@ -237,15 +237,6 @@ human-readable string explaining why the connection has been closed.
 Emitted when an error occurs. Errors from the underlying `net.Socket` are
 forwarded here.
 
-### Event: 'headers'
-
-- `headers` {Object}
-- `response` {http.IncomingMessage}
-
-Emitted when response headers are received from the server as part of the
-handshake.  This allows you to read headers from the server, for example
-'set-cookie' headers.
-
 ### Event: 'message'
 
 - `data` {String|Buffer|ArrayBuffer|Buffer[]}
@@ -277,6 +268,14 @@ Emitted when the server response is not the expected one, for example a 401
 response. This event gives the ability to read the response in order to extract
 useful information. If the server sends an invalid response and there isn't a
 listener for this event, an error is emitted.
+
+### Event: 'upgrade'
+
+- `response` {http.IncomingMessage}
+
+Emitted when response headers are received from the server as part of the
+handshake.  This allows you to read headers from the server, for example
+'set-cookie' headers.
 
 ### websocket.addEventListener(type, listener)
 
