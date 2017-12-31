@@ -682,67 +682,6 @@ describe('WebSocket', function () {
     });
   });
 
-  describe('#pause and #resume', function () {
-    it('throws an error when `readyState` is not `OPEN` (pause)', function () {
-      const ws = new WebSocket('ws://localhost', { agent: new CustomAgent() });
-
-      assert.throws(
-        () => ws.pause(),
-        /^Error: WebSocket is not open: readyState 0 \(CONNECTING\)$/
-      );
-    });
-
-    it('throws an error when `readyState` is not `OPEN` (resume)', function () {
-      const ws = new WebSocket('ws://localhost', { agent: new CustomAgent() });
-
-      assert.throws(
-        () => ws.resume(),
-        /^Error: WebSocket is not open: readyState 0 \(CONNECTING\)$/
-      );
-    });
-
-    it('pauses the underlying stream', function (done) {
-      // this test is sort-of racecondition'y, since an unlikely slow connection
-      // to localhost can cause the test to succeed even when the stream pausing
-      // isn't working as intended. that is an extremely unlikely scenario, though
-      // and an acceptable risk for the test.
-      let openCount = 0;
-      let serverClient;
-      let client;
-
-      const onOpen = () => {
-        if (++openCount !== 2) return;
-
-        let paused = true;
-        serverClient.on('message', () => {
-          assert.ok(!paused);
-          wss.close(done);
-        });
-        serverClient.pause();
-
-        setTimeout(() => {
-          paused = false;
-          serverClient.resume();
-        }, 200);
-
-        client.send('foo');
-      };
-
-      const wss = new WebSocket.Server({ port: 0 }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
-
-        serverClient = ws;
-        serverClient.on('open', onOpen);
-      });
-
-      wss.on('connection', (ws) => {
-        client = ws;
-        onOpen();
-      });
-    });
-  });
-
   describe('#ping', function () {
     it('throws an error if `readyState` is not `OPEN`', function (done) {
       const ws = new WebSocket('ws://localhost', {

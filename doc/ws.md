@@ -344,10 +344,6 @@ listener receives a `MessageEvent` named "message".
 An event listener to be called when the connection is established. The listener
 receives an `OpenEvent` named "open".
 
-### websocket.pause()
-
-Pause the socket.
-
 ### websocket.ping([data[, mask]][, callback])
 
 - `data` {Any} The data to send in the ping frame.
@@ -386,10 +382,6 @@ The current state of the connection. This is one of the ready state constants.
 - `listener` {Function} The listener to remove.
 
 Removes an event listener emulating the `EventTarget` interface.
-
-### websocket.resume()
-
-Resume the socket.
 
 ### websocket.send(data[, options][, callback])
 
