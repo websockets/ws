@@ -443,6 +443,19 @@ describe('Receiver', function () {
     assert.deepStrictEqual(data, ['', 'Hello']);
   });
 
+  it('ignores data received after a close frame', function () {
+    const results = [];
+    const push = results.push.bind(results);
+    const p = new Receiver();
+
+    p.onclose = p.onmessage = push;
+
+    p.add(Buffer.from('8800', 'hex'));
+    p.add(Buffer.from('8100', 'hex'));
+
+    assert.deepStrictEqual(results, [1005, '']);
+  });
+
   it('raises an error when RSV1 is on and permessage-deflate is disabled', function (done) {
     const p = new Receiver();
 
@@ -808,26 +821,6 @@ describe('Receiver', function () {
         p.add(fragment2);
       });
     });
-  });
-
-  it('doesn\'t crash if data is received after `maxPayload` is exceeded', function (done) {
-    const p = new Receiver({}, 5);
-    const buf = crypto.randomBytes(10);
-
-    let gotError = false;
-
-    p.onerror = function (reason, code) {
-      gotError = true;
-      assert.strictEqual(code, 1009);
-    };
-
-    p.add(Buffer.from([0x82, buf.length]));
-
-    assert.ok(gotError);
-    assert.strictEqual(p.onerror, null);
-
-    p.add(buf);
-    done();
   });
 
   it('consumes all data before calling `cleanup` callback (1/4)', function (done) {
