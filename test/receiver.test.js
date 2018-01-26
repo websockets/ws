@@ -443,19 +443,6 @@ describe('Receiver', function () {
     assert.deepStrictEqual(data, ['', 'Hello']);
   });
 
-  it('ignores data received after a close frame', function () {
-    const results = [];
-    const push = results.push.bind(results);
-    const p = new Receiver();
-
-    p.onclose = p.onmessage = push;
-
-    p.add(Buffer.from('8800', 'hex'));
-    p.add(Buffer.from('8100', 'hex'));
-
-    assert.deepStrictEqual(results, [1005, '']);
-  });
-
   it('raises an error when RSV1 is on and permessage-deflate is disabled', function (done) {
     const p = new Receiver();
 
