@@ -16,6 +16,11 @@ This class represents a WebSocket server. It extends the `EventEmitter`.
   - `handleProtocols` {Function} A function which can be used to handle the
     WebSocket subprotocols. See description below.
   - `path` {String} Accept only connections matching this path.
+    Note: `path` supports dynamic path elements like:
+    `{keyword}`, `:keyword` or `*` that matches any uri characters up to next
+    '/' path delimiter.
+    E.g.: a path like: `/foo/{foo-id}/bar/:bar-id/any/*` would match url pathes
+    like: `/foo/123/bar/456/any/789`.
   - `noServer` {Boolean} Enable no server mode.
   - `clientTracking` {Boolean} Specifies whether or not to track clients.
   - `perMessageDeflate` {Boolean|Object} Enable/disable permessage-deflate.

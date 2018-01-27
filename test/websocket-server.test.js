@@ -283,6 +283,30 @@ describe('WebSocketServer', function () {
 
       assert.strictEqual(wss.shouldHandle({ url: '/bar' }), false);
     });
+
+    it('supports dynamic urls', function () {
+      const wss = new WebSocket.Server({ noServer: true, path: '/foo/{foo-id}/bar/:bar-id/any/*/ws' });
+      const goodUrls = [
+        '/foo/1234/bar/5678/any/90/ws',
+        '/foo//bar//any//ws',
+        '/foo/foo/bar/bar/any/any/ws',
+        '/foo/AZaz09_.-~/bar/%20%%%2F/any/any/ws'
+      ];
+      const badUrls = [
+        '/bar/',
+        '/foo/1234/bar/5678/any/90',
+        '/foo/bar/any/ws'
+      ];
+      var len = goodUrls.length;
+      var i;
+      for (i = 0; i < len; i++) {
+        assert.strictEqual(wss.shouldHandle({ url: goodUrls[i] }), true);
+      }
+      len = badUrls.length;
+      for (i = 0; i < len; i++) {
+        assert.strictEqual(wss.shouldHandle({ url: badUrls[i] }), false);
+      }
+    });
   });
 
   describe('#handleUpgrade', function () {
