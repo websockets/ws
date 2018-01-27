@@ -27,8 +27,7 @@
   },
   "dependencies": {
     "async-limiter": "~1.0.0",
-    "safe-buffer": "~5.1.0",
-    "ultron": "~1.1.0"
+    "safe-buffer": "~5.1.0"
   },
   "devDependencies": {
     "benchmark": "~2.1.2",
