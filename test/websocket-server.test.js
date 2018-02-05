@@ -137,6 +137,26 @@ describe('WebSocketServer', function () {
     });
   });
 
+  describe('#address', function () {
+    it('can provide server address', function (done) {
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const addr = wss.address();
+        assert.deepEqual(wss._server.address(), addr);
+        wss.close(done);
+      });
+    });
+
+    it(`will thrown exception if server was closed`, function (done) {
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        wss.close();
+        assert.throws(() => {
+          wss.address();
+        }, /Server was not initialized/);
+        done();
+      });
+    });
+  });
+
   describe('#close', function () {
     it('does not thrown when called twice', function (done) {
       const wss = new WebSocket.Server({ port: 0 }, () => {
@@ -721,26 +741,6 @@ describe('WebSocketServer', function () {
 
           wss.close(done);
         });
-      });
-    });
-  });
-
-  describe('Server address', function () {
-    it('can provide server address', function (done) {
-      const wss = new WebSocket.Server({ port: 0 }, () => {
-        const addr = wss.address();
-        assert.deepEqual(wss._server.address(), addr);
-        wss.close(done);
-      });
-    });
-
-    it(`will thrown exception if server was closed`, function (done) {
-      const wss = new WebSocket.Server({ port: 0 }, () => {
-        wss.close();
-        assert.throws(() => {
-          wss.address();
-        }, /Server was not initialized/);
-        done();
       });
     });
   });
