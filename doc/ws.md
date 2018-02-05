@@ -127,8 +127,8 @@ added when the `clientTracking` is truthy.
 ### server.address()
 
 Returns an object with `port`, `family`, and `address` properties specifying
-the bound address, the address family name, and port of the server
-as reported by the operating system if listening on an IP socket.
+the bound address, the address family name, and port of the server as reported
+by the operating system if listening on an IP socket.
 If the server is listening on a pipe or UNIX domain socket, the name is
 returned as a string.
 
