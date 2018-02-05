@@ -124,6 +124,14 @@ Emitted when the underlying server has been bound.
 A set that stores all connected clients. Please note that this property is only
 added when the `clientTracking` is truthy.
 
+### server.address()
+
+Returns an object with `port`, `family`, and `address` properties specifying
+the bound address, the address family name, and port of the server
+as reported by the operating system if listening on an IP socket.
+If the server is listening on a pipe or UNIX domain socket, the name is
+returned as a string.
+
 ### server.close([callback])
 
 Close the server and terminate all clients, calls callback when done.
@@ -154,14 +162,6 @@ The return value, `true` or `false`, determines whether or not to accept the
 handshake.
 
 This method can be overridden when a custom handling logic is required.
-
-### server.address()
-- `{Object}`
-
-Returns the bound address, the address family name, and port of the server
-as reported by the operating system if listening on an IP socket.
-If the server is listening on a pipe or UNIX domain socket, the name is
-returned as a string.
 
 ## Class: WebSocket
 
