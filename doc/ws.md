@@ -155,6 +155,14 @@ handshake.
 
 This method can be overridden when a custom handling logic is required.
 
+### server.address()
+- `{Object}`
+
+Returns the bound address, the address family name, and port of the server
+as reported by the operating system if listening on an IP socket.
+If the server is listening on a pipe or UNIX domain socket, the name is
+returned as a string.
+
 ## Class: WebSocket
 
 This class represents a WebSocket. It extends the `EventEmitter`.
