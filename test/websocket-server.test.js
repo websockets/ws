@@ -138,20 +138,27 @@ describe('WebSocketServer', function () {
   });
 
   describe('#address', function () {
-    it('can provide server address', function (done) {
+    it('returns the address of the server', function (done) {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const addr = wss.address();
-        assert.deepEqual(wss._server.address(), addr);
+        assert.deepStrictEqual(wss._server.address(), addr);
         wss.close(done);
       });
     });
 
-    it(`will thrown exception if server was closed`, function (done) {
-      const wss = new WebSocket.Server({ port: 0, noServer: true }, () => {
+    it('throws an error when operating in "noServer" mode', function () {
+      const wss = new WebSocket.Server({ noServer: true }, () => {
         assert.throws(() => {
           wss.address();
         }, /This server is operating in "noServer" mode/);
-        wss.close(done);
+      });
+    });
+
+    it('returns null when called after server closed', function (done) {
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        wss.close();
+        assert.deepStrictEqual(null, wss.address());
+        done();
       });
     });
   });
