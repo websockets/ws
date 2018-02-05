@@ -147,12 +147,11 @@ describe('WebSocketServer', function () {
     });
 
     it(`will thrown exception if server was closed`, function (done) {
-      const wss = new WebSocket.Server({ port: 0 }, () => {
-        wss.close();
+      const wss = new WebSocket.Server({ port: 0, noServer: true }, () => {
         assert.throws(() => {
           wss.address();
-        }, /Server was not initialized/);
-        done();
+        }, /This server is operating in "noServer" mode/);
+        wss.close(done);
       });
     });
   });
