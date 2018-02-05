@@ -727,25 +727,21 @@ describe('WebSocketServer', function () {
 
   describe('Server address', function () {
     it('can provide server address', function (done) {
-      const wss = new WebSocket.Server({ port: 0 });
-      const addr = wss.address();
-
-      assert.equal('object', typeof (addr));
-      assert.equal('string', typeof (addr.address));
-      assert.equal('number', typeof (addr.port));
-
-      assert.ok(addr.port > 0 && addr.port < 65535);
-      wss.close(done);
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const addr = wss.address();
+        assert.deepEqual(wss._server.address(), addr);
+        wss.close(done);
+      });
     });
 
     it(`will thrown exception if server was closed`, function (done) {
-      const wss = new WebSocket.Server({ port: 0 });
-      wss.close();
-      assert.throws(() => {
-        wss.address();
-      }, Error);
-
-      done();
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        wss.close();
+        assert.throws(() => {
+          wss.address();
+        }, /Server was not initialized/);
+        done();
+      });
     });
   });
 });
