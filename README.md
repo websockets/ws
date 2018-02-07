@@ -14,7 +14,7 @@ Passes the quite extensive Autobahn test suite: [server][server-report],
 **Note**: This module does not work in the browser. The client in the docs is a
 reference to a back end with the role of a client in the WebSocket
 communication. Browser clients must use the native
-[`WebSocket`](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket) object.
+[`WebSocket`](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket) object. If you're looking for an isomorphic wrapper, take a look at [isomorphic-ws](https://github.com/heineiuo/isomorphic-ws).
 
 ## Table of Contents
 
