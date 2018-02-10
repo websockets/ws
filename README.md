@@ -15,6 +15,9 @@ Passes the quite extensive Autobahn test suite: [server][server-report],
 reference to a back end with the role of a client in the WebSocket
 communication. Browser clients must use the native
 [`WebSocket`](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket) object.
+To make the same code work seamlessy on Node.js and the browser, you can use
+one of the many wrappers available on npm, like
+[isomorphic-ws](https://github.com/heineiuo/isomorphic-ws).
 
 ## Table of Contents
 
