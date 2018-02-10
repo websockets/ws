@@ -336,7 +336,7 @@ a `CloseEvent` named "close".
 - {Function}
 
 An event listener to be called when an error occurs. The listener receives
-an `Error` instance.
+an `ErrorEvent` named "error".
 
 ### websocket.onmessage
 
