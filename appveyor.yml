@@ -4,7 +4,7 @@ environment:
     - nodejs_version: "8"
     - nodejs_version: "6"
     - nodejs_version: "4"
-    - nodejs_version: "4.2.0"
+    - nodejs_version: "4.2.2"
 platform:
   - x86
   - x64
