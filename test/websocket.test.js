@@ -66,8 +66,7 @@ describe('WebSocket', function () {
 
       it('accepts the `localAddress` option', function (done) {
         const wss = new WebSocket.Server({ host: '127.0.0.1', port: 0 }, () => {
-          const port = wss._server.address().port;
-          const ws = new WebSocket(`ws://localhost:${port}`, {
+          const ws = new WebSocket(`ws://localhost:${wss.address().port}`, {
             localAddress: '127.0.0.2'
           });
 
@@ -114,8 +113,9 @@ describe('WebSocket', function () {
           if (!addresses.some((val) => val.address === '::1')) return this.skip();
 
           const wss = new WebSocket.Server({ host: '::1', port: 0 }, () => {
-            const port = wss._server.address().port;
-            const ws = new WebSocket(`ws://localhost:${port}`, { family: 6 });
+            const ws = new WebSocket(`ws://localhost:${wss.address().port}`, {
+              family: 6
+            });
           });
 
           wss.on('connection', (ws, req) => {
@@ -198,8 +198,7 @@ describe('WebSocket', function () {
 
       it('defaults to zero upon "open"', function (done) {
         const wss = new WebSocket.Server({ port: 0 }, () => {
-          const port = wss._server.address().port;
-          const ws = new WebSocket(`ws://localhost:${port}`);
+          const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
           ws.onopen = () => {
             assert.strictEqual(ws.bufferedAmount, 0);
@@ -213,8 +212,7 @@ describe('WebSocket', function () {
           perMessageDeflate: true,
           port: 0
         }, () => {
-          const port = wss._server.address().port;
-          const ws = new WebSocket(`ws://localhost:${port}`, {
+          const ws = new WebSocket(`ws://localhost:${wss.address().port}`, {
             perMessageDeflate: { threshold: 0 }
           });
 
@@ -233,8 +231,7 @@ describe('WebSocket', function () {
 
       it('takes into account the data in the socket queue', function (done) {
         const wss = new WebSocket.Server({ port: 0 }, () => {
-          const port = wss._server.address().port;
-          const ws = new WebSocket(`ws://localhost:${port}`);
+          const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
         });
 
         wss.on('connection', (ws) => {
@@ -253,8 +250,7 @@ describe('WebSocket', function () {
     describe('`extensions`', function () {
       it('exposes the negotiated extensions names (1/2)', function (done) {
         const wss = new WebSocket.Server({ port: 0 }, () => {
-          const port = wss._server.address().port;
-          const ws = new WebSocket(`ws://localhost:${port}`);
+          const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
           assert.strictEqual(ws.extensions, '');
 
@@ -275,8 +271,7 @@ describe('WebSocket', function () {
           perMessageDeflate: true,
           port: 0
         }, () => {
-          const port = wss._server.address().port;
-          const ws = new WebSocket(`ws://localhost:${port}`);
+          const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
           assert.strictEqual(ws.extensions, '');
 
@@ -296,7 +291,7 @@ describe('WebSocket', function () {
     describe('`protocol`', function () {
       it('exposes the subprotocol selected by the server', function (done) {
         const wss = new WebSocket.Server({ port: 0 }, () => {
-          const port = wss._server.address().port;
+          const port = wss.address().port;
           const ws = new WebSocket(`ws://localhost:${port}`, 'foo');
 
           assert.strictEqual(ws.extensions, '');
@@ -325,8 +320,7 @@ describe('WebSocket', function () {
 
       it('is set to `OPEN` once connection is established', function (done) {
         const wss = new WebSocket.Server({ port: 0 }, () => {
-          const port = wss._server.address().port;
-          const ws = new WebSocket(`ws://localhost:${port}`);
+          const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
           ws.on('open', () => {
             assert.strictEqual(ws.readyState, WebSocket.OPEN);
@@ -339,8 +333,7 @@ describe('WebSocket', function () {
 
       it('is set to `CLOSED` once connection is closed', function (done) {
         const wss = new WebSocket.Server({ port: 0 }, () => {
-          const port = wss._server.address().port;
-          const ws = new WebSocket(`ws://localhost:${port}`);
+          const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
           ws.on('close', () => {
             assert.strictEqual(ws.readyState, WebSocket.CLOSED);
@@ -353,8 +346,7 @@ describe('WebSocket', function () {
 
       it('is set to `CLOSED` once connection is terminated', function (done) {
         const wss = new WebSocket.Server({ port: 0 }, () => {
-          const port = wss._server.address().port;
-          const ws = new WebSocket(`ws://localhost:${port}`);
+          const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
           ws.on('close', () => {
             assert.strictEqual(ws.readyState, WebSocket.CLOSED);
@@ -379,8 +371,7 @@ describe('WebSocket', function () {
   describe('Events', function () {
     it("emits an 'error' event if an error occurs", function (done) {
       const wss = new WebSocket.Server({ port: 0 }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         ws.on('error', (err) => {
           assert.ok(err instanceof RangeError);
@@ -404,8 +395,7 @@ describe('WebSocket', function () {
 
     it("emits an 'upgrade' event", function (done) {
       const wss = new WebSocket.Server({ port: 0 }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
         ws.on('upgrade', (res) => {
           assert.ok(res instanceof http.IncomingMessage);
           wss.close(done);
@@ -415,8 +405,7 @@ describe('WebSocket', function () {
 
     it("emits a 'ping' event", function (done) {
       const wss = new WebSocket.Server({ port: 0 }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
         ws.on('ping', () => wss.close(done));
       });
 
@@ -425,8 +414,7 @@ describe('WebSocket', function () {
 
     it("emits a 'pong' event", function (done) {
       const wss = new WebSocket.Server({ port: 0 }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
         ws.on('pong', () => wss.close(done));
       });
 
@@ -665,7 +653,7 @@ describe('WebSocket', function () {
   describe('Connection with query string', function () {
     it('connects when pathname is not null', function (done) {
       const wss = new WebSocket.Server({ port: 0 }, () => {
-        const port = wss._server.address().port;
+        const port = wss.address().port;
         const ws = new WebSocket(`ws://localhost:${port}/?token=qwerty`);
 
         ws.on('open', () => wss.close(done));
@@ -674,7 +662,7 @@ describe('WebSocket', function () {
 
     it('connects when pathname is null', function (done) {
       const wss = new WebSocket.Server({ port: 0 }, () => {
-        const port = wss._server.address().port;
+        const port = wss.address().port;
         const ws = new WebSocket(`ws://localhost:${port}?token=qwerty`);
 
         ws.on('open', () => wss.close(done));
@@ -705,8 +693,7 @@ describe('WebSocket', function () {
 
     it('can send a ping with no data', function (done) {
       const wss = new WebSocket.Server({ port: 0 }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         ws.on('open', () => {
           ws.ping(() => ws.ping());
@@ -725,8 +712,7 @@ describe('WebSocket', function () {
 
     it('can send a ping with data', function (done) {
       const wss = new WebSocket.Server({ port: 0 }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         ws.on('open', () => {
           ws.ping('hi', () => ws.ping('hi', true));
@@ -744,8 +730,7 @@ describe('WebSocket', function () {
 
     it('can send numbers as ping payload', function (done) {
       const wss = new WebSocket.Server({ port: 0 }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         ws.on('open', () => ws.ping(0));
       });
@@ -782,8 +767,7 @@ describe('WebSocket', function () {
 
     it('can send a pong with no data', function (done) {
       const wss = new WebSocket.Server({ port: 0 }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         ws.on('open', () => {
           ws.pong(() => ws.pong());
@@ -802,8 +786,7 @@ describe('WebSocket', function () {
 
     it('can send a pong with data', function (done) {
       const wss = new WebSocket.Server({ port: 0 }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         ws.on('open', () => {
           ws.pong('hi', () => ws.pong('hi', true));
@@ -821,8 +804,7 @@ describe('WebSocket', function () {
 
     it('can send numbers as pong payload', function (done) {
       const wss = new WebSocket.Server({ port: 0 }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         ws.on('open', () => ws.pong(0));
       });
@@ -845,8 +827,7 @@ describe('WebSocket', function () {
           array[i] = i / 5;
         }
 
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         ws.on('open', () => ws.send(array, { compress: false }));
         ws.on('message', (msg) => {
@@ -862,8 +843,7 @@ describe('WebSocket', function () {
 
     it('can send text data', function (done) {
       const wss = new WebSocket.Server({ port: 0 }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         ws.on('open', () => ws.send('hi'));
         ws.on('message', (message) => {
@@ -879,8 +859,7 @@ describe('WebSocket', function () {
 
     it('does not override the `fin` option', function (done) {
       const wss = new WebSocket.Server({ port: 0 }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         ws.on('open', () => {
           ws.send('fragment', { fin: false });
@@ -898,8 +877,7 @@ describe('WebSocket', function () {
 
     it('sends numbers as strings', function (done) {
       const wss = new WebSocket.Server({ port: 0 }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         ws.on('open', () => ws.send(0));
       });
@@ -924,8 +902,7 @@ describe('WebSocket', function () {
         const buf = Buffer.from(partial.buffer)
           .slice(partial.byteOffset, partial.byteOffset + partial.byteLength);
 
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         ws.on('open', () => ws.send(partial, { binary: true }));
         ws.on('message', (message) => {
@@ -942,8 +919,7 @@ describe('WebSocket', function () {
     it('can send binary data as a buffer', function (done) {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const buf = Buffer.from('foobar');
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         ws.on('open', () => ws.send(buf, { binary: true }));
         ws.on('message', (message) => {
@@ -965,8 +941,7 @@ describe('WebSocket', function () {
           array[i] = i / 2;
         }
 
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         ws.on('open', () => ws.send(array.buffer));
         ws.onmessage = (event) => {
@@ -983,8 +958,7 @@ describe('WebSocket', function () {
     it('can send a `Buffer`', function (done) {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const buf = Buffer.from('foobar');
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         ws.on('open', () => ws.send(buf));
 
@@ -1026,8 +1000,7 @@ describe('WebSocket', function () {
 
     it('calls the optional callback when data is written out', function (done) {
       const wss = new WebSocket.Server({ port: 0 }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         ws.on('open', () => {
           ws.send('hi', (err) => {
@@ -1040,8 +1013,7 @@ describe('WebSocket', function () {
 
     it('works when the `data` argument is falsy', function (done) {
       const wss = new WebSocket.Server({ port: 0 }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         ws.on('open', () => ws.send());
       });
@@ -1056,8 +1028,7 @@ describe('WebSocket', function () {
 
     it('can send text data with `mask` option set to `false`', function (done) {
       const wss = new WebSocket.Server({ port: 0 }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         ws.on('open', () => ws.send('hi', { mask: false }));
       });
@@ -1078,8 +1049,7 @@ describe('WebSocket', function () {
       }
 
       const wss = new WebSocket.Server({ port: 0 }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         ws.on('open', () => ws.send(array, { mask: false }));
       });
@@ -1096,8 +1066,7 @@ describe('WebSocket', function () {
   describe('#close', function () {
     it('closes the connection if called while connecting (1/2)', function (done) {
       const wss = new WebSocket.Server({ port: 0 }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         ws.on('open', () => done(new Error("Unexpected 'open' event")));
         ws.on('error', (err) => {
@@ -1117,8 +1086,7 @@ describe('WebSocket', function () {
         verifyClient: (info, cb) => setTimeout(cb, 300, true),
         port: 0
       }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         ws.on('open', () => done(new Error("Unexpected 'open' event")));
         ws.on('error', (err) => {
@@ -1147,8 +1115,7 @@ describe('WebSocket', function () {
 
     it("can be called from a listener of the 'upgrade' event", function (done) {
       const wss = new WebSocket.Server({ port: 0 }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         ws.on('open', () => done(new Error("Unexpected 'open' event")));
         ws.on('error', (err) => {
@@ -1165,8 +1132,7 @@ describe('WebSocket', function () {
 
     it('throws an error if the first argument is invalid (1/2)', function (done) {
       const wss = new WebSocket.Server({ port: 0 }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         ws.on('open', () => {
           assert.throws(
@@ -1181,8 +1147,7 @@ describe('WebSocket', function () {
 
     it('throws an error if the first argument is invalid (2/2)', function (done) {
       const wss = new WebSocket.Server({ port: 0 }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         ws.on('open', () => {
           assert.throws(
@@ -1197,8 +1162,7 @@ describe('WebSocket', function () {
 
     it('emits an error if the close frame can not be sent', function (done) {
       const wss = new WebSocket.Server({ port: 0 }, () => {
-        const port = wss._server.address().port;
-        const socket = net.createConnection(port, () => {
+        const socket = net.createConnection(wss.address().port, () => {
           socket.write(
             'GET / HTTP/1.1\r\n' +
             'Host: localhost\r\n' +
@@ -1229,8 +1193,7 @@ describe('WebSocket', function () {
     it('sends the close status code only when necessary', function (done) {
       let sent;
       const wss = new WebSocket.Server({ port: 0 }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         ws.on('open', () => {
           ws._socket.once('data', (data) => {
@@ -1256,8 +1219,7 @@ describe('WebSocket', function () {
 
     it('works when close reason is not specified', function (done) {
       const wss = new WebSocket.Server({ port: 0 }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         ws.on('open', () => ws.close(1000));
       });
@@ -1273,8 +1235,7 @@ describe('WebSocket', function () {
 
     it('works when close reason is specified', function (done) {
       const wss = new WebSocket.Server({ port: 0 }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         ws.on('open', () => ws.close(1000, 'some reason'));
       });
@@ -1293,8 +1254,7 @@ describe('WebSocket', function () {
         clientTracking: false,
         port: 0
       }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         ws.on('open', () => {
           ws.on('close', (code, reason) => {
@@ -1312,8 +1272,7 @@ describe('WebSocket', function () {
         perMessageDeflate: { threshold: 0 },
         port: 0
       }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
         const messages = [];
 
         ws.on('message', (message) => messages.push(message));
@@ -1337,8 +1296,7 @@ describe('WebSocket', function () {
 
     it('allows close code 1013', function (done) {
       const wss = new WebSocket.Server({ port: 0 }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         ws.on('close', (code) => {
           assert.strictEqual(code, 1013);
@@ -1351,8 +1309,7 @@ describe('WebSocket', function () {
 
     it('does nothing if `readyState` is `CLOSED`', function (done) {
       const wss = new WebSocket.Server({ port: 0 }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         ws.on('close', (code) => {
           assert.strictEqual(code, 1005);
@@ -1369,8 +1326,7 @@ describe('WebSocket', function () {
   describe('#terminate', function () {
     it('closes the connection if called while connecting (1/2)', function (done) {
       const wss = new WebSocket.Server({ port: 0 }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         ws.on('open', () => done(new Error("Unexpected 'open' event")));
         ws.on('error', (err) => {
@@ -1390,8 +1346,7 @@ describe('WebSocket', function () {
         verifyClient: (info, cb) => setTimeout(cb, 300, true),
         port: 0
       }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         ws.on('open', () => done(new Error("Unexpected 'open' event")));
         ws.on('error', (err) => {
@@ -1420,8 +1375,7 @@ describe('WebSocket', function () {
 
     it("can be called from a listener of the 'upgrade' event", function (done) {
       const wss = new WebSocket.Server({ port: 0 }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         ws.on('open', () => done(new Error("Unexpected 'open' event")));
         ws.on('error', (err) => {
@@ -1438,8 +1392,7 @@ describe('WebSocket', function () {
 
     it('does nothing if `readyState` is `CLOSED`', function (done) {
       const wss = new WebSocket.Server({ port: 0 }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         ws.on('close', (code) => {
           assert.strictEqual(code, 1006);
@@ -1476,8 +1429,7 @@ describe('WebSocket', function () {
 
     it('works like the `EventEmitter` interface', function (done) {
       const wss = new WebSocket.Server({ port: 0 }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         ws.onmessage = (messageEvent) => {
           assert.strictEqual(messageEvent.data, 'foo');
@@ -1571,8 +1523,7 @@ describe('WebSocket', function () {
 
     it('wraps text data in a `MessageEvent`', function (done) {
       const wss = new WebSocket.Server({ port: 0 }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         ws.addEventListener('open', () => ws.send('hi'));
         ws.addEventListener('message', (messageEvent) => {
@@ -1588,8 +1539,7 @@ describe('WebSocket', function () {
 
     it('receives a `CloseEvent` when server closes (1000)', function (done) {
       const wss = new WebSocket.Server({ port: 0 }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         ws.addEventListener('close', (closeEvent) => {
           assert.ok(closeEvent.wasClean);
@@ -1604,8 +1554,7 @@ describe('WebSocket', function () {
 
     it('receives a `CloseEvent` when server closes (4000)', function (done) {
       const wss = new WebSocket.Server({ port: 0 }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         ws.addEventListener('close', (closeEvent) => {
           assert.ok(closeEvent.wasClean);
@@ -1621,8 +1570,7 @@ describe('WebSocket', function () {
     it('sets `target` and `type` on events', function (done) {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const err = new Error('forced');
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         ws.addEventListener('open', (openEvent) => {
           assert.strictEqual(openEvent.type, 'open');
@@ -1653,8 +1601,7 @@ describe('WebSocket', function () {
 
     it('passes binary data as a Node.js `Buffer` by default', function (done) {
       const wss = new WebSocket.Server({ port: 0 }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         ws.onmessage = (evt) => {
           assert.ok(Buffer.isBuffer(evt.data));
@@ -1667,8 +1614,7 @@ describe('WebSocket', function () {
 
     it('ignores `binaryType` for text messages', function (done) {
       const wss = new WebSocket.Server({ port: 0 }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         ws.binaryType = 'arraybuffer';
 
@@ -1683,8 +1629,7 @@ describe('WebSocket', function () {
 
     it('allows to update `binaryType` on the fly', function (done) {
       const wss = new WebSocket.Server({ port: 0 }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         function testType (binaryType, next) {
           const buf = Buffer.from(binaryType);
@@ -2014,8 +1959,7 @@ describe('WebSocket', function () {
         perMessageDeflate: { threshold: 0 },
         port: 0
       }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`, {
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`, {
           perMessageDeflate: { threshold: 0 }
         });
 
@@ -2042,8 +1986,7 @@ describe('WebSocket', function () {
         perMessageDeflate: { threshold: 0 },
         port: 0
       }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`, {
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`, {
           perMessageDeflate: { threshold: 0 }
         });
 
@@ -2070,8 +2013,7 @@ describe('WebSocket', function () {
         perMessageDeflate: { threshold: 0 },
         port: 0
       }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`, {
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`, {
           perMessageDeflate: { threshold: 0 }
         });
 
@@ -2092,8 +2034,7 @@ describe('WebSocket', function () {
         perMessageDeflate: { threshold: 0 },
         port: 0
       }, () => {
-        const port = wss._server.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}`);
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
         const messages = [];
 
         ws.on('message', (message) => messages.push(message));
@@ -2115,8 +2056,7 @@ describe('WebSocket', function () {
     describe('#send', function () {
       it('ignores the `compress` option if the extension is disabled', function (done) {
         const wss = new WebSocket.Server({ port: 0 }, () => {
-          const port = wss._server.address().port;
-          const ws = new WebSocket(`ws://localhost:${port}`, {
+          const ws = new WebSocket(`ws://localhost:${wss.address().port}`, {
             perMessageDeflate: false
           });
 
@@ -2139,8 +2079,7 @@ describe('WebSocket', function () {
           perMessageDeflate: { threshold: 0 },
           port: 0
         }, () => {
-          const port = wss._server.address().port;
-          const ws = new WebSocket(`ws://localhost:${port}`, {
+          const ws = new WebSocket(`ws://localhost:${wss.address().port}`, {
             perMessageDeflate: { threshold: 0 }
           });
 
@@ -2159,8 +2098,7 @@ describe('WebSocket', function () {
           perMessageDeflate: true,
           port: 0
         }, () => {
-          const port = wss._server.address().port;
-          const ws = new WebSocket(`ws://localhost:${port}`);
+          const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
           const messages = [];
 
           ws.on('message', (message) => {
