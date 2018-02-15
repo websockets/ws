@@ -5,6 +5,6 @@ node_js:
   - "8"
   - "6"
   - "4"
-  - "4.2.0"
+  - "4.2.2"
 after_success:
   - "npm install coveralls@3 && nyc report --reporter=text-lcov | coveralls"
