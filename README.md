@@ -81,6 +81,43 @@ The extension is disabled by default on the server and enabled by default on
 the client. It adds a significant overhead in terms of performance and memory
 consumption so we suggest to enable it only if it is really needed.
 
+Note that NodeJS has a variety of issues with high-performance compression,
+where increased concurrency, especially on Linux, can lead to
+[catastrophic memory fragmentation][node-zlib-bug] and slow performance.
+If you intend to use `permessage-deflate` in production, it is worthwhile
+to set up a test representative of your workload and ensure Node/zlib will
+handle it with acceptable performance and memory usage.
+
+Tuning of `permessage-deflate` can be done via the `zlibOptions` option,
+which is passed directly into [zlib.createDeflateRaw()][node-zlib-deflaterawdocs].
+Do not set `windowBits`, which is set dynamically by the client.
+
+See [the docs][ws-server-options] for more options.
+
+```js
+const WebSocket = require('ws');
+
+const wss = new WebSocket.Server({
+  port: 8080,
+  perMessageDeflate: {
+    zlibOptions: { // See zlib defaults
+      chunkSize: 128,
+      memLevel: 7,
+      level: 3,
+    },
+    // Other options settable:
+    clientNoContextTakeover: true, // defaults to negotiated value
+    serverNoContextTakeover: true, // defaults to negotiated value
+    clientMaxWindowBits: true,     // defaults to negotiated value
+    serverMaxWindowBits: 10,       // defaults to negotiated value
+    // Below options specified as default values
+    concurrencyLimit: 10,          // limits zlib concurrency for perf
+    threshold: 1024,               // Size (in bytes) below which messages
+                                   // should not be compressed
+  }
+});
+```
+
 The client will only use the extension if it is supported and enabled on the
 server. To always disable the extension on the client set the
 `perMessageDeflate` option to `false`.
@@ -344,3 +381,6 @@ We're using the GitHub [releases][changelog] for changelog entries.
 [server-report]: http://websockets.github.io/ws/autobahn/servers/
 [permessage-deflate]: https://tools.ietf.org/html/rfc7692
 [changelog]: https://github.com/websockets/ws/releases
+[node-zlib-bug]: https://github.com/nodejs/node/issues/8871
+[node-zlib-deflaterawdocs]: https://nodejs.org/api/zlib.html#zlib_zlib_createdeflateraw_options
+[ws-server-options]: https://github.com/websockets/ws/blob/master/doc/ws.md#new-websocketserveroptions-callback

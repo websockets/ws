@@ -71,8 +71,8 @@ provided then that is extension parameters:
   takeover.
 - `serverMaxWindowBits` {Number} The value of `windowBits`.
 - `clientMaxWindowBits` {Number} Request a custom client window size.
-- `level` {Number} The value of zlib's `level` param (0-9, default 8).
-- `memLevel` {Number} The value of zlib's `memLevel` param (1-9, default 8).
+- `zlibOptions` {Object} [Additional options][zlib-options] to pass to zlib
+  on deflate.
 - `threshold` {Number} Payloads smaller than this will not be compressed.
   Defaults to 1024 bytes.
 - `concurrencyLimit` {Number} The number of concurrent calls to zlib.
@@ -420,3 +420,4 @@ The URL of the WebSocket server. Server clients don't have this attribute.
 
 [concurrency-limit]: https://github.com/websockets/ws/issues/1202
 [permessage-deflate]: https://tools.ietf.org/html/draft-ietf-hybi-permessage-compression-19
+[zlib-options]: https://nodejs.org/api/zlib.html#zlib_class_options
