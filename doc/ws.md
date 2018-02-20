@@ -244,8 +244,7 @@ human-readable string explaining why the connection has been closed.
 
 - `error` {Error}
 
-Emitted when an error occurs. Errors from the underlying `net.Socket` are
-forwarded here.
+Emitted when an error occurs.
 
 ### Event: 'message'
 
