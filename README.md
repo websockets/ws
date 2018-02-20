@@ -81,15 +81,16 @@ The extension is disabled by default on the server and enabled by default on
 the client. It adds a significant overhead in terms of performance and memory
 consumption so we suggest to enable it only if it is really needed.
 
-Note that NodeJS has a variety of issues with high-performance compression,
+Note that Node.js has a variety of issues with high-performance compression,
 where increased concurrency, especially on Linux, can lead to
 [catastrophic memory fragmentation][node-zlib-bug] and slow performance.
 If you intend to use `permessage-deflate` in production, it is worthwhile
-to set up a test representative of your workload and ensure Node/zlib will
+to set up a test representative of your workload and ensure Node.js/zlib will
 handle it with acceptable performance and memory usage.
 
-Tuning of `permessage-deflate` can be done via the `zlibOptions` option,
-which is passed directly into [zlib.createDeflateRaw()][node-zlib-deflaterawdocs].
+Tuning of `permessage-deflate` can be done via the options defined below.
+You can also use `zlibOptions`, which is passed directly into
+[zlib.createDeflateRaw()][node-zlib-deflaterawdocs].
 Do not set `windowBits`, which is set dynamically by the client.
 
 See [the docs][ws-server-options] for more options.
@@ -108,7 +109,7 @@ const wss = new WebSocket.Server({
     // Other options settable:
     clientNoContextTakeover: true, // defaults to negotiated value
     serverNoContextTakeover: true, // defaults to negotiated value
-    clientMaxWindowBits: true,     // defaults to negotiated value
+    clientMaxWindowBits: 10,       // defaults to negotiated value
     serverMaxWindowBits: 10,       // defaults to negotiated value
     // Below options specified as default values
     concurrencyLimit: 10,          // limits zlib concurrency for perf
