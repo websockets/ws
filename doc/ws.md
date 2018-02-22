@@ -71,8 +71,10 @@ provided then that is extension parameters:
   takeover.
 - `serverMaxWindowBits` {Number} The value of `windowBits`.
 - `clientMaxWindowBits` {Number} Request a custom client window size.
-- `zlibOptions` {Object} [Additional options][zlib-options] to pass to zlib
-  on deflate.
+- `zlibDeflateOptions` {Object} [Additional options][zlib-options] to pass to
+  zlib on deflate.
+- `zlibInflateOptions` {Object} [Additional options][zlib-options] to pass to
+  zlib on inflate.
 - `threshold` {Number} Payloads smaller than this will not be compressed.
   Defaults to 1024 bytes.
 - `concurrencyLimit` {Number} The number of concurrent calls to zlib.

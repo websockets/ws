@@ -84,14 +84,13 @@ consumption so we suggest to enable it only if it is really needed.
 Note that Node.js has a variety of issues with high-performance compression,
 where increased concurrency, especially on Linux, can lead to
 [catastrophic memory fragmentation][node-zlib-bug] and slow performance.
-If you intend to use `permessage-deflate` in production, it is worthwhile
-to set up a test representative of your workload and ensure Node.js/zlib will
-handle it with acceptable performance and memory usage.
+If you intend to use permessage-deflate in production, it is worthwhile to set
+up a test representative of your workload and ensure Node.js/zlib will handle
+it with acceptable performance and memory usage.
 
-Tuning of `permessage-deflate` can be done via the options defined below.
-You can also use `zlibDeflateOptions` and `zlibInflateOptions`, which is passed
-directly into the creation of
-[raw deflate/inflate streams][node-zlib-deflaterawdocs].
+Tuning of permessage-deflate can be done via the options defined below. You can
+also use `zlibDeflateOptions` and `zlibInflateOptions`, which is passed directly
+into the creation of [raw deflate/inflate streams][node-zlib-deflaterawdocs].
 
 See [the docs][ws-server-options] for more options.
 
@@ -101,7 +100,7 @@ const WebSocket = require('ws');
 const wss = new WebSocket.Server({
   port: 8080,
   perMessageDeflate: {
-    zlibDeflateOptions: { // See zlib defaults
+    zlibDeflateOptions: { // See zlib defaults.
       chunkSize: 1024,
       memLevel: 7,
       level: 3,
@@ -110,14 +109,14 @@ const wss = new WebSocket.Server({
       chunkSize: 10 * 1024
     },
     // Other options settable:
-    clientNoContextTakeover: true, // defaults to negotiated value
-    serverNoContextTakeover: true, // defaults to negotiated value
-    clientMaxWindowBits: 10,       // defaults to negotiated value
-    serverMaxWindowBits: 10,       // defaults to negotiated value
-    // Below options specified as default values
-    concurrencyLimit: 10,          // limits zlib concurrency for perf
+    clientNoContextTakeover: true, // Defaults to negotiated value.
+    serverNoContextTakeover: true, // Defaults to negotiated value.
+    clientMaxWindowBits: 10,       // Defaults to negotiated value.
+    serverMaxWindowBits: 10,       // Defaults to negotiated value.
+    // Below options specified as default values.
+    concurrencyLimit: 10,          // Limits zlib concurrency for perf.
     threshold: 1024,               // Size (in bytes) below which messages
-                                   // should not be compressed
+                                   // should not be compressed.
   }
 });
 ```
