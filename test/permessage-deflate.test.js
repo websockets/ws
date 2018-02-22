@@ -352,8 +352,8 @@ describe('PerMessageDeflate', function () {
     });
 
     it('honors the `level` option', function (done) {
-      const lev9 = new PerMessageDeflate({ threshold: 0, level: 9 });
       const lev0 = new PerMessageDeflate({ threshold: 0, level: 0 });
+      const lev9 = new PerMessageDeflate({ threshold: 0, level: 9 });
       const extensionStr = (
         'permessage-deflate; server_no_context_takeover; ' +
         'client_no_context_takeover; server_max_window_bits=10; ' +
@@ -383,6 +383,71 @@ describe('PerMessageDeflate', function () {
               // Ensure they both decompress back properly.
               assert.ok(decompressed1.equals(buf));
               assert.ok(decompressed2.equals(buf));
+              done();
+            });
+          });
+        });
+      });
+    });
+
+    it('honors the `zlib{Deflate,Inflate}Options` option', function (done) {
+      const lev0 = new PerMessageDeflate({
+        threshold: 0,
+        zlibDeflateOptions: {
+          level: 0,
+          chunkSize: 256
+        },
+        zlibInflateOptions: {
+          chunkSize: 2048
+        }
+      });
+      const lev9 = new PerMessageDeflate({
+        threshold: 0,
+        zlibDeflateOptions: {
+          level: 9,
+          chunkSize: 128
+        },
+        zlibInflateOptions: {
+          chunkSize: 1024
+        }
+      });
+
+      // Note no context takeover so we can get a hold of the raw streams after we do the dance
+      const extensionStr = (
+        'permessage-deflate; server_max_window_bits=10; ' +
+        'client_max_window_bits=11'
+      );
+      const buf = Buffer.from("Some compressible data, it's compressible.");
+
+      lev0.accept(extension.parse(extensionStr)['permessage-deflate']);
+      lev9.accept(extension.parse(extensionStr)['permessage-deflate']);
+
+      lev0.compress(buf, true, (err, compressed1) => {
+        if (err) return done(err);
+
+        lev0.decompress(compressed1, true, (err, decompressed1) => {
+          if (err) return done(err);
+
+          lev9.compress(buf, true, (err, compressed2) => {
+            if (err) return done(err);
+
+            lev9.decompress(compressed2, true, (err, decompressed2) => {
+              if (err) return done(err);
+              // Level 0 compression actually adds a few bytes due to headers.
+              assert.ok(compressed1.length > buf.length);
+              // Level 9 should not, of course.
+              assert.ok(compressed2.length < buf.length);
+              // Ensure they both decompress back properly.
+              assert.ok(decompressed1.equals(buf));
+              assert.ok(decompressed2.equals(buf));
+
+              // Assert options were set.
+              assert.ok(lev0._deflate._level === 0);
+              assert.ok(lev9._deflate._level === 9);
+              assert.ok(lev0._deflate._chunkSize === 256);
+              assert.ok(lev9._deflate._chunkSize === 128);
+              assert.ok(lev0._inflate._chunkSize === 2048);
+              assert.ok(lev9._inflate._chunkSize === 1024);
               done();
             });
           });
