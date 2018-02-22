@@ -352,8 +352,8 @@ describe('PerMessageDeflate', function () {
     });
 
     it('honors the `level` option', function (done) {
-      const lev9 = new PerMessageDeflate({ threshold: 0, level: 9 });
       const lev0 = new PerMessageDeflate({ threshold: 0, level: 0 });
+      const lev9 = new PerMessageDeflate({ threshold: 0, level: 9 });
       const extensionStr = (
         'permessage-deflate; server_no_context_takeover; ' +
         'client_no_context_takeover; server_max_window_bits=10; ' +
@@ -390,9 +390,27 @@ describe('PerMessageDeflate', function () {
       });
     });
 
-    it('honors the `zlibOptions` option', function (done) {
-      const lev9 = new PerMessageDeflate({ threshold: 0, zlibOptions: {level: 9, chunkSize: 128} });
-      const lev0 = new PerMessageDeflate({ threshold: 0, zlibOptions: {level: 0, chunkSize: 128} });
+    it('honors the `zlib{Deflate,Inflate}Options` option', function (done) {
+      const lev0 = new PerMessageDeflate({
+        threshold: 0,
+        zlibDeflateOptions: {
+          level: 0,
+          chunkSize: 256
+        },
+        zlibInflateOptions: {
+          chunkSize: 2048
+        }
+      });
+      const lev9 = new PerMessageDeflate({
+        threshold: 0,
+        zlibDeflateOptions: {
+          level: 9,
+          chunkSize: 128
+        },
+        zlibInflateOptions: {
+          chunkSize: 1024
+        }
+      });
 
       // Note no context takeover so we can get a hold of the raw streams after we do the dance
       const extensionStr = (
@@ -426,12 +444,10 @@ describe('PerMessageDeflate', function () {
               // Assert options were set.
               assert.ok(lev0._deflate._level === 0);
               assert.ok(lev9._deflate._level === 9);
-              assert.ok(lev0._inflate._level === 0);
-              assert.ok(lev9._inflate._level === 9);
-              assert.ok(lev0._deflate._chunkSize === 128);
+              assert.ok(lev0._deflate._chunkSize === 256);
               assert.ok(lev9._deflate._chunkSize === 128);
-              assert.ok(lev0._inflate._chunkSize === 128);
-              assert.ok(lev9._inflate._chunkSize === 128);
+              assert.ok(lev0._inflate._chunkSize === 2048);
+              assert.ok(lev9._inflate._chunkSize === 1024);
               done();
             });
           });

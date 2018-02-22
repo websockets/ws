@@ -89,9 +89,9 @@ to set up a test representative of your workload and ensure Node.js/zlib will
 handle it with acceptable performance and memory usage.
 
 Tuning of `permessage-deflate` can be done via the options defined below.
-You can also use `zlibOptions`, which is passed directly into
-[zlib.createDeflateRaw()][node-zlib-deflaterawdocs].
-Do not set `windowBits`, which is set dynamically by the client.
+You can also use `zlibDeflateOptions` and `zlibInflateOptions`, which is passed
+directly into the creation of
+[raw deflate/inflate streams][node-zlib-deflaterawdocs].
 
 See [the docs][ws-server-options] for more options.
 
@@ -101,10 +101,13 @@ const WebSocket = require('ws');
 const wss = new WebSocket.Server({
   port: 8080,
   perMessageDeflate: {
-    zlibOptions: { // See zlib defaults
-      chunkSize: 128,
+    zlibDeflateOptions: { // See zlib defaults
+      chunkSize: 1024,
       memLevel: 7,
       level: 3,
+    },
+    zlibInflateOptions: {
+      chunkSize: 10 * 1024
     },
     // Other options settable:
     clientNoContextTakeover: true, // defaults to negotiated value
