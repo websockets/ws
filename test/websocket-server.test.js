@@ -165,7 +165,7 @@ describe('WebSocketServer', function () {
   });
 
   describe('#close', function () {
-    it('does not thrown when called twice', function (done) {
+    it('does not throw when called twice', function (done) {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         wss.close();
         wss.close();
