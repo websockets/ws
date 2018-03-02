@@ -50,16 +50,19 @@ if `verifyClient` is provided with two arguments then those are:
     reason phrase.
 
 
-If `handleProtocols` is not set then the handshake is automatically accepted,
-otherwise the function takes two arguments:
+`handleProtocols` takes two arguments:
 
 - `protocols` {Array} The list of WebSocket subprotocols indicated by the
   client in the `Sec-WebSocket-Protocol` header.
 - `request` {http.IncomingMessage} The client HTTP GET request.
 
-If returned value is `false` then the handshake is rejected with the HTTP 401
-status code, otherwise the returned value sets the value of the
-`Sec-WebSocket-Protocol` header in the HTTP 101 response.
+The returned value sets the value of the `Sec-WebSocket-Protocol` header in the
+HTTP 101 response. If returned value is `false` the header is not added in the
+response.
+
+If `handleProtocols` is not set then the first of the client's requested
+subprotocols is used.
+
 
 `perMessageDeflate` can be used to control the behavior of
 [permessage-deflate extension][permessage-deflate].

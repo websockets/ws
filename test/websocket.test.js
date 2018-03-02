@@ -614,9 +614,10 @@ describe('WebSocket', function () {
     });
 
     it('fails if server sends a subprotocol when none was requested', function (done) {
-      const wss = new WebSocket.Server({
-        handleProtocols: () => 'foo',
-        server
+      const wss = new WebSocket.Server({ server });
+
+      wss.on('headers', (headers) => {
+        headers.push('Sec-WebSocket-Protocol: foo');
       });
 
       const ws = new WebSocket(`ws://localhost:${server.address().port}`);
