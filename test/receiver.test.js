@@ -1,6 +1,5 @@
 'use strict';
 
-const safeBuffer = require('safe-buffer');
 const assert = require('assert');
 const crypto = require('crypto');
 
@@ -10,7 +9,6 @@ const Receiver = require('../lib/receiver');
 const Sender = require('../lib/sender');
 
 const kStatusCode = constants.kStatusCode;
-const Buffer = safeBuffer.Buffer;
 
 describe('Receiver', function () {
   it('parses an unmasked text message', function (done) {

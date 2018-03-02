@@ -2,7 +2,6 @@
 
 'use strict';
 
-const safeBuffer = require('safe-buffer');
 const assert = require('assert');
 const crypto = require('crypto');
 const https = require('https');
@@ -11,8 +10,6 @@ const net = require('net');
 const fs = require('fs');
 
 const WebSocket = require('..');
-
-const Buffer = safeBuffer.Buffer;
 
 describe('WebSocketServer', function () {
   describe('#ctor', function () {
