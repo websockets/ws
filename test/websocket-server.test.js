@@ -649,7 +649,7 @@ describe('WebSocketServer', function () {
     });
 
     describe('`handleProtocols`', function () {
-      it('can select the last protocol', function (done) {
+      it('allows to select a subprotocol', function (done) {
         const handleProtocols = (protocols, request) => {
           assert.ok(request instanceof http.IncomingMessage);
           assert.strictEqual(request.url, '/');
@@ -663,28 +663,6 @@ describe('WebSocketServer', function () {
 
           ws.on('open', () => {
             assert.strictEqual(ws.protocol, 'bar');
-            wss.close(done);
-          });
-        });
-      });
-
-      it('closes the connection if return value is `false`', function (done) {
-        const wss = new WebSocket.Server({
-          handleProtocols: (protocols) => false,
-          port: 0
-        }, () => {
-          const req = http.get({
-            port: wss.address().port,
-            headers: {
-              'Connection': 'Upgrade',
-              'Upgrade': 'websocket',
-              'Sec-WebSocket-Key': 'dGhlIHNhbXBsZSBub25jZQ==',
-              'Sec-WebSocket-Version': 13
-            }
-          });
-
-          req.on('response', (res) => {
-            assert.strictEqual(res.statusCode, 401);
             wss.close(done);
           });
         });
