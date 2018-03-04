@@ -26,8 +26,7 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "async-limiter": "~1.0.0",
-    "safe-buffer": "~5.1.0"
+    "async-limiter": "~1.0.0"
   },
   "devDependencies": {
     "benchmark": "~2.1.2",

@@ -2,7 +2,6 @@
 
 'use strict';
 
-const safeBuffer = require('safe-buffer');
 const assert = require('assert');
 const crypto = require('crypto');
 const https = require('https');
@@ -13,8 +12,6 @@ const os = require('os');
 
 const constants = require('../lib/constants');
 const WebSocket = require('..');
-
-const Buffer = safeBuffer.Buffer;
 
 class CustomAgent extends http.Agent {
   addRequest () {}

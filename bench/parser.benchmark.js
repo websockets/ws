@@ -1,6 +1,5 @@
 'use strict';
 
-const safeBuffer = require('safe-buffer');
 const benchmark = require('benchmark');
 const crypto = require('crypto');
 
@@ -8,7 +7,6 @@ const WebSocket = require('..');
 
 const Receiver = WebSocket.Receiver;
 const Sender = WebSocket.Sender;
-const Buffer = safeBuffer.Buffer;
 
 const options = {
   fin: true,

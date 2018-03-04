@@ -1,12 +1,9 @@
 'use strict';
 
-const safeBuffer = require('safe-buffer');
 const assert = require('assert');
 
 const PerMessageDeflate = require('../lib/permessage-deflate');
 const extension = require('../lib/extension');
-
-const Buffer = safeBuffer.Buffer;
 
 describe('PerMessageDeflate', function () {
   describe('#offer', function () {
