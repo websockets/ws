@@ -494,10 +494,7 @@ describe('WebSocketServer', function () {
         const wss = new WebSocket.Server({
           verifyClient: (info) => {
             assert.strictEqual(info.origin, 'https://example.com');
-            assert.strictEqual(
-              info.req.headers['sec-websocket-key'],
-              'dGhlIHNhbXBsZSBub25jZQ=='
-            );
+            assert.strictEqual(info.req.headers.foo, 'bar');
             assert.ok(info.secure, true);
             return true;
           },
@@ -511,10 +508,7 @@ describe('WebSocketServer', function () {
 
         server.listen(0, () => {
           const ws = new WebSocket(`wss://localhost:${server.address().port}`, {
-            headers: {
-              'Sec-WebSocket-Key': 'dGhlIHNhbXBsZSBub25jZQ==',
-              Origin: 'https://example.com'
-            },
+            headers: { Origin: 'https://example.com', foo: 'bar' },
             rejectUnauthorized: false
           });
         });
