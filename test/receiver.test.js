@@ -25,7 +25,7 @@ describe('Receiver', function () {
   it('parses a close message', function (done) {
     const receiver = new Receiver();
 
-    receiver.on('close', (code, data) => {
+    receiver.on('conclude', (code, data) => {
       assert.strictEqual(code, 1005);
       assert.strictEqual(data, '');
       done();
@@ -334,7 +334,9 @@ describe('Receiver', function () {
     const perMessageDeflate = new PerMessageDeflate();
     perMessageDeflate.accept([{}]);
 
-    const receiver = new Receiver({ 'permessage-deflate': perMessageDeflate });
+    const receiver = new Receiver(undefined, {
+      'permessage-deflate': perMessageDeflate
+    });
     const buf = Buffer.from('Hello');
 
     receiver.on('message', (data) => {
@@ -354,7 +356,9 @@ describe('Receiver', function () {
     const perMessageDeflate = new PerMessageDeflate();
     perMessageDeflate.accept([{}]);
 
-    const receiver = new Receiver({ 'permessage-deflate': perMessageDeflate });
+    const receiver = new Receiver(undefined, {
+      'permessage-deflate': perMessageDeflate
+    });
     const buf1 = Buffer.from('foo');
     const buf2 = Buffer.from('bar');
 
@@ -398,7 +402,7 @@ describe('Receiver', function () {
   });
 
   it('resets `totalPayloadLength` only on final frame (unfragmented)', function (done) {
-    const receiver = new Receiver({}, 10);
+    const receiver = new Receiver(undefined, {}, 10);
 
     receiver.on('message', (data) => {
       assert.strictEqual(receiver._totalPayloadLength, 0);
@@ -411,7 +415,7 @@ describe('Receiver', function () {
   });
 
   it('resets `totalPayloadLength` only on final frame (fragmented)', function (done) {
-    const receiver = new Receiver({}, 10);
+    const receiver = new Receiver(undefined, {}, 10);
 
     receiver.on('message', (data) => {
       assert.strictEqual(receiver._totalPayloadLength, 0);
@@ -426,7 +430,7 @@ describe('Receiver', function () {
   });
 
   it('resets `totalPayloadLength` only on final frame (fragmented + ping)', function (done) {
-    const receiver = new Receiver({}, 10);
+    const receiver = new Receiver(undefined, {}, 10);
     let data;
 
     receiver.on('ping', (buf) => {
@@ -450,11 +454,13 @@ describe('Receiver', function () {
     const perMessageDeflate = new PerMessageDeflate();
     perMessageDeflate.accept([{}]);
 
-    const receiver = new Receiver({ 'permessage-deflate': perMessageDeflate });
+    const receiver = new Receiver(undefined, {
+      'permessage-deflate': perMessageDeflate
+    });
     const results = [];
     const push = results.push.bind(results);
 
-    receiver.on('close', push).on('message', push);
+    receiver.on('conclude', push).on('message', push);
     receiver.on('finish', () => {
       assert.deepStrictEqual(results, ['', 1005, '']);
       done();
@@ -485,7 +491,9 @@ describe('Receiver', function () {
     const perMessageDeflate = new PerMessageDeflate();
     perMessageDeflate.accept([{}]);
 
-    const receiver = new Receiver({ 'permessage-deflate': perMessageDeflate });
+    const receiver = new Receiver(undefined, {
+      'permessage-deflate': perMessageDeflate
+    });
 
     receiver.on('error', (err) => {
       assert.ok(err instanceof RangeError);
@@ -602,7 +610,9 @@ describe('Receiver', function () {
     const perMessageDeflate = new PerMessageDeflate();
     perMessageDeflate.accept([{}]);
 
-    const receiver = new Receiver({ 'permessage-deflate': perMessageDeflate });
+    const receiver = new Receiver(undefined, {
+      'permessage-deflate': perMessageDeflate
+    });
 
     receiver.on('error', (err) => {
       assert.ok(err instanceof RangeError);
@@ -736,7 +746,7 @@ describe('Receiver', function () {
   });
 
   it('emits an error if a frame payload length is bigger than `maxPayload`', function (done) {
-    const receiver = new Receiver({}, 20 * 1024);
+    const receiver = new Receiver(undefined, {}, 20 * 1024);
     const msg = crypto.randomBytes(200 * 1024);
 
     const list = Sender.frame(msg, {
@@ -763,7 +773,7 @@ describe('Receiver', function () {
     const perMessageDeflate = new PerMessageDeflate({}, false, 25);
     perMessageDeflate.accept([{}]);
 
-    const receiver = new Receiver({
+    const receiver = new Receiver(undefined, {
       'permessage-deflate': perMessageDeflate
     }, 25);
     const buf = Buffer.from('A'.repeat(50));
@@ -787,7 +797,7 @@ describe('Receiver', function () {
     const perMessageDeflate = new PerMessageDeflate({}, false, 25);
     perMessageDeflate.accept([{}]);
 
-    const receiver = new Receiver({
+    const receiver = new Receiver(undefined, {
       'permessage-deflate': perMessageDeflate
     }, 25);
     const buf = Buffer.from('A'.repeat(15));
