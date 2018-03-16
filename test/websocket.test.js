@@ -7,6 +7,7 @@ const crypto = require('crypto');
 const https = require('https');
 const http = require('http');
 const dns = require('dns');
+const url = require('url');
 const fs = require('fs');
 const os = require('os');
 
@@ -24,6 +25,30 @@ describe('WebSocket', function () {
         () => new WebSocket('echo.websocket.org'),
         /^Error: Invalid URL: echo\.websocket\.org$/
       );
+    });
+
+    it('accepts `url.Url` objects as url', function (done) {
+      const agent = new CustomAgent();
+
+      agent.addRequest = (req) => {
+        assert.strictEqual(req.path, '/');
+        done();
+      };
+
+      const ws = new WebSocket(url.parse('ws://localhost'), { agent });
+    });
+
+    it('accepts `url.URL` objects as url', function (done) {
+      if (!url.URL) return this.skip();
+
+      const agent = new CustomAgent();
+
+      agent.addRequest = (req) => {
+        assert.strictEqual(req.path, '/');
+        done();
+      };
+
+      const ws = new WebSocket(new url.URL('ws://localhost'), { agent });
     });
 
     describe('options', function () {
@@ -1781,7 +1806,7 @@ describe('WebSocket', function () {
   });
 
   describe('Request headers', function () {
-    it('adds the authorization header if userinfo is present', function (done) {
+    it('adds the authorization header if the url has userinfo (1/2)', function (done) {
       const agent = new CustomAgent();
       const auth = 'test:testpass';
 
@@ -1794,6 +1819,25 @@ describe('WebSocket', function () {
       };
 
       const ws = new WebSocket(`ws://${auth}@localhost`, { agent });
+    });
+
+    it('adds the authorization header if the url has userinfo (2/2)', function (done) {
+      if (!url.URL) return this.skip();
+
+      const agent = new CustomAgent();
+      const auth = 'test:testpass';
+
+      agent.addRequest = (req) => {
+        assert.strictEqual(
+          req._headers.authorization,
+          `Basic ${Buffer.from(auth).toString('base64')}`
+        );
+        done();
+      };
+
+      const ws = new WebSocket(new url.URL(`ws://${auth}@localhost`), {
+        agent
+      });
     });
 
     it('adds custom headers', function (done) {
