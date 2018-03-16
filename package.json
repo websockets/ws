@@ -31,7 +31,7 @@
   "devDependencies": {
     "benchmark": "~2.1.2",
     "bufferutil": "~3.0.0",
-    "eslint": "~4.18.0",
+    "eslint": "~4.19.0",
     "eslint-config-standard": "~11.0.0",
     "eslint-plugin-import": "~2.9.0",
     "eslint-plugin-node": "~6.0.0",
