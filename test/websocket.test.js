@@ -6,10 +6,8 @@ const assert = require('assert');
 const crypto = require('crypto');
 const https = require('https');
 const http = require('http');
-const dns = require('dns');
 const url = require('url');
 const fs = require('fs');
-const os = require('os');
 
 const constants = require('../lib/constants');
 const WebSocket = require('..');
@@ -52,16 +50,6 @@ describe('WebSocket', function () {
     });
 
     describe('options', function () {
-      it('accepts an `agent` option', function (done) {
-        const agent = new CustomAgent();
-
-        agent.addRequest = () => {
-          done();
-        };
-
-        const ws = new WebSocket('ws://localhost', { agent });
-      });
-
       it('accepts the `options` object as 3rd argument', function () {
         const agent = new CustomAgent();
         let count = 0;
@@ -83,67 +71,6 @@ describe('WebSocket', function () {
           () => new WebSocket('ws://localhost', options),
           /^RangeError: Unsupported protocol version: 1000 \(supported versions: 8, 13\)$/
         );
-      });
-
-      it('accepts the `localAddress` option', function (done) {
-        const wss = new WebSocket.Server({ host: '127.0.0.1', port: 0 }, () => {
-          const ws = new WebSocket(`ws://localhost:${wss.address().port}`, {
-            localAddress: '127.0.0.2'
-          });
-
-          ws.on('error', (err) => {
-            wss.close(() => {
-              //
-              // Skip this test on machines where 127.0.0.2 is disabled.
-              //
-              if (err.code === 'EADDRNOTAVAIL') return this.skip();
-
-              done(err);
-            });
-          });
-        });
-
-        wss.on('connection', (ws, req) => {
-          assert.strictEqual(req.connection.remoteAddress, '127.0.0.2');
-          wss.close(done);
-        });
-      });
-
-      it('accepts the `family` option', function (done) {
-        const re = process.platform === 'win32' ? /Loopback Pseudo-Interface/ : /lo/;
-        const ifaces = os.networkInterfaces();
-        const hasIPv6 = Object.keys(ifaces).some((name) => {
-          return re.test(name) && ifaces[name].some((info) => info.family === 'IPv6');
-        });
-
-        //
-        // Skip this test on machines where IPv6 is not supported.
-        //
-        if (!hasIPv6) return this.skip();
-
-        dns.lookup('localhost', { family: 6, all: true }, (err, addresses) => {
-          //
-          // Skip this test if localhost does not resolve to ::1.
-          //
-          if (err) {
-            return err.code === 'ENOTFOUND' || err.code === 'EAI_AGAIN'
-              ? this.skip()
-              : done(err);
-          }
-
-          if (!addresses.some((val) => val.address === '::1')) return this.skip();
-
-          const wss = new WebSocket.Server({ host: '::1', port: 0 }, () => {
-            const ws = new WebSocket(`ws://localhost:${wss.address().port}`, {
-              family: 6
-            });
-          });
-
-          wss.on('connection', (ws, req) => {
-            assert.strictEqual(req.connection.remoteAddress, '::1');
-            wss.close(done);
-          });
-        });
       });
     });
   });
