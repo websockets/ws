@@ -139,7 +139,11 @@ returned as a string.
 
 ### server.close([callback])
 
-Close the server and terminate all clients, calls callback when done.
+Close the server and terminate all clients, calls callback when done. The
+pre-created HTTP server is not closed when `server` is in the constructing
+options. No server is closed when `noServer` is in the constructing
+options.
+
 
 ### server.handleUpgrade(request, socket, head, callback)
 
