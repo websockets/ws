@@ -18,6 +18,7 @@
   "main": "index.js",
   "browser": "browser.js",
   "files": [
+    "browser.js",
     "index.js",
     "lib"
   ],
