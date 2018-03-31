@@ -1,3 +1,4 @@
 module.exports = function () {
-  throw new Error('ws only supports Node.js! Please consider to use `isomorphic-ws` for both Node.js & Browser support! (See issue #1344 at https://github.com/websockets/ws/issues/1344 for more information.');
+  throw new Error('ws does not work in the browser. ' +
+                  'Browser clients must use the native WebSocket object');
 };
