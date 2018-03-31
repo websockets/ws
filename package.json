@@ -16,6 +16,7 @@
   "author": "Einar Otto Stangvik <einaros@gmail.com> (http://2x.io)",
   "license": "MIT",
   "main": "index.js",
+  "browser": "browser.js",
   "files": [
     "index.js",
     "lib"
