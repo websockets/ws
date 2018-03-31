@@ -41,12 +41,13 @@ describe('WebSocket', function () {
 
       const agent = new CustomAgent();
 
-      agent.addRequest = (req) => {
+      agent.addRequest = (req, opts) => {
+        assert.strictEqual(opts.host, '::1');
         assert.strictEqual(req.path, '/');
         done();
       };
 
-      const ws = new WebSocket(new url.URL('ws://localhost'), { agent });
+      const ws = new WebSocket(new url.URL('ws://[::1]'), { agent });
     });
 
     describe('options', function () {
