@@ -29,9 +29,10 @@ one of the many wrappers available on npm, like
 * [Usage examples](#usage-examples)
   + [Sending and receiving text data](#sending-and-receiving-text-data)
   + [Sending binary data](#sending-binary-data)
-  + [Server example](#server-example)
-  + [Broadcast example](#broadcast-example)
-  + [ExpressJS example](#expressjs-example)
+  + [Simple server](#simple-server)
+  + [External HTTP/S server](#external-https-server)
+  + [Multiple servers sharing a single HTTP/S server](#multiple-servers-sharing-a-single-https-server)
+  + [Server broadcast](#server-broadcast)
   + [echo.websocket.org demo](#echowebsocketorg-demo)
   + [Other examples](#other-examples)
 * [Error handling best practices](#error-handling-best-practices)
@@ -169,7 +170,7 @@ ws.on('open', function open() {
 });
 ```
 
-### Server example
+### Simple server
 
 ```js
 const WebSocket = require('ws');
@@ -185,7 +186,68 @@ wss.on('connection', function connection(ws) {
 });
 ```
 
-### Broadcast example
+### External HTTP/S server
+
+```js
+const fs = require('fs');
+const https = require('https');
+const WebSocket = require('ws');
+
+const server = new https.createServer({
+  cert: fs.readFileSync('/path/to/cert.pem'),
+  key: fs.readFileSync('/path/to/key.pem')
+});
+const wss = new WebSocket.Server({ server });
+
+wss.on('connection', function connection(ws) {
+  ws.on('message', function incoming(message) {
+    console.log('received: %s', message);
+  });
+
+  ws.send('something');
+});
+
+server.listen(8080);
+```
+
+### Multiple servers sharing a single HTTP/S server
+
+```js
+const http = require('http');
+const WebSocket = require('ws');
+
+const server = http.createServer();
+const wss1 = new WebSocket.Server({ noServer: true });
+const wss2 = new WebSocket.Server({ noServer: true });
+
+wss1.on('connection', function connection(ws) {
+  // ...
+});
+
+wss2.on('connection', function connection(ws) {
+  // ...
+});
+
+server.on('upgrade', function upgrade(request, socket, head) {
+  const pathname = url.parse(request.url).pathname;
+
+  if (pathname === '/foo') {
+    wss1.handleUpgrade(request, socket, head, function done(ws) {
+      wss1.emit('connection', ws);
+    });
+  } else if (pathname === '/bar') {
+    wss2.handleUpgrade(request, socket, head, function done(ws) {
+      wss2.emit('connection', ws);
+    });
+  } else {
+    socket.destroy();
+  }
+});
+
+server.listen(8080);
+```
+
+### Server broadcast
 
 ```js
 const WebSocket = require('ws');
@@ -210,40 +272,6 @@ wss.on('connection', function connection(ws) {
       }
     });
   });
-});
-```
-
-### ExpressJS example
-
-```js
-const express = require('express');
-const http = require('http');
-const url = require('url');
-const WebSocket = require('ws');
-
-const app = express();
-
-app.use(function (req, res) {
-  res.send({ msg: "hello" });
-});
-
-const server = http.createServer(app);
-const wss = new WebSocket.Server({ server });
-
-wss.on('connection', function connection(ws, req) {
-  const location = url.parse(req.url, true);
-  // You might use location.query.access_token to authenticate or share sessions
-  // or req.headers.cookie (see http://stackoverflow.com/a/16395220/151312)
-
-  ws.on('message', function incoming(message) {
-    console.log('received: %s', message);
-  });
-
-  ws.send('something');
-});
-
-server.listen(8080, function listening() {
-  console.log('Listening on %d', server.address().port);
 });
 ```
 

@@ -10,7 +10,7 @@ This class represents a WebSocket server. It extends the `EventEmitter`.
   - `host` {String} The hostname where to bind the server.
   - `port` {Number} The port where to bind the server.
   - `backlog` {Number} The maximum length of the queue of pending connections.
-  - `server` {http.Server|https.Server} A pre-created Node.js HTTP server.
+  - `server` {http.Server|https.Server} A pre-created Node.js HTTP/S server.
   - `verifyClient` {Function} A function which can be used to validate incoming
     connections. See description below.
   - `handleProtocols` {Function} A function which can be used to handle the
@@ -23,7 +23,12 @@ This class represents a WebSocket server. It extends the `EventEmitter`.
 - `callback` {Function}
 
 Create a new server instance. One of `port`, `server` or `noServer` must be
-provided or an error is thrown.
+provided or an error is thrown. An HTTP server is automatically created,
+started, and used if `port` is set. To use an external HTTP/S server instead,
+specify only `server` or `noServer`. In this case the HTTP/S server must be
+started manually. The "noServer" mode allows the WebSocket server to be
+completly detached from the HTTP/S server. This makes it possible, for example,
+to share a single HTTP/S server between multiple WebSocket servers.
 
 
 If `verifyClient` is not set then the handshake is automatically accepted. If
@@ -91,9 +96,8 @@ When sending a fragmented message the length of the first fragment is compared
 to the threshold. This determines if compression is used for the entire message.
 
 
-`callback` will be added as a listener for the `listening` event when the
-HTTP server is created internally and that is when the `port` option is
-provided.
+`callback` will be added as a listener for the `listening` event on the HTTP
+server when not operating in "noServer" mode.
 
 ### Event: 'connection'
 
