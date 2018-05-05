@@ -527,17 +527,14 @@ describe('PerMessageDeflate', function () {
     it("doesn't call the callback twice when `maxPayload` is exceeded", function (done) {
       const perMessageDeflate = new PerMessageDeflate({ threshold: 0 }, false, 25);
       const buf = Buffer.from('A'.repeat(50));
-      const errors = [];
 
       perMessageDeflate.accept([{}]);
       perMessageDeflate.compress(buf, true, (err, data) => {
         if (err) return done(err);
 
-        perMessageDeflate.decompress(data, true, (err) => errors.push(err));
-        perMessageDeflate._inflate.flush(() => {
-          assert.strictEqual(errors.length, 1);
-          assert.ok(errors[0] instanceof RangeError);
-          assert.strictEqual(errors[0].message, 'Max payload size exceeded');
+        perMessageDeflate.decompress(data, true, (err) => {
+          assert.ok(err instanceof RangeError);
+          assert.strictEqual(err.message, 'Max payload size exceeded');
           done();
         });
       });
