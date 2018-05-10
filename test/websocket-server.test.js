@@ -576,6 +576,37 @@ describe('WebSocketServer', function () {
           done(new Error("Unexpected 'connection' event"));
         });
       });
+
+      it('can reject client asynchronously with your headers', function (done) {
+        const wss = new WebSocket.Server({
+          verifyClient: (info, cb) => process.nextTick(cb, false, 401, '', {
+            'Set-Cookie': 'abortReason=tooManyConnections'
+          }),
+          port: 0
+        }, () => {
+          const req = http.get({
+            port: wss.address().port,
+            headers: {
+              'Connection': 'Upgrade',
+              'Upgrade': 'websocket',
+              'Sec-WebSocket-Key': 'dGhlIHNhbXBsZSBub25jZQ==',
+              'Sec-WebSocket-Version': 8
+            }
+          });
+
+          req.on('response', (res) => {
+            assert.deepStrictEqual(
+              res.headers['set-cookie'],
+              ['abortReason=tooManyConnections']
+            );
+            wss.close(done);
+          });
+        });
+
+        wss.on('connection', (ws) => {
+          done(new Error("Unexpected 'connection' event"));
+        });
+      });
     });
 
     it("doesn't emit the 'connection' event if socket is closed prematurely", function (done) {
