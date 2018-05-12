@@ -551,7 +551,7 @@ describe('WebSocketServer', function () {
         });
       });
 
-      it('can reject client asynchronously with status code', function (done) {
+      it('can reject client asynchronously w/ status code', function (done) {
         const wss = new WebSocket.Server({
           verifyClient: (info, cb) => process.nextTick(cb, false, 404),
           port: 0
@@ -577,11 +577,11 @@ describe('WebSocketServer', function () {
         });
       });
 
-      it('can reject client asynchronously with your headers', function (done) {
+      it('can reject client asynchronously w/ custom headers', function (done) {
         const wss = new WebSocket.Server({
-          verifyClient: (info, cb) => process.nextTick(cb, false, 401, '', {
-            'Set-Cookie': 'abortReason=tooManyConnections'
-          }),
+          verifyClient: (info, cb) => {
+            process.nextTick(cb, false, 503, '', { 'Retry-After': 120 });
+          },
           port: 0
         }, () => {
           const req = http.get({
@@ -595,10 +595,8 @@ describe('WebSocketServer', function () {
           });
 
           req.on('response', (res) => {
-            assert.deepStrictEqual(
-              res.headers['set-cookie'],
-              ['abortReason=tooManyConnections']
-            );
+            assert.strictEqual(res.statusCode, 503);
+            assert.strictEqual(res.headers['retry-after'], '120');
             wss.close(done);
           });
         });
