@@ -53,6 +53,8 @@ if `verifyClient` is provided with two arguments then those are:
     error status code to be sent to the client.
   - `name` {String} When `result` is `false` this field determines the HTTP
     reason phrase.
+  - `headers` {Object} When `result` is `false` this field determines additional
+    HTTP headers to be sent to the client. For example, `{ 'Retry-After': 120 }`.
 
 
 `handleProtocols` takes two arguments:

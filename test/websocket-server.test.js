@@ -551,7 +551,7 @@ describe('WebSocketServer', function () {
         });
       });
 
-      it('can reject client asynchronously with status code', function (done) {
+      it('can reject client asynchronously w/ status code', function (done) {
         const wss = new WebSocket.Server({
           verifyClient: (info, cb) => process.nextTick(cb, false, 404),
           port: 0
@@ -568,6 +568,35 @@ describe('WebSocketServer', function () {
 
           req.on('response', (res) => {
             assert.strictEqual(res.statusCode, 404);
+            wss.close(done);
+          });
+        });
+
+        wss.on('connection', (ws) => {
+          done(new Error("Unexpected 'connection' event"));
+        });
+      });
+
+      it('can reject client asynchronously w/ custom headers', function (done) {
+        const wss = new WebSocket.Server({
+          verifyClient: (info, cb) => {
+            process.nextTick(cb, false, 503, '', { 'Retry-After': 120 });
+          },
+          port: 0
+        }, () => {
+          const req = http.get({
+            port: wss.address().port,
+            headers: {
+              'Connection': 'Upgrade',
+              'Upgrade': 'websocket',
+              'Sec-WebSocket-Key': 'dGhlIHNhbXBsZSBub25jZQ==',
+              'Sec-WebSocket-Version': 8
+            }
+          });
+
+          req.on('response', (res) => {
+            assert.strictEqual(res.statusCode, 503);
+            assert.strictEqual(res.headers['retry-after'], '120');
             wss.close(done);
           });
         });
