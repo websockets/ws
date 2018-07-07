@@ -199,6 +199,7 @@ This class represents a WebSocket. It extends the `EventEmitter`.
   - `protocolVersion` {Number} Value of the `Sec-WebSocket-Version` header.
   - `origin` {String} Value of the `Origin` or `Sec-WebSocket-Origin` header
     depending on the `protocolVersion`.
+  - `maxPayload` {Number} The maximum allowed message size in bytes.
   - Any other option allowed in [http.request()][] or [https.request()][].
 
 `perMessageDeflate` default value is `true`. When using an object, parameters

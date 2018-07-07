@@ -65,6 +65,28 @@ describe('WebSocket', function () {
         assert.strictEqual(count, 3);
       });
 
+      it('accepts the `maxPayload` option', function (done) {
+        const maxPayload = 20480;
+        const wss = new WebSocket.Server({
+          perMessageDeflate: true,
+          port: 0
+        }, () => {
+          const ws = new WebSocket(`ws://localhost:${wss.address().port}`, {
+            perMessageDeflate: true,
+            maxPayload
+          });
+
+          ws.on('open', () => {
+            assert.strictEqual(ws._receiver._maxPayload, maxPayload);
+            assert.strictEqual(
+              ws._receiver._extensions['permessage-deflate']._maxPayload,
+              maxPayload
+            );
+            wss.close(done);
+          });
+        });
+      });
+
       it('throws an error when using an invalid `protocolVersion`', function () {
         const options = { agent: new CustomAgent(), protocolVersion: 1000 };
 
