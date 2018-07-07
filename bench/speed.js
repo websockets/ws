@@ -54,7 +54,9 @@ if (cluster.isMaster) {
 
   const runConfig = (useBinary, roundtrips, size, cb) => {
     const data = randomBytes.slice(0, size);
-    const ws = new WebSocket(`ws://localhost:${port}`);
+    const ws = new WebSocket(`ws://localhost:${port}`, {
+      maxPayload: 600 * 1024 * 1024
+    });
     var roundtrip = 0;
     var time;
 
