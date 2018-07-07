@@ -349,8 +349,14 @@ describe('PerMessageDeflate', function () {
     });
 
     it('honors the `level` option', function (done) {
-      const lev0 = new PerMessageDeflate({ threshold: 0, level: 0 });
-      const lev9 = new PerMessageDeflate({ threshold: 0, level: 9 });
+      const lev0 = new PerMessageDeflate({
+        threshold: 0,
+        zlibDeflateOptions: { level: 0 }
+      });
+      const lev9 = new PerMessageDeflate({
+        threshold: 0,
+        zlibDeflateOptions: { level: 9 }
+      });
       const extensionStr = (
         'permessage-deflate; server_no_context_takeover; ' +
         'client_no_context_takeover; server_max_window_bits=10; ' +
@@ -409,7 +415,8 @@ describe('PerMessageDeflate', function () {
         }
       });
 
-      // Note no context takeover so we can get a hold of the raw streams after we do the dance
+      // Note no context takeover so we can get a hold of the raw streams after
+      // we do the dance.
       const extensionStr = (
         'permessage-deflate; server_max_window_bits=10; ' +
         'client_max_window_bits=11'
