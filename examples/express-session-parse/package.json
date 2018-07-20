@@ -4,8 +4,8 @@
   "version": "0.0.0",
   "repository": "websockets/ws",
   "dependencies": {
-    "express": "~4.14.1",
-    "express-session": "~1.15.1",
-    "uuid": "~3.0.1"
+    "express": "~4.16.3",
+    "express-session": "~1.15.6",
+    "uuid": "~3.3.2"
   }
 }

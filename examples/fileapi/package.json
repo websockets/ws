@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "repository": "websockets/ws",
   "dependencies": {
-    "express": "~4.14.0",
+    "express": "~4.16.3",
     "ansi": "https://github.com/einaros/ansi.js/tarball/master"
   }
 }
