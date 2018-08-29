@@ -46,7 +46,7 @@ cursor.eraseData(2).goto(1, 1);
 app.use(express.static(path.join(__dirname, '/public')));
 
 var clientId = 0;
-var wss = new WebSocketServer({server: server});
+var wss = new WebSocketServer({ server: server });
 wss.on('connection', function (ws) {
   var thisId = ++clientId;
   cursor.goto(1, 4 + thisId).eraseLine();
@@ -69,18 +69,18 @@ wss.on('connection', function (ws) {
       makePathForFile(currentFile.path, path.join(__dirname, '/uploaded'), function (error, path) {
         if (error) {
           console.log(error);
-          ws.send(JSON.stringify({event: 'error', path: currentFile.path, message: error.message}));
+          ws.send(JSON.stringify({ event: 'error', path: currentFile.path, message: error.message }));
           return;
         }
         fs.writeFile(path + '/' + currentFile.name, data, function (error) {
           if (error) {
             console.log(error);
-            ws.send(JSON.stringify({event: 'error', path: currentFile.path, message: error.message}));
+            ws.send(JSON.stringify({ event: 'error', path: currentFile.path, message: error.message }));
             return;
           }
           ++filesReceived;
           // console.log('received %d bytes long file, %s', data.length, currentFile.path);
-          ws.send(JSON.stringify({event: 'complete', path: currentFile.path}));
+          ws.send(JSON.stringify({ event: 'complete', path: currentFile.path }));
           currentFile = null;
         });
       });
