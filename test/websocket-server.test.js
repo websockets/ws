@@ -230,6 +230,13 @@ describe('WebSocketServer', function () {
         });
       });
     });
+
+    it("emits the 'close' event", function (done) {
+      const wss = new WebSocket.Server({ noServer: true });
+
+      wss.on('close', done);
+      wss.close();
+    });
   });
 
   describe('#clients', function () {
@@ -689,7 +696,7 @@ describe('WebSocketServer', function () {
       });
     });
 
-    it('emits the `headers` event', function (done) {
+    it("emits the 'headers' event", function (done) {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 

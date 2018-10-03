@@ -101,6 +101,12 @@ to the threshold. This determines if compression is used for the entire message.
 `callback` will be added as a listener for the `listening` event on the HTTP
 server when not operating in "noServer" mode.
 
+### Event: 'close'
+
+Emitted when the server closes. This event depends on the `'close'` event of
+HTTP server only when it is created internally. In all other cases, the event
+is emitted independently.
+
 ### Event: 'connection'
 
 - `socket` {WebSocket}
