@@ -206,14 +206,18 @@ describe('WebSocket', function () {
         });
 
         wss.on('connection', (ws) => {
+          const data = Buffer.alloc(1024, 61);
+
           while (true) {
             if (ws._socket.bufferSize > 0) {
               assert.strictEqual(ws.bufferedAmount, ws._socket.bufferSize);
               break;
             }
-            ws.send('hello'.repeat(1e4));
+            ws.send(data);
           }
-          wss.close(done);
+
+          ws.on('close', () => wss.close(done));
+          ws.close();
         });
       });
     });
