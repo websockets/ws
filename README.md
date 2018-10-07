@@ -112,7 +112,7 @@ const wss = new WebSocket.Server({
     // Other options settable:
     clientNoContextTakeover: true, // Defaults to negotiated value.
     serverNoContextTakeover: true, // Defaults to negotiated value.
-    clientMaxWindowBits: 10,       // Defaults to negotiated value.
+    clientMaxWindowBits: 10,       // Defaults to negotiated value. Right now setting this option, causes conection to fail with FF.
     serverMaxWindowBits: 10,       // Defaults to negotiated value.
     // Below options specified as default values.
     concurrencyLimit: 10,          // Limits zlib concurrency for perf.
