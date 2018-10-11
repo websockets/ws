@@ -22,9 +22,12 @@ if (cluster.isMaster) {
     ws.on('message', (data) => ws.send(data));
   });
 
-  server.listen((path) ? { path } : { port }, () => cluster.fork());
+  server.listen(path ? { path } : { port }, () => cluster.fork());
 
-  cluster.on('exit', () => { wss.close(); server.close(); });
+  cluster.on('exit', () => {
+    wss.close();
+    server.close();
+  });
 } else {
   const configs = [
     [true, 10000, 64],
@@ -58,11 +61,11 @@ if (cluster.isMaster) {
     randomBytes[i] = ~~(Math.random() * 127);
   }
 
-  console.log(`Testing ws on ${path || 'localhost:' + port}`);
+  console.log(`Testing ws on ${path || '[::]:' + port}`);
 
   const runConfig = (useBinary, roundtrips, size, cb) => {
     const data = randomBytes.slice(0, size);
-    const url = (path) ? `ws+unix://${path}` : `ws://localhost:${port}`;
+    const url = path ? `ws+unix://${path}` : `ws://localhost:${port}`;
     const ws = new WebSocket(url, {
       maxPayload: 600 * 1024 * 1024
     });
