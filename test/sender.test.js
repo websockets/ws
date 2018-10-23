@@ -42,7 +42,8 @@ describe('Sender', function () {
         write: (data) => {
           assert.strictEqual(data[0] & 0x40, 0x40);
           if (++count === 3) done();
-        }
+        },
+        on: () => {}
       }, {
         'permessage-deflate': perMessageDeflate
       });
@@ -57,13 +58,62 @@ describe('Sender', function () {
       sender.send('hi', options);
     });
 
+    it('does not attempt to compress enqueued messages after socket closes', function (done) {
+      const perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
+      const numMessages = 1000;
+      let numWritten = 0;
+      const sender = new Sender({
+        write: (data) => {
+          assert.strictEqual(data[0] & 0x40, 0x40);
+          if (++numWritten > 1) done(new Error('Too many attempted writes'));
+        },
+        on: (ev, cb) => {
+          if (ev === 'close') {
+            process.nextTick(cb);
+          }
+        }
+      }, {
+        'permessage-deflate': perMessageDeflate
+      });
+
+      let numCompressed = 0;
+
+      perMessageDeflate.compress = (data, fin, cb) => {
+        if (++numCompressed > 1) {
+          done(new Error('Compressed too many times'));
+        }
+
+        setTimeout(() => cb(null, data), 1);
+      };
+
+      perMessageDeflate.accept([{}]);
+
+      const options = { compress: true, fin: false };
+      const array = new Uint8Array([0x68, 0x69]);
+
+      sender.send(array.buffer, options, () => {});
+      sender.send(array, options, () => {});
+
+      let numErrors = 0;
+      for (let i = 0; i < numMessages; ++i) {
+        sender.send('hi', options, (err) => {
+          if (!err) return;
+
+          if (++numErrors === numMessages) {
+            done();
+          }
+        });
+      }
+    });
+
     it('does not compress data for small payloads', function (done) {
       const perMessageDeflate = new PerMessageDeflate();
       const sender = new Sender({
         write: (data) => {
           assert.notStrictEqual(data[0] & 0x40, 0x40);
           done();
-        }
+        },
+        on: () => {}
       }, {
         'permessage-deflate': perMessageDeflate
       });
@@ -86,7 +136,8 @@ describe('Sender', function () {
           assert.strictEqual(fragments[1][0] & 0x40, 0x00);
           assert.strictEqual(fragments[1].length, 6);
           done();
-        }
+        },
+        on: () => {}
       }, {
         'permessage-deflate': perMessageDeflate
       });
@@ -110,7 +161,8 @@ describe('Sender', function () {
           assert.strictEqual(fragments[1][0] & 0x40, 0x00);
           assert.strictEqual(fragments[1].length, 5);
           done();
-        }
+        },
+        on: () => {}
       }, {
         'permessage-deflate': perMessageDeflate
       });
@@ -134,7 +186,8 @@ describe('Sender', function () {
           assert.strictEqual(fragments[1][0] & 0x40, 0x00);
           assert.strictEqual(fragments[1].length, 8);
           done();
-        }
+        },
+        on: () => {}
       }, {
         'permessage-deflate': perMessageDeflate
       });
@@ -158,7 +211,8 @@ describe('Sender', function () {
           assert.strictEqual(fragments[1][0] & 0x40, 0x00);
           assert.strictEqual(fragments[1].length, 3);
           done();
-        }
+        },
+        on: () => {}
       }, {
         'permessage-deflate': perMessageDeflate
       });
@@ -175,7 +229,8 @@ describe('Sender', function () {
       const sender = new Sender({
         write: () => {
           if (++count > 1e4) done();
-        }
+        },
+        on: () => {}
       }, {
         'permessage-deflate': perMessageDeflate
       });
@@ -202,7 +257,8 @@ describe('Sender', function () {
 
           assert.ok(data.equals(Buffer.from([0x89, 0x02, 0x68, 0x69])));
           if (count === 4) done();
-        }
+        },
+        on: () => {}
       }, {
         'permessage-deflate': perMessageDeflate
       });
@@ -228,7 +284,8 @@ describe('Sender', function () {
 
           assert.ok(data.equals(Buffer.from([0x8a, 0x02, 0x68, 0x69])));
           if (count === 4) done();
-        }
+        },
+        on: () => {}
       }, {
         'permessage-deflate': perMessageDeflate
       });
@@ -253,7 +310,8 @@ describe('Sender', function () {
         write: (data, cb) => {
           count++;
           if (cb) cb();
-        }
+        },
+        on: () => {}
       }, {
         'permessage-deflate': perMessageDeflate
       });
