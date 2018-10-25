@@ -79,7 +79,7 @@ describe('Sender', function () {
           assert.strictEqual(data[0] & 0x40, 0x40);
           if (++numWritten > 1) done(new Error('Too many attempted writes'));
         },
-        prependOnceListener: (ev, cb) => {
+        once: (ev, cb) => {
           if (ev === 'close') {
             process.nextTick(cb);
           }
