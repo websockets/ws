@@ -2041,7 +2041,6 @@ describe('WebSocket', function () {
     });
 
     it('reports the web socket as CLOSING in error callbacks when connection is terminated abnormally', function (done) {
-      console.log('================================================= START');
       const wss = new WebSocket.Server({
         perMessageDeflate: { threshold: 0 },
         port: 0
