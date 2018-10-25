@@ -6,15 +6,17 @@ const PerMessageDeflate = require('../lib/permessage-deflate');
 const Sender = require('../lib/sender');
 
 class MockSocket {
-  constructor ({ write, on, once } = {}) {
+  constructor ({ write, on, once, prependOnceListener } = {}) {
     if (write) this.write = write;
     if (on) this.on = on;
     if (once) this.once = once;
+    if (prependOnceListener) this.prependOnceListener = prependOnceListener;
   }
 
   write () {}
   on () {}
   once () {}
+  prependOnceListener () {}
 }
 
 describe('Sender', function () {
@@ -77,7 +79,7 @@ describe('Sender', function () {
           assert.strictEqual(data[0] & 0x40, 0x40);
           if (++numWritten > 1) done(new Error('Too many attempted writes'));
         },
-        once: (ev, cb) => {
+        prependOnceListener: (ev, cb) => {
           if (ev === 'close') {
             process.nextTick(cb);
           }

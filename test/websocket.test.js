@@ -2040,6 +2040,31 @@ describe('WebSocket', function () {
       });
     });
 
+    it('reports the web socket as CLOSING in error callbacks when connection is terminated abnormally', function (done) {
+      const wss = new WebSocket.Server({
+        perMessageDeflate: { threshold: 0 },
+        port: 0
+      }, () => {
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`, {
+          perMessageDeflate: { threshold: 0 } });
+        const messages = [];
+
+        ws.on('message', (message) => messages.push(message));
+        ws.on('close', (code) => {
+          assert.strictEqual(code, 1006);
+          assert.deepStrictEqual(messages, ['qux']);
+          wss.close(done);
+        });
+      });
+
+      wss.on('connection', (ws) => {
+        ws.send('qux', () => ws._socket.end());
+        ws.send('foo', () => assert.strictEqual(ws.readyState, WebSocket.CLOSING));
+        ws.send('bar');
+        ws.send('baz');
+      });
+    });
+
     describe('#send', function () {
       it('ignores the `compress` option if the extension is disabled', function (done) {
         const wss = new WebSocket.Server({ port: 0 }, () => {
