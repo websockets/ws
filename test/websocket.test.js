@@ -1,4 +1,4 @@
-/* eslint no-unused-vars: ["error", { "varsIgnorePattern": "^ws$", "args": "none" }] */
+/* eslint no-unused-vars: ["error", { "varsIgnorePattern": "^ws$" }] */
 
 'use strict';
 
@@ -57,7 +57,7 @@ describe('WebSocket', function () {
         let count = 0;
         let ws;
 
-        agent.addRequest = (req) => count++;
+        agent.addRequest = () => count++;
 
         ws = new WebSocket('ws://localhost', undefined, { agent });
         ws = new WebSocket('ws://localhost', null, { agent });
@@ -1643,7 +1643,7 @@ describe('WebSocket', function () {
       });
       const wss = new WebSocket.Server({ server });
 
-      wss.on('connection', (ws) => {
+      wss.on('connection', () => {
         wss.close();
         server.close(done);
       });
@@ -1672,7 +1672,7 @@ describe('WebSocket', function () {
         server
       });
 
-      wss.on('connection', (ws) => {
+      wss.on('connection', () => {
         assert.ok(success);
         server.close(done);
         wss.close();

@@ -1,4 +1,4 @@
-/* eslint no-unused-vars: ["error", { "varsIgnorePattern": "^ws$", "args": "none" }] */
+/* eslint no-unused-vars: ["error", { "varsIgnorePattern": "^ws$" }] */
 
 'use strict';
 
@@ -66,7 +66,7 @@ describe('WebSocketServer', function () {
         const ws = new WebSocket(`ws://localhost:${port}`);
       });
 
-      wss.on('connection', (client) => wss.close(done));
+      wss.on('connection', () => wss.close(done));
     });
 
     it('binds the server on any IPv6 address when available', function (done) {
@@ -83,7 +83,7 @@ describe('WebSocketServer', function () {
         const wss = new WebSocket.Server({ server });
         const ws = new WebSocket(`ws://localhost:${server.address().port}`);
 
-        wss.on('connection', (client) => {
+        wss.on('connection', () => {
           wss.close();
           server.close(done);
         });
@@ -199,7 +199,7 @@ describe('WebSocketServer', function () {
 
       const wss = new WebSocket.Server({ server });
 
-      wss.on('connection', (ws) => {
+      wss.on('connection', () => {
         wss.close();
         server.close = realClose;
         server.close(done);
@@ -246,7 +246,7 @@ describe('WebSocketServer', function () {
         const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
       });
 
-      wss.on('connection', (ws) => {
+      wss.on('connection', () => {
         assert.strictEqual(wss.clients.size, 1);
         wss.close(done);
       });
@@ -387,7 +387,7 @@ describe('WebSocketServer', function () {
         });
       });
 
-      wss.on('connection', (ws) => {
+      wss.on('connection', () => {
         done(new Error("Unexpected 'connection' event"));
       });
     });
@@ -409,7 +409,7 @@ describe('WebSocketServer', function () {
         });
       });
 
-      wss.on('connection', (ws) => {
+      wss.on('connection', () => {
         done(new Error("Unexpected 'connection' event"));
       });
     });
@@ -432,7 +432,7 @@ describe('WebSocketServer', function () {
         });
       });
 
-      wss.on('connection', (ws) => {
+      wss.on('connection', () => {
         done(new Error("Unexpected 'connection' event"));
       });
     });
@@ -460,7 +460,7 @@ describe('WebSocketServer', function () {
         });
       });
 
-      wss.on('connection', (ws) => {
+      wss.on('connection', () => {
         done(new Error("Unexpected 'connection' event"));
       });
     });
@@ -468,7 +468,7 @@ describe('WebSocketServer', function () {
     describe('`verifyClient`', function () {
       it('can reject client synchronously', function (done) {
         const wss = new WebSocket.Server({
-          verifyClient: (info) => false,
+          verifyClient: () => false,
           port: 0
         }, () => {
           const req = http.get({
@@ -487,7 +487,7 @@ describe('WebSocketServer', function () {
           });
         });
 
-        wss.on('connection', (ws) => {
+        wss.on('connection', () => {
           done(new Error("Unexpected 'connection' event"));
         });
       });
@@ -508,7 +508,7 @@ describe('WebSocketServer', function () {
           server
         });
 
-        wss.on('connection', (ws) => {
+        wss.on('connection', () => {
           wss.close();
           server.close(done);
         });
@@ -529,7 +529,7 @@ describe('WebSocketServer', function () {
           const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
         });
 
-        wss.on('connection', (ws) => wss.close(done));
+        wss.on('connection', () => wss.close(done));
       });
 
       it('can reject client asynchronously', function (done) {
@@ -553,7 +553,7 @@ describe('WebSocketServer', function () {
           });
         });
 
-        wss.on('connection', (ws) => {
+        wss.on('connection', () => {
           done(new Error("Unexpected 'connection' event"));
         });
       });
@@ -579,7 +579,7 @@ describe('WebSocketServer', function () {
           });
         });
 
-        wss.on('connection', (ws) => {
+        wss.on('connection', () => {
           done(new Error("Unexpected 'connection' event"));
         });
       });
@@ -608,7 +608,7 @@ describe('WebSocketServer', function () {
           });
         });
 
-        wss.on('connection', (ws) => {
+        wss.on('connection', () => {
           done(new Error("Unexpected 'connection' event"));
         });
       });
