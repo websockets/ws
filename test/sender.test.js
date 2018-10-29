@@ -6,17 +6,13 @@ const PerMessageDeflate = require('../lib/permessage-deflate');
 const Sender = require('../lib/sender');
 
 class MockSocket {
-  constructor ({ write, on, once, prependOnceListener } = {}) {
+  constructor ({ write, once } = {}) {
     if (write) this.write = write;
-    if (on) this.on = on;
     if (once) this.once = once;
-    if (prependOnceListener) this.prependOnceListener = prependOnceListener;
   }
 
   write () {}
-  on () {}
   once () {}
-  prependOnceListener () {}
 }
 
 describe('Sender', function () {
@@ -58,7 +54,9 @@ describe('Sender', function () {
           if (++count === 3) done();
         }
       });
-      const sender = new Sender(mockSocket, { 'permessage-deflate': perMessageDeflate });
+      const sender = new Sender(mockSocket, {
+        'permessage-deflate': perMessageDeflate
+      });
 
       perMessageDeflate.accept([{}]);
 
@@ -70,49 +68,40 @@ describe('Sender', function () {
       sender.send('hi', options);
     });
 
-    it('does not attempt to compress enqueued messages after socket closes', function (done) {
-      const perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
-      const numMessages = 1000;
-      let numWritten = 0;
+    it('does not compress enqueued messages after socket closes', function (done) {
+      const numMessages = 100;
+      let numErrors = 0;
+
       const mockSocket = new MockSocket({
         write: (data) => {
-          assert.strictEqual(data[0] & 0x40, 0x40);
-          if (++numWritten > 1) done(new Error('Too many attempted writes'));
+          // Test that `PerMessageDeflate#compress()` and `Socket#write()` is
+          // called only once (for the first message that is not queued).
+          assert.strictEqual(numErrors, numMessages);
+          done();
         },
         once: (ev, cb) => {
-          if (ev === 'close') {
-            process.nextTick(cb);
-          }
+          if (ev === 'close') process.nextTick(cb);
         }
       });
-      const sender = new Sender(mockSocket, { 'permessage-deflate': perMessageDeflate });
 
-      let numCompressed = 0;
-
-      perMessageDeflate.compress = (data, fin, cb) => {
-        if (++numCompressed > 1) {
-          done(new Error('Compressed too many times'));
-        }
-
-        setTimeout(() => cb(null, data), 1);
-      };
-
+      const perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
       perMessageDeflate.accept([{}]);
 
-      const options = { compress: true, fin: false };
-      const array = new Uint8Array([0x68, 0x69]);
+      const sender = new Sender(mockSocket, {
+        'permessage-deflate': perMessageDeflate
+      });
 
-      sender.send(array.buffer, options, () => {});
-      sender.send(array, options, () => {});
+      const options = { compress: true, fin: true };
+      sender.send('hi', options);
 
-      let numErrors = 0;
-      for (let i = 0; i < numMessages; ++i) {
+      for (let i = 0; i < numMessages; i++) {
         sender.send('hi', options, (err) => {
-          if (!err) return;
-
-          if (++numErrors === numMessages) {
-            done();
-          }
+          assert.ok(err instanceof Error);
+          assert.strictEqual(
+            err.message,
+            'WebSocket is not open: readyState 2 (CLOSING)'
+          );
+          numErrors++;
         });
       }
     });
@@ -125,7 +114,9 @@ describe('Sender', function () {
           done();
         }
       });
-      const sender = new Sender(mockSocket, { 'permessage-deflate': perMessageDeflate });
+      const sender = new Sender(mockSocket, {
+        'permessage-deflate': perMessageDeflate
+      });
 
       perMessageDeflate.accept([{}]);
 
@@ -147,7 +138,9 @@ describe('Sender', function () {
           done();
         }
       });
-      const sender = new Sender(mockSocket, { 'permessage-deflate': perMessageDeflate });
+      const sender = new Sender(mockSocket, {
+        'permessage-deflate': perMessageDeflate
+      });
 
       perMessageDeflate.accept([{}]);
 
@@ -170,7 +163,9 @@ describe('Sender', function () {
           done();
         }
       });
-      const sender = new Sender(mockSocket, { 'permessage-deflate': perMessageDeflate });
+      const sender = new Sender(mockSocket, {
+        'permessage-deflate': perMessageDeflate
+      });
 
       perMessageDeflate.accept([{}]);
 
@@ -193,7 +188,9 @@ describe('Sender', function () {
           done();
         }
       });
-      const sender = new Sender(mockSocket, { 'permessage-deflate': perMessageDeflate });
+      const sender = new Sender(mockSocket, {
+        'permessage-deflate': perMessageDeflate
+      });
 
       perMessageDeflate.accept([{}]);
 
@@ -216,7 +213,9 @@ describe('Sender', function () {
           done();
         }
       });
-      const sender = new Sender(mockSocket, { 'permessage-deflate': perMessageDeflate });
+      const sender = new Sender(mockSocket, {
+        'permessage-deflate': perMessageDeflate
+      });
 
       perMessageDeflate.accept([{}]);
 
@@ -232,7 +231,9 @@ describe('Sender', function () {
           if (++count > 1e4) done();
         }
       });
-      const sender = new Sender(mockSocket, { 'permessage-deflate': perMessageDeflate });
+      const sender = new Sender(mockSocket, {
+        'permessage-deflate': perMessageDeflate
+      });
 
       perMessageDeflate.accept([{}]);
 
@@ -258,7 +259,9 @@ describe('Sender', function () {
           if (count === 4) done();
         }
       });
-      const sender = new Sender(mockSocket, { 'permessage-deflate': perMessageDeflate });
+      const sender = new Sender(mockSocket, {
+        'permessage-deflate': perMessageDeflate
+      });
 
       perMessageDeflate.accept([{}]);
 
@@ -283,7 +286,9 @@ describe('Sender', function () {
           if (count === 4) done();
         }
       });
-      const sender = new Sender(mockSocket, { 'permessage-deflate': perMessageDeflate });
+      const sender = new Sender(mockSocket, {
+        'permessage-deflate': perMessageDeflate
+      });
 
       perMessageDeflate.accept([{}]);
 
@@ -307,7 +312,9 @@ describe('Sender', function () {
           if (cb) cb();
         }
       });
-      const sender = new Sender(mockSocket, { 'permessage-deflate': perMessageDeflate });
+      const sender = new Sender(mockSocket, {
+        'permessage-deflate': perMessageDeflate
+      });
 
       perMessageDeflate.accept([{}]);
 

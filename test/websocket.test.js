@@ -2040,33 +2040,36 @@ describe('WebSocket', function () {
       });
     });
 
-    it('reports the web socket as CLOSING in error callbacks when connection is terminated abnormally', function (done) {
+    it('reports the state as `CLOSING` in callbacks of discarded queued messages', function (done) {
       const wss = new WebSocket.Server({
         perMessageDeflate: { threshold: 0 },
         port: 0
       }, () => {
-        const ws = new WebSocket(`ws://localhost:${wss.address().port}`, {
-          perMessageDeflate: { threshold: 0 } });
-        const messages = [];
-
-        ws.on('message', (message) => messages.push(message));
-        ws.on('close', (code) => {
-          console.log('closing ws');
-          assert.strictEqual(code, 1006);
-          assert.deepStrictEqual(messages, []);
-          done();
-        });
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
       });
 
       wss.on('connection', (ws) => {
-        let checkState = () => {
-          if (ws._sender._queue.length) {
-            assert.strictEqual(ws.readyState, WebSocket.CLOSING);
-          }
-        };
-        for (let i = 0; i < 1000; ++i) {
-          ws.send('foo', { compress: true }, checkState);
-        }
+        const map = () => crypto.randomBytes(16);
+        let count = 100;
+
+        Array.from({ length: count }).map(map).forEach((data, i) => {
+          ws.send(data, (err) => {
+            assert.ok(err instanceof Error);
+
+            if (i > 0) {
+              // The first message is not queued and compression completes after
+              // the `'close'` event is emitted on the `net.Socket`.
+              assert.strictEqual(ws.readyState, WebSocket.CLOSING);
+              assert.strictEqual(
+                err.message,
+                'WebSocket is not open: readyState 2 (CLOSING)'
+              );
+            }
+
+            if (--count === 0) done();
+          });
+        });
+
         wss.close();
       });
     });
