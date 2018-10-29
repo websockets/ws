@@ -20,8 +20,8 @@ describe('WebSocket', function () {
   describe('#ctor', function () {
     it('throws an error when using an invalid url', function () {
       assert.throws(
-        () => new WebSocket('echo.websocket.org'),
-        /^Error: Invalid URL: echo\.websocket\.org$/
+        () => new WebSocket('ws+unix:'),
+        /^Error: Invalid URL: ws\+unix:$/
       );
     });
 
@@ -33,6 +33,7 @@ describe('WebSocket', function () {
         done();
       };
 
+      // eslint-disable-next-line node/no-deprecated-api
       const ws = new WebSocket(url.parse('ws://localhost'), { agent });
     });
 
