@@ -5,6 +5,16 @@ const assert = require('assert');
 const PerMessageDeflate = require('../lib/permessage-deflate');
 const Sender = require('../lib/sender');
 
+class MockSocket {
+  constructor ({ write, once } = {}) {
+    if (write) this.write = write;
+    if (once) this.once = once;
+  }
+
+  write () {}
+  once () {}
+}
+
 describe('Sender', function () {
   describe('.frame', function () {
     it('does not mutate the input buffer if data is `readOnly`', function () {
@@ -38,12 +48,13 @@ describe('Sender', function () {
     it('compresses data if compress option is enabled', function (done) {
       const perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
       let count = 0;
-      const sender = new Sender({
+      const mockSocket = new MockSocket({
         write: (data) => {
           assert.strictEqual(data[0] & 0x40, 0x40);
           if (++count === 3) done();
         }
-      }, {
+      });
+      const sender = new Sender(mockSocket, {
         'permessage-deflate': perMessageDeflate
       });
 
@@ -57,14 +68,53 @@ describe('Sender', function () {
       sender.send('hi', options);
     });
 
+    it('does not compress enqueued messages after socket closes', function (done) {
+      const numMessages = 100;
+      let numErrors = 0;
+
+      const mockSocket = new MockSocket({
+        write: (data) => {
+          // Test that `PerMessageDeflate#compress()` and `Socket#write()` is
+          // called only once (for the first message that is not queued).
+          assert.strictEqual(numErrors, numMessages);
+          done();
+        },
+        once: (ev, cb) => {
+          if (ev === 'close') process.nextTick(cb);
+        }
+      });
+
+      const perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
+      perMessageDeflate.accept([{}]);
+
+      const sender = new Sender(mockSocket, {
+        'permessage-deflate': perMessageDeflate
+      });
+
+      const options = { compress: true, fin: true };
+      sender.send('hi', options);
+
+      for (let i = 0; i < numMessages; i++) {
+        sender.send('hi', options, (err) => {
+          assert.ok(err instanceof Error);
+          assert.strictEqual(
+            err.message,
+            'WebSocket is not open: readyState 2 (CLOSING)'
+          );
+          numErrors++;
+        });
+      }
+    });
+
     it('does not compress data for small payloads', function (done) {
       const perMessageDeflate = new PerMessageDeflate();
-      const sender = new Sender({
+      const mockSocket = new MockSocket({
         write: (data) => {
           assert.notStrictEqual(data[0] & 0x40, 0x40);
           done();
         }
-      }, {
+      });
+      const sender = new Sender(mockSocket, {
         'permessage-deflate': perMessageDeflate
       });
 
@@ -76,7 +126,7 @@ describe('Sender', function () {
     it('compresses all frames in a fragmented message', function (done) {
       const fragments = [];
       const perMessageDeflate = new PerMessageDeflate({ threshold: 3 });
-      const sender = new Sender({
+      const mockSocket = new MockSocket({
         write: (data) => {
           fragments.push(data);
           if (fragments.length !== 2) return;
@@ -87,7 +137,8 @@ describe('Sender', function () {
           assert.strictEqual(fragments[1].length, 6);
           done();
         }
-      }, {
+      });
+      const sender = new Sender(mockSocket, {
         'permessage-deflate': perMessageDeflate
       });
 
@@ -100,7 +151,7 @@ describe('Sender', function () {
     it('compresses no frames in a fragmented message', function (done) {
       const fragments = [];
       const perMessageDeflate = new PerMessageDeflate({ threshold: 3 });
-      const sender = new Sender({
+      const mockSocket = new MockSocket({
         write: (data) => {
           fragments.push(data);
           if (fragments.length !== 2) return;
@@ -111,7 +162,8 @@ describe('Sender', function () {
           assert.strictEqual(fragments[1].length, 5);
           done();
         }
-      }, {
+      });
+      const sender = new Sender(mockSocket, {
         'permessage-deflate': perMessageDeflate
       });
 
@@ -124,7 +176,7 @@ describe('Sender', function () {
     it('compresses empty buffer as first fragment', function (done) {
       const fragments = [];
       const perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
-      const sender = new Sender({
+      const mockSocket = new MockSocket({
         write: (data) => {
           fragments.push(data);
           if (fragments.length !== 2) return;
@@ -135,7 +187,8 @@ describe('Sender', function () {
           assert.strictEqual(fragments[1].length, 8);
           done();
         }
-      }, {
+      });
+      const sender = new Sender(mockSocket, {
         'permessage-deflate': perMessageDeflate
       });
 
@@ -148,7 +201,7 @@ describe('Sender', function () {
     it('compresses empty buffer as last fragment', function (done) {
       const fragments = [];
       const perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
-      const sender = new Sender({
+      const mockSocket = new MockSocket({
         write: (data) => {
           fragments.push(data);
           if (fragments.length !== 2) return;
@@ -159,7 +212,8 @@ describe('Sender', function () {
           assert.strictEqual(fragments[1].length, 3);
           done();
         }
-      }, {
+      });
+      const sender = new Sender(mockSocket, {
         'permessage-deflate': perMessageDeflate
       });
 
@@ -172,11 +226,12 @@ describe('Sender', function () {
     it('handles many send calls while processing without crashing on flush', function (done) {
       let count = 0;
       const perMessageDeflate = new PerMessageDeflate();
-      const sender = new Sender({
+      const mockSocket = new MockSocket({
         write: () => {
           if (++count > 1e4) done();
         }
-      }, {
+      });
+      const sender = new Sender(mockSocket, {
         'permessage-deflate': perMessageDeflate
       });
 
@@ -196,14 +251,15 @@ describe('Sender', function () {
     it('works with multiple types of data', function (done) {
       const perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
       let count = 0;
-      const sender = new Sender({
+      const mockSocket = new MockSocket({
         write: (data) => {
           if (++count === 1) return;
 
           assert.ok(data.equals(Buffer.from([0x89, 0x02, 0x68, 0x69])));
           if (count === 4) done();
         }
-      }, {
+      });
+      const sender = new Sender(mockSocket, {
         'permessage-deflate': perMessageDeflate
       });
 
@@ -222,14 +278,15 @@ describe('Sender', function () {
     it('works with multiple types of data', function (done) {
       const perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
       let count = 0;
-      const sender = new Sender({
+      const mockSocket = new MockSocket({
         write: (data) => {
           if (++count === 1) return;
 
           assert.ok(data.equals(Buffer.from([0x8a, 0x02, 0x68, 0x69])));
           if (count === 4) done();
         }
-      }, {
+      });
+      const sender = new Sender(mockSocket, {
         'permessage-deflate': perMessageDeflate
       });
 
@@ -249,12 +306,13 @@ describe('Sender', function () {
       const perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
 
       let count = 0;
-      const sender = new Sender({
+      const mockSocket = new MockSocket({
         write: (data, cb) => {
           count++;
           if (cb) cb();
         }
-      }, {
+      });
+      const sender = new Sender(mockSocket, {
         'permessage-deflate': perMessageDeflate
       });
 
