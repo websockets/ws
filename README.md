@@ -394,7 +394,7 @@ by the spec.
 
 Just like the server example above your clients might as well lose connection without knowing it. You might want to add a ping listener on your clients to prevent that. A simple implementation would be:
 
-```
+```js
 let client = new WebSocket(...);
 
 client.on("ping", function () {
