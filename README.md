@@ -392,6 +392,31 @@ const interval = setInterval(function ping() {
 Pong messages are automatically sent in response to ping messages as required
 by the spec.
 
+Just like the server example above your clients might as well lose connection
+without knowing it. You might want to add a ping listener on your clients to
+prevent that. A simple implementation would be:
+
+```js
+function heartbeat() {
+  clearTimeout(this.pingTimeout);
+
+  // Use `WebSocket#terminate()` and not `WebSocket#close()`. Delay should be
+  // equal to the interval at which your server sends out pings plus a
+  // conservative assumption of the latency.
+  this.pingTimeout = setTimeout(() => {
+    this.terminate();
+  }, 30000 + 100);
+}
+
+const client = new WebSocket(url);
+
+client.on('open', heartbeat);
+client.on('ping', heartbeat);
+client.on('close', function clear() {
+  clearTimeout(this.pingTimeout);
+});
+```
+
 ### How to connect via a proxy?
 
 Use a custom `http.Agent` implementation like [https-proxy-agent][] or
