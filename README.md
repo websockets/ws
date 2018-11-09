@@ -366,13 +366,13 @@ endpoint is still responsive.
 ```js
 const WebSocket = require('ws');
 
-const wss = new WebSocket.Server({ port: 8080 });
-
 function noop() {}
 
 function heartbeat() {
   this.isAlive = true;
 }
+
+const wss = new WebSocket.Server({ port: 8080 });
 
 wss.on('connection', function connection(ws) {
   ws.isAlive = true;
@@ -397,6 +397,8 @@ without knowing it. You might want to add a ping listener on your clients to
 prevent that. A simple implementation would be:
 
 ```js
+const WebSocket = require('ws');
+
 function heartbeat() {
   clearTimeout(this.pingTimeout);
 
@@ -405,10 +407,10 @@ function heartbeat() {
   // conservative assumption of the latency.
   this.pingTimeout = setTimeout(() => {
     this.terminate();
-  }, 30000 + 100);
+  }, 30000 + 1000);
 }
 
-const client = new WebSocket(url);
+const client = new WebSocket('wss://echo.websocket.org/');
 
 client.on('open', heartbeat);
 client.on('ping', heartbeat);
