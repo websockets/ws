@@ -6,13 +6,14 @@ const PerMessageDeflate = require('../lib/permessage-deflate');
 const Sender = require('../lib/sender');
 
 class MockSocket {
-  constructor ({ write, once } = {}) {
+  constructor ({ write } = {}) {
+    this.readable = true;
+    this.writable = true;
+
     if (write) this.write = write;
-    if (once) this.once = once;
   }
 
   write () {}
-  once () {}
 }
 
 describe('Sender', function () {
@@ -69,41 +70,43 @@ describe('Sender', function () {
     });
 
     it('does not compress enqueued messages after socket closes', function (done) {
-      const numMessages = 100;
-      let numErrors = 0;
-
       const mockSocket = new MockSocket({
-        write: (data) => {
-          // Test that `PerMessageDeflate#compress()` and `Socket#write()` is
-          // called only once (for the first message that is not queued).
-          assert.strictEqual(numErrors, numMessages);
-          done();
-        },
-        once: (ev, cb) => {
-          if (ev === 'close') process.nextTick(cb);
-        }
+        write: () => done(new Error('Unexpected call to socket.write()'))
       });
 
       const perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
       perMessageDeflate.accept([{}]);
 
+      const compress = perMessageDeflate.compress;
       const sender = new Sender(mockSocket, {
         'permessage-deflate': perMessageDeflate
       });
 
-      const options = { compress: true, fin: true };
-      sender.send('hi', options);
+      perMessageDeflate.compress = (data, fin, callback) => {
+        compress.call(perMessageDeflate, data, fin, (_, buf) => {
+          assert.strictEqual(sender._bufferedBytes, 198);
+          assert.strictEqual(sender._queue.length, 99);
+          assert.strictEqual(mockSocket.readable, false);
+          assert.strictEqual(mockSocket.writable, false);
 
-      for (let i = 0; i < numMessages; i++) {
-        sender.send('hi', options, (err) => {
-          assert.ok(err instanceof Error);
-          assert.strictEqual(
-            err.message,
-            'WebSocket is not open: readyState 2 (CLOSING)'
-          );
-          numErrors++;
+          process.nextTick(() => {
+            assert.strictEqual(sender._bufferedBytes, 0);
+            assert.strictEqual(sender._queue.length, 0);
+            done();
+          });
+
+          callback(_, buf);
         });
-      }
+      };
+
+      const options = { compress: true, fin: true };
+
+      for (let i = 0; i < 100; i++) sender.send('hi', options);
+
+      process.nextTick(() => {
+        mockSocket.readable = false;
+        mockSocket.writable = false;
+      });
     });
 
     it('does not compress data for small payloads', function (done) {
