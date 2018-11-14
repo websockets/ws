@@ -2041,40 +2041,6 @@ describe('WebSocket', function () {
       });
     });
 
-    it('reports the state as `CLOSING` in callbacks of discarded queued messages', function (done) {
-      const wss = new WebSocket.Server({
-        perMessageDeflate: { threshold: 0 },
-        port: 0
-      }, () => {
-        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
-      });
-
-      wss.on('connection', (ws) => {
-        const map = () => crypto.randomBytes(16);
-        let count = 100;
-
-        Array.from({ length: count }).map(map).forEach((data, i) => {
-          ws.send(data, (err) => {
-            assert.ok(err instanceof Error);
-
-            if (i > 0) {
-              // The first message is not queued and compression completes after
-              // the `'close'` event is emitted on the `net.Socket`.
-              assert.strictEqual(ws.readyState, WebSocket.CLOSING);
-              assert.strictEqual(
-                err.message,
-                'WebSocket is not open: readyState 2 (CLOSING)'
-              );
-            }
-
-            if (--count === 0) done();
-          });
-        });
-
-        wss.close();
-      });
-    });
-
     describe('#send', function () {
       it('ignores the `compress` option if the extension is disabled', function (done) {
         const wss = new WebSocket.Server({ port: 0 }, () => {
@@ -2106,11 +2072,14 @@ describe('WebSocket', function () {
           });
 
           ws.on('open', () => {
-            ws.send('hi', (err) => {
-              assert.ok(err instanceof Error);
-              wss.close(done);
-            });
+            ws.send('hi', () => done(new Error('Unexpected callback invocation')));
             ws.terminate();
+          });
+        });
+
+        wss.on('connection', (ws) => {
+          ws.on('close', () => {
+            wss.close(done);
           });
         });
       });
