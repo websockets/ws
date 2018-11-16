@@ -20,7 +20,7 @@
   "files": [
     "browser.js",
     "index.js",
-    "lib"
+    "lib/*.js"
   ],
   "scripts": {
     "test": "eslint . && nyc --reporter=html --reporter=text mocha test/*.test.js",
