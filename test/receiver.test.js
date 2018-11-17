@@ -10,8 +10,8 @@ const Sender = require('../lib/sender');
 
 const kStatusCode = constants.kStatusCode;
 
-describe('Receiver', function () {
-  it('parses an unmasked text message', function (done) {
+describe('Receiver', function() {
+  it('parses an unmasked text message', function(done) {
     const receiver = new Receiver();
 
     receiver.on('message', (data) => {
@@ -22,7 +22,7 @@ describe('Receiver', function () {
     receiver.write(Buffer.from('810548656c6c6f', 'hex'));
   });
 
-  it('parses a close message', function (done) {
+  it('parses a close message', function(done) {
     const receiver = new Receiver();
 
     receiver.on('conclude', (code, data) => {
@@ -34,7 +34,7 @@ describe('Receiver', function () {
     receiver.write(Buffer.from('8800', 'hex'));
   });
 
-  it('parses a masked text message', function (done) {
+  it('parses a masked text message', function(done) {
     const receiver = new Receiver();
 
     receiver.on('message', (data) => {
@@ -47,7 +47,7 @@ describe('Receiver', function () {
     );
   });
 
-  it('parses a masked text message longer than 125 B', function (done) {
+  it('parses a masked text message longer than 125 B', function(done) {
     const receiver = new Receiver();
     const msg = 'A'.repeat(200);
 
@@ -70,7 +70,7 @@ describe('Receiver', function () {
     setImmediate(() => receiver.write(frame.slice(2)));
   });
 
-  it('parses a really long masked text message', function (done) {
+  it('parses a really long masked text message', function(done) {
     const receiver = new Receiver();
     const msg = 'A'.repeat(64 * 1024);
 
@@ -92,7 +92,7 @@ describe('Receiver', function () {
     receiver.write(frame);
   });
 
-  it('parses a 300 B fragmented masked text message', function (done) {
+  it('parses a 300 B fragmented masked text message', function(done) {
     const receiver = new Receiver();
     const msg = 'A'.repeat(300);
 
@@ -101,14 +101,18 @@ describe('Receiver', function () {
 
     const options = { rsv1: false, mask: true, readOnly: false };
 
-    const frame1 = Buffer.concat(Sender.frame(
-      Buffer.from(fragment1),
-      Object.assign({ fin: false, opcode: 0x01 }, options)
-    ));
-    const frame2 = Buffer.concat(Sender.frame(
-      Buffer.from(fragment2),
-      Object.assign({ fin: true, opcode: 0x00 }, options)
-    ));
+    const frame1 = Buffer.concat(
+      Sender.frame(
+        Buffer.from(fragment1),
+        Object.assign({ fin: false, opcode: 0x01 }, options)
+      )
+    );
+    const frame2 = Buffer.concat(
+      Sender.frame(
+        Buffer.from(fragment2),
+        Object.assign({ fin: true, opcode: 0x00 }, options)
+      )
+    );
 
     receiver.on('message', (data) => {
       assert.strictEqual(data, msg);
@@ -119,7 +123,7 @@ describe('Receiver', function () {
     receiver.write(frame2);
   });
 
-  it('parses a ping message', function (done) {
+  it('parses a ping message', function(done) {
     const receiver = new Receiver();
     const msg = 'Hello';
 
@@ -141,7 +145,7 @@ describe('Receiver', function () {
     receiver.write(frame);
   });
 
-  it('parses a ping message with no data', function (done) {
+  it('parses a ping message with no data', function(done) {
     const receiver = new Receiver();
 
     receiver.on('ping', (data) => {
@@ -152,7 +156,7 @@ describe('Receiver', function () {
     receiver.write(Buffer.from('8900', 'hex'));
   });
 
-  it('parses a 300 B fragmented masked text message with a ping in the middle (1/2)', function (done) {
+  it('parses a 300 B fragmented masked text message with a ping in the middle (1/2)', function(done) {
     const receiver = new Receiver();
     const msg = 'A'.repeat(300);
     const pingMessage = 'Hello';
@@ -162,18 +166,24 @@ describe('Receiver', function () {
 
     const options = { rsv1: false, mask: true, readOnly: false };
 
-    const frame1 = Buffer.concat(Sender.frame(
-      Buffer.from(fragment1),
-      Object.assign({ fin: false, opcode: 0x01 }, options)
-    ));
-    const frame2 = Buffer.concat(Sender.frame(
-      Buffer.from(pingMessage),
-      Object.assign({ fin: true, opcode: 0x09 }, options)
-    ));
-    const frame3 = Buffer.concat(Sender.frame(
-      Buffer.from(fragment2),
-      Object.assign({ fin: true, opcode: 0x00 }, options)
-    ));
+    const frame1 = Buffer.concat(
+      Sender.frame(
+        Buffer.from(fragment1),
+        Object.assign({ fin: false, opcode: 0x01 }, options)
+      )
+    );
+    const frame2 = Buffer.concat(
+      Sender.frame(
+        Buffer.from(pingMessage),
+        Object.assign({ fin: true, opcode: 0x09 }, options)
+      )
+    );
+    const frame3 = Buffer.concat(
+      Sender.frame(
+        Buffer.from(fragment2),
+        Object.assign({ fin: true, opcode: 0x00 }, options)
+      )
+    );
 
     let gotPing = false;
 
@@ -192,7 +202,7 @@ describe('Receiver', function () {
     receiver.write(frame3);
   });
 
-  it('parses a 300 B fragmented masked text message with a ping in the middle (2/2)', function (done) {
+  it('parses a 300 B fragmented masked text message with a ping in the middle (2/2)', function(done) {
     const receiver = new Receiver();
     const msg = 'A'.repeat(300);
     const pingMessage = 'Hello';
@@ -202,18 +212,24 @@ describe('Receiver', function () {
 
     const options = { rsv1: false, mask: true, readOnly: false };
 
-    const frame1 = Buffer.concat(Sender.frame(
-      Buffer.from(fragment1),
-      Object.assign({ fin: false, opcode: 0x01 }, options)
-    ));
-    const frame2 = Buffer.concat(Sender.frame(
-      Buffer.from(pingMessage),
-      Object.assign({ fin: true, opcode: 0x09 }, options)
-    ));
-    const frame3 = Buffer.concat(Sender.frame(
-      Buffer.from(fragment2),
-      Object.assign({ fin: true, opcode: 0x00 }, options)
-    ));
+    const frame1 = Buffer.concat(
+      Sender.frame(
+        Buffer.from(fragment1),
+        Object.assign({ fin: false, opcode: 0x01 }, options)
+      )
+    );
+    const frame2 = Buffer.concat(
+      Sender.frame(
+        Buffer.from(pingMessage),
+        Object.assign({ fin: true, opcode: 0x09 }, options)
+      )
+    );
+    const frame3 = Buffer.concat(
+      Sender.frame(
+        Buffer.from(fragment2),
+        Object.assign({ fin: true, opcode: 0x00 }, options)
+      )
+    );
 
     let chunks = [];
     const splitBuffer = (buf) => {
@@ -242,7 +258,7 @@ describe('Receiver', function () {
     }
   });
 
-  it('parses a 100 B masked binary message', function (done) {
+  it('parses a 100 B masked binary message', function(done) {
     const receiver = new Receiver();
     const msg = crypto.randomBytes(100);
 
@@ -264,7 +280,7 @@ describe('Receiver', function () {
     receiver.write(frame);
   });
 
-  it('parses a 256 B masked binary message', function (done) {
+  it('parses a 256 B masked binary message', function(done) {
     const receiver = new Receiver();
     const msg = crypto.randomBytes(256);
 
@@ -286,7 +302,7 @@ describe('Receiver', function () {
     receiver.write(frame);
   });
 
-  it('parses a 200 KiB masked binary message', function (done) {
+  it('parses a 200 KiB masked binary message', function(done) {
     const receiver = new Receiver();
     const msg = crypto.randomBytes(200 * 1024);
 
@@ -308,7 +324,7 @@ describe('Receiver', function () {
     receiver.write(frame);
   });
 
-  it('parses a 200 KiB unmasked binary message', function (done) {
+  it('parses a 200 KiB unmasked binary message', function(done) {
     const receiver = new Receiver();
     const msg = crypto.randomBytes(200 * 1024);
 
@@ -330,7 +346,7 @@ describe('Receiver', function () {
     receiver.write(frame);
   });
 
-  it('parses a compressed message', function (done) {
+  it('parses a compressed message', function(done) {
     const perMessageDeflate = new PerMessageDeflate();
     perMessageDeflate.accept([{}]);
 
@@ -352,7 +368,7 @@ describe('Receiver', function () {
     });
   });
 
-  it('parses a compressed and fragmented message', function (done) {
+  it('parses a compressed and fragmented message', function(done) {
     const perMessageDeflate = new PerMessageDeflate();
     perMessageDeflate.accept([{}]);
 
@@ -367,13 +383,13 @@ describe('Receiver', function () {
       done();
     });
 
-    perMessageDeflate.compress(buf1, false, function (err, fragment1) {
+    perMessageDeflate.compress(buf1, false, function(err, fragment1) {
       if (err) return done(err);
 
       receiver.write(Buffer.from([0x41, fragment1.length]));
       receiver.write(fragment1);
 
-      perMessageDeflate.compress(buf2, true, function (err, fragment2) {
+      perMessageDeflate.compress(buf2, true, function(err, fragment2) {
         if (err) return done(err);
 
         receiver.write(Buffer.from([0x80, fragment2.length]));
@@ -382,7 +398,7 @@ describe('Receiver', function () {
     });
   });
 
-  it('parses a buffer with thousands of frames', function (done) {
+  it('parses a buffer with thousands of frames', function(done) {
     const buf = Buffer.allocUnsafe(40000);
 
     for (let i = 0; i < buf.length; i += 2) {
@@ -401,7 +417,7 @@ describe('Receiver', function () {
     receiver.write(buf);
   });
 
-  it('resets `totalPayloadLength` only on final frame (unfragmented)', function (done) {
+  it('resets `totalPayloadLength` only on final frame (unfragmented)', function(done) {
     const receiver = new Receiver(undefined, {}, 10);
 
     receiver.on('message', (data) => {
@@ -414,7 +430,7 @@ describe('Receiver', function () {
     receiver.write(Buffer.from('810548656c6c6f', 'hex'));
   });
 
-  it('resets `totalPayloadLength` only on final frame (fragmented)', function (done) {
+  it('resets `totalPayloadLength` only on final frame (fragmented)', function(done) {
     const receiver = new Receiver(undefined, {}, 10);
 
     receiver.on('message', (data) => {
@@ -429,7 +445,7 @@ describe('Receiver', function () {
     receiver.write(Buffer.from('80036c6c6f', 'hex'));
   });
 
-  it('resets `totalPayloadLength` only on final frame (fragmented + ping)', function (done) {
+  it('resets `totalPayloadLength` only on final frame (fragmented + ping)', function(done) {
     const receiver = new Receiver(undefined, {}, 10);
     let data;
 
@@ -450,7 +466,7 @@ describe('Receiver', function () {
     receiver.write(Buffer.from('80036c6c6f', 'hex'));
   });
 
-  it('ignores any data after a close frame', function (done) {
+  it('ignores any data after a close frame', function(done) {
     const perMessageDeflate = new PerMessageDeflate();
     perMessageDeflate.accept([{}]);
 
@@ -471,7 +487,7 @@ describe('Receiver', function () {
     receiver.write(Buffer.from([0x81, 0x00]));
   });
 
-  it('emits an error if RSV1 is on and permessage-deflate is disabled', function (done) {
+  it('emits an error if RSV1 is on and permessage-deflate is disabled', function(done) {
     const receiver = new Receiver();
 
     receiver.on('error', (err) => {
@@ -487,7 +503,7 @@ describe('Receiver', function () {
     receiver.write(Buffer.from([0xc2, 0x80, 0x00, 0x00, 0x00, 0x00]));
   });
 
-  it('emits an error if RSV1 is on and opcode is 0', function (done) {
+  it('emits an error if RSV1 is on and opcode is 0', function(done) {
     const perMessageDeflate = new PerMessageDeflate();
     perMessageDeflate.accept([{}]);
 
@@ -508,7 +524,7 @@ describe('Receiver', function () {
     receiver.write(Buffer.from([0x40, 0x00]));
   });
 
-  it('emits an error if RSV2 is on', function (done) {
+  it('emits an error if RSV2 is on', function(done) {
     const receiver = new Receiver();
 
     receiver.on('error', (err) => {
@@ -524,7 +540,7 @@ describe('Receiver', function () {
     receiver.write(Buffer.from([0xa2, 0x00]));
   });
 
-  it('emits an error if RSV3 is on', function (done) {
+  it('emits an error if RSV3 is on', function(done) {
     const receiver = new Receiver();
 
     receiver.on('error', (err) => {
@@ -540,7 +556,7 @@ describe('Receiver', function () {
     receiver.write(Buffer.from([0x92, 0x00]));
   });
 
-  it('emits an error if the first frame in a fragmented message has opcode 0', function (done) {
+  it('emits an error if the first frame in a fragmented message has opcode 0', function(done) {
     const receiver = new Receiver();
 
     receiver.on('error', (err) => {
@@ -556,7 +572,7 @@ describe('Receiver', function () {
     receiver.write(Buffer.from([0x00, 0x00]));
   });
 
-  it('emits an error if a frame has opcode 1 in the middle of a fragmented message', function (done) {
+  it('emits an error if a frame has opcode 1 in the middle of a fragmented message', function(done) {
     const receiver = new Receiver();
 
     receiver.on('error', (err) => {
@@ -573,7 +589,7 @@ describe('Receiver', function () {
     receiver.write(Buffer.from([0x01, 0x00]));
   });
 
-  it('emits an error if a frame has opcode 2 in the middle of a fragmented message', function (done) {
+  it('emits an error if a frame has opcode 2 in the middle of a fragmented message', function(done) {
     const receiver = new Receiver();
 
     receiver.on('error', (err) => {
@@ -590,7 +606,7 @@ describe('Receiver', function () {
     receiver.write(Buffer.from([0x02, 0x00]));
   });
 
-  it('emits an error if a control frame has the FIN bit off', function (done) {
+  it('emits an error if a control frame has the FIN bit off', function(done) {
     const receiver = new Receiver();
 
     receiver.on('error', (err) => {
@@ -606,7 +622,7 @@ describe('Receiver', function () {
     receiver.write(Buffer.from([0x09, 0x00]));
   });
 
-  it('emits an error if a control frame has the RSV1 bit on', function (done) {
+  it('emits an error if a control frame has the RSV1 bit on', function(done) {
     const perMessageDeflate = new PerMessageDeflate();
     perMessageDeflate.accept([{}]);
 
@@ -627,7 +643,7 @@ describe('Receiver', function () {
     receiver.write(Buffer.from([0xc9, 0x00]));
   });
 
-  it('emits an error if a control frame has the FIN bit off', function (done) {
+  it('emits an error if a control frame has the FIN bit off', function(done) {
     const receiver = new Receiver();
 
     receiver.on('error', (err) => {
@@ -643,7 +659,7 @@ describe('Receiver', function () {
     receiver.write(Buffer.from([0x09, 0x00]));
   });
 
-  it('emits an error if a control frame has a payload bigger than 125 B', function (done) {
+  it('emits an error if a control frame has a payload bigger than 125 B', function(done) {
     const receiver = new Receiver();
 
     receiver.on('error', (err) => {
@@ -659,7 +675,7 @@ describe('Receiver', function () {
     receiver.write(Buffer.from([0x89, 0x7e]));
   });
 
-  it('emits an error if a data frame has a payload bigger than 2^53 - 1 B', function (done) {
+  it('emits an error if a data frame has a payload bigger than 2^53 - 1 B', function(done) {
     const receiver = new Receiver();
 
     receiver.on('error', (err) => {
@@ -673,13 +689,14 @@ describe('Receiver', function () {
     });
 
     receiver.write(Buffer.from([0x82, 0x7f]));
-    setImmediate(() => receiver.write(Buffer.from([
-      0x00, 0x20, 0x00, 0x00,
-      0x00, 0x00, 0x00, 0x00
-    ])));
+    setImmediate(() =>
+      receiver.write(
+        Buffer.from([0x00, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
+      )
+    );
   });
 
-  it('emits an error if a text frame contains invalid UTF-8 data', function (done) {
+  it('emits an error if a text frame contains invalid UTF-8 data', function(done) {
     const receiver = new Receiver();
 
     receiver.on('error', (err) => {
@@ -695,7 +712,7 @@ describe('Receiver', function () {
     receiver.write(Buffer.from([0x81, 0x04, 0xce, 0xba, 0xe1, 0xbd]));
   });
 
-  it('emits an error if a close frame has a payload of 1 B', function (done) {
+  it('emits an error if a close frame has a payload of 1 B', function(done) {
     const receiver = new Receiver();
 
     receiver.on('error', (err) => {
@@ -711,7 +728,7 @@ describe('Receiver', function () {
     receiver.write(Buffer.from([0x88, 0x01, 0x00]));
   });
 
-  it('emits an error if a close frame contains an invalid close code', function (done) {
+  it('emits an error if a close frame contains an invalid close code', function(done) {
     const receiver = new Receiver();
 
     receiver.on('error', (err) => {
@@ -727,7 +744,7 @@ describe('Receiver', function () {
     receiver.write(Buffer.from([0x88, 0x02, 0x00, 0x00]));
   });
 
-  it('emits an error if a close frame contains invalid UTF-8 data', function (done) {
+  it('emits an error if a close frame contains invalid UTF-8 data', function(done) {
     const receiver = new Receiver();
 
     receiver.on('error', (err) => {
@@ -745,7 +762,7 @@ describe('Receiver', function () {
     );
   });
 
-  it('emits an error if a frame payload length is bigger than `maxPayload`', function (done) {
+  it('emits an error if a frame payload length is bigger than `maxPayload`', function(done) {
     const receiver = new Receiver(undefined, {}, 20 * 1024);
     const msg = crypto.randomBytes(200 * 1024);
 
@@ -769,13 +786,17 @@ describe('Receiver', function () {
     receiver.write(frame);
   });
 
-  it('emits an error if the message length exceeds `maxPayload`', function (done) {
+  it('emits an error if the message length exceeds `maxPayload`', function(done) {
     const perMessageDeflate = new PerMessageDeflate({}, false, 25);
     perMessageDeflate.accept([{}]);
 
-    const receiver = new Receiver(undefined, {
-      'permessage-deflate': perMessageDeflate
-    }, 25);
+    const receiver = new Receiver(
+      undefined,
+      {
+        'permessage-deflate': perMessageDeflate
+      },
+      25
+    );
     const buf = Buffer.from('A'.repeat(50));
 
     receiver.on('error', (err) => {
@@ -785,7 +806,7 @@ describe('Receiver', function () {
       done();
     });
 
-    perMessageDeflate.compress(buf, true, function (err, data) {
+    perMessageDeflate.compress(buf, true, function(err, data) {
       if (err) return done(err);
 
       receiver.write(Buffer.from([0xc1, data.length]));
@@ -793,13 +814,17 @@ describe('Receiver', function () {
     });
   });
 
-  it('emits an error if the sum of fragment lengths exceeds `maxPayload`', function (done) {
+  it('emits an error if the sum of fragment lengths exceeds `maxPayload`', function(done) {
     const perMessageDeflate = new PerMessageDeflate({}, false, 25);
     perMessageDeflate.accept([{}]);
 
-    const receiver = new Receiver(undefined, {
-      'permessage-deflate': perMessageDeflate
-    }, 25);
+    const receiver = new Receiver(
+      undefined,
+      {
+        'permessage-deflate': perMessageDeflate
+      },
+      25
+    );
     const buf = Buffer.from('A'.repeat(15));
 
     receiver.on('error', (err) => {
@@ -809,13 +834,13 @@ describe('Receiver', function () {
       done();
     });
 
-    perMessageDeflate.compress(buf, false, function (err, fragment1) {
+    perMessageDeflate.compress(buf, false, function(err, fragment1) {
       if (err) return done(err);
 
       receiver.write(Buffer.from([0x41, fragment1.length]));
       receiver.write(fragment1);
 
-      perMessageDeflate.compress(buf, true, function (err, fragment2) {
+      perMessageDeflate.compress(buf, true, function(err, fragment2) {
         if (err) return done(err);
 
         receiver.write(Buffer.from([0x80, fragment2.length]));
@@ -824,7 +849,7 @@ describe('Receiver', function () {
     });
   });
 
-  it("honors the 'nodebuffer' binary type", function (done) {
+  it("honors the 'nodebuffer' binary type", function(done) {
     const receiver = new Receiver();
     const frags = [
       crypto.randomBytes(7321),
@@ -850,7 +875,7 @@ describe('Receiver', function () {
     });
   });
 
-  it("honors the 'arraybuffer' binary type", function (done) {
+  it("honors the 'arraybuffer' binary type", function(done) {
     const receiver = new Receiver();
     const frags = [
       crypto.randomBytes(19221),
@@ -876,7 +901,7 @@ describe('Receiver', function () {
     });
   });
 
-  it("honors the 'fragments' binary type", function (done) {
+  it("honors the 'fragments' binary type", function(done) {
     const receiver = new Receiver();
     const frags = [
       crypto.randomBytes(17),

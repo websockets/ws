@@ -53,7 +53,10 @@ if (cluster.isMaster) {
     return roundPrec(bytes, 2) + ' B';
   };
 
-  const largest = configs.reduce((prev, curr) => curr[2] > prev ? curr[2] : prev, 0);
+  const largest = configs.reduce(
+    (prev, curr) => (curr[2] > prev ? curr[2] : prev),
+    0
+  );
   console.log('Generating %s of test data...', humanSize(largest));
   const randomBytes = Buffer.allocUnsafe(largest);
 
@@ -81,10 +84,11 @@ if (cluster.isMaster) {
       ws.send(data, { binary: useBinary });
     });
     ws.on('message', () => {
-      if (++roundtrip !== roundtrips) return ws.send(data, { binary: useBinary });
+      if (++roundtrip !== roundtrips)
+        return ws.send(data, { binary: useBinary });
 
       var elapsed = process.hrtime(time);
-      elapsed = (elapsed[0] * 1e9) + elapsed[1];
+      elapsed = elapsed[0] * 1e9 + elapsed[1];
 
       console.log(
         '%d roundtrips of %s %s data:\t%ss\t%s',
@@ -92,7 +96,7 @@ if (cluster.isMaster) {
         humanSize(size),
         useBinary ? 'binary' : 'text',
         roundPrec(elapsed / 1e9, 1),
-        humanSize(size * 2 * roundtrips / elapsed * 1e9) + '/s'
+        humanSize(((size * 2 * roundtrips) / elapsed) * 1e9) + '/s'
       );
 
       ws.close();
@@ -100,7 +104,7 @@ if (cluster.isMaster) {
     });
   };
 
-  (function run () {
+  (function run() {
     if (configs.length === 0) return cluster.worker.disconnect();
     var config = configs.shift();
     config.push(run);

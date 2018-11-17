@@ -12,13 +12,13 @@ const server = https.createServer({
 
 const wss = new WebSocket.Server({ server });
 
-wss.on('connection', function connection (ws) {
-  ws.on('message', function message (msg) {
+wss.on('connection', function connection(ws) {
+  ws.on('message', function message(msg) {
     console.log(msg);
   });
 });
 
-server.listen(function listening () {
+server.listen(function listening() {
   //
   // If the `rejectUnauthorized` option is not `false`, the server certificate
   // is verified against a list of well-known CAs. An 'error' event is emitted
@@ -31,7 +31,7 @@ server.listen(function listening () {
     rejectUnauthorized: false
   });
 
-  ws.on('open', function open () {
+  ws.on('open', function open() {
     ws.send('All glory to WebSockets!');
   });
 });

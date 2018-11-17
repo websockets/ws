@@ -5,8 +5,8 @@
 [![Windows Build](https://ci.appveyor.com/api/projects/status/github/websockets/ws?branch=master&svg=true)](https://ci.appveyor.com/project/lpinca/ws)
 [![Coverage Status](https://img.shields.io/coveralls/websockets/ws/master.svg)](https://coveralls.io/r/websockets/ws?branch=master)
 
-ws is a simple to use, blazing fast, and thoroughly tested WebSocket client
-and server implementation.
+ws is a simple to use, blazing fast, and thoroughly tested WebSocket client and
+server implementation.
 
 Passes the quite extensive Autobahn test suite: [server][server-report],
 [client][client-report].
@@ -14,39 +14,40 @@ Passes the quite extensive Autobahn test suite: [server][server-report],
 **Note**: This module does not work in the browser. The client in the docs is a
 reference to a back end with the role of a client in the WebSocket
 communication. Browser clients must use the native
-[`WebSocket`](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket) object.
-To make the same code work seamlessly on Node.js and the browser, you can use
-one of the many wrappers available on npm, like
+[`WebSocket`](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket)
+object. To make the same code work seamlessly on Node.js and the browser, you
+can use one of the many wrappers available on npm, like
 [isomorphic-ws](https://github.com/heineiuo/isomorphic-ws).
 
 ## Table of Contents
 
-* [Protocol support](#protocol-support)
-* [Installing](#installing)
-  + [Opt-in for performance and spec compliance](#opt-in-for-performance-and-spec-compliance)
-* [API docs](#api-docs)
-* [WebSocket compression](#websocket-compression)
-* [Usage examples](#usage-examples)
-  + [Sending and receiving text data](#sending-and-receiving-text-data)
-  + [Sending binary data](#sending-binary-data)
-  + [Simple server](#simple-server)
-  + [External HTTP/S server](#external-https-server)
-  + [Multiple servers sharing a single HTTP/S server](#multiple-servers-sharing-a-single-https-server)
-  + [Server broadcast](#server-broadcast)
-  + [echo.websocket.org demo](#echowebsocketorg-demo)
-  + [Other examples](#other-examples)
-* [Error handling best practices](#error-handling-best-practices)
-* [FAQ](#faq)
-  + [How to get the IP address of the client?](#how-to-get-the-ip-address-of-the-client)
-  + [How to detect and close broken connections?](#how-to-detect-and-close-broken-connections)
-  + [How to connect via a proxy?](#how-to-connect-via-a-proxy)
-* [Changelog](#changelog)
-* [License](#license)
+- [Protocol support](#protocol-support)
+- [Installing](#installing)
+  - [Opt-in for performance and spec compliance](#opt-in-for-performance-and-spec-compliance)
+- [API docs](#api-docs)
+- [WebSocket compression](#websocket-compression)
+- [Usage examples](#usage-examples)
+  - [Sending and receiving text data](#sending-and-receiving-text-data)
+  - [Sending binary data](#sending-binary-data)
+  - [Simple server](#simple-server)
+  - [External HTTP/S server](#external-https-server)
+  - [Multiple servers sharing a single HTTP/S server](#multiple-servers-sharing-a-single-https-server)
+  - [Server broadcast](#server-broadcast)
+  - [echo.websocket.org demo](#echowebsocketorg-demo)
+  - [Other examples](#other-examples)
+- [Error handling best practices](#error-handling-best-practices)
+- [FAQ](#faq)
+  - [How to get the IP address of the client?](#how-to-get-the-ip-address-of-the-client)
+  - [How to detect and close broken connections?](#how-to-detect-and-close-broken-connections)
+  - [How to connect via a proxy?](#how-to-connect-via-a-proxy)
+- [Changelog](#changelog)
+- [License](#license)
 
 ## Protocol support
 
-* **HyBi drafts 07-12** (Use the option `protocolVersion: 8`)
-* **HyBi drafts 13-17** (Current default, alternatively option `protocolVersion: 13`)
+- **HyBi drafts 07-12** (Use the option `protocolVersion: 8`)
+- **HyBi drafts 13-17** (Current default, alternatively option
+  `protocolVersion: 13`)
 
 ## Installing
 
@@ -64,8 +65,8 @@ necessarily need to have a C++ compiler installed on your machine.
 - `npm install --save-optional bufferutil`: Allows to efficiently perform
   operations such as masking and unmasking the data payload of the WebSocket
   frames.
-- `npm install --save-optional utf-8-validate`: Allows to efficiently check
-  if a message contains valid UTF-8 as required by the spec.
+- `npm install --save-optional utf-8-validate`: Allows to efficiently check if a
+  message contains valid UTF-8 as required by the spec.
 
 ## API docs
 
@@ -73,21 +74,20 @@ See [`/doc/ws.md`](./doc/ws.md) for Node.js-like docs for the ws classes.
 
 ## WebSocket compression
 
-ws supports the [permessage-deflate extension][permessage-deflate] which
-enables the client and server to negotiate a compression algorithm and its
-parameters, and then selectively apply it to the data payloads of each
-WebSocket message.
+ws supports the [permessage-deflate extension][permessage-deflate] which enables
+the client and server to negotiate a compression algorithm and its parameters,
+and then selectively apply it to the data payloads of each WebSocket message.
 
-The extension is disabled by default on the server and enabled by default on
-the client. It adds a significant overhead in terms of performance and memory
+The extension is disabled by default on the server and enabled by default on the
+client. It adds a significant overhead in terms of performance and memory
 consumption so we suggest to enable it only if it is really needed.
 
 Note that Node.js has a variety of issues with high-performance compression,
-where increased concurrency, especially on Linux, can lead to
-[catastrophic memory fragmentation][node-zlib-bug] and slow performance.
-If you intend to use permessage-deflate in production, it is worthwhile to set
-up a test representative of your workload and ensure Node.js/zlib will handle
-it with acceptable performance and memory usage.
+where increased concurrency, especially on Linux, can lead to [catastrophic
+memory fragmentation][node-zlib-bug] and slow performance. If you intend to use
+permessage-deflate in production, it is worthwhile to set up a test
+representative of your workload and ensure Node.js/zlib will handle it with
+acceptable performance and memory usage.
 
 Tuning of permessage-deflate can be done via the options defined below. You can
 also use `zlibDeflateOptions` and `zlibInflateOptions`, which is passed directly
@@ -101,10 +101,11 @@ const WebSocket = require('ws');
 const wss = new WebSocket.Server({
   port: 8080,
   perMessageDeflate: {
-    zlibDeflateOptions: { // See zlib defaults.
+    zlibDeflateOptions: {
+      // See zlib defaults.
       chunkSize: 1024,
       memLevel: 7,
-      level: 3,
+      level: 3
     },
     zlibInflateOptions: {
       chunkSize: 10 * 1024
@@ -112,11 +113,11 @@ const wss = new WebSocket.Server({
     // Other options settable:
     clientNoContextTakeover: true, // Defaults to negotiated value.
     serverNoContextTakeover: true, // Defaults to negotiated value.
-    serverMaxWindowBits: 10,       // Defaults to negotiated value.
+    serverMaxWindowBits: 10, // Defaults to negotiated value.
     // Below options specified as default values.
-    concurrencyLimit: 10,          // Limits zlib concurrency for perf.
-    threshold: 1024,               // Size (in bytes) below which messages
-                                   // should not be compressed.
+    concurrencyLimit: 10, // Limits zlib concurrency for perf.
+    threshold: 1024 // Size (in bytes) below which messages
+    // should not be compressed.
   }
 });
 ```
@@ -325,8 +326,11 @@ ws.send('something', function ack(error) {
 // Immediate errors can also be handled with `try...catch`, but **note** that
 // since sends are inherently asynchronous, socket write failures will *not* be
 // captured when this technique is used.
-try { ws.send('something'); }
-catch (e) { /* handle error */ }
+try {
+  ws.send('something');
+} catch (e) {
+  /* handle error */
+}
 ```
 
 ## FAQ
@@ -356,8 +360,8 @@ wss.on('connection', function connection(ws, req) {
 
 ### How to detect and close broken connections?
 
-Sometimes the link between the server and the client can be interrupted in a
-way that keeps both the server and the client unaware of the broken state of the
+Sometimes the link between the server and the client can be interrupted in a way
+that keeps both the server and the client unaware of the broken state of the
 connection (e.g. when pulling the cord).
 
 In these cases ping messages can be used as a means to verify that the remote
@@ -389,8 +393,8 @@ const interval = setInterval(function ping() {
 }, 30000);
 ```
 
-Pong messages are automatically sent in response to ping messages as required
-by the spec.
+Pong messages are automatically sent in response to ping messages as required by
+the spec.
 
 Just like the server example above your clients might as well lose connection
 without knowing it. You might want to add a ping listener on your clients to
@@ -439,5 +443,7 @@ We're using the GitHub [releases][changelog] for changelog entries.
 [permessage-deflate]: https://tools.ietf.org/html/rfc7692
 [changelog]: https://github.com/websockets/ws/releases
 [node-zlib-bug]: https://github.com/nodejs/node/issues/8871
-[node-zlib-deflaterawdocs]: https://nodejs.org/api/zlib.html#zlib_zlib_createdeflateraw_options
-[ws-server-options]: https://github.com/websockets/ws/blob/master/doc/ws.md#new-websocketserveroptions-callback
+[node-zlib-deflaterawdocs]:
+  https://nodejs.org/api/zlib.html#zlib_zlib_createdeflateraw_options
+[ws-server-options]:
+  https://github.com/websockets/ws/blob/master/doc/ws.md#new-websocketserveroptions-callback

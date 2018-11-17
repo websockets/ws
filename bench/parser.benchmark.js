@@ -15,7 +15,7 @@ const options = {
   readOnly: false
 };
 
-function createBinaryFrame (length) {
+function createBinaryFrame(length) {
   const list = Sender.frame(
     crypto.randomBytes(length),
     Object.assign({ opcode: 0x02 }, options)
@@ -24,10 +24,9 @@ function createBinaryFrame (length) {
   return Buffer.concat(list);
 }
 
-const pingFrame1 = Buffer.concat(Sender.frame(
-  crypto.randomBytes(5),
-  Object.assign({ opcode: 0x09 }, options)
-));
+const pingFrame1 = Buffer.concat(
+  Sender.frame(crypto.randomBytes(5), Object.assign({ opcode: 0x09 }, options))
+);
 
 const textFrame = Buffer.from('819461616161' + '61'.repeat(20), 'hex');
 const pingFrame2 = Buffer.from('8900', 'hex');

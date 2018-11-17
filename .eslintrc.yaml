@@ -1,8 +1,16 @@
-extends: standard
 env:
+  browser: true
+  es6: true
   mocha: true
+  node: true
+extends:
+  - eslint:recommended
+  - prettier
+parserOptions:
+  ecmaVersion: 9
+plugins:
+  - prettier
 rules:
-  no-extra-semi: error
-  semi:
-    - error
-    - always
+  no-console: off
+  prefer-const: error
+  prettier/prettier: error

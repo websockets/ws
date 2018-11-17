@@ -23,9 +23,9 @@
     "lib/*.js"
   ],
   "scripts": {
-    "test": "eslint . && nyc --reporter=html --reporter=text mocha test/*.test.js",
-    "integration": "eslint . && mocha test/*.integration.js",
-    "lint": "eslint ."
+    "test": "npm run lint && nyc --reporter=html --reporter=text mocha test/*.test.js",
+    "integration": "npm run lint && mocha test/*.integration.js",
+    "lint": "eslint . --ignore-path .gitignore && prettylint **/*.{json,md} --ignore-path .gitignore"
   },
   "dependencies": {
     "async-limiter": "~1.0.0"
@@ -34,13 +34,12 @@
     "benchmark": "~2.1.4",
     "bufferutil": "~4.0.0",
     "eslint": "~5.9.0",
-    "eslint-config-standard": "~12.0.0",
-    "eslint-plugin-import": "~2.14.0",
-    "eslint-plugin-node": "~8.0.0",
-    "eslint-plugin-promise": "~4.0.1",
-    "eslint-plugin-standard": "~4.0.0",
+    "eslint-config-prettier": "~3.3.0",
+    "eslint-plugin-prettier": "~3.0.0",
     "mocha": "~5.2.0",
     "nyc": "~13.1.0",
+    "prettier": "~1.15.2",
+    "prettylint": "~1.0.0",
     "utf-8-validate": "~5.0.0"
   }
 }

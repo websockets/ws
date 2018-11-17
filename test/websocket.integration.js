@@ -4,8 +4,8 @@ const assert = require('assert');
 
 const WebSocket = require('..');
 
-describe('WebSocket', function () {
-  it('communicates successfully with echo service (ws)', function (done) {
+describe('WebSocket', function() {
+  it('communicates successfully with echo service (ws)', function(done) {
     const ws = new WebSocket('ws://echo.websocket.org/', {
       origin: 'http://www.websocket.org',
       protocolVersion: 13
@@ -26,7 +26,7 @@ describe('WebSocket', function () {
     });
   });
 
-  it('communicates successfully with echo service (wss)', function (done) {
+  it('communicates successfully with echo service (wss)', function(done) {
     const ws = new WebSocket('wss://echo.websocket.org/', {
       origin: 'https://www.websocket.org',
       protocolVersion: 13

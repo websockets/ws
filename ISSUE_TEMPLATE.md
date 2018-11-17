@@ -7,7 +7,8 @@ General support questions should be raised on a channel like Stack Overflow.
 Please fill in as much of the template below as you're able.
 -->
 
-- [ ] I've searched for any related issues and avoided creating a duplicate issue.
+- [ ] I've searched for any related issues and avoided creating a duplicate
+      issue.
 
 #### Description
 
@@ -15,15 +16,11 @@ Please fill in as much of the template below as you're able.
 
 #### Reproducible in:
 
-version:
-Node.js version(s):
-OS version(s):
+version: Node.js version(s): OS version(s):
 
 #### Steps to reproduce:
 
-1.
-2.
-3.
+1. 2. 3.
 
 ### Expected result:
 

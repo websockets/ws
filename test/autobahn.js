@@ -5,7 +5,7 @@ const WebSocket = require('../');
 let currentTest = 1;
 let testCount;
 
-function nextTest () {
+function nextTest() {
   let ws;
 
   if (currentTest > testCount) {
@@ -15,7 +15,9 @@ function nextTest () {
 
   console.log(`Running test case ${currentTest}/${testCount}`);
 
-  ws = new WebSocket(`ws://localhost:9001/runCase?case=${currentTest}&agent=ws`);
+  ws = new WebSocket(
+    `ws://localhost:9001/runCase?case=${currentTest}&agent=ws`
+  );
   ws.on('message', (data) => ws.send(data));
   ws.on('close', () => {
     currentTest++;

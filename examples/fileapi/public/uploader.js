@@ -1,5 +1,5 @@
 /* global WebSocket */
-function Uploader (url, cb) {
+function Uploader(url, cb) {
   this.ws = new WebSocket(url);
   if (cb) this.ws.onopen = cb;
   this.sendQueue = [];
@@ -7,7 +7,7 @@ function Uploader (url, cb) {
   this.sendCallback = null;
   this.ondone = null;
   var self = this;
-  this.ws.onmessage = function (event) {
+  this.ws.onmessage = function(event) {
     var data = JSON.parse(event.data);
     var callback;
     if (data.event === 'complete') {
@@ -24,7 +24,9 @@ function Uploader (url, cb) {
       if (self.sendQueue.length === 0 && self.ondone) self.ondone(null);
       if (self.sendQueue.length > 0) {
         var args = self.sendQueue.pop();
-        setTimeout(function () { self.sendFile.apply(self, args); }, 0);
+        setTimeout(function() {
+          self.sendFile.apply(self, args);
+        }, 0);
       }
     } else if (data.event === 'error') {
       self.sendQueue = [];
@@ -38,7 +40,7 @@ function Uploader (url, cb) {
   };
 }
 
-Uploader.prototype.sendFile = function (file, cb) {
+Uploader.prototype.sendFile = function(file, cb) {
   if (this.ws.readyState !== WebSocket.OPEN) throw new Error('Not connected');
   if (this.sending) {
     this.sendQueue.push(arguments);
@@ -51,6 +53,6 @@ Uploader.prototype.sendFile = function (file, cb) {
   this.ws.send(file);
 };
 
-Uploader.prototype.close = function () {
+Uploader.prototype.close = function() {
   this.ws.close();
 };
