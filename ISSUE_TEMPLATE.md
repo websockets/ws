@@ -16,20 +16,26 @@ Please fill in as much of the template below as you're able.
 
 #### Reproducible in:
 
-version: Node.js version(s): OS version(s):
+- version:
+- Node.js version(s):
+- OS version(s):
 
 #### Steps to reproduce:
 
-1. 2. 3.
+1.
 
-### Expected result:
+2.
+
+3.
+
+#### Expected result:
 
 <!-- e.g. What you expected to happen -->
 
-### Actual result:
+#### Actual result:
 
 <!-- e.g. What actually happened -->
 
-### Attachments:
+#### Attachments:
 
 <!-- e.g. Logs, screenshots, screencast, etc. -->
