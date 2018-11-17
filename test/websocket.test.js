@@ -33,7 +33,6 @@ describe('WebSocket', function() {
         done();
       };
 
-      // eslint-disable-next-line node/no-deprecated-api
       const ws = new WebSocket(url.parse('ws://localhost'), { agent });
     });
 
