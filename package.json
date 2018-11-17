@@ -25,7 +25,7 @@
   "scripts": {
     "test": "npm run lint && nyc --reporter=html --reporter=text mocha test/*.test.js",
     "integration": "npm run lint && mocha test/*.integration.js",
-    "lint": "eslint . --ignore-path .gitignore && prettylint **/*.{json,md} --ignore-path .gitignore"
+    "lint": "eslint . --ignore-path .gitignore && prettylint '**/*.{json,md}' --ignore-path .gitignore"
   },
   "dependencies": {
     "async-limiter": "~1.0.0"
