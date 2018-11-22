@@ -164,6 +164,75 @@ describe('WebSocket', function() {
       });
     });
 
+    describe('`maxPayload`', function() {
+      it('defaults to 100 MiB', function() {
+        const ws = new WebSocket('ws://localhost', {
+          agent: new CustomAgent()
+        });
+
+        assert.strictEqual(ws.maxPayload, 100 * 1024 * 1024);
+      });
+
+      it('can be overridden using the `maxPayload` option', function() {
+        const maxPayload = 123;
+        const ws = new WebSocket('ws://localhost', {
+          maxPayload,
+          agent: new CustomAgent()
+        });
+
+        assert.strictEqual(ws.maxPayload, maxPayload);
+      });
+
+      it("can be modified before the 'open' event is emitted", function(done) {
+        const maxPayload = 123;
+        const wss = new WebSocket.Server(
+          {
+            perMessageDeflate: true,
+            port: 0
+          },
+          () => {
+            const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+
+            ws.maxPayload = maxPayload;
+            assert.strictEqual(ws.maxPayload, maxPayload);
+
+            ws.on('open', () => {
+              assert.strictEqual(ws._receiver._maxPayload, maxPayload);
+              assert.strictEqual(
+                ws._receiver._extensions['permessage-deflate']._maxPayload,
+                maxPayload
+              );
+              wss.close(done);
+            });
+          }
+        );
+      });
+
+      it("can be modified after the 'open' event is emitted", function(done) {
+        const maxPayload = 123;
+        const wss = new WebSocket.Server(
+          {
+            perMessageDeflate: true,
+            port: 0
+          },
+          () => {
+            const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+
+            ws.on('open', () => {
+              ws.maxPayload = maxPayload;
+              assert.strictEqual(ws.maxPayload, maxPayload);
+              assert.strictEqual(ws._receiver._maxPayload, maxPayload);
+              assert.strictEqual(
+                ws._receiver._extensions['permessage-deflate']._maxPayload,
+                maxPayload
+              );
+              wss.close(done);
+            });
+          }
+        );
+      });
+    });
+
     describe('`bufferedAmount`', function() {
       it('defaults to zero', function() {
         const ws = new WebSocket('ws://localhost', {

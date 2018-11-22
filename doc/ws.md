@@ -321,6 +321,13 @@ Initiate a closing handshake.
 
 An object containing the negotiated extensions.
 
+### websocket.maxPayload
+
+- {Number}
+
+The maximum allowed size (in bytes) for received messages. Defaults to the value
+of the `maxPayload` option, or 100 MiB if none was provided.
+
 ### websocket.onclose
 
 - {Function}
