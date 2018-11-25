@@ -20,6 +20,7 @@ This class represents a WebSocket server. It extends the `EventEmitter`.
   - `clientTracking` {Boolean} Specifies whether or not to track clients.
   - `perMessageDeflate` {Boolean|Object} Enable/disable permessage-deflate.
   - `maxPayload` {Number} The maximum allowed message size in bytes.
+  - `socketTimeout` {Number} Timeout in milliseconds for idle sockets.
 - `callback` {Function}
 
 Create a new server instance. One of `port`, `server` or `noServer` must be
