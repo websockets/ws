@@ -69,46 +69,6 @@ describe('Sender', function() {
       sender.send('hi', options);
     });
 
-    it('does not compress enqueued messages after socket closes', function(done) {
-      const mockSocket = new MockSocket({
-        write: () => done(new Error('Unexpected call to socket.write()'))
-      });
-
-      const perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
-      perMessageDeflate.accept([{}]);
-
-      const compress = perMessageDeflate.compress;
-      const sender = new Sender(mockSocket, {
-        'permessage-deflate': perMessageDeflate
-      });
-
-      perMessageDeflate.compress = (data, fin, callback) => {
-        compress.call(perMessageDeflate, data, fin, (_, buf) => {
-          assert.strictEqual(sender._bufferedBytes, 198);
-          assert.strictEqual(sender._queue.length, 99);
-          assert.strictEqual(mockSocket.readable, false);
-          assert.strictEqual(mockSocket.writable, false);
-
-          process.nextTick(() => {
-            assert.strictEqual(sender._bufferedBytes, 0);
-            assert.strictEqual(sender._queue.length, 0);
-            done();
-          });
-
-          callback(_, buf);
-        });
-      };
-
-      const options = { compress: true, fin: true };
-
-      for (let i = 0; i < 100; i++) sender.send('hi', options);
-
-      process.nextTick(() => {
-        mockSocket.readable = false;
-        mockSocket.writable = false;
-      });
-    });
-
     it('does not compress data for small payloads', function(done) {
       const perMessageDeflate = new PerMessageDeflate();
       const mockSocket = new MockSocket({

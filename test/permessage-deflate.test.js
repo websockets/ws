@@ -609,5 +609,18 @@ describe('PerMessageDeflate', function() {
         });
       });
     });
+
+    it("doesn't call the callback if the deflate stream is closed prematurely", function(done) {
+      const perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
+      const buf = Buffer.from('A'.repeat(50));
+
+      perMessageDeflate.accept([{}]);
+      perMessageDeflate.compress(buf, true, () => {
+        done(new Error('Unexpected callback invocation'));
+      });
+      perMessageDeflate._deflate.on('close', done);
+
+      process.nextTick(() => perMessageDeflate.cleanup());
+    });
   });
 });
