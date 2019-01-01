@@ -161,11 +161,7 @@ const ws = new WebSocket('ws://www.host.com/path');
 
 ws.on('open', function open() {
   ws.sendJSON({
-    "something": "creative",
-    "and": [
-      "also",
-      "beautiful"
-    ]
+    something: creative
   });
 });
 ```
