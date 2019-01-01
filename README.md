@@ -152,6 +152,24 @@ ws.on('message', function incoming(data) {
 });
 ```
 
+### Sending JSON data
+
+```js
+const WebSocket = require('ws');
+
+const ws = new WebSocket('ws://www.host.com/path');
+
+ws.on('open', function open() {
+  ws.sendJSON({
+    "something": "creative",
+    "and": [
+      "also",
+      "beautiful"
+    ]
+  });
+});
+```
+
 ### Sending binary data
 
 ```js
