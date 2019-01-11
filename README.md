@@ -52,7 +52,7 @@ can use one of the many wrappers available on npm, like
 ## Installing
 
 ```
-npm install --save ws
+npm install ws
 ```
 
 ### Opt-in for performance and spec compliance
