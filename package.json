@@ -34,7 +34,7 @@
     "benchmark": "~2.1.4",
     "bufferutil": "~4.0.0",
     "eslint": "~5.12.0",
-    "eslint-config-prettier": "~3.3.0",
+    "eslint-config-prettier": "~3.4.0",
     "eslint-plugin-prettier": "~3.0.0",
     "mocha": "~5.2.0",
     "nyc": "~13.1.0",
