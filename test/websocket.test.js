@@ -664,6 +664,72 @@ describe('WebSocket', function() {
         ws.on('close', () => wss.close(done));
       });
     });
+
+    it('does not follow redirects by default', function(done) {
+      server.once('upgrade', (req, socket) => {
+        socket.end(
+          'HTTP/1.1 301 Moved Permanently\r\n' +
+            'Location: ws://localhost:8080\r\n' +
+            '\r\n'
+        );
+      });
+
+      const ws = new WebSocket(`ws://localhost:${server.address().port}`);
+
+      ws.on('open', () => done(new Error("Unexpected 'open' event")));
+      ws.on('error', (err) => {
+        assert.ok(err instanceof Error);
+        assert.strictEqual(err.message, 'Unexpected server response: 301');
+        assert.strictEqual(ws._redirects, 0);
+        ws.on('close', () => done());
+      });
+    });
+
+    it('honors the `followRedirects` option', function(done) {
+      const wss = new WebSocket.Server({ noServer: true, path: '/foo' });
+
+      server.once('upgrade', (req, socket) => {
+        socket.end('HTTP/1.1 302 Found\r\nLocation: /foo\r\n\r\n');
+        server.once('upgrade', (req, socket, head) => {
+          wss.handleUpgrade(req, socket, head, () => {});
+        });
+      });
+
+      const port = server.address().port;
+      const ws = new WebSocket(`ws://localhost:${port}`, {
+        followRedirects: true
+      });
+
+      ws.on('open', () => {
+        assert.strictEqual(ws.url, `ws://localhost:${port}/foo`);
+        assert.strictEqual(ws._redirects, 1);
+        ws.on('close', () => done());
+        ws.close();
+      });
+    });
+
+    it('honors the `maxRedirects` option', function(done) {
+      const onUpgrade = (req, socket) => {
+        socket.end('HTTP/1.1 302 Found\r\nLocation: /\r\n\r\n');
+      };
+
+      server.on('upgrade', onUpgrade);
+
+      const ws = new WebSocket(`ws://localhost:${server.address().port}`, {
+        followRedirects: true,
+        maxRedirects: 1
+      });
+
+      ws.on('open', () => done(new Error("Unexpected 'open' event")));
+      ws.on('error', (err) => {
+        assert.ok(err instanceof Error);
+        assert.strictEqual(err.message, 'Maximum redirects exceeded');
+        assert.strictEqual(ws._redirects, 2);
+
+        server.removeListener('upgrade', onUpgrade);
+        ws.on('close', () => done());
+      });
+    });
   });
 
   describe('Connection with query string', function() {

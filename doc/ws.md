@@ -193,8 +193,12 @@ This class represents a WebSocket. It extends the `EventEmitter`.
 - `address` {String|url.Url|url.URL} The URL to which to connect.
 - `protocols` {String|Array} The list of subprotocols.
 - `options` {Object}
+  - `followRedirects` {Boolean} Whether or not to follow redirects. Defaults to
+    `false`.
   - `handshakeTimeout` {Number} Timeout in milliseconds for the handshake
-    request.
+    request. This is reset after every redirection.
+  - `maxRedirects` {Number} The maximum number of redirects allowed. Defaults
+    to 10.
   - `perMessageDeflate` {Boolean|Object} Enable/disable permessage-deflate.
   - `protocolVersion` {Number} Value of the `Sec-WebSocket-Version` header.
   - `origin` {String} Value of the `Origin` or `Sec-WebSocket-Origin` header
