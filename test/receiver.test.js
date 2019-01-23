@@ -34,6 +34,19 @@ describe('Receiver', function() {
     receiver.write(Buffer.from('8800', 'hex'));
   });
 
+  it('parses a close message spanning multiple writes', function(done) {
+    const receiver = new Receiver();
+
+    receiver.on('conclude', (code, data) => {
+      assert.strictEqual(code, 1000);
+      assert.strictEqual(data, 'DONE');
+      done();
+    });
+
+    receiver.write(Buffer.from('8806', 'hex'));
+    receiver.write(Buffer.from('03e8444F4E45', 'hex'));
+  });
+
   it('parses a masked text message', function(done) {
     const receiver = new Receiver();
 
