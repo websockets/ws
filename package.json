@@ -37,7 +37,7 @@
     "eslint-config-prettier": "~4.0.0",
     "eslint-plugin-prettier": "~3.0.0",
     "mocha": "~5.2.0",
-    "nyc": "~13.1.0",
+    "nyc": "~13.2.0",
     "prettier": "~1.16.1",
     "prettylint": "~1.0.0",
     "utf-8-validate": "~5.0.0"
