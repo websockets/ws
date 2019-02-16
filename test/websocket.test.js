@@ -1840,38 +1840,24 @@ describe('WebSocket', function() {
       });
     });
 
-    it('includes the host header with port number', function(done) {
-      const agent = new CustomAgent();
-
-      agent.addRequest = (req) => {
-        assert.strictEqual(req._headers.host, 'localhost:1337');
-        done();
-      };
-
-      const ws = new WebSocket('ws://localhost:1337', { agent });
+    it('includes the host header with port number', function() {
+      const ws = new WebSocket('ws://localhost:1337', { lookup() {} });
+      assert.strictEqual(ws._req._headers.host, 'localhost:1337');
     });
 
     it('excludes default ports from host header', function() {
-      const httpsAgent = new https.Agent();
-      const httpAgent = new http.Agent();
-      const values = [];
-      let ws;
+      const options = { lookup() {} };
+      const variants = [
+        ['wss://localhost:8443', 'localhost:8443'],
+        ['wss://localhost:443', 'localhost'],
+        ['ws://localhost:88', 'localhost:88'],
+        ['ws://localhost:80', 'localhost']
+      ];
 
-      httpsAgent.addRequest = httpAgent.addRequest = (req) => {
-        values.push(req._headers.host);
-      };
-
-      ws = new WebSocket('wss://localhost:8443', { agent: httpsAgent });
-      ws = new WebSocket('wss://localhost:443', { agent: httpsAgent });
-      ws = new WebSocket('ws://localhost:88', { agent: httpAgent });
-      ws = new WebSocket('ws://localhost:80', { agent: httpAgent });
-
-      assert.deepStrictEqual(values, [
-        'localhost:8443',
-        'localhost',
-        'localhost:88',
-        'localhost'
-      ]);
+      for (const [url, host] of variants) {
+        const ws = new WebSocket(url, options);
+        assert.strictEqual(ws._req._headers.host, host);
+      }
     });
 
     it("doesn't add the origin header by default", function(done) {
