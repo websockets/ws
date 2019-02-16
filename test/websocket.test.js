@@ -1840,11 +1840,6 @@ describe('WebSocket', function() {
       });
     });
 
-    it('includes the host header with port number', function() {
-      const ws = new WebSocket('ws://localhost:1337', { lookup() {} });
-      assert.strictEqual(ws._req._headers.host, 'localhost:1337');
-    });
-
     it('excludes default ports from host header', function() {
       const options = { lookup() {} };
       const variants = [
