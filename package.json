@@ -25,7 +25,7 @@
   "scripts": {
     "test": "npm run lint && nyc --reporter=html --reporter=text mocha test/*.test.js",
     "integration": "npm run lint && mocha test/*.integration.js",
-    "lint": "eslint . --ignore-path .gitignore && prettylint '**/*.{json,md}' --ignore-path .gitignore"
+    "lint": "eslint --ignore-path .gitignore . && prettier --check --ignore-path .gitignore \"**/*.{json,md}\""
   },
   "dependencies": {
     "async-limiter": "~1.0.0"
@@ -39,7 +39,6 @@
     "mocha": "~6.0.0",
     "nyc": "~13.3.0",
     "prettier": "~1.16.1",
-    "prettylint": "~1.0.0",
     "utf-8-validate": "~5.0.0"
   }
 }
