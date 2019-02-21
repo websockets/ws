@@ -1,9 +1,9 @@
 language: node_js
 sudo: false
 node_js:
-  - "11"
-  - "10"
-  - "8"
-  - "6"
+  - '11'
+  - '10'
+  - '8'
+  - '6'
 after_success:
-  - "npm install coveralls@3 && nyc report --reporter=text-lcov | coveralls"
+  - 'npm install coveralls@3 && nyc report --reporter=text-lcov | coveralls'
