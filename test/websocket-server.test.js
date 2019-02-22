@@ -383,13 +383,35 @@ describe('WebSocketServer', function() {
   });
 
   describe('Connection establishing', function() {
-    it('fails if the Sec-WebSocket-Key header is invalid', function(done) {
+    it('fails if the Sec-WebSocket-Key header is invalid (1/2)', function(done) {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const req = http.get({
           port: wss.address().port,
           headers: {
             Connection: 'Upgrade',
             Upgrade: 'websocket'
+          }
+        });
+
+        req.on('response', (res) => {
+          assert.strictEqual(res.statusCode, 400);
+          wss.close(done);
+        });
+      });
+
+      wss.on('connection', () => {
+        done(new Error("Unexpected 'connection' event"));
+      });
+    });
+
+    it('fails if the Sec-WebSocket-Key header is invalid (2/2)', function(done) {
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const req = http.get({
+          port: wss.address().port,
+          headers: {
+            Connection: 'Upgrade',
+            Upgrade: 'websocket',
+            'Sec-WebSocket-Key': 'P5l8BJcZwRc='
           }
         });
 

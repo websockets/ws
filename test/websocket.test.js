@@ -9,8 +9,8 @@ const http = require('http');
 const url = require('url');
 const fs = require('fs');
 
-const constants = require('../lib/constants');
 const WebSocket = require('..');
+const { GUID } = require('../lib/constants');
 
 class CustomAgent extends http.Agent {
   addRequest() {}
@@ -463,7 +463,7 @@ describe('WebSocket', function() {
       server.once('upgrade', (req, socket) => {
         const key = crypto
           .createHash('sha1')
-          .update(req.headers['sec-websocket-key'] + constants.GUID, 'binary')
+          .update(req.headers['sec-websocket-key'] + GUID)
           .digest('base64');
 
         socket.end(
@@ -581,7 +581,7 @@ describe('WebSocket', function() {
       server.once('upgrade', (req, socket) => {
         const key = crypto
           .createHash('sha1')
-          .update(req.headers['sec-websocket-key'] + constants.GUID, 'binary')
+          .update(req.headers['sec-websocket-key'] + GUID)
           .digest('base64');
 
         socket.end(
