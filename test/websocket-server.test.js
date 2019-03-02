@@ -671,7 +671,16 @@ describe('WebSocketServer', function() {
 
       server.listen(0, () => {
         const wss = new WebSocket.Server({
-          verifyClient: (o, cb) => setTimeout(cb, 100, true),
+          verifyClient: ({ req: { socket } }, cb) => {
+            assert.strictEqual(socket.readable, true);
+            assert.strictEqual(socket.writable, true);
+
+            socket.on('end', () => {
+              assert.strictEqual(socket.readable, false);
+              assert.strictEqual(socket.writable, true);
+              cb(true);
+            });
+          },
           server
         });
 
@@ -685,7 +694,7 @@ describe('WebSocketServer', function() {
             allowHalfOpen: true
           },
           () => {
-            socket.write(
+            socket.end(
               [
                 'GET / HTTP/1.1',
                 'Host: localhost',
@@ -703,8 +712,6 @@ describe('WebSocketServer', function() {
           wss.close();
           server.close(done);
         });
-
-        socket.setTimeout(50, () => socket.end());
       });
     });
 
