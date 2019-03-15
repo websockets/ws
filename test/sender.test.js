@@ -185,29 +185,6 @@ describe('Sender', function() {
       sender.send('data', { compress: true, fin: false });
       sender.send(Buffer.alloc(0), { compress: true, fin: true });
     });
-
-    it('handles many send calls while processing without crashing on flush', function(done) {
-      let count = 0;
-      const perMessageDeflate = new PerMessageDeflate();
-      const mockSocket = new MockSocket({
-        write: () => {
-          if (++count > 1e4) done();
-        }
-      });
-      const sender = new Sender(mockSocket, {
-        'permessage-deflate': perMessageDeflate
-      });
-
-      perMessageDeflate.accept([{}]);
-
-      for (let i = 0; i < 1e4; i++) {
-        sender.processing = true;
-        sender.send('hi', { compress: false, fin: true });
-      }
-
-      sender.processing = false;
-      sender.send('hi', { compress: false, fin: true });
-    });
   });
 
   describe('#ping', function() {
