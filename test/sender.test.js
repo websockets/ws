@@ -13,7 +13,9 @@ class MockSocket {
     if (write) this.write = write;
   }
 
+  cork() {}
   write() {}
+  uncork() {}
 }
 
 describe('Sender', function() {
@@ -87,17 +89,20 @@ describe('Sender', function() {
     });
 
     it('compresses all frames in a fragmented message', function(done) {
-      const fragments = [];
+      const chunks = [];
       const perMessageDeflate = new PerMessageDeflate({ threshold: 3 });
       const mockSocket = new MockSocket({
-        write: (data) => {
-          fragments.push(data);
-          if (fragments.length !== 2) return;
+        write: (chunk) => {
+          chunks.push(chunk);
+          if (chunks.length !== 4) return;
 
-          assert.strictEqual(fragments[0][0] & 0x40, 0x40);
-          assert.strictEqual(fragments[0].length, 11);
-          assert.strictEqual(fragments[1][0] & 0x40, 0x00);
-          assert.strictEqual(fragments[1].length, 6);
+          assert.strictEqual(chunks[0].length, 2);
+          assert.strictEqual(chunks[0][0] & 0x40, 0x40);
+          assert.strictEqual(chunks[1].length, 9);
+
+          assert.strictEqual(chunks[2].length, 2);
+          assert.strictEqual(chunks[2][0] & 0x40, 0x00);
+          assert.strictEqual(chunks[3].length, 4);
           done();
         }
       });
@@ -112,17 +117,20 @@ describe('Sender', function() {
     });
 
     it('compresses no frames in a fragmented message', function(done) {
-      const fragments = [];
+      const chunks = [];
       const perMessageDeflate = new PerMessageDeflate({ threshold: 3 });
       const mockSocket = new MockSocket({
-        write: (data) => {
-          fragments.push(data);
-          if (fragments.length !== 2) return;
+        write: (chunk) => {
+          chunks.push(chunk);
+          if (chunks.length !== 4) return;
 
-          assert.strictEqual(fragments[0][0] & 0x40, 0x00);
-          assert.strictEqual(fragments[0].length, 4);
-          assert.strictEqual(fragments[1][0] & 0x40, 0x00);
-          assert.strictEqual(fragments[1].length, 5);
+          assert.strictEqual(chunks[0].length, 2);
+          assert.strictEqual(chunks[0][0] & 0x40, 0x00);
+          assert.strictEqual(chunks[1].length, 2);
+
+          assert.strictEqual(chunks[2].length, 2);
+          assert.strictEqual(chunks[2][0] & 0x40, 0x00);
+          assert.strictEqual(chunks[3].length, 3);
           done();
         }
       });
@@ -137,17 +145,20 @@ describe('Sender', function() {
     });
 
     it('compresses empty buffer as first fragment', function(done) {
-      const fragments = [];
+      const chunks = [];
       const perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
       const mockSocket = new MockSocket({
-        write: (data) => {
-          fragments.push(data);
-          if (fragments.length !== 2) return;
+        write: (chunk) => {
+          chunks.push(chunk);
+          if (chunks.length !== 4) return;
 
-          assert.strictEqual(fragments[0][0] & 0x40, 0x40);
-          assert.strictEqual(fragments[0].length, 3);
-          assert.strictEqual(fragments[1][0] & 0x40, 0x00);
-          assert.strictEqual(fragments[1].length, 8);
+          assert.strictEqual(chunks[0].length, 2);
+          assert.strictEqual(chunks[0][0] & 0x40, 0x40);
+          assert.strictEqual(chunks[1].length, 1);
+
+          assert.strictEqual(chunks[2].length, 2);
+          assert.strictEqual(chunks[2][0] & 0x40, 0x00);
+          assert.strictEqual(chunks[3].length, 6);
           done();
         }
       });
@@ -162,17 +173,20 @@ describe('Sender', function() {
     });
 
     it('compresses empty buffer as last fragment', function(done) {
-      const fragments = [];
+      const chunks = [];
       const perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
       const mockSocket = new MockSocket({
-        write: (data) => {
-          fragments.push(data);
-          if (fragments.length !== 2) return;
+        write: (chunk) => {
+          chunks.push(chunk);
+          if (chunks.length !== 4) return;
 
-          assert.strictEqual(fragments[0][0] & 0x40, 0x40);
-          assert.strictEqual(fragments[0].length, 12);
-          assert.strictEqual(fragments[1][0] & 0x40, 0x00);
-          assert.strictEqual(fragments[1].length, 3);
+          assert.strictEqual(chunks[0].length, 2);
+          assert.strictEqual(chunks[0][0] & 0x40, 0x40);
+          assert.strictEqual(chunks[1].length, 10);
+
+          assert.strictEqual(chunks[2].length, 2);
+          assert.strictEqual(chunks[2][0] & 0x40, 0x00);
+          assert.strictEqual(chunks[3].length, 1);
           done();
         }
       });
@@ -193,10 +207,15 @@ describe('Sender', function() {
       let count = 0;
       const mockSocket = new MockSocket({
         write: (data) => {
-          if (++count === 1) return;
+          if (++count < 3) return;
 
-          assert.ok(data.equals(Buffer.from([0x89, 0x02, 0x68, 0x69])));
-          if (count === 4) done();
+          if (count % 2) {
+            assert.ok(data.equals(Buffer.from([0x89, 0x02])));
+          } else {
+            assert.ok(data.equals(Buffer.from([0x68, 0x69])));
+          }
+
+          if (count === 8) done();
         }
       });
       const sender = new Sender(mockSocket, {
@@ -220,10 +239,15 @@ describe('Sender', function() {
       let count = 0;
       const mockSocket = new MockSocket({
         write: (data) => {
-          if (++count === 1) return;
+          if (++count < 3) return;
 
-          assert.ok(data.equals(Buffer.from([0x8a, 0x02, 0x68, 0x69])));
-          if (count === 4) done();
+          if (count % 2) {
+            assert.ok(data.equals(Buffer.from([0x8a, 0x02])));
+          } else {
+            assert.ok(data.equals(Buffer.from([0x68, 0x69])));
+          }
+
+          if (count === 8) done();
         }
       });
       const sender = new Sender(mockSocket, {
@@ -263,7 +287,7 @@ describe('Sender', function() {
       sender.send('baz', { compress: true, fin: true });
 
       sender.close(1000, undefined, false, () => {
-        assert.strictEqual(count, 4);
+        assert.strictEqual(count, 8);
         done();
       });
     });
