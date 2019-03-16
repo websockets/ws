@@ -217,14 +217,12 @@ describe('WebSocket', function() {
         wss.on('connection', (ws) => {
           const data = Buffer.alloc(1024, 61);
 
-          // eslint-disable-next-line no-constant-condition
-          while (true) {
-            if (ws._socket.bufferSize > 0) {
-              assert.strictEqual(ws.bufferedAmount, ws._socket.bufferSize);
-              break;
-            }
+          while (ws._socket.bufferSize === 0) {
             ws.send(data);
           }
+
+          assert.ok(ws._socket.bufferSize > 0);
+          assert.strictEqual(ws.bufferedAmount, ws._socket.bufferSize);
 
           ws.on('close', () => wss.close(done));
           ws.close();
