@@ -18,9 +18,9 @@ class MockSocket {
   uncork() {}
 }
 
-describe('Sender', function() {
-  describe('.frame', function() {
-    it('does not mutate the input buffer if data is `readOnly`', function() {
+describe('Sender', () => {
+  describe('.frame', () => {
+    it('does not mutate the input buffer if data is `readOnly`', () => {
       const buf = Buffer.from([1, 2, 3, 4, 5]);
 
       Sender.frame(buf, {
@@ -34,7 +34,7 @@ describe('Sender', function() {
       assert.ok(buf.equals(Buffer.from([1, 2, 3, 4, 5])));
     });
 
-    it('sets RSV1 bit if compressed', function() {
+    it('sets RSV1 bit if compressed', () => {
       const list = Sender.frame(Buffer.from('hi'), {
         readOnly: false,
         mask: false,
@@ -47,8 +47,8 @@ describe('Sender', function() {
     });
   });
 
-  describe('#send', function() {
-    it('compresses data if compress option is enabled', function(done) {
+  describe('#send', () => {
+    it('compresses data if compress option is enabled', (done) => {
       const perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
       let count = 0;
       const mockSocket = new MockSocket({
@@ -71,7 +71,7 @@ describe('Sender', function() {
       sender.send('hi', options);
     });
 
-    it('does not compress data for small payloads', function(done) {
+    it('does not compress data for small payloads', (done) => {
       const perMessageDeflate = new PerMessageDeflate();
       const mockSocket = new MockSocket({
         write: (data) => {
@@ -88,7 +88,7 @@ describe('Sender', function() {
       sender.send('hi', { compress: true, fin: true });
     });
 
-    it('compresses all frames in a fragmented message', function(done) {
+    it('compresses all frames in a fragmented message', (done) => {
       const chunks = [];
       const perMessageDeflate = new PerMessageDeflate({ threshold: 3 });
       const mockSocket = new MockSocket({
@@ -116,7 +116,7 @@ describe('Sender', function() {
       sender.send('12', { compress: true, fin: true });
     });
 
-    it('compresses no frames in a fragmented message', function(done) {
+    it('compresses no frames in a fragmented message', (done) => {
       const chunks = [];
       const perMessageDeflate = new PerMessageDeflate({ threshold: 3 });
       const mockSocket = new MockSocket({
@@ -144,7 +144,7 @@ describe('Sender', function() {
       sender.send('123', { compress: true, fin: true });
     });
 
-    it('compresses empty buffer as first fragment', function(done) {
+    it('compresses empty buffer as first fragment', (done) => {
       const chunks = [];
       const perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
       const mockSocket = new MockSocket({
@@ -172,7 +172,7 @@ describe('Sender', function() {
       sender.send('data', { compress: true, fin: true });
     });
 
-    it('compresses empty buffer as last fragment', function(done) {
+    it('compresses empty buffer as last fragment', (done) => {
       const chunks = [];
       const perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
       const mockSocket = new MockSocket({
@@ -201,8 +201,8 @@ describe('Sender', function() {
     });
   });
 
-  describe('#ping', function() {
-    it('works with multiple types of data', function(done) {
+  describe('#ping', () => {
+    it('works with multiple types of data', (done) => {
       const perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
       let count = 0;
       const mockSocket = new MockSocket({
@@ -233,8 +233,8 @@ describe('Sender', function() {
     });
   });
 
-  describe('#pong', function() {
-    it('works with multiple types of data', function(done) {
+  describe('#pong', () => {
+    it('works with multiple types of data', (done) => {
       const perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
       let count = 0;
       const mockSocket = new MockSocket({
@@ -265,8 +265,8 @@ describe('Sender', function() {
     });
   });
 
-  describe('#close', function() {
-    it('should consume all data before closing', function(done) {
+  describe('#close', () => {
+    it('should consume all data before closing', (done) => {
       const perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
 
       let count = 0;

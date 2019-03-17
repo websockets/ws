@@ -4,20 +4,20 @@ const assert = require('assert');
 
 const extension = require('../lib/extension');
 
-describe('extension', function() {
-  describe('parse', function() {
-    it('returns an empty object if the argument is `undefined`', function() {
+describe('extension', () => {
+  describe('parse', () => {
+    it('returns an empty object if the argument is `undefined`', () => {
       assert.deepStrictEqual(extension.parse(), {});
       assert.deepStrictEqual(extension.parse(''), {});
     });
 
-    it('parses a single extension', function() {
+    it('parses a single extension', () => {
       const extensions = extension.parse('foo');
 
       assert.deepStrictEqual(extensions, { foo: [{}] });
     });
 
-    it('parses params', function() {
+    it('parses params', () => {
       const extensions = extension.parse('foo;bar;baz=1;bar=2');
 
       assert.deepStrictEqual(extensions, {
@@ -25,7 +25,7 @@ describe('extension', function() {
       });
     });
 
-    it('parses multiple extensions', function() {
+    it('parses multiple extensions', () => {
       const extensions = extension.parse('foo,bar;baz,foo;baz');
 
       assert.deepStrictEqual(extensions, {
@@ -34,7 +34,7 @@ describe('extension', function() {
       });
     });
 
-    it('parses quoted params', function() {
+    it('parses quoted params', () => {
       assert.deepStrictEqual(extension.parse('foo;bar="hi"'), {
         foo: [{ bar: ['hi'] }]
       });
@@ -57,7 +57,7 @@ describe('extension', function() {
       );
     });
 
-    it('works with names that match `Object.prototype` property names', function() {
+    it('works with names that match `Object.prototype` property names', () => {
       const parse = extension.parse;
 
       assert.deepStrictEqual(parse('hasOwnProperty, toString'), {
@@ -69,7 +69,7 @@ describe('extension', function() {
       });
     });
 
-    it('ignores the optional white spaces', function() {
+    it('ignores the optional white spaces', () => {
       const header = 'foo; bar\t; \tbaz=1\t ;  bar="1"\t\t, \tqux\t ;norf ';
 
       assert.deepStrictEqual(extension.parse(header), {
@@ -78,7 +78,7 @@ describe('extension', function() {
       });
     });
 
-    it('throws an error if a name is empty', function() {
+    it('throws an error if a name is empty', () => {
       [
         [',', 0],
         ['foo,,', 4],
@@ -99,7 +99,7 @@ describe('extension', function() {
       });
     });
 
-    it('throws an error if a white space is misplaced', function() {
+    it('throws an error if a white space is misplaced', () => {
       [
         ['f oo', 2],
         ['foo;ba r', 7],
@@ -115,7 +115,7 @@ describe('extension', function() {
       });
     });
 
-    it('throws an error if a token contains invalid characters', function() {
+    it('throws an error if a token contains invalid characters', () => {
       [
         ['f@o', 1],
         ['f\\oo', 1],
@@ -141,7 +141,7 @@ describe('extension', function() {
       });
     });
 
-    it('throws an error if the header value ends prematurely', function() {
+    it('throws an error if the header value ends prematurely', () => {
       [
         'foo, ',
         'foo;',
@@ -159,20 +159,20 @@ describe('extension', function() {
     });
   });
 
-  describe('format', function() {
-    it('formats a single extension', function() {
+  describe('format', () => {
+    it('formats a single extension', () => {
       const extensions = extension.format({ foo: {} });
 
       assert.strictEqual(extensions, 'foo');
     });
 
-    it('formats params', function() {
+    it('formats params', () => {
       const extensions = extension.format({ foo: { bar: [true, 2], baz: 1 } });
 
       assert.strictEqual(extensions, 'foo; bar; bar=2; baz=1');
     });
 
-    it('formats multiple extensions', function() {
+    it('formats multiple extensions', () => {
       const extensions = extension.format({
         foo: [{}, { baz: true }],
         bar: { baz: true }
