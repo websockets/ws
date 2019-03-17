@@ -35,7 +35,6 @@ can use one of the many wrappers available on npm, like
   - [Server broadcast](#server-broadcast)
   - [echo.websocket.org demo](#echowebsocketorg-demo)
   - [Other examples](#other-examples)
-- [Error handling best practices](#error-handling-best-practices)
 - [FAQ](#faq)
   - [How to get the IP address of the client?](#how-to-get-the-ip-address-of-the-client)
   - [How to detect and close broken connections?](#how-to-detect-and-close-broken-connections)
@@ -308,30 +307,6 @@ For a full example with a browser client communicating with a ws server, see the
 examples folder.
 
 Otherwise, see the test cases.
-
-## Error handling best practices
-
-```js
-// If the WebSocket is closed before the following send is attempted
-ws.send('something');
-
-// Errors (both immediate and async write errors) can be detected in an optional
-// callback. The callback is also the only way of being notified that data has
-// actually been sent.
-ws.send('something', function ack(error) {
-  // If error is not defined, the send has been completed, otherwise the error
-  // object will indicate what failed.
-});
-
-// Immediate errors can also be handled with `try...catch`, but **note** that
-// since sends are inherently asynchronous, socket write failures will *not* be
-// captured when this technique is used.
-try {
-  ws.send('something');
-} catch (e) {
-  /* handle error */
-}
-```
 
 ## FAQ
 
