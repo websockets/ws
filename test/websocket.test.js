@@ -380,13 +380,14 @@ describe('WebSocket', () => {
     });
 
     it('does not re-emit `net.Socket` errors', (done) => {
+      const codes = ['EPIPE', 'ECONNABORTED', 'ECANCELED', 'ECONNRESET'];
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         ws.on('open', () => {
           ws._socket.on('error', (err) => {
             assert.ok(err instanceof Error);
-            assert.ok(err.message.startsWith('write E'));
+            assert.ok(codes.includes(err.code), `Unexpected code: ${err.code}`);
             ws.on('close', (code, message) => {
               assert.strictEqual(message, '');
               assert.strictEqual(code, 1006);
