@@ -1870,9 +1870,7 @@ describe('WebSocket', () => {
       const ws = new WebSocket(`ws://${auth}@localhost`, { agent });
     });
 
-    it('adds the authorization header if the url has userinfo (2/2)', function(done) {
-      if (!url.URL) return this.skip();
-
+    it('adds the authorization header if the url has userinfo (2/2)', (done) => {
       const agent = new CustomAgent();
       const auth = 'test:testpass';
 
@@ -1884,7 +1882,7 @@ describe('WebSocket', () => {
         done();
       };
 
-      const ws = new WebSocket(new url.URL(`ws://${auth}@localhost`), {
+      const ws = new WebSocket(url.parse(`ws://${auth}@localhost`), {
         agent
       });
     });

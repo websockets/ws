@@ -709,7 +709,7 @@ describe('Receiver', () => {
     );
   });
 
-  it('emits an error if a text frame contains invalid UTF-8 data', (done) => {
+  it('emits an error if a text frame contains invalid UTF-8 data (1/2)', (done) => {
     const receiver = new Receiver();
 
     receiver.on('error', (err) => {
@@ -723,6 +723,33 @@ describe('Receiver', () => {
     });
 
     receiver.write(Buffer.from([0x81, 0x04, 0xce, 0xba, 0xe1, 0xbd]));
+  });
+
+  it('emits an error if a text frame contains invalid UTF-8 data (2/2)', (done) => {
+    const perMessageDeflate = new PerMessageDeflate();
+    perMessageDeflate.accept([{}]);
+
+    const receiver = new Receiver(undefined, {
+      'permessage-deflate': perMessageDeflate
+    });
+    const buf = Buffer.from([0xce, 0xba, 0xe1, 0xbd]);
+
+    receiver.on('error', (err) => {
+      assert.ok(err instanceof Error);
+      assert.strictEqual(
+        err.message,
+        'Invalid WebSocket frame: invalid UTF-8 sequence'
+      );
+      assert.strictEqual(err[kStatusCode], 1007);
+      done();
+    });
+
+    perMessageDeflate.compress(buf, true, (err, data) => {
+      if (err) return done(err);
+
+      receiver.write(Buffer.from([0xc1, data.length]));
+      receiver.write(data);
+    });
   });
 
   it('emits an error if a close frame has a payload of 1 B', (done) => {
