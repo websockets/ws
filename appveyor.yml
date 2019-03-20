@@ -4,12 +4,10 @@ environment:
     - nodejs_version: '10'
     - nodejs_version: '8'
     - nodejs_version: '6'
-matrix:
-  fast_finish: true
 platform:
   - x86
-cache:
-  - node_modules
+matrix:
+  fast_finish: true
 install:
   - ps: Install-Product node $env:nodejs_version $env:platform
   - npm install

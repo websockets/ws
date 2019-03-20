@@ -8,6 +8,5 @@ os:
   - linux
   - osx
   - windows
-cache: npm
 after_success:
   - nyc report --reporter=text-lcov | coveralls
