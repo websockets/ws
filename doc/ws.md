@@ -1,5 +1,52 @@
 # ws
 
+## Summary
+- [WebSocket.Server](#class-websocketserver)
+  - [new WebSocket.Server(...)](#new-websocketserveroptions-callback)
+  - [WebSocket.Server events](#websocketserver-events)
+    - ['close'](#event-close)
+    - ['connection'](#event-connection)
+    - ['error'](#event-error)
+    - ['headers'](#event-headers)
+    - ['listening'](#event-listening)
+  - [WebSocket.Server properties](#websocketserver-properties)
+    - [clients](#serverclients)
+    - [address()](#serveraddress)
+    - [close(...)](#serverclosecallback)
+    - [handleUpgrade(...)](#serverhandleupgraderequest-socket-head-callback)
+    - [shouldHandle(...)](#servershouldhandlerequest)
+- [WebSocket](#class-websocket)
+  - [Ready state constants](#ready-state-constants)
+  - [new WebSocket(...)](#new-websocketaddress-protocols-options)
+    - [UNIX Domain Sockets](#unix-domain-sockets)
+  - [WebSocket events](#websocket-events)
+    - ['close'](#event-close-1)
+    - ['error'](#event-error-1)
+    - ['message'](#event-message)
+    - ['open'](#event-open)
+    - ['ping'](#event-ping)
+    - ['pong'](#event-pong)
+    - ['unexpected-response'](#event-unexpected-response)
+    - ['upgrade'](#event-upgrade)
+  - [WebSocket properties](#websocket-properties)
+    - [addEventListener(...)](#websocketaddeventlistenertype-listener)
+    - [binaryType](#websocketbinarytype)
+    - [bufferedAmount](#websocketbufferedamount)
+    - [close(...)](#websocketclosecode-reason)
+    - [extensions](#websocketextensions)
+    - [onclose](#websocketonclose)
+    - [onerror](#websocketonerror)
+    - [onmessage](#websocketonmessage)
+    - [onopen](#websocketonopen)
+    - [ping(...)](#websocketpingdata-mask-callback)
+    - [pong(...)](#websocketpongdata-mask-callback)
+    - [protocol](#websocketprotocol)
+    - [readyState](#websocketreadystate)
+    - [removeEventListener(...)](#websocketremoveeventlistenertype-listener)
+    - [send(...)](#websocketsenddata-options-callback)
+    - [terminate()](#websocketterminate)
+    - [url](#websocketurl)  
+
 ## Class: WebSocket.Server
 
 This class represents a WebSocket server. It extends the `EventEmitter`.
@@ -96,13 +143,14 @@ message.
 `callback` will be added as a listener for the `listening` event on the HTTP
 server when not operating in "noServer" mode.
 
-### Event: 'close'
+### WebSocket.Server events
+#### Event: 'close'
 
 Emitted when the server closes. This event depends on the `'close'` event of
 HTTP server only when it is created internally. In all other cases, the event is
 emitted independently.
 
-### Event: 'connection'
+#### Event: 'connection'
 
 - `socket` {WebSocket}
 - `request` {http.IncomingMessage}
@@ -111,13 +159,13 @@ Emitted when the handshake is complete. `request` is the http GET request sent
 by the client. Useful for parsing authority headers, cookie headers, and other
 information.
 
-### Event: 'error'
+#### Event: 'error'
 
 - `error` {Error}
 
 Emitted when an error occurs on the underlying server.
 
-### Event: 'headers'
+#### Event: 'headers'
 
 - `headers` {Array}
 - `request` {http.IncomingMessage}
@@ -125,31 +173,32 @@ Emitted when an error occurs on the underlying server.
 Emitted before the response headers are written to the socket as part of the
 handshake. This allows you to inspect/modify the headers before they are sent.
 
-### Event: 'listening'
+#### Event: 'listening'
 
 Emitted when the underlying server has been bound.
 
-### server.clients
+### WebSocket.Server properties
+#### server.clients
 
 - {Set}
 
 A set that stores all connected clients. Please note that this property is only
 added when the `clientTracking` is truthy.
 
-### server.address()
+#### server.address()
 
 Returns an object with `port`, `family`, and `address` properties specifying the
 bound address, the address family name, and port of the server as reported by
 the operating system if listening on an IP socket. If the server is listening on
 a pipe or UNIX domain socket, the name is returned as a string.
 
-### server.close([callback])
+#### server.close([callback])
 
 Close the HTTP server if created internally, terminate all clients and call
 callback when done. If an external HTTP server is used via the `server` or
 `noServer` constructor options, it must be closed manually.
 
-### server.handleUpgrade(request, socket, head, callback)
+#### server.handleUpgrade(request, socket, head, callback)
 
 - `request` {http.IncomingMessage} The client HTTP GET request.
 - `socket` {net.Socket} The network socket between the server and client.
@@ -164,7 +213,7 @@ manually.
 If the upgrade is successful, the `callback` is called with a `WebSocket` object
 as parameter.
 
-### server.shouldHandle(request)
+#### server.shouldHandle(request)
 
 - `request` {http.IncomingMessage} The client HTTP GET request.
 
@@ -231,7 +280,8 @@ ws+unix:///absolute/path/to/uds_socket
 
 it defaults to `/`.
 
-### Event: 'close'
+### WebSocket events
+#### Event: 'close'
 
 - `code` {Number}
 - `reason` {String}
@@ -240,35 +290,35 @@ Emitted when the connection is closed. `code` is a numeric value indicating the
 status code explaining why the connection has been closed. `reason` is a
 human-readable string explaining why the connection has been closed.
 
-### Event: 'error'
+#### Event: 'error'
 
 - `error` {Error}
 
 Emitted when an error occurs.
 
-### Event: 'message'
+#### Event: 'message'
 
 - `data` {String|Buffer|ArrayBuffer|Buffer[]}
 
 Emitted when a message is received from the server.
 
-### Event: 'open'
+#### Event: 'open'
 
 Emitted when the connection is established.
 
-### Event: 'ping'
+#### Event: 'ping'
 
 - `data` {Buffer}
 
 Emitted when a ping is received from the server.
 
-### Event: 'pong'
+#### Event: 'pong'
 
 - `data` {Buffer}
 
 Emitted when a pong is received from the server.
 
-### Event: 'unexpected-response'
+#### Event: 'unexpected-response'
 
 - `request` {http.ClientRequest}
 - `response` {http.IncomingMessage}
@@ -278,7 +328,7 @@ response. This event gives the ability to read the response in order to extract
 useful information. If the server sends an invalid response and there isn't a
 listener for this event, an error is emitted.
 
-### Event: 'upgrade'
+#### Event: 'upgrade'
 
 - `response` {http.IncomingMessage}
 
@@ -286,14 +336,15 @@ Emitted when response headers are received from the server as part of the
 handshake. This allows you to read headers from the server, for example
 'set-cookie' headers.
 
-### websocket.addEventListener(type, listener)
+### WebSocket properties
+#### websocket.addEventListener(type, listener)
 
 - `type` {String} A string representing the event type to listen for.
 - `listener` {Function} The listener to add.
 
 Register an event listener emulating the `EventTarget` interface.
 
-### websocket.binaryType
+#### websocket.binaryType
 
 - {String}
 
@@ -303,14 +354,14 @@ This should be one of "nodebuffer", "arraybuffer" or "fragments". Defaults to
 the sender, without copyfull concatenation, which is useful for the performance
 of binary protocols transferring large messages with multiple fragments.
 
-### websocket.bufferedAmount
+#### websocket.bufferedAmount
 
 - {Number}
 
 The number of bytes of data that have been queued using calls to `send()` but
 not yet transmitted to the network.
 
-### websocket.close([code[, reason]])
+#### websocket.close([code[, reason]])
 
 - `code` {Number} A numeric value indicating the status code explaining why the
   connection is being closed.
@@ -319,41 +370,41 @@ not yet transmitted to the network.
 
 Initiate a closing handshake.
 
-### websocket.extensions
+#### websocket.extensions
 
 - {Object}
 
 An object containing the negotiated extensions.
 
-### websocket.onclose
+#### websocket.onclose
 
 - {Function}
 
 An event listener to be called when connection is closed. The listener receives
 a `CloseEvent` named "close".
 
-### websocket.onerror
+#### websocket.onerror
 
 - {Function}
 
 An event listener to be called when an error occurs. The listener receives an
 `ErrorEvent` named "error".
 
-### websocket.onmessage
+#### websocket.onmessage
 
 - {Function}
 
 An event listener to be called when a message is received from the server. The
 listener receives a `MessageEvent` named "message".
 
-### websocket.onopen
+#### websocket.onopen
 
 - {Function}
 
 An event listener to be called when the connection is established. The listener
 receives an `OpenEvent` named "open".
 
-### websocket.ping([data[, mask]][, callback])
+#### websocket.ping([data[, mask]][, callback])
 
 - `data` {Any} The data to send in the ping frame.
 - `mask` {Boolean} Specifies whether `data` should be masked or not. Defaults to
@@ -363,7 +414,7 @@ receives an `OpenEvent` named "open".
 
 Send a ping.
 
-### websocket.pong([data[, mask]][, callback])
+#### websocket.pong([data[, mask]][, callback])
 
 - `data` {Any} The data to send in the pong frame.
 - `mask` {Boolean} Specifies whether `data` should be masked or not. Defaults to
@@ -373,26 +424,26 @@ Send a ping.
 
 Send a pong.
 
-### websocket.protocol
+#### websocket.protocol
 
 - {String}
 
 The subprotocol selected by the server.
 
-### websocket.readyState
+#### websocket.readyState
 
 - {Number}
 
 The current state of the connection. This is one of the ready state constants.
 
-### websocket.removeEventListener(type, listener)
+#### websocket.removeEventListener(type, listener)
 
 - `type` {String} A string representing the event type to remove.
 - `listener` {Function} The listener to remove.
 
 Removes an event listener emulating the `EventTarget` interface.
 
-### websocket.send(data[, options][, callback])
+#### websocket.send(data[, options][, callback])
 
 - `data` {Any} The data to send.
 - `options` {Object}
@@ -409,11 +460,11 @@ Removes an event listener emulating the `EventTarget` interface.
 
 Send `data` through the connection.
 
-### websocket.terminate()
+#### websocket.terminate()
 
 Forcibly close the connection.
 
-### websocket.url
+#### websocket.url
 
 - {String}
 
