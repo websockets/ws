@@ -1305,27 +1305,6 @@ describe('WebSocket', () => {
       });
     });
 
-    it('ends connection to the server', (done) => {
-      const wss = new WebSocket.Server(
-        {
-          clientTracking: false,
-          port: 0
-        },
-        () => {
-          const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
-
-          ws.on('open', () => {
-            ws.on('close', (code, reason) => {
-              assert.strictEqual(reason, 'some reason');
-              assert.strictEqual(code, 1000);
-              wss.close(done);
-            });
-            ws.close(1000, 'some reason');
-          });
-        }
-      );
-    });
-
     it('permits all buffered data to be delivered', (done) => {
       const wss = new WebSocket.Server(
         {
@@ -1382,6 +1361,37 @@ describe('WebSocket', () => {
       });
 
       wss.on('connection', (ws) => ws.close());
+    });
+
+    it('sets a timer for the closing handshake to complete', (done) => {
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+
+        ws.on('close', (code, reason) => {
+          assert.strictEqual(code, 1000);
+          assert.strictEqual(reason, 'some reason');
+          wss.close(done);
+        });
+
+        ws.on('open', () => {
+          let callbackCalled = false;
+
+          assert.strictEqual(ws._closeTimer, null);
+
+          ws.send('foo', () => {
+            callbackCalled = true;
+          });
+
+          ws.close(1000, 'some reason');
+
+          //
+          // Check that the close timer is set even if the `Sender.close()`
+          // callback is not called.
+          //
+          assert.strictEqual(callbackCalled, false);
+          assert.strictEqual(ws._closeTimer._idleTimeout, 30000);
+        });
+      });
     });
   });
 
