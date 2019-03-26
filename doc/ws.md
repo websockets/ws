@@ -1,6 +1,7 @@
 # ws
 
-## Summary
+## Table of Contents
+
 - [Class: WebSocket.Server](#class-websocketserver)
   - [new WebSocket.Server(options[, callback])](#new-websocketserveroptions-callback)
   - [Event: 'close'](#event-close)
@@ -8,8 +9,8 @@
   - [Event: 'error'](#event-error)
   - [Event: 'headers'](#event-headers)
   - [Event: 'listening'](#event-listening)
-  - [server.clients](#serverclients)
   - [server.address()](#serveraddress)
+  - [server.clients](#serverclients)
   - [server.close([callback])](#serverclosecallback)
   - [server.handleUpgrade(request, socket, head, callback)](#serverhandleupgraderequest-socket-head-callback)
   - [server.shouldHandle(request)](#servershouldhandlerequest)
@@ -41,7 +42,7 @@
   - [websocket.removeEventListener(type, listener)](#websocketremoveeventlistenertype-listener)
   - [websocket.send(data[, options][, callback])](#websocketsenddata-options-callback)
   - [websocket.terminate()](#websocketterminate)
-  - [websocket.url](#websocketurl)  
+  - [websocket.url](#websocketurl)
 
 ## Class: WebSocket.Server
 
@@ -172,19 +173,19 @@ handshake. This allows you to inspect/modify the headers before they are sent.
 
 Emitted when the underlying server has been bound.
 
-### server.clients
-
-- {Set}
-
-A set that stores all connected clients. Please note that this property is only
-added when the `clientTracking` is truthy.
-
 ### server.address()
 
 Returns an object with `port`, `family`, and `address` properties specifying the
 bound address, the address family name, and port of the server as reported by
 the operating system if listening on an IP socket. If the server is listening on
 a pipe or UNIX domain socket, the name is returned as a string.
+
+### server.clients
+
+- {Set}
+
+A set that stores all connected clients. Please note that this property is only
+added when the `clientTracking` is truthy.
 
 ### server.close([callback])
 
