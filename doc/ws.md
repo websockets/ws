@@ -1,5 +1,49 @@
 # ws
 
+## Table of Contents
+
+- [Class: WebSocket.Server](#class-websocketserver)
+  - [new WebSocket.Server(options[, callback])](#new-websocketserveroptions-callback)
+  - [Event: 'close'](#event-close)
+  - [Event: 'connection'](#event-connection)
+  - [Event: 'error'](#event-error)
+  - [Event: 'headers'](#event-headers)
+  - [Event: 'listening'](#event-listening)
+  - [server.address()](#serveraddress)
+  - [server.clients](#serverclients)
+  - [server.close([callback])](#serverclosecallback)
+  - [server.handleUpgrade(request, socket, head, callback)](#serverhandleupgraderequest-socket-head-callback)
+  - [server.shouldHandle(request)](#servershouldhandlerequest)
+- [Class: WebSocket](#class-websocket)
+  - [Ready state constants](#ready-state-constants)
+  - [new WebSocket(address[, protocols][, options])](#new-websocketaddress-protocols-options)
+    - [UNIX Domain Sockets](#unix-domain-sockets)
+  - [Event: 'close'](#event-close-1)
+  - [Event: 'error'](#event-error-1)
+  - [Event: 'message'](#event-message)
+  - [Event: 'open'](#event-open)
+  - [Event: 'ping'](#event-ping)
+  - [Event: 'pong'](#event-pong)
+  - [Event: 'unexpected-response'](#event-unexpected-response)
+  - [Event: 'upgrade'](#event-upgrade)
+  - [websocket.addEventListener(type, listener)](#websocketaddeventlistenertype-listener)
+  - [websocket.binaryType](#websocketbinarytype)
+  - [websocket.bufferedAmount](#websocketbufferedamount)
+  - [websocket.close([code[, reason]])](#websocketclosecode-reason)
+  - [websocket.extensions](#websocketextensions)
+  - [websocket.onclose](#websocketonclose)
+  - [websocket.onerror](#websocketonerror)
+  - [websocket.onmessage](#websocketonmessage)
+  - [websocket.onopen](#websocketonopen)
+  - [websocket.ping([data[, mask]][, callback])](#websocketpingdata-mask-callback)
+  - [websocket.pong([data[, mask]][, callback])](#websocketpongdata-mask-callback)
+  - [websocket.protocol](#websocketprotocol)
+  - [websocket.readyState](#websocketreadystate)
+  - [websocket.removeEventListener(type, listener)](#websocketremoveeventlistenertype-listener)
+  - [websocket.send(data[, options][, callback])](#websocketsenddata-options-callback)
+  - [websocket.terminate()](#websocketterminate)
+  - [websocket.url](#websocketurl)
+
 ## Class: WebSocket.Server
 
 This class represents a WebSocket server. It extends the `EventEmitter`.
@@ -129,19 +173,19 @@ handshake. This allows you to inspect/modify the headers before they are sent.
 
 Emitted when the underlying server has been bound.
 
-### server.clients
-
-- {Set}
-
-A set that stores all connected clients. Please note that this property is only
-added when the `clientTracking` is truthy.
-
 ### server.address()
 
 Returns an object with `port`, `family`, and `address` properties specifying the
 bound address, the address family name, and port of the server as reported by
 the operating system if listening on an IP socket. If the server is listening on
 a pipe or UNIX domain socket, the name is returned as a string.
+
+### server.clients
+
+- {Set}
+
+A set that stores all connected clients. Please note that this property is only
+added when the `clientTracking` is truthy.
 
 ### server.close([callback])
 
