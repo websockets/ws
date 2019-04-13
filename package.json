@@ -39,7 +39,7 @@
     "eslint-plugin-prettier": "~3.0.0",
     "mocha": "~6.1.0",
     "nyc": "~13.3.0",
-    "prettier": "~1.16.1",
+    "prettier": "~1.17.0",
     "utf-8-validate": "~5.0.0"
   }
 }
