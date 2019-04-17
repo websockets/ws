@@ -46,9 +46,6 @@
     "commitMessages": {
       "dependencyUpdate": "[pkg] Update ${dependency} to version ${version}",
       "devDependencyUpdate": "[pkg] Update ${dependency} to version ${version}"
-    },
-    "lockfiles": {
-      "outOfRangeUpdatesOnly": true
     }
   }
 }
