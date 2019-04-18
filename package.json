@@ -28,19 +28,19 @@
     "lint": "eslint --ignore-path .gitignore . && prettier --check --ignore-path .gitignore \"**/*.{json,md,yaml,yml}\""
   },
   "dependencies": {
-    "async-limiter": "~1.0.0"
+    "async-limiter": "^1.0.0"
   },
   "devDependencies": {
-    "benchmark": "~2.1.4",
-    "bufferutil": "~4.0.1",
-    "coveralls": "~3.0.3",
-    "eslint": "~5.16.0",
-    "eslint-config-prettier": "~4.1.0",
-    "eslint-plugin-prettier": "~3.0.1",
-    "mocha": "~6.1.3",
-    "nyc": "~14.0.0",
-    "prettier": "~1.17.0",
-    "utf-8-validate": "~5.0.2"
+    "benchmark": "^2.1.4",
+    "bufferutil": "^4.0.1",
+    "coveralls": "^3.0.3",
+    "eslint": "^5.16.0",
+    "eslint-config-prettier": "^4.1.0",
+    "eslint-plugin-prettier": "^3.0.1",
+    "mocha": "^6.1.3",
+    "nyc": "^14.0.0",
+    "prettier": "^1.17.0",
+    "utf-8-validate": "^5.0.2"
   },
   "greenkeeper": {
     "commitMessages": {
