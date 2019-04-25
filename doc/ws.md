@@ -234,7 +234,7 @@ This class represents a WebSocket. It extends the `EventEmitter`.
 
 ### new WebSocket(address[, protocols][, options])
 
-- `address` {String|url.Url|url.URL} The URL to which to connect.
+- `address` {String|url.URL} The URL to which to connect.
 - `protocols` {String|Array} The list of subprotocols.
 - `options` {Object}
   - `followRedirects` {Boolean} Whether or not to follow redirects. Defaults to

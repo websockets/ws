@@ -6,8 +6,8 @@ const assert = require('assert');
 const crypto = require('crypto');
 const https = require('https');
 const http = require('http');
-const url = require('url');
 const fs = require('fs');
+const { URL } = require('url');
 
 const WebSocket = require('..');
 const { GUID, NOOP } = require('../lib/constants');
@@ -25,17 +25,6 @@ describe('WebSocket', () => {
       );
     });
 
-    it('accepts `url.Url` objects as url', (done) => {
-      const agent = new CustomAgent();
-
-      agent.addRequest = (req) => {
-        assert.strictEqual(req.path, '/');
-        done();
-      };
-
-      const ws = new WebSocket(url.parse('ws://localhost'), { agent });
-    });
-
     it('accepts `url.URL` objects as url', function(done) {
       const agent = new CustomAgent();
 
@@ -45,7 +34,7 @@ describe('WebSocket', () => {
         done();
       };
 
-      const ws = new WebSocket(new url.URL('ws://[::1]'), { agent });
+      const ws = new WebSocket(new URL('ws://[::1]'), { agent });
     });
 
     describe('options', () => {
@@ -2054,7 +2043,7 @@ describe('WebSocket', () => {
   });
 
   describe('Request headers', () => {
-    it('adds the authorization header if the url has userinfo (1/2)', (done) => {
+    it('adds the authorization header if the url has userinfo', (done) => {
       const agent = new CustomAgent();
       const auth = 'test:testpass';
 
@@ -2067,23 +2056,6 @@ describe('WebSocket', () => {
       };
 
       const ws = new WebSocket(`ws://${auth}@localhost`, { agent });
-    });
-
-    it('adds the authorization header if the url has userinfo (2/2)', (done) => {
-      const agent = new CustomAgent();
-      const auth = 'test:testpass';
-
-      agent.addRequest = (req) => {
-        assert.strictEqual(
-          req._headers.authorization,
-          `Basic ${Buffer.from(auth).toString('base64')}`
-        );
-        done();
-      };
-
-      const ws = new WebSocket(url.parse(`ws://${auth}@localhost`), {
-        agent
-      });
     });
 
     it('adds custom headers', (done) => {
