@@ -12,5 +12,6 @@ plugins:
   - prettier
 rules:
   no-console: off
+  no-var: error
   prefer-const: error
   prettier/prettier: error

@@ -1,4 +1,3 @@
-/* global WebSocket */
 function Uploader(url, cb) {
   this.ws = new WebSocket(url);
   if (cb) this.ws.onopen = cb;
@@ -6,10 +5,10 @@ function Uploader(url, cb) {
   this.sending = null;
   this.sendCallback = null;
   this.ondone = null;
-  var self = this;
+  const self = this;
   this.ws.onmessage = function(event) {
-    var data = JSON.parse(event.data);
-    var callback;
+    const data = JSON.parse(event.data);
+    let callback;
     if (data.event === 'complete') {
       if (data.path !== self.sending.path) {
         self.sendQueue = [];
@@ -23,7 +22,7 @@ function Uploader(url, cb) {
       if (callback) callback();
       if (self.sendQueue.length === 0 && self.ondone) self.ondone(null);
       if (self.sendQueue.length > 0) {
-        var args = self.sendQueue.pop();
+        const args = self.sendQueue.pop();
         setTimeout(function() {
           self.sendFile.apply(self, args);
         }, 0);
@@ -33,7 +32,9 @@ function Uploader(url, cb) {
       self.sending = null;
       callback = self.sendCallback;
       self.sendCallback = null;
-      var error = new Error('Server reported send error for file ' + data.path);
+      const error = new Error(
+        'Server reported send error for file ' + data.path
+      );
       if (callback) callback(error);
       if (self.ondone) self.ondone(error);
     }
@@ -46,7 +47,7 @@ Uploader.prototype.sendFile = function(file, cb) {
     this.sendQueue.push(arguments);
     return;
   }
-  var fileData = { name: file.name, path: file.webkitRelativePath };
+  const fileData = { name: file.name, path: file.webkitRelativePath };
   this.sending = fileData;
   this.sendCallback = cb;
   this.ws.send(JSON.stringify(fileData));

@@ -1,14 +1,14 @@
-var WebSocketServer = require('../../').Server;
-var express = require('express');
-var path = require('path');
-var app = express();
-var server = require('http').createServer();
+const WebSocketServer = require('../../').Server;
+const express = require('express');
+const path = require('path');
+const app = express();
+const server = require('http').createServer();
 
 app.use(express.static(path.join(__dirname, '/public')));
 
-var wss = new WebSocketServer({ server: server });
+const wss = new WebSocketServer({ server: server });
 wss.on('connection', function(ws) {
-  var id = setInterval(function() {
+  const id = setInterval(function() {
     ws.send(JSON.stringify(process.memoryUsage()), function() {
       /* ignore errors */
     });
