@@ -25,7 +25,7 @@ const sessionParser = session({
 app.use(express.static('public'));
 app.use(sessionParser);
 
-app.post('/login', (req, res) => {
+app.post('/login', function(req, res) {
   //
   // "Log in" user and set userId to session.
   //
@@ -36,10 +36,11 @@ app.post('/login', (req, res) => {
   res.send({ result: 'OK', message: 'Session updated' });
 });
 
-app.delete('/logout', (request, response) => {
+app.delete('/logout', function(request, response) {
   console.log('Destroying session');
-  request.session.destroy();
-  response.send({ result: 'OK', message: 'Session destroyed' });
+  request.session.destroy(function() {
+    response.send({ result: 'OK', message: 'Session destroyed' });
+  });
 });
 
 //
@@ -48,7 +49,7 @@ app.delete('/logout', (request, response) => {
 const server = http.createServer(app);
 
 const wss = new WebSocket.Server({
-  verifyClient: (info, done) => {
+  verifyClient: function(info, done) {
     console.log('Parsing session from request...');
     sessionParser(info.req, {}, () => {
       console.log('Session is parsed!');
@@ -63,16 +64,18 @@ const wss = new WebSocket.Server({
   server
 });
 
-wss.on('connection', (ws, req) => {
-  ws.on('message', (message) => {
+wss.on('connection', function(ws, request) {
+  ws.on('message', function(message) {
     //
     // Here we can now use session parameters.
     //
-    console.log(`WS message ${message} from user ${req.session.userId}`);
+    console.log(`WS message ${message} from user ${request.session.userId}`);
   });
 });
 
 //
 // Start the server.
 //
-server.listen(8080, () => console.log('Listening on http://localhost:8080'));
+server.listen(8080, function() {
+  console.log('Listening on http://localhost:8080');
+});
