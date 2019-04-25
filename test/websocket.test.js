@@ -10,7 +10,7 @@ const url = require('url');
 const fs = require('fs');
 
 const WebSocket = require('..');
-const { GUID } = require('../lib/constants');
+const { GUID, NOOP } = require('../lib/constants');
 
 class CustomAgent extends http.Agent {
   addRequest() {}
@@ -647,7 +647,7 @@ describe('WebSocket', () => {
 
     it('fails if server sends no subprotocol', (done) => {
       const wss = new WebSocket.Server({
-        handleProtocols: () => {},
+        handleProtocols() {},
         server
       });
 
@@ -690,7 +690,7 @@ describe('WebSocket', () => {
       server.once('upgrade', (req, socket) => {
         socket.end('HTTP/1.1 302 Found\r\nLocation: /foo\r\n\r\n');
         server.once('upgrade', (req, socket, head) => {
-          wss.handleUpgrade(req, socket, head, () => {});
+          wss.handleUpgrade(req, socket, head, NOOP);
         });
       });
 
@@ -752,9 +752,9 @@ describe('WebSocket', () => {
   });
 
   describe('#ping', () => {
-    it('throws an error if `readyState` is not `OPEN`', (done) => {
+    it('throws an error if `readyState` is `CONNECTING`', () => {
       const ws = new WebSocket('ws://localhost', {
-        agent: new CustomAgent()
+        lookup() {}
       });
 
       assert.throws(
@@ -762,13 +762,80 @@ describe('WebSocket', () => {
         /^Error: WebSocket is not open: readyState 0 \(CONNECTING\)$/
       );
 
-      ws.ping((err) => {
+      assert.throws(
+        () => ws.ping(NOOP),
+        /^Error: WebSocket is not open: readyState 0 \(CONNECTING\)$/
+      );
+    });
+
+    it('increases `bufferedAmount` if `readyState` is 2 or 3', (done) => {
+      const ws = new WebSocket('ws://localhost', {
+        lookup() {}
+      });
+
+      ws.on('error', (err) => {
         assert.ok(err instanceof Error);
         assert.strictEqual(
           err.message,
-          'WebSocket is not open: readyState 0 (CONNECTING)'
+          'WebSocket was closed before the connection was established'
         );
-        done();
+
+        assert.strictEqual(ws.readyState, WebSocket.CLOSING);
+        assert.strictEqual(ws.bufferedAmount, 0);
+
+        ws.ping('hi');
+        assert.strictEqual(ws.bufferedAmount, 2);
+
+        ws.ping();
+        assert.strictEqual(ws.bufferedAmount, 2);
+
+        ws.on('close', () => {
+          assert.strictEqual(ws.readyState, WebSocket.CLOSED);
+
+          ws.ping('hi');
+          assert.strictEqual(ws.bufferedAmount, 4);
+
+          ws.ping();
+          assert.strictEqual(ws.bufferedAmount, 4);
+
+          done();
+        });
+      });
+
+      ws.close();
+    });
+
+    it('calls the callback w/ an error if `readyState` is 2 or 3', (done) => {
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+      });
+
+      wss.on('connection', (ws) => {
+        ws.close();
+
+        assert.strictEqual(ws.bufferedAmount, 0);
+
+        ws.ping('hi', (err) => {
+          assert.ok(err instanceof Error);
+          assert.strictEqual(
+            err.message,
+            'WebSocket is not open: readyState 2 (CLOSING)'
+          );
+          assert.strictEqual(ws.bufferedAmount, 2);
+
+          ws.on('close', () => {
+            ws.ping((err) => {
+              assert.ok(err instanceof Error);
+              assert.strictEqual(
+                err.message,
+                'WebSocket is not open: readyState 3 (CLOSED)'
+              );
+              assert.strictEqual(ws.bufferedAmount, 2);
+
+              wss.close(done);
+            });
+          });
+        });
       });
     });
 
@@ -826,9 +893,9 @@ describe('WebSocket', () => {
   });
 
   describe('#pong', () => {
-    it('throws an error if `readyState` is not `OPEN`', (done) => {
+    it('throws an error if `readyState` is `CONNECTING`', () => {
       const ws = new WebSocket('ws://localhost', {
-        agent: new CustomAgent()
+        lookup() {}
       });
 
       assert.throws(
@@ -836,13 +903,80 @@ describe('WebSocket', () => {
         /^Error: WebSocket is not open: readyState 0 \(CONNECTING\)$/
       );
 
-      ws.pong((err) => {
+      assert.throws(
+        () => ws.pong(NOOP),
+        /^Error: WebSocket is not open: readyState 0 \(CONNECTING\)$/
+      );
+    });
+
+    it('increases `bufferedAmount` if `readyState` is 2 or 3', (done) => {
+      const ws = new WebSocket('ws://localhost', {
+        lookup() {}
+      });
+
+      ws.on('error', (err) => {
         assert.ok(err instanceof Error);
         assert.strictEqual(
           err.message,
-          'WebSocket is not open: readyState 0 (CONNECTING)'
+          'WebSocket was closed before the connection was established'
         );
-        done();
+
+        assert.strictEqual(ws.readyState, WebSocket.CLOSING);
+        assert.strictEqual(ws.bufferedAmount, 0);
+
+        ws.pong('hi');
+        assert.strictEqual(ws.bufferedAmount, 2);
+
+        ws.pong();
+        assert.strictEqual(ws.bufferedAmount, 2);
+
+        ws.on('close', () => {
+          assert.strictEqual(ws.readyState, WebSocket.CLOSED);
+
+          ws.pong('hi');
+          assert.strictEqual(ws.bufferedAmount, 4);
+
+          ws.pong();
+          assert.strictEqual(ws.bufferedAmount, 4);
+
+          done();
+        });
+      });
+
+      ws.close();
+    });
+
+    it('calls the callback w/ an error if `readyState` is 2 or 3', (done) => {
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+      });
+
+      wss.on('connection', (ws) => {
+        ws.close();
+
+        assert.strictEqual(ws.bufferedAmount, 0);
+
+        ws.pong('hi', (err) => {
+          assert.ok(err instanceof Error);
+          assert.strictEqual(
+            err.message,
+            'WebSocket is not open: readyState 2 (CLOSING)'
+          );
+          assert.strictEqual(ws.bufferedAmount, 2);
+
+          ws.on('close', () => {
+            ws.pong((err) => {
+              assert.ok(err instanceof Error);
+              assert.strictEqual(
+                err.message,
+                'WebSocket is not open: readyState 3 (CLOSED)'
+              );
+              assert.strictEqual(ws.bufferedAmount, 2);
+
+              wss.close(done);
+            });
+          });
+        });
       });
     });
 
@@ -900,6 +1034,93 @@ describe('WebSocket', () => {
   });
 
   describe('#send', () => {
+    it('throws an error if `readyState` is `CONNECTING`', () => {
+      const ws = new WebSocket('ws://localhost', {
+        lookup() {}
+      });
+
+      assert.throws(
+        () => ws.send('hi'),
+        /^Error: WebSocket is not open: readyState 0 \(CONNECTING\)$/
+      );
+
+      assert.throws(
+        () => ws.send('hi', NOOP),
+        /^Error: WebSocket is not open: readyState 0 \(CONNECTING\)$/
+      );
+    });
+
+    it('increases `bufferedAmount` if `readyState` is 2 or 3', (done) => {
+      const ws = new WebSocket('ws://localhost', {
+        lookup() {}
+      });
+
+      ws.on('error', (err) => {
+        assert.ok(err instanceof Error);
+        assert.strictEqual(
+          err.message,
+          'WebSocket was closed before the connection was established'
+        );
+
+        assert.strictEqual(ws.readyState, WebSocket.CLOSING);
+        assert.strictEqual(ws.bufferedAmount, 0);
+
+        ws.send('hi');
+        assert.strictEqual(ws.bufferedAmount, 2);
+
+        ws.send();
+        assert.strictEqual(ws.bufferedAmount, 2);
+
+        ws.on('close', () => {
+          assert.strictEqual(ws.readyState, WebSocket.CLOSED);
+
+          ws.send('hi');
+          assert.strictEqual(ws.bufferedAmount, 4);
+
+          ws.send();
+          assert.strictEqual(ws.bufferedAmount, 4);
+
+          done();
+        });
+      });
+
+      ws.close();
+    });
+
+    it('calls the callback w/ an error if `readyState` is 2 or 3', (done) => {
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+      });
+
+      wss.on('connection', (ws) => {
+        ws.close();
+
+        assert.strictEqual(ws.bufferedAmount, 0);
+
+        ws.send('hi', (err) => {
+          assert.ok(err instanceof Error);
+          assert.strictEqual(
+            err.message,
+            'WebSocket is not open: readyState 2 (CLOSING)'
+          );
+          assert.strictEqual(ws.bufferedAmount, 2);
+
+          ws.on('close', () => {
+            ws.send('hi', (err) => {
+              assert.ok(err instanceof Error);
+              assert.strictEqual(
+                err.message,
+                'WebSocket is not open: readyState 3 (CLOSED)'
+              );
+              assert.strictEqual(ws.bufferedAmount, 4);
+
+              wss.close(done);
+            });
+          });
+        });
+      });
+    });
+
     it('can send a big binary message', (done) => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const array = new Float32Array(5 * 1024 * 1024);
@@ -1056,32 +1277,7 @@ describe('WebSocket', () => {
       });
     });
 
-    it('throws an error if `readyState` is not `OPEN`', () => {
-      const ws = new WebSocket('ws://localhost', {
-        agent: new CustomAgent()
-      });
-
-      assert.throws(
-        () => ws.send('hi'),
-        /^Error: WebSocket is not open: readyState 0 \(CONNECTING\)$/
-      );
-    });
-
-    it('passes errors to the callback, if present', () => {
-      const ws = new WebSocket('ws://localhost', {
-        agent: new CustomAgent()
-      });
-
-      ws.send('hi', (err) => {
-        assert.ok(err instanceof Error);
-        assert.strictEqual(
-          err.message,
-          'WebSocket is not open: readyState 0 (CONNECTING)'
-        );
-      });
-    });
-
-    it('calls the optional callback when data is written out', (done) => {
+    it('calls the callback when data is written out', (done) => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
@@ -1483,7 +1679,6 @@ describe('WebSocket', () => {
 
   describe('WHATWG API emulation', () => {
     it('supports the `on{close,error,message,open}` attributes', () => {
-      const listener = () => {};
       const ws = new WebSocket('ws://localhost', { agent: new CustomAgent() });
 
       assert.strictEqual(ws.onmessage, undefined);
@@ -1491,15 +1686,15 @@ describe('WebSocket', () => {
       assert.strictEqual(ws.onerror, undefined);
       assert.strictEqual(ws.onopen, undefined);
 
-      ws.onmessage = listener;
-      ws.onerror = listener;
-      ws.onclose = listener;
-      ws.onopen = listener;
+      ws.onmessage = NOOP;
+      ws.onerror = NOOP;
+      ws.onclose = NOOP;
+      ws.onopen = NOOP;
 
-      assert.strictEqual(ws.onmessage, listener);
-      assert.strictEqual(ws.onclose, listener);
-      assert.strictEqual(ws.onerror, listener);
-      assert.strictEqual(ws.onopen, listener);
+      assert.strictEqual(ws.onmessage, NOOP);
+      assert.strictEqual(ws.onclose, NOOP);
+      assert.strictEqual(ws.onerror, NOOP);
+      assert.strictEqual(ws.onopen, NOOP);
     });
 
     it('works like the `EventEmitter` interface', (done) => {
@@ -1526,43 +1721,40 @@ describe('WebSocket', () => {
     });
 
     it("doesn't return listeners added with `on`", () => {
-      const listener = () => {};
       const ws = new WebSocket('ws://localhost', { agent: new CustomAgent() });
 
-      ws.on('open', listener);
+      ws.on('open', NOOP);
 
-      assert.deepStrictEqual(ws.listeners('open'), [listener]);
+      assert.deepStrictEqual(ws.listeners('open'), [NOOP]);
       assert.strictEqual(ws.onopen, undefined);
     });
 
     it("doesn't remove listeners added with `on`", () => {
-      const listener = () => {};
       const ws = new WebSocket('ws://localhost', { agent: new CustomAgent() });
 
-      ws.on('close', listener);
-      ws.onclose = listener;
+      ws.on('close', NOOP);
+      ws.onclose = NOOP;
 
       let listeners = ws.listeners('close');
 
       assert.strictEqual(listeners.length, 2);
-      assert.strictEqual(listeners[0], listener);
-      assert.strictEqual(listeners[1]._listener, listener);
+      assert.strictEqual(listeners[0], NOOP);
+      assert.strictEqual(listeners[1]._listener, NOOP);
 
-      ws.onclose = listener;
+      ws.onclose = NOOP;
 
       listeners = ws.listeners('close');
 
       assert.strictEqual(listeners.length, 2);
-      assert.strictEqual(listeners[0], listener);
-      assert.strictEqual(listeners[1]._listener, listener);
+      assert.strictEqual(listeners[0], NOOP);
+      assert.strictEqual(listeners[1]._listener, NOOP);
     });
 
     it('adds listeners for custom events with `addEventListener`', () => {
-      const listener = () => {};
       const ws = new WebSocket('ws://localhost', { agent: new CustomAgent() });
 
-      ws.addEventListener('foo', listener);
-      assert.strictEqual(ws.listeners('foo')[0], listener);
+      ws.addEventListener('foo', NOOP);
+      assert.strictEqual(ws.listeners('foo')[0], NOOP);
 
       //
       // Fails silently when the `listener` is not a function.
@@ -1572,24 +1764,23 @@ describe('WebSocket', () => {
     });
 
     it('supports the `removeEventListener` method', () => {
-      const listener = () => {};
       const ws = new WebSocket('ws://localhost', { agent: new CustomAgent() });
 
-      ws.addEventListener('message', listener);
-      ws.addEventListener('open', listener);
-      ws.addEventListener('foo', listener);
+      ws.addEventListener('message', NOOP);
+      ws.addEventListener('open', NOOP);
+      ws.addEventListener('foo', NOOP);
 
-      assert.strictEqual(ws.listeners('message')[0]._listener, listener);
-      assert.strictEqual(ws.listeners('open')[0]._listener, listener);
-      assert.strictEqual(ws.listeners('foo')[0], listener);
+      assert.strictEqual(ws.listeners('message')[0]._listener, NOOP);
+      assert.strictEqual(ws.listeners('open')[0]._listener, NOOP);
+      assert.strictEqual(ws.listeners('foo')[0], NOOP);
 
       ws.removeEventListener('message', () => {});
 
-      assert.strictEqual(ws.listeners('message')[0]._listener, listener);
+      assert.strictEqual(ws.listeners('message')[0]._listener, NOOP);
 
-      ws.removeEventListener('message', listener);
-      ws.removeEventListener('open', listener);
-      ws.removeEventListener('foo', listener);
+      ws.removeEventListener('message', NOOP);
+      ws.removeEventListener('open', NOOP);
+      ws.removeEventListener('foo', NOOP);
 
       assert.strictEqual(ws.listenerCount('message'), 0);
       assert.strictEqual(ws.listenerCount('open'), 0);
