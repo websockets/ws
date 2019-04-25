@@ -37,8 +37,6 @@ describe('WebSocket', () => {
     });
 
     it('accepts `url.URL` objects as url', function(done) {
-      if (!url.URL) return this.skip();
-
       const agent = new CustomAgent();
 
       agent.addRequest = (req, opts) => {
