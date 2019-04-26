@@ -120,7 +120,8 @@ describe('PerMessageDeflate', () => {
             server_no_context_takeover: true,
             client_no_context_takeover: true,
             server_max_window_bits: 10,
-            client_max_window_bits: 11
+            client_max_window_bits: 11,
+            __proto__: null
           }
         );
       });
@@ -145,7 +146,8 @@ describe('PerMessageDeflate', () => {
             server_no_context_takeover: true,
             client_no_context_takeover: true,
             server_max_window_bits: 12,
-            client_max_window_bits: 11
+            client_max_window_bits: 11,
+            __proto__: null
           }
         );
       });
@@ -162,7 +164,8 @@ describe('PerMessageDeflate', () => {
         assert.deepStrictEqual(
           perMessageDeflate.accept(extensions['permessage-deflate']),
           {
-            server_max_window_bits: 11
+            server_max_window_bits: 11,
+            __proto__: null
           }
         );
       });
@@ -259,7 +262,8 @@ describe('PerMessageDeflate', () => {
             server_no_context_takeover: true,
             client_no_context_takeover: true,
             server_max_window_bits: 10,
-            client_max_window_bits: 11
+            client_max_window_bits: 11,
+            __proto__: null
           }
         );
       });
