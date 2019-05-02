@@ -2049,7 +2049,7 @@ describe('WebSocket', () => {
 
       agent.addRequest = (req) => {
         assert.strictEqual(
-          req._headers.authorization,
+          req.getHeader('authorization'),
           `Basic ${Buffer.from(auth).toString('base64')}`
         );
         done();
@@ -2062,7 +2062,7 @@ describe('WebSocket', () => {
       const agent = new CustomAgent();
 
       agent.addRequest = (req) => {
-        assert.strictEqual(req._headers.cookie, 'foo=bar');
+        assert.strictEqual(req.getHeader('cookie'), 'foo=bar');
         done();
       };
 
@@ -2083,7 +2083,7 @@ describe('WebSocket', () => {
 
       for (const [url, host] of variants) {
         const ws = new WebSocket(url, options);
-        assert.strictEqual(ws._req._headers.host, host);
+        assert.strictEqual(ws._req.getHeader('host'), host);
       }
     });
 
@@ -2091,7 +2091,7 @@ describe('WebSocket', () => {
       const agent = new CustomAgent();
 
       agent.addRequest = (req) => {
-        assert.strictEqual(req._headers.origin, undefined);
+        assert.strictEqual(req.getHeader('origin'), undefined);
         done();
       };
 
@@ -2102,7 +2102,7 @@ describe('WebSocket', () => {
       const agent = new CustomAgent();
 
       agent.addRequest = (req) => {
-        assert.strictEqual(req._headers.origin, 'https://example.com:8000');
+        assert.strictEqual(req.getHeader('origin'), 'https://example.com:8000');
         done();
       };
 
@@ -2117,7 +2117,7 @@ describe('WebSocket', () => {
 
       agent.addRequest = (req) => {
         assert.strictEqual(
-          req._headers['sec-websocket-origin'],
+          req.getHeader('sec-websocket-origin'),
           'https://example.com:8000'
         );
         done();
@@ -2137,7 +2137,7 @@ describe('WebSocket', () => {
 
       agent.addRequest = (req) => {
         assert.strictEqual(
-          req._headers['sec-websocket-extensions'],
+          req.getHeader('sec-websocket-extensions'),
           'permessage-deflate; client_max_window_bits'
         );
         done();
@@ -2150,7 +2150,10 @@ describe('WebSocket', () => {
       const agent = new CustomAgent();
 
       agent.addRequest = (req) => {
-        assert.strictEqual(req._headers['sec-websocket-extensions'], undefined);
+        assert.strictEqual(
+          req.getHeader('sec-websocket-extensions'),
+          undefined
+        );
         done();
       };
 
@@ -2169,7 +2172,7 @@ describe('WebSocket', () => {
         ' client_max_window_bits';
 
       agent.addRequest = (req) => {
-        assert.strictEqual(req._headers['sec-websocket-extensions'], value);
+        assert.strictEqual(req.getHeader('sec-websocket-extensions'), value);
         done();
       };
 
