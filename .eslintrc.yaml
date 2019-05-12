@@ -15,3 +15,7 @@ rules:
   no-var: error
   prefer-const: error
   prettier/prettier: error
+  quotes:
+    - error
+    - single
+    - avoidEscape: true
