@@ -214,6 +214,7 @@ server.listen(8080);
 ```js
 const http = require('http');
 const WebSocket = require('ws');
+const url = require('url');
 
 const server = http.createServer();
 const wss1 = new WebSocket.Server({ noServer: true });
