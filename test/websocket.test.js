@@ -1774,6 +1774,13 @@ describe('WebSocket', () => {
       assert.strictEqual(ws.listenerCount('foo'), 0);
     });
 
+    it('has a stub `dispatchEvent` method', () => {
+      const ws = new WebSocket('ws://localhost', { lookup() {} });
+      assert.throws(() => {
+        ws.dispatchEvent({ type: 'close' });
+      }, /^Error: The dispatchEvent\(\) method is not implemented$/);
+    });
+
     it('wraps text data in a `MessageEvent`', (done) => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
