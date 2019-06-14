@@ -6,6 +6,7 @@ const assert = require('assert');
 const crypto = require('crypto');
 const https = require('https');
 const http = require('http');
+const tls = require('tls');
 const fs = require('fs');
 const { URL } = require('url');
 
@@ -2040,6 +2041,29 @@ describe('WebSocket', () => {
         });
       });
     }).timeout(4000);
+
+    describe('tls connect options', () => {
+      const tlsConnect = tls.connect;
+      let tlsConnectOptions;
+
+      beforeEach(() => {
+        tlsConnectOptions = {};
+        tls.connect = (options) => {
+          Object.assign(tlsConnectOptions, options);
+        };
+      });
+
+      afterEach(() => {
+        tls.connect = tlsConnect;
+      });
+
+      it('allows to use empty string to disable sending the SNI extension', () => {
+        const ws = new WebSocket('wss://127.0.0.1', {
+          servername: ''
+        });
+        assert.strictEqual(tlsConnectOptions.servername, '');
+      });
+    });
   });
 
   describe('Request headers', () => {
