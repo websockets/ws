@@ -6,6 +6,7 @@ const assert = require('assert');
 const crypto = require('crypto');
 const https = require('https');
 const http = require('http');
+const tls = require('tls');
 const fs = require('fs');
 const { URL } = require('url');
 
@@ -2040,6 +2041,18 @@ describe('WebSocket', () => {
         });
       });
     }).timeout(4000);
+
+    it('allows to disable sending the SNI extension', (done) => {
+      const original = tls.connect;
+
+      tls.connect = (options) => {
+        assert.strictEqual(options.servername, '');
+        tls.connect = original;
+        done();
+      };
+
+      const ws = new WebSocket('wss://127.0.0.1', { servername: '' });
+    });
   });
 
   describe('Request headers', () => {
