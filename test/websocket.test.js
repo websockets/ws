@@ -2042,27 +2042,16 @@ describe('WebSocket', () => {
       });
     }).timeout(4000);
 
-    describe('tls connect options', () => {
-      const tlsConnect = tls.connect;
-      let tlsConnectOptions;
+    it('allows to disable sending the SNI extension', (done) => {
+      const original = tls.connect;
 
-      beforeEach(() => {
-        tlsConnectOptions = {};
-        tls.connect = (options) => {
-          Object.assign(tlsConnectOptions, options);
-        };
-      });
+      tls.connect = (options) => {
+        assert.strictEqual(options.servername, '');
+        tls.connect = original;
+        done();
+      };
 
-      afterEach(() => {
-        tls.connect = tlsConnect;
-      });
-
-      it('allows to use empty string to disable sending the SNI extension', () => {
-        const ws = new WebSocket('wss://127.0.0.1', {
-          servername: ''
-        });
-        assert.strictEqual(tlsConnectOptions.servername, '');
-      });
+      const ws = new WebSocket('wss://127.0.0.1', { servername: '' });
     });
   });
 
