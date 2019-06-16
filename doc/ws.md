@@ -43,6 +43,7 @@
   - [websocket.send(data[, options][, callback])](#websocketsenddata-options-callback)
   - [websocket.terminate()](#websocketterminate)
   - [websocket.url](#websocketurl)
+- [WebSocket.createWebSocketStream(websocket[, options])](#websocketcreatewebsocketstreamwebsocket-options)
 
 ## Class: WebSocket.Server
 
@@ -463,11 +464,22 @@ Forcibly close the connection.
 
 The URL of the WebSocket server. Server clients don't have this attribute.
 
+## WebSocket.createWebSocketStream(websocket[, options])
+
+- `websocket` {WebSocket} A `WebSocket` object.
+- `options` {Object} [Options][duplex-options] to pass to the `Duplex`
+  constructor.
+
+Returns a `Duplex` stream that allows to use the Node.js streams API on top of a
+given `WebSocket`.
+
 [concurrency-limit]: https://github.com/websockets/ws/issues/1202
-[permessage-deflate]:
-  https://tools.ietf.org/html/draft-ietf-hybi-permessage-compression-19
-[zlib-options]: https://nodejs.org/api/zlib.html#zlib_class_options
+[duplex-options]:
+  https://nodejs.org/api/stream.html#stream_new_stream_duplex_options
 [http.request()]:
   https://nodejs.org/api/http.html#http_http_request_options_callback
 [https.request()]:
   https://nodejs.org/api/https.html#https_https_request_options_callback
+[permessage-deflate]:
+  https://tools.ietf.org/html/draft-ietf-hybi-permessage-compression-19
+[zlib-options]: https://nodejs.org/api/zlib.html#zlib_class_options
