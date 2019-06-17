@@ -498,7 +498,7 @@ describe('WebSocket', () => {
           `HTTP/1.1 401 ${http.STATUS_CODES[401]}\r\n` +
             'Connection: close\r\n' +
             'Content-type: text/html\r\n' +
-            `Content-Length: ${http.STATUS_CODES[401].length}\r\n` +
+            'Content-Length: 3\r\n' +
             '\r\n' +
             'foo'
         );
@@ -530,7 +530,7 @@ describe('WebSocket', () => {
           `HTTP/1.1 401 ${http.STATUS_CODES[401]}\r\n` +
             'Connection: close\r\n' +
             'Content-type: text/html\r\n' +
-            `Content-Length: ${http.STATUS_CODES[401].length}\r\n` +
+            'Content-Length: 3\r\n' +
             '\r\n' +
             'foo'
         );
