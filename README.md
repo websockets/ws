@@ -268,7 +268,7 @@ wss.on('connection', function connection(ws) {
 });
 ```
 
-2. A client web socket broadcasting to every other connected web socket,
+A client WebSocket broadcasting to every other connected WebSocket clients, excluding itself.
    excluding itself
 
 ```js
