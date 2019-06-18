@@ -21,26 +21,28 @@ can use one of the many wrappers available on npm, like
 
 ## Table of Contents
 
-- [Protocol support](#protocol-support)
-- [Installing](#installing)
-  - [Opt-in for performance and spec compliance](#opt-in-for-performance-and-spec-compliance)
-- [API docs](#api-docs)
-- [WebSocket compression](#websocket-compression)
-- [Usage examples](#usage-examples)
-  - [Sending and receiving text data](#sending-and-receiving-text-data)
-  - [Sending binary data](#sending-binary-data)
-  - [Simple server](#simple-server)
-  - [External HTTP/S server](#external-https-server)
-  - [Multiple servers sharing a single HTTP/S server](#multiple-servers-sharing-a-single-https-server)
-  - [Server broadcast](#server-broadcast)
-  - [echo.websocket.org demo](#echowebsocketorg-demo)
-  - [Other examples](#other-examples)
-- [FAQ](#faq)
-  - [How to get the IP address of the client?](#how-to-get-the-ip-address-of-the-client)
-  - [How to detect and close broken connections?](#how-to-detect-and-close-broken-connections)
-  - [How to connect via a proxy?](#how-to-connect-via-a-proxy)
-- [Changelog](#changelog)
-- [License](#license)
+- [ws: a Node.js WebSocket library](#ws-a-nodejs-websocket-library)
+  - [Table of Contents](#table-of-contents)
+  - [Protocol support](#protocol-support)
+  - [Installing](#installing)
+    - [Opt-in for performance and spec compliance](#opt-in-for-performance-and-spec-compliance)
+  - [API docs](#api-docs)
+  - [WebSocket compression](#websocket-compression)
+  - [Usage examples](#usage-examples)
+    - [Sending and receiving text data](#sending-and-receiving-text-data)
+    - [Sending binary data](#sending-binary-data)
+    - [Simple server](#simple-server)
+    - [External HTTP/S server](#external-https-server)
+    - [Multiple servers sharing a single HTTP/S server](#multiple-servers-sharing-a-single-https-server)
+    - [Server broadcast](#server-broadcast)
+    - [echo.websocket.org demo](#echowebsocketorg-demo)
+    - [Other examples](#other-examples)
+  - [FAQ](#faq)
+    - [How to get the IP address of the client?](#how-to-get-the-ip-address-of-the-client)
+    - [How to detect and close broken connections?](#how-to-detect-and-close-broken-connections)
+    - [How to connect via a proxy?](#how-to-connect-via-a-proxy)
+  - [Changelog](#changelog)
+  - [License](#license)
 
 ## Protocol support
 
@@ -248,7 +250,10 @@ server.listen(8080);
 ```
 
 ### Server broadcast
-1. A client web socket broadcasting to all connected web socket clients (including itself)
+
+1. A client web socket broadcasting to all connected web socket clients
+   (including itself)
+
 ```js
 const WebSocket = require('ws');
 
@@ -264,7 +269,10 @@ wss.on('connection', function connection(ws) {
   });
 });
 ```
-2. A client web socket broadcasting to every other connected web socket, excluding itself
+
+2. A client web socket broadcasting to every other connected web socket,
+   excluding itself
+
 ```js
 const WebSocket = require('ws');
 
