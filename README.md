@@ -278,7 +278,7 @@ wss.on('connection', function connection(ws) {
       }
     });
   });
-}
+});
 ```
 
 ### echo.websocket.org demo
