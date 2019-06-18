@@ -249,8 +249,8 @@ server.listen(8080);
 
 ### Server broadcast
 
-1. A client WebSocket broadcasting to all connected WebSocket clients, including
-   itself.
+A client WebSocket broadcasting to all connected WebSocket clients, including
+itself.
 
 ```js
 const WebSocket = require('ws');
@@ -268,8 +268,8 @@ wss.on('connection', function connection(ws) {
 });
 ```
 
-2. A client WebSocket broadcasting to every other connected WebSocket clients,
-   excluding itself.
+A client WebSocket broadcasting to every other connected WebSocket clients,
+excluding itself.
 
 ```js
 const WebSocket = require('ws');
