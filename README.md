@@ -249,7 +249,7 @@ server.listen(8080);
 
 ### Server broadcast
 
-1. A client web socket broadcasting to all connected web socket clients
+A client WebSocket broadcasting to all connected WebSocket clients, including itself.
    (including itself)
 
 ```js
