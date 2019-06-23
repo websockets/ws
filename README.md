@@ -394,7 +394,7 @@ const WebSocket = require('ws');
 function heartbeat() {
   clearTimeout(this.pingTimeout);
 
-  // Use `WebSocket.terminate()`, which immediately destroys the connection,
+  // Use `WebSocket#terminate()`, which immediately destroys the connection,
   // instead of `WebSocket.close()`, which waits for close timer. 
   // Delay should be equal to the interval at which your server sends out pings 
   // plus a conservative assumption of the latency.
