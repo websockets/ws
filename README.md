@@ -34,6 +34,7 @@ can use one of the many wrappers available on npm, like
   - [Multiple servers sharing a single HTTP/S server](#multiple-servers-sharing-a-single-https-server)
   - [Server broadcast](#server-broadcast)
   - [echo.websocket.org demo](#echowebsocketorg-demo)
+  - [Use the Node.js streams API](#use-the-nodejs-streams-api)
   - [Other examples](#other-examples)
 - [FAQ](#faq)
   - [How to get the IP address of the client?](#how-to-get-the-ip-address-of-the-client)
@@ -69,7 +70,8 @@ necessarily need to have a C++ compiler installed on your machine.
 
 ## API docs
 
-See [`/doc/ws.md`](./doc/ws.md) for Node.js-like docs for the ws classes.
+See [`/doc/ws.md`](./doc/ws.md) for Node.js-like documentation of ws classes and
+utility functions.
 
 ## WebSocket compression
 
@@ -312,6 +314,21 @@ ws.on('message', function incoming(data) {
     ws.send(Date.now());
   }, 500);
 });
+```
+
+### Use the Node.js streams API
+
+```js
+const WebSocket = require('ws');
+
+const ws = new WebSocket('wss://echo.websocket.org/', {
+  origin: 'https://websocket.org'
+});
+
+const duplex = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' });
+
+duplex.pipe(process.stdout);
+process.stdin.pipe(duplex);
 ```
 
 ### Other examples
