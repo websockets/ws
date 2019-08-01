@@ -32,6 +32,8 @@ can use one of the many wrappers available on npm, like
   - [Simple server](#simple-server)
   - [External HTTP/S server](#external-https-server)
   - [Multiple servers sharing a single HTTP/S server](#multiple-servers-sharing-a-single-https-server)
+  - [Authentication on the server (sync)](#authentication-on-the-server-sync)
+  - [Authentication on the server (async)](#authentication-on-the-server-async)
   - [Server broadcast](#server-broadcast)
   - [echo.websocket.org demo](#echowebsocketorg-demo)
   - [Use the Node.js streams API](#use-the-nodejs-streams-api)
@@ -247,6 +249,54 @@ server.on('upgrade', function upgrade(request, socket, head) {
 });
 
 server.listen(8080);
+```
+
+### Authentication on the server (sync)
+
+```js
+const WebSocket = require('ws');
+
+const wss = new WebSocket.Server({
+  port: 8080
+  verifyClient: (info) => {
+    return authenticateHandshakeRequest(info.req);
+  }
+});
+
+wss.on('connection', function connection(ws) {
+  // ws.client is the value returned in verifyClient
+  const client = ws.client;
+  ws.on('message', function incoming(message) {
+    console.log('received from %s: %s', client, message);
+  });
+
+  ws.send('hello, ' + client.toString());
+});
+```
+
+### Authentication on the server (async)
+
+```js
+const WebSocket = require('ws');
+
+const wss = new WebSocket.Server({
+  port: 8080
+  verifyClient: (info, cb) => {
+    const client = authenticateHandshakeRequest(info.req);
+    if(client) cb(client);
+    cb(false, 403, 'Forbidden')
+  }
+});
+
+wss.on('connection', function connection(ws) {
+  // ws.client is the value returned in verifyClient
+  const client = ws.client;
+  ws.on('message', function incoming(message) {
+    console.log('received from %s: %s', client, message);
+  });
+
+  ws.send('hello, ' + client.toString());
+});
 ```
 
 ### Server broadcast

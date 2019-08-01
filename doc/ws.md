@@ -84,20 +84,24 @@ is provided with a single argument then that is:
   - `secure` {Boolean} `true` if `req.connection.authorized` or
     `req.connection.encrypted` is set.
 
-The return value (Boolean) of the function determines whether or not to accept
-the handshake.
+The return value of the function determines whether or not to accept the
+handshake. If it is
+[`falsy`](https://developer.mozilla.org/en-US/docs/Glossary/Falsy) then the
+handshake is rejected, otherwise the return value is attached to the `WebSocket`
+instance that is subsequently created as the property `client`.
 
 if `verifyClient` is provided with two arguments then those are:
 
 - `info` {Object} Same as above.
 - `cb` {Function} A callback that must be called by the user upon inspection of
   the `info` fields. Arguments in this callback are:
-  - `result` {Boolean} Whether or not to accept the handshake.
-  - `code` {Number} When `result` is `false` this field determines the HTTP
+  - `result` {Object} Either the verified client or a `falsy` value to reject
+    the handshake.
+  - `code` {Number} When `result` is `falsy` this field determines the HTTP
     error status code to be sent to the client.
-  - `name` {String} When `result` is `false` this field determines the HTTP
+  - `name` {String} When `result` is `falsy` this field determines the HTTP
     reason phrase.
-  - `headers` {Object} When `result` is `false` this field determines additional
+  - `headers` {Object} When `result` is `falsy` this field determines additional
     HTTP headers to be sent to the client. For example,
     `{ 'Retry-After': 120 }`.
 
@@ -354,6 +358,15 @@ of binary protocols transferring large messages with multiple fragments.
 
 The number of bytes of data that have been queued using calls to `send()` but
 not yet transmitted to the network.
+
+### websocket.client
+
+- {Object}
+
+**Server created instances only.**
+
+The return value of the `verifyClient` function if defined in the server
+options.
 
 ### websocket.close([code[, reason]])
 

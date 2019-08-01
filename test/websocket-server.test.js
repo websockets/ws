@@ -578,6 +578,36 @@ describe('WebSocketServer', () => {
         });
       });
 
+      it('can auth client synchronously', (done) => {
+        const server = https.createServer({
+          cert: fs.readFileSync('test/fixtures/certificate.pem'),
+          key: fs.readFileSync('test/fixtures/key.pem')
+        });
+
+        const wss = new WebSocket.Server({
+          verifyClient: (info) => {
+            assert.strictEqual(info.origin, 'https://example.com');
+            assert.strictEqual(info.req.headers.foo, 'bar');
+            assert.ok(info.secure, true);
+            return 'alice';
+          },
+          server
+        });
+
+        wss.on('connection', (ws) => {
+          assert.strictEqual(ws.client, 'alice');
+          wss.close();
+          server.close(done);
+        });
+
+        server.listen(0, () => {
+          const ws = new WebSocket(`wss://localhost:${server.address().port}`, {
+            headers: { Origin: 'https://example.com', foo: 'bar' },
+            rejectUnauthorized: false
+          });
+        });
+      });
+
       it('can accept client asynchronously', (done) => {
         const wss = new WebSocket.Server(
           {
@@ -590,6 +620,23 @@ describe('WebSocketServer', () => {
         );
 
         wss.on('connection', () => wss.close(done));
+      });
+
+      it('can auth client asynchronously', (done) => {
+        const wss = new WebSocket.Server(
+          {
+            verifyClient: (o, cb) => process.nextTick(cb, 'alice'),
+            port: 0
+          },
+          () => {
+            const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+          }
+        );
+
+        wss.on('connection', (ws) => {
+          assert.strictEqual(ws.client, 'alice');
+          wss.close(done);
+        });
       });
 
       it('can reject client asynchronously', (done) => {
