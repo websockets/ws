@@ -58,6 +58,7 @@
   wsSendButton.onclick = function() {
     if (!ws) {
       showMessage('No WebSocket connection');
+      return;
     }
     ws.send('Hello World!');
     showMessage('Sent "Hello World!"');
