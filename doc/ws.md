@@ -57,7 +57,7 @@ This class represents a WebSocket server. It extends the `EventEmitter`.
   - `backlog` {Number} The maximum length of the queue of pending connections.
   - `server` {http.Server|https.Server} A pre-created Node.js HTTP/S server.
   - `verifyClient` {Function} A function which can be used to validate incoming
-    connections. See description below. (Deprecated: See
+    connections. See description below. (Usage is discouraged: see
     [Issue #337](https://github.com/websockets/ws/issues/377#issuecomment-462152231))
   - `handleProtocols` {Function} A function which can be used to handle the
     WebSocket subprotocols. See description below.
