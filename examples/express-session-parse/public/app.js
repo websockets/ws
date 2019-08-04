@@ -1,6 +1,7 @@
 (function() {
   const messages = document.querySelector('#messages');
   const wsButton = document.querySelector('#wsButton');
+  const wsSendButton = document.querySelector('#wsSendButton');
   const logout = document.querySelector('#logout');
   const login = document.querySelector('#login');
 
@@ -50,6 +51,16 @@
     };
     ws.onclose = function() {
       showMessage('WebSocket connection closed');
+      ws = null;
     };
+  };
+
+  wsSendButton.onclick = function() {
+    if (!ws) {
+      showMessage('No WebSocket connection');
+      return;
+    }
+    ws.send('Hello World!');
+    showMessage('Sent "Hello World!"');
   };
 })();

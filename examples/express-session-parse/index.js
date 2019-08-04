@@ -48,20 +48,20 @@ app.delete('/logout', function(request, response) {
 //
 const server = http.createServer(app);
 
-const wss = new WebSocket.Server({
-  verifyClient: function(info, done) {
-    console.log('Parsing session from request...');
-    sessionParser(info.req, {}, () => {
-      console.log('Session is parsed!');
+const wss = new WebSocket.Server({ noServer: true });
 
-      //
-      // We can reject the connection by returning false to done(). For example,
-      // reject here if user is unknown.
-      //
-      done(info.req.session.userId);
+server.on('upgrade', function upgrade(request, socket, head) {
+  console.log('Parsing session from request...');
+  sessionParser(request, {}, () => {
+    if (!request.session.userId) {
+      socket.destroy();
+      return;
+    }
+    console.log('Session is parsed!');
+    wss.handleUpgrade(request, socket, head, function done(ws) {
+      wss.emit('connection', ws, request);
     });
-  },
-  server
+  });
 });
 
 wss.on('connection', function(ws, request) {

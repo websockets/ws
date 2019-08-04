@@ -32,6 +32,7 @@ can use one of the many wrappers available on npm, like
   - [Simple server](#simple-server)
   - [External HTTP/S server](#external-https-server)
   - [Multiple servers sharing a single HTTP/S server](#multiple-servers-sharing-a-single-https-server)
+  - [Client authentication](#client-authentication)
   - [Server broadcast](#server-broadcast)
   - [echo.websocket.org demo](#echowebsocketorg-demo)
   - [Use the Node.js streams API](#use-the-nodejs-streams-api)
@@ -248,6 +249,40 @@ server.on('upgrade', function upgrade(request, socket, head) {
 
 server.listen(8080);
 ```
+
+### Client authentication
+
+```js
+const http = require('http');
+const WebSocket = require('ws');
+const url = require('url');
+
+const server = http.createServer();
+const wss = new WebSocket.Server({ noServer: true });
+
+wss.on('connection', function(ws, request, client) {
+  ws.on('message', function(message) {
+    console.log(`WS message ${message} from user ${client}`);
+  });
+});
+
+server.on('upgrade', function upgrade(request, socket, head) {
+  authenticate(request, (err, client) => {
+    if (err || !client) {
+      socket.destroy();
+      return;
+    }
+    wss.handleUpgrade(request, socket, head, function done(ws) {
+      wss.emit('connection', ws, request, client);
+    });
+  });
+});
+
+server.listen(8080);
+```
+
+Also see the provided [example](./examples/express-session-parse) using
+`express-session`.
 
 ### Server broadcast
 
