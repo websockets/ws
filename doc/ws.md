@@ -57,7 +57,8 @@ This class represents a WebSocket server. It extends the `EventEmitter`.
   - `backlog` {Number} The maximum length of the queue of pending connections.
   - `server` {http.Server|https.Server} A pre-created Node.js HTTP/S server.
   - `verifyClient` {Function} A function which can be used to validate incoming
-    connections. See description below.
+    connections. See description below. (Deprecated: See
+    [Issue #337](https://github.com/websockets/ws/issues/377#issuecomment-462152231))
   - `handleProtocols` {Function} A function which can be used to handle the
     WebSocket subprotocols. See description below.
   - `path` {String} Accept only connections matching this path.
@@ -74,6 +75,10 @@ specify only `server` or `noServer`. In this case the HTTP/S server must be
 started manually. The "noServer" mode allows the WebSocket server to be
 completly detached from the HTTP/S server. This makes it possible, for example,
 to share a single HTTP/S server between multiple WebSocket servers.
+
+> **NOTE:** Use of `verifyClient` is discouraged. Rather handle client
+> authentication in the `upgrade` event of the HTTP server. See examples for
+> more details.
 
 If `verifyClient` is not set then the handshake is automatically accepted. If it
 is provided with a single argument then that is:

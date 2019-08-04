@@ -249,6 +249,44 @@ server.on('upgrade', function upgrade(request, socket, head) {
 server.listen(8080);
 ```
 
+### Client authentication
+
+```js
+const http = require('http');
+const WebSocket = require('ws');
+const url = require('url');
+
+const server = http.createServer();
+const wss = new WebSocket.Server({ noServer: true });
+
+wss.on('connection', function(ws, request, client) {
+  ws.on('message', function(message) {
+    console.log(`WS message ${message} from user ${client}`);
+  });
+});
+
+server.on('upgrade', function upgrade(request, socket, head) {
+  try {
+    authenticate(request, (client) => {
+      if (!client) {
+        socket.destroy();
+      }
+      wss.handleUpgrade(request, socket, head, function done(ws) {
+        wss.emit('connection', ws, request, client);
+      });
+    });
+  } catch (e) {
+    socket.destroy();
+    return;
+  }
+});
+
+server.listen(8080);
+```
+
+Also see the provided [example](./examples/express-session-parse) using
+`express-session`.
+
 ### Server broadcast
 
 A client WebSocket broadcasting to all connected WebSocket clients, including
