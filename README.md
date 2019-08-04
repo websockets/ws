@@ -270,6 +270,7 @@ server.on('upgrade', function upgrade(request, socket, head) {
   authenticate(request, (err, client) => {
     if (err || !client) {
       socket.destroy();
+      return;
     }
     wss.handleUpgrade(request, socket, head, function done(ws) {
       wss.emit('connection', ws, request, client);
