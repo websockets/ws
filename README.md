@@ -32,6 +32,7 @@ can use one of the many wrappers available on npm, like
   - [Simple server](#simple-server)
   - [External HTTP/S server](#external-https-server)
   - [Multiple servers sharing a single HTTP/S server](#multiple-servers-sharing-a-single-https-server)
+  - [Client authentication](#client-authentication)
   - [Server broadcast](#server-broadcast)
   - [echo.websocket.org demo](#echowebsocketorg-demo)
   - [Use the Node.js streams API](#use-the-nodejs-streams-api)
@@ -266,19 +267,14 @@ wss.on('connection', function(ws, request, client) {
 });
 
 server.on('upgrade', function upgrade(request, socket, head) {
-  try {
-    authenticate(request, (client) => {
-      if (!client) {
-        socket.destroy();
-      }
-      wss.handleUpgrade(request, socket, head, function done(ws) {
-        wss.emit('connection', ws, request, client);
-      });
+  authenticate(request, (err, client) => {
+    if (err || !client) {
+      socket.destroy();
+    }
+    wss.handleUpgrade(request, socket, head, function done(ws) {
+      wss.emit('connection', ws, request, client);
     });
-  } catch (e) {
-    socket.destroy();
-    return;
-  }
+  });
 });
 
 server.listen(8080);
