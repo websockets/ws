@@ -50,7 +50,7 @@ const server = http.createServer(app);
 
 const wss = new WebSocket.Server({ noServer: true });
 
-server.on('upgrade', async function upgrade(request, socket, head) {
+server.on('upgrade', function upgrade(request, socket, head) {
   console.log('Parsing session from request...');
   sessionParser(request, {}, () => {
     if (!request.session.userId) {
