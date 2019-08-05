@@ -47,18 +47,20 @@ app.delete('/logout', function(request, response) {
 // Create HTTP server by ourselves.
 //
 const server = http.createServer(app);
-
 const wss = new WebSocket.Server({ noServer: true });
 
-server.on('upgrade', function upgrade(request, socket, head) {
+server.on('upgrade', function(request, socket, head) {
   console.log('Parsing session from request...');
+
   sessionParser(request, {}, () => {
     if (!request.session.userId) {
       socket.destroy();
       return;
     }
+
     console.log('Session is parsed!');
-    wss.handleUpgrade(request, socket, head, function done(ws) {
+
+    wss.handleUpgrade(request, socket, head, function(ws) {
       wss.emit('connection', ws, request);
     });
   });
@@ -69,7 +71,9 @@ wss.on('connection', function(ws, request) {
     //
     // Here we can now use session parameters.
     //
-    console.log(`WS message ${message} from user ${request.session.userId}`);
+    console.log(
+      `Received message ${message} from user ${request.session.userId}`
+    );
   });
 });
 

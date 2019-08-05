@@ -255,14 +255,13 @@ server.listen(8080);
 ```js
 const http = require('http');
 const WebSocket = require('ws');
-const url = require('url');
 
 const server = http.createServer();
 const wss = new WebSocket.Server({ noServer: true });
 
-wss.on('connection', function(ws, request, client) {
-  ws.on('message', function(message) {
-    console.log(`WS message ${message} from user ${client}`);
+wss.on('connection', function connection(ws, request, client) {
+  ws.on('message', function message(msg) {
+    console.log(`Received message ${msg} from user ${client}`);
   });
 });
 
@@ -272,6 +271,7 @@ server.on('upgrade', function upgrade(request, socket, head) {
       socket.destroy();
       return;
     }
+
     wss.handleUpgrade(request, socket, head, function done(ws) {
       wss.emit('connection', ws, request, client);
     });
@@ -281,8 +281,7 @@ server.on('upgrade', function upgrade(request, socket, head) {
 server.listen(8080);
 ```
 
-Also see the provided [example](./examples/express-session-parse) using
-`express-session`.
+Also see the provided [example][session-parse-example] using `express-session`.
 
 ### Server broadcast
 
@@ -477,14 +476,15 @@ We're using the GitHub [releases][changelog] for changelog entries.
 
 [MIT](LICENSE)
 
-[https-proxy-agent]: https://github.com/TooTallNate/node-https-proxy-agent
-[socks-proxy-agent]: https://github.com/TooTallNate/node-socks-proxy-agent
-[client-report]: http://websockets.github.io/ws/autobahn/clients/
-[server-report]: http://websockets.github.io/ws/autobahn/servers/
-[permessage-deflate]: https://tools.ietf.org/html/rfc7692
 [changelog]: https://github.com/websockets/ws/releases
+[client-report]: http://websockets.github.io/ws/autobahn/clients/
+[https-proxy-agent]: https://github.com/TooTallNate/node-https-proxy-agent
 [node-zlib-bug]: https://github.com/nodejs/node/issues/8871
 [node-zlib-deflaterawdocs]:
   https://nodejs.org/api/zlib.html#zlib_zlib_createdeflateraw_options
+[permessage-deflate]: https://tools.ietf.org/html/rfc7692
+[server-report]: http://websockets.github.io/ws/autobahn/servers/
+[session-parse-example]: ./examples/express-session-parse
+[socks-proxy-agent]: https://github.com/TooTallNate/node-socks-proxy-agent
 [ws-server-options]:
   https://github.com/websockets/ws/blob/master/doc/ws.md#new-websocketserveroptions-callback
