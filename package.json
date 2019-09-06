@@ -30,6 +30,18 @@
   "dependencies": {
     "async-limiter": "^1.0.0"
   },
+  "peerDependencies": {
+    "bufferutil": "^4.0.1",
+    "utf-8-validate": "^5.0.2"
+  },
+  "peerDependenciesMeta": {
+    "bufferutil": {
+      "optional": true
+    },
+    "utf-8-validate": {
+      "optional": true
+    }
+  },
   "devDependencies": {
     "benchmark": "^2.1.4",
     "bufferutil": "^4.0.1",
