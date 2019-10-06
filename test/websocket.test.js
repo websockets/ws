@@ -1381,7 +1381,7 @@ describe('WebSocket', () => {
         ws.close();
         ws.on('close', () => done());
       });
-    });
+    }).timeout(4000);
 
     it("can be called from a listener of the 'upgrade' event", (done) => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
@@ -1630,7 +1630,7 @@ describe('WebSocket', () => {
         ws.terminate();
         ws.on('close', () => done());
       });
-    });
+    }).timeout(4000);
 
     it("can be called from a listener of the 'upgrade' event", (done) => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
