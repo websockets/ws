@@ -8,6 +8,7 @@ const uuid = require('uuid');
 const WebSocket = require('../..');
 
 const app = express();
+const map = new Map();
 
 //
 // We need the same instance of the session parser in express and
@@ -37,8 +38,12 @@ app.post('/login', function(req, res) {
 });
 
 app.delete('/logout', function(request, response) {
+  const ws = map.get(request.session.userId);
+
   console.log('Destroying session');
   request.session.destroy(function() {
+    if (ws) ws.close();
+
     response.send({ result: 'OK', message: 'Session destroyed' });
   });
 });
@@ -47,7 +52,7 @@ app.delete('/logout', function(request, response) {
 // Create HTTP server by ourselves.
 //
 const server = http.createServer(app);
-const wss = new WebSocket.Server({ noServer: true });
+const wss = new WebSocket.Server({ clientTracking: false, noServer: true });
 
 server.on('upgrade', function(request, socket, head) {
   console.log('Parsing session from request...');
@@ -67,13 +72,19 @@ server.on('upgrade', function(request, socket, head) {
 });
 
 wss.on('connection', function(ws, request) {
+  const userId = request.session.userId;
+
+  map.set(userId, ws);
+
   ws.on('message', function(message) {
     //
     // Here we can now use session parameters.
     //
-    console.log(
-      `Received message ${message} from user ${request.session.userId}`
-    );
+    console.log(`Received message ${message} from user ${userId}`);
+  });
+
+  ws.on('close', function() {
+    map.delete(userId);
   });
 });
 
