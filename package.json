@@ -17,6 +17,9 @@
   "license": "MIT",
   "main": "index.js",
   "browser": "browser.js",
+  "engines": {
+    "node": ">=8.3.0"
+  },
   "files": [
     "browser.js",
     "index.js",
