@@ -31,7 +31,7 @@
     "lint": "eslint --ignore-path .gitignore . && prettier --check --ignore-path .gitignore \"**/*.{json,md,yaml,yml}\""
   },
   "dependencies": {
-    "async-limiter": "^1.0.0"
+    "async-limiter": "^2.0.0"
   },
   "peerDependencies": {
     "bufferutil": "^4.0.1",
