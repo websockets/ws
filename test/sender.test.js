@@ -154,7 +154,7 @@ describe('Sender', () => {
 
           assert.strictEqual(chunks[0].length, 2);
           assert.strictEqual(chunks[0][0] & 0x40, 0x40);
-          assert.strictEqual(chunks[1].length, 1);
+          assert.strictEqual(chunks[1].length, 5);
 
           assert.strictEqual(chunks[2].length, 2);
           assert.strictEqual(chunks[2][0] & 0x40, 0x00);
