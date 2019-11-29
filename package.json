@@ -30,9 +30,6 @@
     "integration": "npm run lint && mocha --throw-deprecation test/*.integration.js",
     "lint": "eslint --ignore-path .gitignore . && prettier --check --ignore-path .gitignore \"**/*.{json,md,yaml,yml}\""
   },
-  "dependencies": {
-    "async-limiter": "^1.0.0"
-  },
   "peerDependencies": {
     "bufferutil": "^4.0.1",
     "utf-8-validate": "^5.0.2"
