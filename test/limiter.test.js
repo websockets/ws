@@ -5,27 +5,37 @@ const assert = require('assert');
 const Limiter = require('../lib/limiter');
 
 describe('Limiter', () => {
-  it('limits the number of jobs allowed to run concurrently', (done) => {
-    const limiter = new Limiter(1);
+  describe('#ctor', () => {
+    it('takes a `concurrency` argument', () => {
+      const limiter = new Limiter(0);
 
-    limiter.add((callback) => {
-      setImmediate(() => {
-        callback();
-
-        assert.strictEqual(limiter.jobs.length, 0);
-        assert.strictEqual(limiter.pending, 1);
-      });
+      assert.strictEqual(limiter.concurrency, Infinity);
     });
+  });
 
-    limiter.add((callback) => {
-      setImmediate(() => {
-        callback();
+  describe('#kRun', () => {
+    it('limits the number of jobs allowed to run concurrently', (done) => {
+      const limiter = new Limiter(1);
 
-        assert.strictEqual(limiter.pending, 0);
-        done();
+      limiter.add((callback) => {
+        setImmediate(() => {
+          callback();
+
+          assert.strictEqual(limiter.jobs.length, 0);
+          assert.strictEqual(limiter.pending, 1);
+        });
       });
-    });
 
-    assert.strictEqual(limiter.jobs.length, 1);
+      limiter.add((callback) => {
+        setImmediate(() => {
+          callback();
+
+          assert.strictEqual(limiter.pending, 0);
+          done();
+        });
+      });
+
+      assert.strictEqual(limiter.jobs.length, 1);
+    });
   });
 });
