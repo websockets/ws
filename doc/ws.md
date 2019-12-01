@@ -1,5 +1,50 @@
 # ws
 
+## Table of Contents
+
+- [Class: WebSocket.Server](#class-websocketserver)
+  - [new WebSocket.Server(options[, callback])](#new-websocketserveroptions-callback)
+  - [Event: 'close'](#event-close)
+  - [Event: 'connection'](#event-connection)
+  - [Event: 'error'](#event-error)
+  - [Event: 'headers'](#event-headers)
+  - [Event: 'listening'](#event-listening)
+  - [server.address()](#serveraddress)
+  - [server.clients](#serverclients)
+  - [server.close([callback])](#serverclosecallback)
+  - [server.handleUpgrade(request, socket, head, callback)](#serverhandleupgraderequest-socket-head-callback)
+  - [server.shouldHandle(request)](#servershouldhandlerequest)
+- [Class: WebSocket](#class-websocket)
+  - [Ready state constants](#ready-state-constants)
+  - [new WebSocket(address[, protocols][, options])](#new-websocketaddress-protocols-options)
+    - [UNIX Domain Sockets](#unix-domain-sockets)
+  - [Event: 'close'](#event-close-1)
+  - [Event: 'error'](#event-error-1)
+  - [Event: 'message'](#event-message)
+  - [Event: 'open'](#event-open)
+  - [Event: 'ping'](#event-ping)
+  - [Event: 'pong'](#event-pong)
+  - [Event: 'unexpected-response'](#event-unexpected-response)
+  - [Event: 'upgrade'](#event-upgrade)
+  - [websocket.addEventListener(type, listener)](#websocketaddeventlistenertype-listener)
+  - [websocket.binaryType](#websocketbinarytype)
+  - [websocket.bufferedAmount](#websocketbufferedamount)
+  - [websocket.close([code[, reason]])](#websocketclosecode-reason)
+  - [websocket.extensions](#websocketextensions)
+  - [websocket.onclose](#websocketonclose)
+  - [websocket.onerror](#websocketonerror)
+  - [websocket.onmessage](#websocketonmessage)
+  - [websocket.onopen](#websocketonopen)
+  - [websocket.ping([data[, mask]][, callback])](#websocketpingdata-mask-callback)
+  - [websocket.pong([data[, mask]][, callback])](#websocketpongdata-mask-callback)
+  - [websocket.protocol](#websocketprotocol)
+  - [websocket.readyState](#websocketreadystate)
+  - [websocket.removeEventListener(type, listener)](#websocketremoveeventlistenertype-listener)
+  - [websocket.send(data[, options][, callback])](#websocketsenddata-options-callback)
+  - [websocket.terminate()](#websocketterminate)
+  - [websocket.url](#websocketurl)
+- [WebSocket.createWebSocketStream(websocket[, options])](#websocketcreatewebsocketstreamwebsocket-options)
+
 ## Class: WebSocket.Server
 
 This class represents a WebSocket server. It extends the `EventEmitter`.
@@ -12,7 +57,8 @@ This class represents a WebSocket server. It extends the `EventEmitter`.
   - `backlog` {Number} The maximum length of the queue of pending connections.
   - `server` {http.Server|https.Server} A pre-created Node.js HTTP/S server.
   - `verifyClient` {Function} A function which can be used to validate incoming
-    connections. See description below.
+    connections. See description below. (Usage is discouraged: see
+    [Issue #337](https://github.com/websockets/ws/issues/377#issuecomment-462152231))
   - `handleProtocols` {Function} A function which can be used to handle the
     WebSocket subprotocols. See description below.
   - `path` {String} Accept only connections matching this path.
@@ -29,6 +75,10 @@ specify only `server` or `noServer`. In this case the HTTP/S server must be
 started manually. The "noServer" mode allows the WebSocket server to be
 completly detached from the HTTP/S server. This makes it possible, for example,
 to share a single HTTP/S server between multiple WebSocket servers.
+
+> **NOTE:** Use of `verifyClient` is discouraged. Rather handle client
+> authentication in the `upgrade` event of the HTTP server. See examples for
+> more details.
 
 If `verifyClient` is not set then the handshake is automatically accepted. If it
 is provided with a single argument then that is:
@@ -129,19 +179,19 @@ handshake. This allows you to inspect/modify the headers before they are sent.
 
 Emitted when the underlying server has been bound.
 
-### server.clients
-
-- {Set}
-
-A set that stores all connected clients. Please note that this property is only
-added when the `clientTracking` is truthy.
-
 ### server.address()
 
 Returns an object with `port`, `family`, and `address` properties specifying the
 bound address, the address family name, and port of the server as reported by
 the operating system if listening on an IP socket. If the server is listening on
 a pipe or UNIX domain socket, the name is returned as a string.
+
+### server.clients
+
+- {Set}
+
+A set that stores all connected clients. Please note that this property is only
+added when the `clientTracking` is truthy.
 
 ### server.close([callback])
 
@@ -190,7 +240,7 @@ This class represents a WebSocket. It extends the `EventEmitter`.
 
 ### new WebSocket(address[, protocols][, options])
 
-- `address` {String|url.Url|url.URL} The URL to which to connect.
+- `address` {String|url.URL} The URL to which to connect.
 - `protocols` {String|Array} The list of subprotocols.
 - `options` {Object}
   - `followRedirects` {Boolean} Whether or not to follow redirects. Defaults to
@@ -419,11 +469,22 @@ Forcibly close the connection.
 
 The URL of the WebSocket server. Server clients don't have this attribute.
 
+## WebSocket.createWebSocketStream(websocket[, options])
+
+- `websocket` {WebSocket} A `WebSocket` object.
+- `options` {Object} [Options][duplex-options] to pass to the `Duplex`
+  constructor.
+
+Returns a `Duplex` stream that allows to use the Node.js streams API on top of a
+given `WebSocket`.
+
 [concurrency-limit]: https://github.com/websockets/ws/issues/1202
-[permessage-deflate]:
-  https://tools.ietf.org/html/draft-ietf-hybi-permessage-compression-19
-[zlib-options]: https://nodejs.org/api/zlib.html#zlib_class_options
+[duplex-options]:
+  https://nodejs.org/api/stream.html#stream_new_stream_duplex_options
 [http.request()]:
   https://nodejs.org/api/http.html#http_http_request_options_callback
 [https.request()]:
   https://nodejs.org/api/https.html#https_https_request_options_callback
+[permessage-deflate]:
+  https://tools.ietf.org/html/draft-ietf-hybi-permessage-compression-19
+[zlib-options]: https://nodejs.org/api/zlib.html#zlib_class_options

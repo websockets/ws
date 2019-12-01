@@ -1,7 +1,7 @@
 # ws: a Node.js WebSocket library
 
 [![Version npm](https://img.shields.io/npm/v/ws.svg?logo=npm)](https://www.npmjs.com/package/ws)
-[![Linux Build](https://img.shields.io/travis/websockets/ws/master.svg?logo=travis)](https://travis-ci.org/websockets/ws)
+[![Linux Build](https://img.shields.io/travis/websockets/ws/master.svg?logo=travis)](https://travis-ci.com/websockets/ws)
 [![Windows Build](https://img.shields.io/appveyor/ci/lpinca/ws/master.svg?logo=appveyor)](https://ci.appveyor.com/project/lpinca/ws)
 [![Coverage Status](https://img.shields.io/coveralls/websockets/ws/master.svg)](https://coveralls.io/github/websockets/ws)
 
@@ -32,10 +32,11 @@ can use one of the many wrappers available on npm, like
   - [Simple server](#simple-server)
   - [External HTTP/S server](#external-https-server)
   - [Multiple servers sharing a single HTTP/S server](#multiple-servers-sharing-a-single-https-server)
+  - [Client authentication](#client-authentication)
   - [Server broadcast](#server-broadcast)
   - [echo.websocket.org demo](#echowebsocketorg-demo)
+  - [Use the Node.js streams API](#use-the-nodejs-streams-api)
   - [Other examples](#other-examples)
-- [Error handling best practices](#error-handling-best-practices)
 - [FAQ](#faq)
   - [How to get the IP address of the client?](#how-to-get-the-ip-address-of-the-client)
   - [How to detect and close broken connections?](#how-to-detect-and-close-broken-connections)
@@ -70,7 +71,8 @@ necessarily need to have a C++ compiler installed on your machine.
 
 ## API docs
 
-See [`/doc/ws.md`](./doc/ws.md) for Node.js-like docs for the ws classes.
+See [`/doc/ws.md`](./doc/ws.md) for Node.js-like documentation of ws classes and
+utility functions.
 
 ## WebSocket compression
 
@@ -193,7 +195,7 @@ const fs = require('fs');
 const https = require('https');
 const WebSocket = require('ws');
 
-const server = new https.createServer({
+const server = https.createServer({
   cert: fs.readFileSync('/path/to/cert.pem'),
   key: fs.readFileSync('/path/to/key.pem')
 });
@@ -215,6 +217,7 @@ server.listen(8080);
 ```js
 const http = require('http');
 const WebSocket = require('ws');
+const url = require('url');
 
 const server = http.createServer();
 const wss1 = new WebSocket.Server({ noServer: true });
@@ -247,25 +250,70 @@ server.on('upgrade', function upgrade(request, socket, head) {
 server.listen(8080);
 ```
 
+### Client authentication
+
+```js
+const http = require('http');
+const WebSocket = require('ws');
+
+const server = http.createServer();
+const wss = new WebSocket.Server({ noServer: true });
+
+wss.on('connection', function connection(ws, request, client) {
+  ws.on('message', function message(msg) {
+    console.log(`Received message ${msg} from user ${client}`);
+  });
+});
+
+server.on('upgrade', function upgrade(request, socket, head) {
+  authenticate(request, (err, client) => {
+    if (err || !client) {
+      socket.destroy();
+      return;
+    }
+
+    wss.handleUpgrade(request, socket, head, function done(ws) {
+      wss.emit('connection', ws, request, client);
+    });
+  });
+});
+
+server.listen(8080);
+```
+
+Also see the provided [example][session-parse-example] using `express-session`.
+
 ### Server broadcast
+
+A client WebSocket broadcasting to all connected WebSocket clients, including
+itself.
 
 ```js
 const WebSocket = require('ws');
 
 const wss = new WebSocket.Server({ port: 8080 });
 
-// Broadcast to all.
-wss.broadcast = function broadcast(data) {
-  wss.clients.forEach(function each(client) {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(data);
-    }
+wss.on('connection', function connection(ws) {
+  ws.on('message', function incoming(data) {
+    wss.clients.forEach(function each(client) {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(data);
+      }
+    });
   });
-};
+});
+```
+
+A client WebSocket broadcasting to every other connected WebSocket clients,
+excluding itself.
+
+```js
+const WebSocket = require('ws');
+
+const wss = new WebSocket.Server({ port: 8080 });
 
 wss.on('connection', function connection(ws) {
   ws.on('message', function incoming(data) {
-    // Broadcast to everyone else.
     wss.clients.forEach(function each(client) {
       if (client !== ws && client.readyState === WebSocket.OPEN) {
         client.send(data);
@@ -302,36 +350,27 @@ ws.on('message', function incoming(data) {
 });
 ```
 
+### Use the Node.js streams API
+
+```js
+const WebSocket = require('ws');
+
+const ws = new WebSocket('wss://echo.websocket.org/', {
+  origin: 'https://websocket.org'
+});
+
+const duplex = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' });
+
+duplex.pipe(process.stdout);
+process.stdin.pipe(duplex);
+```
+
 ### Other examples
 
 For a full example with a browser client communicating with a ws server, see the
 examples folder.
 
 Otherwise, see the test cases.
-
-## Error handling best practices
-
-```js
-// If the WebSocket is closed before the following send is attempted
-ws.send('something');
-
-// Errors (both immediate and async write errors) can be detected in an optional
-// callback. The callback is also the only way of being notified that data has
-// actually been sent.
-ws.send('something', function ack(error) {
-  // If error is not defined, the send has been completed, otherwise the error
-  // object will indicate what failed.
-});
-
-// Immediate errors can also be handled with `try...catch`, but **note** that
-// since sends are inherently asynchronous, socket write failures will *not* be
-// captured when this technique is used.
-try {
-  ws.send('something');
-} catch (e) {
-  /* handle error */
-}
-```
 
 ## FAQ
 
@@ -406,9 +445,10 @@ const WebSocket = require('ws');
 function heartbeat() {
   clearTimeout(this.pingTimeout);
 
-  // Use `WebSocket#terminate()` and not `WebSocket#close()`. Delay should be
-  // equal to the interval at which your server sends out pings plus a
-  // conservative assumption of the latency.
+  // Use `WebSocket#terminate()`, which immediately destroys the connection,
+  // instead of `WebSocket#close()`, which waits for the close timer.
+  // Delay should be equal to the interval at which your server
+  // sends out pings plus a conservative assumption of the latency.
   this.pingTimeout = setTimeout(() => {
     this.terminate();
   }, 30000 + 1000);
@@ -436,14 +476,15 @@ We're using the GitHub [releases][changelog] for changelog entries.
 
 [MIT](LICENSE)
 
-[https-proxy-agent]: https://github.com/TooTallNate/node-https-proxy-agent
-[socks-proxy-agent]: https://github.com/TooTallNate/node-socks-proxy-agent
-[client-report]: http://websockets.github.io/ws/autobahn/clients/
-[server-report]: http://websockets.github.io/ws/autobahn/servers/
-[permessage-deflate]: https://tools.ietf.org/html/rfc7692
 [changelog]: https://github.com/websockets/ws/releases
+[client-report]: http://websockets.github.io/ws/autobahn/clients/
+[https-proxy-agent]: https://github.com/TooTallNate/node-https-proxy-agent
 [node-zlib-bug]: https://github.com/nodejs/node/issues/8871
 [node-zlib-deflaterawdocs]:
   https://nodejs.org/api/zlib.html#zlib_zlib_createdeflateraw_options
+[permessage-deflate]: https://tools.ietf.org/html/rfc7692
+[server-report]: http://websockets.github.io/ws/autobahn/servers/
+[session-parse-example]: ./examples/express-session-parse
+[socks-proxy-agent]: https://github.com/TooTallNate/node-socks-proxy-agent
 [ws-server-options]:
   https://github.com/websockets/ws/blob/master/doc/ws.md#new-websocketserveroptions-callback

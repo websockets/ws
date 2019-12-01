@@ -60,7 +60,7 @@ if (cluster.isMaster) {
   console.log('Generating %s of test data...', humanSize(largest));
   const randomBytes = Buffer.allocUnsafe(largest);
 
-  for (var i = 0; i < largest; ++i) {
+  for (let i = 0; i < largest; ++i) {
     randomBytes[i] = ~~(Math.random() * 127);
   }
 
@@ -72,8 +72,8 @@ if (cluster.isMaster) {
     const ws = new WebSocket(url, {
       maxPayload: 600 * 1024 * 1024
     });
-    var roundtrip = 0;
-    var time;
+    let roundtrip = 0;
+    let time;
 
     ws.on('error', (err) => {
       console.error(err.stack);
@@ -87,7 +87,7 @@ if (cluster.isMaster) {
       if (++roundtrip !== roundtrips)
         return ws.send(data, { binary: useBinary });
 
-      var elapsed = process.hrtime(time);
+      let elapsed = process.hrtime(time);
       elapsed = elapsed[0] * 1e9 + elapsed[1];
 
       console.log(
@@ -106,7 +106,7 @@ if (cluster.isMaster) {
 
   (function run() {
     if (configs.length === 0) return cluster.worker.disconnect();
-    var config = configs.shift();
+    const config = configs.shift();
     config.push(run);
     runConfig.apply(null, config);
   })();

@@ -1,6 +1,6 @@
 {
   "name": "ws",
-  "version": "6.2.0",
+  "version": "7.2.0",
   "description": "Simple to use, blazing fast and thoroughly tested websocket client and server for Node.js",
   "keywords": [
     "HyBi",
@@ -17,29 +17,47 @@
   "license": "MIT",
   "main": "index.js",
   "browser": "browser.js",
+  "engines": {
+    "node": ">=8.3.0"
+  },
   "files": [
     "browser.js",
     "index.js",
     "lib/*.js"
   ],
   "scripts": {
-    "test": "npm run lint && nyc --reporter=html --reporter=text mocha test/*.test.js",
-    "integration": "npm run lint && mocha test/*.integration.js",
-    "lint": "eslint --ignore-path .gitignore . && prettier --check --ignore-path .gitignore \"**/*.{json,md,yml}\""
+    "test": "npm run lint && nyc --reporter=html --reporter=text mocha --throw-deprecation test/*.test.js",
+    "integration": "npm run lint && mocha --throw-deprecation test/*.integration.js",
+    "lint": "eslint --ignore-path .gitignore . && prettier --check --ignore-path .gitignore \"**/*.{json,md,yaml,yml}\""
   },
-  "dependencies": {
-    "async-limiter": "~1.0.0"
+  "peerDependencies": {
+    "bufferutil": "^4.0.1",
+    "utf-8-validate": "^5.0.2"
+  },
+  "peerDependenciesMeta": {
+    "bufferutil": {
+      "optional": true
+    },
+    "utf-8-validate": {
+      "optional": true
+    }
   },
   "devDependencies": {
-    "benchmark": "~2.1.4",
-    "bufferutil": "~4.0.0",
-    "coveralls": "~3.0.3",
-    "eslint": "~5.15.0",
-    "eslint-config-prettier": "~4.1.0",
-    "eslint-plugin-prettier": "~3.0.0",
-    "mocha": "~6.0.0",
-    "nyc": "~13.3.0",
-    "prettier": "~1.16.1",
-    "utf-8-validate": "~5.0.0"
+    "benchmark": "^2.1.4",
+    "bufferutil": "^4.0.1",
+    "coveralls": "^3.0.3",
+    "eslint": "^6.0.0",
+    "eslint-config-prettier": "^6.0.0",
+    "eslint-plugin-prettier": "^3.0.1",
+    "mocha": "^6.1.3",
+    "nyc": "^14.0.0",
+    "prettier": "^1.17.0",
+    "utf-8-validate": "^5.0.2"
+  },
+  "greenkeeper": {
+    "commitMessages": {
+      "dependencyUpdate": "[pkg] Update ${dependency} to version ${version}",
+      "devDependencyUpdate": "[pkg] Update ${dependency} to version ${version}"
+    }
   }
 }

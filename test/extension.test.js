@@ -2,83 +2,87 @@
 
 const assert = require('assert');
 
-const extension = require('../lib/extension');
+const { format, parse } = require('../lib/extension');
 
-describe('extension', function() {
-  describe('parse', function() {
-    it('returns an empty object if the argument is `undefined`', function() {
-      assert.deepStrictEqual(extension.parse(), {});
-      assert.deepStrictEqual(extension.parse(''), {});
+describe('extension', () => {
+  describe('parse', () => {
+    it('returns an empty object if the argument is `undefined`', () => {
+      assert.deepStrictEqual(parse(), { __proto__: null });
+      assert.deepStrictEqual(parse(''), { __proto__: null });
     });
 
-    it('parses a single extension', function() {
-      const extensions = extension.parse('foo');
-
-      assert.deepStrictEqual(extensions, { foo: [{}] });
-    });
-
-    it('parses params', function() {
-      const extensions = extension.parse('foo;bar;baz=1;bar=2');
-
-      assert.deepStrictEqual(extensions, {
-        foo: [{ bar: [true, '2'], baz: ['1'] }]
+    it('parses a single extension', () => {
+      assert.deepStrictEqual(parse('foo'), {
+        foo: [{ __proto__: null }],
+        __proto__: null
       });
     });
 
-    it('parses multiple extensions', function() {
-      const extensions = extension.parse('foo,bar;baz,foo;baz');
-
-      assert.deepStrictEqual(extensions, {
-        foo: [{}, { baz: [true] }],
-        bar: [{ baz: [true] }]
+    it('parses params', () => {
+      assert.deepStrictEqual(parse('foo;bar;baz=1;bar=2'), {
+        foo: [{ bar: [true, '2'], baz: ['1'], __proto__: null }],
+        __proto__: null
       });
     });
 
-    it('parses quoted params', function() {
-      assert.deepStrictEqual(extension.parse('foo;bar="hi"'), {
-        foo: [{ bar: ['hi'] }]
+    it('parses multiple extensions', () => {
+      assert.deepStrictEqual(parse('foo,bar;baz,foo;baz'), {
+        foo: [{ __proto__: null }, { baz: [true], __proto__: null }],
+        bar: [{ baz: [true], __proto__: null }],
+        __proto__: null
       });
-      assert.deepStrictEqual(extension.parse('foo;bar="\\0"'), {
-        foo: [{ bar: ['0'] }]
+    });
+
+    it('parses quoted params', () => {
+      assert.deepStrictEqual(parse('foo;bar="hi"'), {
+        foo: [{ bar: ['hi'], __proto__: null }],
+        __proto__: null
       });
-      assert.deepStrictEqual(extension.parse('foo;bar="b\\a\\z"'), {
-        foo: [{ bar: ['baz'] }]
+      assert.deepStrictEqual(parse('foo;bar="\\0"'), {
+        foo: [{ bar: ['0'], __proto__: null }],
+        __proto__: null
       });
-      assert.deepStrictEqual(extension.parse('foo;bar="b\\az";bar'), {
-        foo: [{ bar: ['baz', true] }]
+      assert.deepStrictEqual(parse('foo;bar="b\\a\\z"'), {
+        foo: [{ bar: ['baz'], __proto__: null }],
+        __proto__: null
+      });
+      assert.deepStrictEqual(parse('foo;bar="b\\az";bar'), {
+        foo: [{ bar: ['baz', true], __proto__: null }],
+        __proto__: null
       });
       assert.throws(
-        () => extension.parse('foo;bar="baz"qux'),
+        () => parse('foo;bar="baz"qux'),
         /^SyntaxError: Unexpected character at index 13$/
       );
       assert.throws(
-        () => extension.parse('foo;bar="baz" qux'),
+        () => parse('foo;bar="baz" qux'),
         /^SyntaxError: Unexpected character at index 14$/
       );
     });
 
-    it('works with names that match `Object.prototype` property names', function() {
-      const parse = extension.parse;
-
+    it('works with names that match `Object.prototype` property names', () => {
       assert.deepStrictEqual(parse('hasOwnProperty, toString'), {
-        hasOwnProperty: [{}],
-        toString: [{}]
+        hasOwnProperty: [{ __proto__: null }],
+        toString: [{ __proto__: null }],
+        __proto__: null
       });
       assert.deepStrictEqual(parse('foo;constructor'), {
-        foo: [{ constructor: [true] }]
+        foo: [{ constructor: [true], __proto__: null }],
+        __proto__: null
       });
     });
 
-    it('ignores the optional white spaces', function() {
+    it('ignores the optional white spaces', () => {
       const header = 'foo; bar\t; \tbaz=1\t ;  bar="1"\t\t, \tqux\t ;norf ';
 
-      assert.deepStrictEqual(extension.parse(header), {
-        foo: [{ bar: [true, '1'], baz: ['1'] }],
-        qux: [{ norf: [true] }]
+      assert.deepStrictEqual(parse(header), {
+        foo: [{ bar: [true, '1'], baz: ['1'], __proto__: null }],
+        qux: [{ norf: [true], __proto__: null }],
+        __proto__: null
       });
     });
 
-    it('throws an error if a name is empty', function() {
+    it('throws an error if a name is empty', () => {
       [
         [',', 0],
         ['foo,,', 4],
@@ -91,7 +95,7 @@ describe('extension', function() {
         ['foo;bar=""', 9]
       ].forEach((element) => {
         assert.throws(
-          () => extension.parse(element[0]),
+          () => parse(element[0]),
           new RegExp(
             `^SyntaxError: Unexpected character at index ${element[1]}$`
           )
@@ -99,7 +103,7 @@ describe('extension', function() {
       });
     });
 
-    it('throws an error if a white space is misplaced', function() {
+    it('throws an error if a white space is misplaced', () => {
       [
         ['f oo', 2],
         ['foo;ba r', 7],
@@ -107,7 +111,7 @@ describe('extension', function() {
         ['foo;bar= ', 8]
       ].forEach((element) => {
         assert.throws(
-          () => extension.parse(element[0]),
+          () => parse(element[0]),
           new RegExp(
             `^SyntaxError: Unexpected character at index ${element[1]}$`
           )
@@ -115,7 +119,7 @@ describe('extension', function() {
       });
     });
 
-    it('throws an error if a token contains invalid characters', function() {
+    it('throws an error if a token contains invalid characters', () => {
       [
         ['f@o', 1],
         ['f\\oo', 1],
@@ -133,7 +137,7 @@ describe('extension', function() {
         ['foo;bar="\\\\"', 10]
       ].forEach((element) => {
         assert.throws(
-          () => extension.parse(element[0]),
+          () => parse(element[0]),
           new RegExp(
             `^SyntaxError: Unexpected character at index ${element[1]}$`
           )
@@ -141,7 +145,7 @@ describe('extension', function() {
       });
     });
 
-    it('throws an error if the header value ends prematurely', function() {
+    it('throws an error if the header value ends prematurely', () => {
       [
         'foo, ',
         'foo;',
@@ -152,28 +156,28 @@ describe('extension', function() {
         'foo;bar="1\\'
       ].forEach((header) => {
         assert.throws(
-          () => extension.parse(header),
+          () => parse(header),
           /^SyntaxError: Unexpected end of input$/
         );
       });
     });
   });
 
-  describe('format', function() {
-    it('formats a single extension', function() {
-      const extensions = extension.format({ foo: {} });
+  describe('format', () => {
+    it('formats a single extension', () => {
+      const extensions = format({ foo: {} });
 
       assert.strictEqual(extensions, 'foo');
     });
 
-    it('formats params', function() {
-      const extensions = extension.format({ foo: { bar: [true, 2], baz: 1 } });
+    it('formats params', () => {
+      const extensions = format({ foo: { bar: [true, 2], baz: 1 } });
 
       assert.strictEqual(extensions, 'foo; bar; bar=2; baz=1');
     });
 
-    it('formats multiple extensions', function() {
-      const extensions = extension.format({
+    it('formats multiple extensions', () => {
+      const extensions = format({
         foo: [{}, { baz: true }],
         bar: { baz: true }
       });

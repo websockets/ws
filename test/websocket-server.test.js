@@ -11,25 +11,36 @@ const fs = require('fs');
 
 const WebSocket = require('..');
 
-describe('WebSocketServer', function() {
-  describe('#ctor', function() {
-    it('throws an error if no option object is passed', function() {
+describe('WebSocketServer', () => {
+  describe('#ctor', () => {
+    it('throws an error if no option object is passed', () => {
       assert.throws(() => new WebSocket.Server());
     });
 
-    it('throws an error if no port or server is specified', function() {
-      assert.throws(() => new WebSocket.Server({}));
-    });
+    describe('options', () => {
+      it('throws an error if no `port` or `server` option is specified', () => {
+        assert.throws(() => new WebSocket.Server({}));
+      });
 
-    describe('options', function() {
-      it('exposes options passed to constructor', function(done) {
+      it('throws an error if the server is already being used', () => {
+        const server = http.createServer();
+
+        new WebSocket.Server({ server });
+
+        assert.throws(
+          () => new WebSocket.Server({ server }),
+          /^Error: The HTTP\/S server is already being used by another WebSocket server$/
+        );
+      });
+
+      it('exposes options passed to constructor', (done) => {
         const wss = new WebSocket.Server({ port: 0 }, () => {
           assert.strictEqual(wss.options.port, 0);
           wss.close(done);
         });
       });
 
-      it('accepts the `maxPayload` option', function(done) {
+      it('accepts the `maxPayload` option', (done) => {
         const maxPayload = 20480;
         const wss = new WebSocket.Server(
           {
@@ -53,7 +64,7 @@ describe('WebSocketServer', function() {
       });
     });
 
-    it('emits an error if http server bind fails', function(done) {
+    it('emits an error if http server bind fails', (done) => {
       const wss1 = new WebSocket.Server({ port: 0 }, () => {
         const wss2 = new WebSocket.Server({
           port: wss1.address().port
@@ -63,7 +74,7 @@ describe('WebSocketServer', function() {
       });
     });
 
-    it('starts a server on a given port', function(done) {
+    it('starts a server on a given port', (done) => {
       const port = 1337;
       const wss = new WebSocket.Server({ port }, () => {
         const ws = new WebSocket(`ws://localhost:${port}`);
@@ -72,14 +83,14 @@ describe('WebSocketServer', function() {
       wss.on('connection', () => wss.close(done));
     });
 
-    it('binds the server on any IPv6 address when available', function(done) {
+    it('binds the server on any IPv6 address when available', (done) => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         assert.strictEqual(wss._server.address().address, '::');
         wss.close(done);
       });
     });
 
-    it('uses a precreated http server', function(done) {
+    it('uses a precreated http server', (done) => {
       const server = http.createServer();
 
       server.listen(0, () => {
@@ -93,7 +104,7 @@ describe('WebSocketServer', function() {
       });
     });
 
-    it('426s for non-Upgrade requests', function(done) {
+    it('426s for non-Upgrade requests', (done) => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         http.get(`http://localhost:${wss.address().port}`, (res) => {
           let body = '';
@@ -140,8 +151,8 @@ describe('WebSocketServer', function() {
     });
   });
 
-  describe('#address', function() {
-    it('returns the address of the server', function(done) {
+  describe('#address', () => {
+    it('returns the address of the server', (done) => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const addr = wss.address();
 
@@ -150,7 +161,7 @@ describe('WebSocketServer', function() {
       });
     });
 
-    it('throws an error when operating in "noServer" mode', function() {
+    it('throws an error when operating in "noServer" mode', () => {
       const wss = new WebSocket.Server({ noServer: true });
 
       assert.throws(() => {
@@ -158,7 +169,7 @@ describe('WebSocketServer', function() {
       }, /^Error: The server is operating in "noServer" mode$/);
     });
 
-    it('returns `null` if called after close', function(done) {
+    it('returns `null` if called after close', (done) => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         wss.close(() => {
           assert.strictEqual(wss.address(), null);
@@ -168,8 +179,8 @@ describe('WebSocketServer', function() {
     });
   });
 
-  describe('#close', function() {
-    it('does not throw when called twice', function(done) {
+  describe('#close', () => {
+    it('does not throw when called twice', (done) => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         wss.close();
         wss.close();
@@ -179,7 +190,7 @@ describe('WebSocketServer', function() {
       });
     });
 
-    it('closes all clients', function(done) {
+    it('closes all clients', (done) => {
       let closes = 0;
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
@@ -196,7 +207,7 @@ describe('WebSocketServer', function() {
       });
     });
 
-    it("doesn't close a precreated server", function(done) {
+    it("doesn't close a precreated server", (done) => {
       const server = http.createServer();
       const realClose = server.close;
 
@@ -217,28 +228,34 @@ describe('WebSocketServer', function() {
       });
     });
 
-    it('invokes the callback in noServer mode', function(done) {
+    it('invokes the callback in noServer mode', (done) => {
       const wss = new WebSocket.Server({ noServer: true });
 
       wss.close(done);
     });
 
-    it('cleans event handlers on precreated server', function(done) {
+    it('cleans event handlers on precreated server', (done) => {
       const server = http.createServer();
-      const wss = new WebSocket.Server({ server });
+      const wss1 = new WebSocket.Server({ server });
 
       server.listen(0, () => {
-        wss.close(() => {
+        wss1.close(() => {
           assert.strictEqual(server.listenerCount('listening'), 0);
           assert.strictEqual(server.listenerCount('upgrade'), 0);
           assert.strictEqual(server.listenerCount('error'), 0);
 
-          server.close(done);
+          // Check that no error is thrown if `server` is resued now as there
+          // are no other `WebSocketServer`s using it.
+          const wss2 = new WebSocket.Server({ server });
+
+          wss2.close(() => {
+            server.close(done);
+          });
         });
       });
     });
 
-    it("emits the 'close' event", function(done) {
+    it("emits the 'close' event", (done) => {
       const wss = new WebSocket.Server({ noServer: true });
 
       wss.on('close', done);
@@ -246,8 +263,8 @@ describe('WebSocketServer', function() {
     });
   });
 
-  describe('#clients', function() {
-    it('returns a list of connected clients', function(done) {
+  describe('#clients', () => {
+    it('returns a list of connected clients', (done) => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         assert.strictEqual(wss.clients.size, 0);
         const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
@@ -259,7 +276,7 @@ describe('WebSocketServer', function() {
       });
     });
 
-    it('can be disabled', function(done) {
+    it('can be disabled', (done) => {
       const wss = new WebSocket.Server(
         { port: 0, clientTracking: false },
         () => {
@@ -276,7 +293,7 @@ describe('WebSocketServer', function() {
       });
     });
 
-    it('is updated when client terminates the connection', function(done) {
+    it('is updated when client terminates the connection', (done) => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
@@ -291,7 +308,7 @@ describe('WebSocketServer', function() {
       });
     });
 
-    it('is updated when client closes the connection', function(done) {
+    it('is updated when client closes the connection', (done) => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
@@ -307,22 +324,22 @@ describe('WebSocketServer', function() {
     });
   });
 
-  describe('#shouldHandle', function() {
-    it('returns true when the path matches', function() {
+  describe('#shouldHandle', () => {
+    it('returns true when the path matches', () => {
       const wss = new WebSocket.Server({ noServer: true, path: '/foo' });
 
       assert.strictEqual(wss.shouldHandle({ url: '/foo' }), true);
     });
 
-    it("returns false when the path doesn't match", function() {
+    it("returns false when the path doesn't match", () => {
       const wss = new WebSocket.Server({ noServer: true, path: '/foo' });
 
       assert.strictEqual(wss.shouldHandle({ url: '/bar' }), false);
     });
   });
 
-  describe('#handleUpgrade', function() {
-    it('can be used for a pre-existing server', function(done) {
+  describe('#handleUpgrade', () => {
+    it('can be used for a pre-existing server', (done) => {
       const server = http.createServer();
 
       server.listen(0, () => {
@@ -344,7 +361,7 @@ describe('WebSocketServer', function() {
       });
     });
 
-    it("closes the connection when path doesn't match", function(done) {
+    it("closes the connection when path doesn't match", (done) => {
       const wss = new WebSocket.Server({ port: 0, path: '/ws' }, () => {
         const req = http.get({
           port: wss.address().port,
@@ -361,7 +378,7 @@ describe('WebSocketServer', function() {
       });
     });
 
-    it('closes the connection when protocol version is Hixie-76', function(done) {
+    it('closes the connection when protocol version is Hixie-76', (done) => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const req = http.get({
           port: wss.address().port,
@@ -382,8 +399,8 @@ describe('WebSocketServer', function() {
     });
   });
 
-  describe('Connection establishing', function() {
-    it('fails if the Sec-WebSocket-Key header is invalid (1/2)', function(done) {
+  describe('Connection establishing', () => {
+    it('fails if the Sec-WebSocket-Key header is invalid (1/2)', (done) => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const req = http.get({
           port: wss.address().port,
@@ -404,7 +421,7 @@ describe('WebSocketServer', function() {
       });
     });
 
-    it('fails if the Sec-WebSocket-Key header is invalid (2/2)', function(done) {
+    it('fails if the Sec-WebSocket-Key header is invalid (2/2)', (done) => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const req = http.get({
           port: wss.address().port,
@@ -426,7 +443,7 @@ describe('WebSocketServer', function() {
       });
     });
 
-    it('fails is the Sec-WebSocket-Version header is invalid (1/2)', function(done) {
+    it('fails is the Sec-WebSocket-Version header is invalid (1/2)', (done) => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const req = http.get({
           port: wss.address().port,
@@ -448,7 +465,7 @@ describe('WebSocketServer', function() {
       });
     });
 
-    it('fails is the Sec-WebSocket-Version header is invalid (2/2)', function(done) {
+    it('fails is the Sec-WebSocket-Version header is invalid (2/2)', (done) => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const req = http.get({
           port: wss.address().port,
@@ -471,7 +488,7 @@ describe('WebSocketServer', function() {
       });
     });
 
-    it('fails is the Sec-WebSocket-Extensions header is invalid', function(done) {
+    it('fails is the Sec-WebSocket-Extensions header is invalid', (done) => {
       const wss = new WebSocket.Server(
         {
           perMessageDeflate: true,
@@ -502,8 +519,8 @@ describe('WebSocketServer', function() {
       });
     });
 
-    describe('`verifyClient`', function() {
-      it('can reject client synchronously', function(done) {
+    describe('`verifyClient`', () => {
+      it('can reject client synchronously', (done) => {
         const wss = new WebSocket.Server(
           {
             verifyClient: () => false,
@@ -532,7 +549,7 @@ describe('WebSocketServer', function() {
         });
       });
 
-      it('can accept client synchronously', function(done) {
+      it('can accept client synchronously', (done) => {
         const server = https.createServer({
           cert: fs.readFileSync('test/fixtures/certificate.pem'),
           key: fs.readFileSync('test/fixtures/key.pem')
@@ -561,7 +578,7 @@ describe('WebSocketServer', function() {
         });
       });
 
-      it('can accept client asynchronously', function(done) {
+      it('can accept client asynchronously', (done) => {
         const wss = new WebSocket.Server(
           {
             verifyClient: (o, cb) => process.nextTick(cb, true),
@@ -575,7 +592,7 @@ describe('WebSocketServer', function() {
         wss.on('connection', () => wss.close(done));
       });
 
-      it('can reject client asynchronously', function(done) {
+      it('can reject client asynchronously', (done) => {
         const wss = new WebSocket.Server(
           {
             verifyClient: (info, cb) => process.nextTick(cb, false),
@@ -604,7 +621,7 @@ describe('WebSocketServer', function() {
         });
       });
 
-      it('can reject client asynchronously w/ status code', function(done) {
+      it('can reject client asynchronously w/ status code', (done) => {
         const wss = new WebSocket.Server(
           {
             verifyClient: (info, cb) => process.nextTick(cb, false, 404),
@@ -633,7 +650,7 @@ describe('WebSocketServer', function() {
         });
       });
 
-      it('can reject client asynchronously w/ custom headers', function(done) {
+      it('can reject client asynchronously w/ custom headers', (done) => {
         const wss = new WebSocket.Server(
           {
             verifyClient: (info, cb) => {
@@ -666,7 +683,7 @@ describe('WebSocketServer', function() {
       });
     });
 
-    it("doesn't emit the 'connection' event if socket is closed prematurely", function(done) {
+    it("doesn't emit the 'connection' event if socket is closed prematurely", (done) => {
       const server = http.createServer();
 
       server.listen(0, () => {
@@ -715,7 +732,7 @@ describe('WebSocketServer', function() {
       });
     });
 
-    it('handles data passed along with the upgrade request', function(done) {
+    it('handles data passed along with the upgrade request', (done) => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const req = http.request({
           port: wss.address().port,
@@ -739,8 +756,8 @@ describe('WebSocketServer', function() {
       });
     });
 
-    describe('`handleProtocols`', function() {
-      it('allows to select a subprotocol', function(done) {
+    describe('`handleProtocols`', () => {
+      it('allows to select a subprotocol', (done) => {
         const handleProtocols = (protocols, request) => {
           assert.ok(request instanceof http.IncomingMessage);
           assert.strictEqual(request.url, '/');
@@ -760,7 +777,7 @@ describe('WebSocketServer', function() {
       });
     });
 
-    it("emits the 'headers' event", function(done) {
+    it("emits the 'headers' event", (done) => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
@@ -779,8 +796,8 @@ describe('WebSocketServer', function() {
     });
   });
 
-  describe('permessage-deflate', function() {
-    it('is disabled by default', function(done) {
+  describe('permessage-deflate', () => {
+    it('is disabled by default', (done) => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
       });
@@ -795,7 +812,7 @@ describe('WebSocketServer', function() {
       });
     });
 
-    it('uses configuration options', function(done) {
+    it('uses configuration options', (done) => {
       const wss = new WebSocket.Server(
         {
           perMessageDeflate: { clientMaxWindowBits: 8 },
