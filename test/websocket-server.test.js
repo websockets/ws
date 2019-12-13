@@ -325,16 +325,70 @@ describe('WebSocketServer', () => {
   });
 
   describe('#shouldHandle', () => {
-    it('returns true when the path matches', () => {
-      const wss = new WebSocket.Server({ noServer: true, path: '/foo' });
+    describe('when path whitelist is string', () => {
+      it('returns true when the path matches', () => {
+        const wss = new WebSocket.Server({ noServer: true, path: '/foo' });
 
-      assert.strictEqual(wss.shouldHandle({ url: '/foo' }), true);
+        assert.strictEqual(wss.shouldHandle({ url: '/foo' }), true);
+      });
+
+      it("returns false when the path doesn't match", () => {
+        const wss = new WebSocket.Server({ noServer: true, path: '/foo' });
+
+        assert.strictEqual(wss.shouldHandle({ url: '/bar' }), false);
+      });
     });
 
-    it("returns false when the path doesn't match", () => {
-      const wss = new WebSocket.Server({ noServer: true, path: '/foo' });
+    describe('when path whitelist is RegExp', () => {
+      it('returns true when the path prefix matches', () => {
+        const wss = new WebSocket.Server({ noServer: true, path: /^\/fo/ });
 
-      assert.strictEqual(wss.shouldHandle({ url: '/bar' }), false);
+        assert.strictEqual(wss.shouldHandle({ url: '/foo' }), true);
+      });
+
+      it('returns true when the path matches partially', () => {
+        const wss = new WebSocket.Server({ noServer: true, path: /oo/ });
+
+        assert.strictEqual(wss.shouldHandle({ url: '/foo' }), true);
+      });
+
+      it('returns true when the path matches completely', () => {
+        const wss = new WebSocket.Server({ noServer: true, path: /^\/foo$/ });
+
+        assert.strictEqual(wss.shouldHandle({ url: '/foo' }), true);
+      });
+
+      it("returns false when the path doesn't match", () => {
+        const wss = new WebSocket.Server({ noServer: true, path: /^\/fo/ });
+
+        assert.strictEqual(wss.shouldHandle({ url: '/not_foo' }), false);
+      });
+    });
+
+    describe('when path whitelist is string array', () => {
+      it('returns true when the path matches', () => {
+        const wss = new WebSocket.Server({
+          noServer: true,
+          path: ['/bar', '/foo']
+        });
+
+        assert.strictEqual(wss.shouldHandle({ url: '/foo' }), true);
+      });
+
+      it('returns false when the path whitelist is empty', () => {
+        const wss = new WebSocket.Server({ noServer: true, path: [] });
+
+        assert.strictEqual(wss.shouldHandle({ url: '/zoo' }), false);
+      });
+
+      it("returns false when the path doesn't match", () => {
+        const wss = new WebSocket.Server({
+          noServer: true,
+          path: ['/bar', '/foo']
+        });
+
+        assert.strictEqual(wss.shouldHandle({ url: '/zoo' }), false);
+      });
     });
   });
 
