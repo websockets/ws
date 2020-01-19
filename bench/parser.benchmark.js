@@ -16,16 +16,16 @@ const options = {
 };
 
 function createBinaryFrame(length) {
-  const list = Sender.frame(
-    crypto.randomBytes(length),
-    Object.assign({ opcode: 0x02 }, options)
-  );
+  const list = Sender.frame(crypto.randomBytes(length), {
+    opcode: 0x02,
+    ...options
+  });
 
   return Buffer.concat(list);
 }
 
 const pingFrame1 = Buffer.concat(
-  Sender.frame(crypto.randomBytes(5), Object.assign({ opcode: 0x09 }, options))
+  Sender.frame(crypto.randomBytes(5), { opcode: 0x09, ...options })
 );
 
 const textFrame = Buffer.from('819461616161' + '61'.repeat(20), 'hex');

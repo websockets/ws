@@ -115,16 +115,18 @@ describe('Receiver', () => {
     const options = { rsv1: false, mask: true, readOnly: false };
 
     const frame1 = Buffer.concat(
-      Sender.frame(
-        Buffer.from(fragment1),
-        Object.assign({ fin: false, opcode: 0x01 }, options)
-      )
+      Sender.frame(Buffer.from(fragment1), {
+        fin: false,
+        opcode: 0x01,
+        ...options
+      })
     );
     const frame2 = Buffer.concat(
-      Sender.frame(
-        Buffer.from(fragment2),
-        Object.assign({ fin: true, opcode: 0x00 }, options)
-      )
+      Sender.frame(Buffer.from(fragment2), {
+        fin: true,
+        opcode: 0x00,
+        ...options
+      })
     );
 
     receiver.on('message', (data) => {
@@ -180,22 +182,25 @@ describe('Receiver', () => {
     const options = { rsv1: false, mask: true, readOnly: false };
 
     const frame1 = Buffer.concat(
-      Sender.frame(
-        Buffer.from(fragment1),
-        Object.assign({ fin: false, opcode: 0x01 }, options)
-      )
+      Sender.frame(Buffer.from(fragment1), {
+        fin: false,
+        opcode: 0x01,
+        ...options
+      })
     );
     const frame2 = Buffer.concat(
-      Sender.frame(
-        Buffer.from(pingMessage),
-        Object.assign({ fin: true, opcode: 0x09 }, options)
-      )
+      Sender.frame(Buffer.from(pingMessage), {
+        fin: true,
+        opcode: 0x09,
+        ...options
+      })
     );
     const frame3 = Buffer.concat(
-      Sender.frame(
-        Buffer.from(fragment2),
-        Object.assign({ fin: true, opcode: 0x00 }, options)
-      )
+      Sender.frame(Buffer.from(fragment2), {
+        fin: true,
+        opcode: 0x00,
+        ...options
+      })
     );
 
     let gotPing = false;
@@ -226,22 +231,25 @@ describe('Receiver', () => {
     const options = { rsv1: false, mask: true, readOnly: false };
 
     const frame1 = Buffer.concat(
-      Sender.frame(
-        Buffer.from(fragment1),
-        Object.assign({ fin: false, opcode: 0x01 }, options)
-      )
+      Sender.frame(Buffer.from(fragment1), {
+        fin: false,
+        opcode: 0x01,
+        ...options
+      })
     );
     const frame2 = Buffer.concat(
-      Sender.frame(
-        Buffer.from(pingMessage),
-        Object.assign({ fin: true, opcode: 0x09 }, options)
-      )
+      Sender.frame(Buffer.from(pingMessage), {
+        fin: true,
+        opcode: 0x09,
+        ...options
+      })
     );
     const frame3 = Buffer.concat(
-      Sender.frame(
-        Buffer.from(fragment2),
-        Object.assign({ fin: true, opcode: 0x00 }, options)
-      )
+      Sender.frame(Buffer.from(fragment2), {
+        fin: true,
+        opcode: 0x00,
+        ...options
+      })
     );
 
     let chunks = [];
