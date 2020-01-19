@@ -9,6 +9,7 @@ const http = require('http');
 const net = require('net');
 const fs = require('fs');
 
+const Sender = require('../lib/sender');
 const WebSocket = require('..');
 
 describe('WebSocketServer', () => {
@@ -744,7 +745,15 @@ describe('WebSocketServer', () => {
           }
         });
 
-        req.write(Buffer.from([0x81, 0x05, 0x48, 0x65, 0x6c, 0x6c, 0x6f]));
+        const list = Sender.frame(Buffer.from('Hello'), {
+          fin: true,
+          rsv1: false,
+          opcode: 0x01,
+          mask: true,
+          readOnly: false
+        });
+
+        req.write(Buffer.concat(list));
         req.end();
       });
 
