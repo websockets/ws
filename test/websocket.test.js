@@ -1293,7 +1293,7 @@ describe('WebSocket', () => {
       });
     });
 
-    it('can send text data with `mask` option set to `false`', (done) => {
+    it('honors the `mask` option', (done) => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
@@ -1301,30 +1301,29 @@ describe('WebSocket', () => {
       });
 
       wss.on('connection', (ws) => {
-        ws.on('message', (message) => {
-          assert.strictEqual(message, 'hi');
-          wss.close(done);
+        const chunks = [];
+
+        ws._socket.prependListener('data', (chunk) => {
+          chunks.push(chunk);
         });
-      });
-    });
 
-    it('can send binary data with `mask` option set to `false`', (done) => {
-      const array = new Float32Array(5);
+        ws.on('error', (err) => {
+          assert.ok(err instanceof RangeError);
+          assert.strictEqual(
+            err.message,
+            'Invalid WebSocket frame: MASK must be set'
+          );
+          assert.ok(
+            Buffer.concat(chunks)
+              .slice(0, 2)
+              .equals(Buffer.from('8102', 'hex'))
+          );
 
-      for (let i = 0; i < array.length; ++i) {
-        array[i] = i / 2;
-      }
-
-      const wss = new WebSocket.Server({ port: 0 }, () => {
-        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
-
-        ws.on('open', () => ws.send(array, { mask: false }));
-      });
-
-      wss.on('connection', (ws) => {
-        ws.on('message', (message) => {
-          assert.ok(message.equals(Buffer.from(array.buffer)));
-          wss.close(done);
+          ws.on('close', (code, reason) => {
+            assert.strictEqual(code, 1002);
+            assert.strictEqual(reason, '');
+            wss.close(done);
+          });
         });
       });
     });

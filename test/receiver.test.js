@@ -48,7 +48,7 @@ describe('Receiver', () => {
   });
 
   it('parses a masked text message', (done) => {
-    const receiver = new Receiver();
+    const receiver = new Receiver(undefined, {}, true);
 
     receiver.on('message', (data) => {
       assert.strictEqual(data, '5:::{"name":"echo"}');
@@ -61,7 +61,7 @@ describe('Receiver', () => {
   });
 
   it('parses a masked text message longer than 125 B', (done) => {
-    const receiver = new Receiver();
+    const receiver = new Receiver(undefined, {}, true);
     const msg = 'A'.repeat(200);
 
     const list = Sender.frame(Buffer.from(msg), {
@@ -84,7 +84,7 @@ describe('Receiver', () => {
   });
 
   it('parses a really long masked text message', (done) => {
-    const receiver = new Receiver();
+    const receiver = new Receiver(undefined, {}, true);
     const msg = 'A'.repeat(64 * 1024);
 
     const list = Sender.frame(Buffer.from(msg), {
@@ -106,7 +106,7 @@ describe('Receiver', () => {
   });
 
   it('parses a 300 B fragmented masked text message', (done) => {
-    const receiver = new Receiver();
+    const receiver = new Receiver(undefined, {}, true);
     const msg = 'A'.repeat(300);
 
     const fragment1 = msg.substr(0, 150);
@@ -139,7 +139,7 @@ describe('Receiver', () => {
   });
 
   it('parses a ping message', (done) => {
-    const receiver = new Receiver();
+    const receiver = new Receiver(undefined, {}, true);
     const msg = 'Hello';
 
     const list = Sender.frame(Buffer.from(msg), {
@@ -172,7 +172,7 @@ describe('Receiver', () => {
   });
 
   it('parses a 300 B fragmented masked text message with a ping in the middle (1/2)', (done) => {
-    const receiver = new Receiver();
+    const receiver = new Receiver(undefined, {}, true);
     const msg = 'A'.repeat(300);
     const pingMessage = 'Hello';
 
@@ -221,7 +221,7 @@ describe('Receiver', () => {
   });
 
   it('parses a 300 B fragmented masked text message with a ping in the middle (2/2)', (done) => {
-    const receiver = new Receiver();
+    const receiver = new Receiver(undefined, {}, true);
     const msg = 'A'.repeat(300);
     const pingMessage = 'Hello';
 
@@ -280,7 +280,7 @@ describe('Receiver', () => {
   });
 
   it('parses a 100 B masked binary message', (done) => {
-    const receiver = new Receiver();
+    const receiver = new Receiver(undefined, {}, true);
     const msg = crypto.randomBytes(100);
 
     const list = Sender.frame(msg, {
@@ -302,7 +302,7 @@ describe('Receiver', () => {
   });
 
   it('parses a 256 B masked binary message', (done) => {
-    const receiver = new Receiver();
+    const receiver = new Receiver(undefined, {}, true);
     const msg = crypto.randomBytes(256);
 
     const list = Sender.frame(msg, {
@@ -324,7 +324,7 @@ describe('Receiver', () => {
   });
 
   it('parses a 200 KiB masked binary message', (done) => {
-    const receiver = new Receiver();
+    const receiver = new Receiver(undefined, {}, true);
     const msg = crypto.randomBytes(200 * 1024);
 
     const list = Sender.frame(msg, {
@@ -439,7 +439,7 @@ describe('Receiver', () => {
   });
 
   it('resets `totalPayloadLength` only on final frame (unfragmented)', (done) => {
-    const receiver = new Receiver(undefined, {}, 10);
+    const receiver = new Receiver(undefined, {}, false, 10);
 
     receiver.on('message', (data) => {
       assert.strictEqual(receiver._totalPayloadLength, 0);
@@ -452,7 +452,7 @@ describe('Receiver', () => {
   });
 
   it('resets `totalPayloadLength` only on final frame (fragmented)', (done) => {
-    const receiver = new Receiver(undefined, {}, 10);
+    const receiver = new Receiver(undefined, {}, false, 10);
 
     receiver.on('message', (data) => {
       assert.strictEqual(receiver._totalPayloadLength, 0);
@@ -467,7 +467,7 @@ describe('Receiver', () => {
   });
 
   it('resets `totalPayloadLength` only on final frame (fragmented + ping)', (done) => {
-    const receiver = new Receiver(undefined, {}, 10);
+    const receiver = new Receiver(undefined, {}, false, 10);
     let data;
 
     receiver.on('ping', (buf) => {
@@ -680,6 +680,40 @@ describe('Receiver', () => {
     receiver.write(Buffer.from([0x09, 0x00]));
   });
 
+  it('emits an error if a frame has the MASK bit off (server mode)', (done) => {
+    const receiver = new Receiver(undefined, {}, true);
+
+    receiver.on('error', (err) => {
+      assert.ok(err instanceof RangeError);
+      assert.strictEqual(
+        err.message,
+        'Invalid WebSocket frame: MASK must be set'
+      );
+      assert.strictEqual(err[kStatusCode], 1002);
+      done();
+    });
+
+    receiver.write(Buffer.from([0x81, 0x02, 0x68, 0x69]));
+  });
+
+  it('emits an error if a frame has the MASK bit on (client mode)', (done) => {
+    const receiver = new Receiver(undefined, {}, false);
+
+    receiver.on('error', (err) => {
+      assert.ok(err instanceof RangeError);
+      assert.strictEqual(
+        err.message,
+        'Invalid WebSocket frame: MASK must be clear'
+      );
+      assert.strictEqual(err[kStatusCode], 1002);
+      done();
+    });
+
+    receiver.write(
+      Buffer.from([0x81, 0x82, 0x56, 0x3a, 0xac, 0x80, 0x3e, 0x53])
+    );
+  });
+
   it('emits an error if a control frame has a payload bigger than 125 B', (done) => {
     const receiver = new Receiver();
 
@@ -811,7 +845,7 @@ describe('Receiver', () => {
   });
 
   it('emits an error if a frame payload length is bigger than `maxPayload`', (done) => {
-    const receiver = new Receiver(undefined, {}, 20 * 1024);
+    const receiver = new Receiver(undefined, {}, true, 20 * 1024);
     const msg = crypto.randomBytes(200 * 1024);
 
     const list = Sender.frame(msg, {
@@ -843,6 +877,7 @@ describe('Receiver', () => {
       {
         'permessage-deflate': perMessageDeflate
       },
+      false,
       25
     );
     const buf = Buffer.from('A'.repeat(50));
@@ -871,6 +906,7 @@ describe('Receiver', () => {
       {
         'permessage-deflate': perMessageDeflate
       },
+      false,
       25
     );
     const buf = Buffer.from('A'.repeat(15));
