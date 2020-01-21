@@ -1532,6 +1532,19 @@ describe('WebSocket', () => {
       wss.on('connection', (ws) => ws.close(1013));
     });
 
+    it('allows close code 1014', (done) => {
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+
+        ws.on('close', (code) => {
+          assert.strictEqual(code, 1014);
+          wss.close(done);
+        });
+      });
+
+      wss.on('connection', (ws) => ws.close(1014));
+    });
+
     it('does nothing if `readyState` is `CLOSED`', (done) => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
