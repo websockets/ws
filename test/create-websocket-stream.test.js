@@ -2,6 +2,7 @@
 
 const assert = require('assert');
 const EventEmitter = require('events');
+const { createServer } = require('http');
 const { Duplex } = require('stream');
 const { randomBytes } = require('crypto');
 
@@ -142,6 +143,62 @@ describe('createWebSocketStream', () => {
 
         duplex.resume();
         duplex.end();
+      });
+    });
+
+    it('makes `_final()` a noop if no socket is assigned', (done) => {
+      const server = createServer();
+
+      server.on('upgrade', (request, socket) => {
+        socket.on('end', socket.end);
+
+        const headers = [
+          'HTTP/1.1 101 Switching Protocols',
+          'Upgrade: websocket',
+          'Connection: Upgrade',
+          'Sec-WebSocket-Accept: foo'
+        ];
+
+        socket.write(headers.concat('\r\n').join('\r\n'));
+      });
+
+      server.listen(() => {
+        const called = [];
+        const ws = new WebSocket(`ws://localhost:${server.address().port}`);
+        const duplex = WebSocket.createWebSocketStream(ws);
+        const final = duplex._final;
+
+        duplex._final = (callback) => {
+          called.push('final');
+          assert.strictEqual(ws.readyState, WebSocket.CLOSING);
+          assert.strictEqual(ws._socket, null);
+
+          final(callback);
+        };
+
+        duplex.on('error', (err) => {
+          called.push('error');
+          assert.ok(err instanceof Error);
+          assert.strictEqual(
+            err.message,
+            'Invalid Sec-WebSocket-Accept header'
+          );
+        });
+
+        duplex.on('finish', () => {
+          called.push('finish');
+        });
+
+        duplex.on('close', () => {
+          assert.deepStrictEqual(called, ['final', 'error']);
+          server.close(done);
+        });
+
+        ws.on('upgrade', () => {
+          process.nextTick(() => {
+            duplex.end();
+          });
+        });
       });
     });
 
