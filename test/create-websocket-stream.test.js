@@ -49,7 +49,7 @@ describe('createWebSocketStream', () => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
-        assert.strictEqual(ws.readyState, 0);
+        assert.strictEqual(ws.readyState, WebSocket.CONNECTING);
 
         const duplex = createWebSocketStream(ws);
 
@@ -132,7 +132,7 @@ describe('createWebSocketStream', () => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
-        assert.strictEqual(ws.readyState, 0);
+        assert.strictEqual(ws.readyState, WebSocket.CONNECTING);
 
         const duplex = createWebSocketStream(ws);
 
