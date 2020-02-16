@@ -431,7 +431,7 @@ const interval = setInterval(function ping() {
   });
 }, 30000);
 
-wss.on('close', function() {
+wss.on('close', function close() {
   clearInterval(interval);
 });
 ```
