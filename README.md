@@ -430,6 +430,10 @@ const interval = setInterval(function ping() {
     ws.ping(noop);
   });
 }, 30000);
+
+wss.on('close', function close() {
+  clearInterval(interval);
+});
 ```
 
 Pong messages are automatically sent in response to ping messages as required by
