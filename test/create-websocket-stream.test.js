@@ -225,6 +225,52 @@ describe('createWebSocketStream', () => {
       });
     });
 
+    it('does not swallow errors that may occur while destroying', (done) => {
+      const frame = Buffer.concat(
+        Sender.frame(Buffer.from([0x22, 0xfa, 0xec, 0x78]), {
+          fin: true,
+          rsv1: true,
+          opcode: 0x02,
+          mask: false,
+          readOnly: false
+        })
+      );
+
+      const wss = new WebSocket.Server(
+        {
+          perMessageDeflate: true,
+          port: 0
+        },
+        () => {
+          const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+          const duplex = createWebSocketStream(ws);
+
+          duplex.on('error', (err) => {
+            assert.ok(err instanceof Error);
+            assert.strictEqual(err.code, 'Z_DATA_ERROR');
+            assert.strictEqual(err.errno, -3);
+
+            duplex.on('close', () => {
+              wss.close(done);
+            });
+          });
+
+          let bytesRead = 0;
+
+          ws.on('open', () => {
+            ws._socket.on('data', (chunk) => {
+              bytesRead += chunk.length;
+              if (bytesRead === frame.length) duplex.destroy();
+            });
+          });
+        }
+      );
+
+      wss.on('connection', (ws) => {
+        ws._socket.write(frame);
+      });
+    });
+
     it("does not suppress the throwing behavior of 'error' events", (done) => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const ws = new WebSocket(`ws://localhost:${wss.address().port}`);

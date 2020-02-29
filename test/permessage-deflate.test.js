@@ -589,6 +589,7 @@ describe('PerMessageDeflate', () => {
       perMessageDeflate.accept([{}]);
       perMessageDeflate.decompress(data, true, (err) => {
         assert.ok(err instanceof Error);
+        assert.strictEqual(err.code, 'Z_DATA_ERROR');
         assert.strictEqual(err.errno, -3);
         done();
       });
