@@ -2341,6 +2341,52 @@ describe('WebSocket', () => {
           ws.on('message', (message) => ws.send(message, { compress: true }));
         });
       });
+
+      it('calls the callback if the socket is closed prematurely', (done) => {
+        const wss = new WebSocket.Server(
+          { perMessageDeflate: true, port: 0 },
+          () => {
+            const called = [];
+            const ws = new WebSocket(`ws://localhost:${wss.address().port}`, {
+              perMessageDeflate: { threshold: 0 }
+            });
+
+            ws.on('open', () => {
+              ws.send('foo');
+              ws.send('bar', (err) => {
+                called.push(1);
+
+                assert.strictEqual(ws.readyState, WebSocket.CLOSING);
+                assert.ok(err instanceof Error);
+                assert.strictEqual(
+                  err.message,
+                  'The socket was closed while data was being compressed'
+                );
+              });
+              ws.send('baz');
+              ws.send('qux', (err) => {
+                called.push(2);
+
+                assert.strictEqual(ws.readyState, WebSocket.CLOSING);
+                assert.ok(err instanceof Error);
+                assert.strictEqual(
+                  err.message,
+                  'The socket was closed while data was being compressed'
+                );
+              });
+            });
+
+            ws.on('close', () => {
+              assert.deepStrictEqual(called, [1, 2]);
+              wss.close(done);
+            });
+          }
+        );
+
+        wss.on('connection', (ws) => {
+          ws._socket.end();
+        });
+      });
     });
 
     describe('#terminate', () => {
@@ -2356,19 +2402,22 @@ describe('WebSocket', () => {
             });
 
             ws.on('open', () => {
-              ws.send('hi', () =>
-                done(new Error('Unexpected callback invocation'))
-              );
+              ws.send('hi', (err) => {
+                assert.strictEqual(ws.readyState, WebSocket.CLOSING);
+                assert.ok(err instanceof Error);
+                assert.strictEqual(
+                  err.message,
+                  'The socket was closed while data was being compressed'
+                );
+
+                ws.on('close', () => {
+                  wss.close(done);
+                });
+              });
               ws.terminate();
             });
           }
         );
-
-        wss.on('connection', (ws) => {
-          ws.on('close', () => {
-            wss.close(done);
-          });
-        });
       });
 
       it('can be used while data is being decompressed', (done) => {
