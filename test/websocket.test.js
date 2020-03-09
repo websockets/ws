@@ -878,6 +878,21 @@ describe('WebSocket', () => {
         });
       });
     });
+
+    it('throws an error if the data size is greater than 125 bytes', (done) => {
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+
+        ws.on('open', () => {
+          assert.throws(
+            () => ws.ping(Buffer.alloc(126)),
+            /^RangeError: The data size must not be greater than 125 bytes$/
+          );
+
+          wss.close(done);
+        });
+      });
+    });
   });
 
   describe('#pong', () => {
@@ -1015,6 +1030,21 @@ describe('WebSocket', () => {
       wss.on('connection', (ws) => {
         ws.on('pong', (message) => {
           assert.strictEqual(message.toString(), '0');
+          wss.close(done);
+        });
+      });
+    });
+
+    it('throws an error if the data size is greater than 125 bytes', (done) => {
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+
+        ws.on('open', () => {
+          assert.throws(
+            () => ws.pong(Buffer.alloc(126)),
+            /^RangeError: The data size must not be greater than 125 bytes$/
+          );
+
           wss.close(done);
         });
       });
@@ -1422,6 +1452,21 @@ describe('WebSocket', () => {
           assert.throws(
             () => ws.close(1004),
             /^TypeError: First argument must be a valid error code number$/
+          );
+
+          wss.close(done);
+        });
+      });
+    });
+
+    it('throws an error if the message is greater than 123 bytes', (done) => {
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+
+        ws.on('open', () => {
+          assert.throws(
+            () => ws.close(1000, 'a'.repeat(124)),
+            /^RangeError: The message must not be greater than 123 bytes$/
           );
 
           wss.close(done);
