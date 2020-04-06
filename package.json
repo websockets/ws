@@ -51,7 +51,7 @@
     "eslint-plugin-prettier": "^3.0.1",
     "mocha": "^7.0.0",
     "nyc": "^15.0.0",
-    "prettier": "^1.17.0",
+    "prettier": "^2.0.4",
     "utf-8-validate": "^5.0.2"
   },
   "greenkeeper": {
