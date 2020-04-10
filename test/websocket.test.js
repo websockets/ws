@@ -84,7 +84,7 @@ describe('WebSocket', () => {
 
         agent.addRequest = (req) => {
           assert.strictEqual(
-            req._headers.authorization,
+            req.getHeader('authorization'),
             `Basic ${Buffer.from(auth).toString('base64')}`
           );
           done();
