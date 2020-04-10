@@ -78,6 +78,24 @@ describe('WebSocket', () => {
         );
       });
 
+      it('accepts `auth` option', (done) => {
+        const agent = new CustomAgent();
+        const auth = 'user:pass';
+
+        agent.addRequest = (req) => {
+          assert.strictEqual(
+            req._headers.authorization,
+            `Basic ${Buffer.from(auth).toString('base64')}`
+          );
+          done();
+        };
+
+        new WebSocket('ws://localhost', {
+          auth,
+          agent
+        });
+      });
+
       it('throws an error when using an invalid `protocolVersion`', () => {
         const options = { agent: new CustomAgent(), protocolVersion: 1000 };
 
