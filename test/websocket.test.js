@@ -78,43 +78,6 @@ describe('WebSocket', () => {
         );
       });
 
-      it('accepts `auth` option', (done) => {
-        const agent = new CustomAgent();
-        const auth = 'user:pass';
-
-        agent.addRequest = (req) => {
-          assert.strictEqual(
-            req.getHeader('authorization'),
-            `Basic ${Buffer.from(auth).toString('base64')}`
-          );
-          done();
-        };
-
-        new WebSocket('ws://localhost', {
-          auth,
-          agent
-        });
-      });
-
-      it('url userinfo wins over `auth` option', (done) => {
-        const agent = new CustomAgent();
-        const urlAuth = 'userUrl:passUrl';
-        const optionsAuth = 'userOptions:passOptions';
-
-        agent.addRequest = (req) => {
-          assert.strictEqual(
-            req.getHeader('authorization'),
-            `Basic ${Buffer.from(urlAuth).toString('base64')}`
-          );
-          done();
-        };
-
-        new WebSocket(`ws://${urlAuth}@localhost`, {
-          optionsAuth,
-          agent
-        });
-      });
-
       it('throws an error when using an invalid `protocolVersion`', () => {
         const options = { agent: new CustomAgent(), protocolVersion: 1000 };
 
@@ -2163,6 +2126,43 @@ describe('WebSocket', () => {
       };
 
       const ws = new WebSocket(`ws://${auth}@localhost`, { agent });
+    });
+
+    it('honors the `auth` option', (done) => {
+      const agent = new CustomAgent();
+      const auth = 'user:pass';
+
+      agent.addRequest = (req) => {
+        assert.strictEqual(
+          req.getHeader('authorization'),
+          `Basic ${Buffer.from(auth).toString('base64')}`
+        );
+        done();
+      };
+
+      new WebSocket('ws://localhost', {
+        auth,
+        agent
+      });
+    });
+
+    it('favors the url userinfo over the `auth` option', (done) => {
+      const agent = new CustomAgent();
+      const urlAuth = 'userUrl:passUrl';
+      const optionsAuth = 'userOptions:passOptions';
+
+      agent.addRequest = (req) => {
+        assert.strictEqual(
+          req.getHeader('authorization'),
+          `Basic ${Buffer.from(urlAuth).toString('base64')}`
+        );
+        done();
+      };
+
+      new WebSocket(`ws://${urlAuth}@localhost`, {
+        optionsAuth,
+        agent
+      });
     });
 
     it('adds custom headers', (done) => {
