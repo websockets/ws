@@ -2115,17 +2115,17 @@ describe('WebSocket', () => {
   describe('Request headers', () => {
     it('adds the authorization header if the url has userinfo', (done) => {
       const agent = new CustomAgent();
-      const auth = 'test:testpass';
+      const userinfo = 'test:testpass';
 
       agent.addRequest = (req) => {
         assert.strictEqual(
           req.getHeader('authorization'),
-          `Basic ${Buffer.from(auth).toString('base64')}`
+          `Basic ${Buffer.from(userinfo).toString('base64')}`
         );
         done();
       };
 
-      const ws = new WebSocket(`ws://${auth}@localhost`, { agent });
+      const ws = new WebSocket(`ws://${userinfo}@localhost`, { agent });
     });
 
     it('honors the `auth` option', (done) => {
@@ -2140,29 +2140,23 @@ describe('WebSocket', () => {
         done();
       };
 
-      new WebSocket('ws://localhost', {
-        auth,
-        agent
-      });
+      const ws = new WebSocket('ws://localhost', { agent, auth });
     });
 
     it('favors the url userinfo over the `auth` option', (done) => {
       const agent = new CustomAgent();
-      const urlAuth = 'userUrl:passUrl';
-      const optionsAuth = 'userOptions:passOptions';
+      const auth = 'foo:bar';
+      const userinfo = 'baz:qux';
 
       agent.addRequest = (req) => {
         assert.strictEqual(
           req.getHeader('authorization'),
-          `Basic ${Buffer.from(urlAuth).toString('base64')}`
+          `Basic ${Buffer.from(userinfo).toString('base64')}`
         );
         done();
       };
 
-      new WebSocket(`ws://${urlAuth}@localhost`, {
-        optionsAuth,
-        agent
-      });
+      const ws = new WebSocket(`ws://${userinfo}@localhost`, { agent, auth });
     });
 
     it('adds custom headers', (done) => {
