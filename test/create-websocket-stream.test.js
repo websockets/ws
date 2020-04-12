@@ -354,7 +354,6 @@ describe('createWebSocketStream', () => {
 
         duplex.on('finish', () => {
           events.push('finish');
-          assert.ok(duplex.destroyed);
         });
 
         duplex.resume();
