@@ -306,19 +306,16 @@ describe('createWebSocketStream', () => {
 
         duplex.on('end', () => {
           events.push('end');
-          assert.ok(duplex.destroyed);
         });
 
         duplex.on('close', () => {
           assert.deepStrictEqual(events, ['finish', 'end']);
+          assert.ok(duplex.destroyed);
           wss.close(done);
         });
 
         duplex.on('finish', () => {
           events.push('finish');
-          assert.ok(!duplex.destroyed);
-          assert.ok(duplex.readable);
-
           duplex.resume();
         });
 
@@ -341,20 +338,17 @@ describe('createWebSocketStream', () => {
 
         duplex.on('end', () => {
           events.push('end');
-          assert.ok(!duplex.destroyed);
-          assert.ok(duplex.writable);
-
           duplex.end();
         });
 
         duplex.on('close', () => {
           assert.deepStrictEqual(events, ['end', 'finish']);
+          assert.ok(duplex.destroyed);
           wss.close(done);
         });
 
         duplex.on('finish', () => {
           events.push('finish');
-          assert.ok(duplex.destroyed);
         });
 
         duplex.resume();
