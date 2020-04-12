@@ -414,6 +414,7 @@ describe('createWebSocketStream', () => {
           ws._receiver.on('drain', () => {
             called.push('drain');
             assert.ok(!ws._socket.isPaused());
+            duplex.end();
           });
 
           const list = Sender.frame(randomBytes(16 * 1024), {
@@ -429,7 +430,6 @@ describe('createWebSocketStream', () => {
           ws._socket.push(Buffer.concat(list));
         });
 
-        duplex.on('resume', duplex.end);
         duplex.on('close', () => {
           assert.deepStrictEqual(called, ['read', 'drain']);
           wss.close(done);
@@ -450,6 +450,7 @@ describe('createWebSocketStream', () => {
           assert.ok(!ws._receiver._writableState.needDrain);
           read();
           assert.ok(!ws._socket.isPaused());
+          duplex.end();
         };
 
         ws.on('open', () => {
@@ -470,7 +471,6 @@ describe('createWebSocketStream', () => {
           ws._socket.push(Buffer.concat(list));
         });
 
-        duplex.on('resume', duplex.end);
         duplex.on('close', () => {
           assert.deepStrictEqual(called, ['drain', 'read']);
           wss.close(done);
