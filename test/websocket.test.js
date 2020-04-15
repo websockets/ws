@@ -1227,7 +1227,7 @@ describe('WebSocket', () => {
 
         const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
-        ws.on('open', () => ws.send(partial, { binary: true }));
+        ws.on('open', () => ws.send(partial));
         ws.on('message', (message) => {
           assert.ok(message.equals(buf));
           wss.close(done);
@@ -1244,7 +1244,7 @@ describe('WebSocket', () => {
         const buf = Buffer.from('foobar');
         const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
-        ws.on('open', () => ws.send(buf, { binary: true }));
+        ws.on('open', () => ws.send(buf));
         ws.on('message', (message) => {
           assert.ok(message.equals(buf));
           wss.close(done);
