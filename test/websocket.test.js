@@ -1219,9 +1219,10 @@ describe('WebSocket', () => {
         }
 
         const partial = array.subarray(2, 5);
-        const buf = Buffer.from(partial.buffer).slice(
+        const buf = Buffer.from(
+          partial.buffer,
           partial.byteOffset,
-          partial.byteOffset + partial.byteLength
+          partial.byteLength
         );
 
         const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
