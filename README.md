@@ -269,7 +269,8 @@ server.on('upgrade', function upgrade(request, socket, head) {
   // This function is not defined on purpose. Implement it with your own logic.
   authenticate(request, (err, client) => {
     if (err || !client) {
-      socket.end('HTTP/1.1 401 Unauthorized');
+      socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
+      socket.destroy();
       return;
     }
 
