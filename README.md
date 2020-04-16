@@ -266,9 +266,13 @@ wss.on('connection', function connection(ws, request, client) {
 });
 
 server.on('upgrade', function upgrade(request, socket, head) {
+  /**
+   * NOTE:
+   *  The `authenticate` function not implemented! Please replace that by your auth logic!
+   */
   authenticate(request, (err, client) => {
     if (err || !client) {
-      socket.destroy();
+      socket.end('HTTP/1.1 401 Unauthorized');
       return;
     }
 
