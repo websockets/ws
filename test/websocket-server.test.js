@@ -18,11 +18,11 @@ describe('WebSocketServer', () => {
       assert.throws(() => new WebSocket.Server());
     });
 
-    it('throws an error if no port or server is specified', () => {
-      assert.throws(() => new WebSocket.Server({}));
-    });
-
     describe('options', () => {
+      it('throws an error if no `port` or `server` option is specified', () => {
+        assert.throws(() => new WebSocket.Server({}));
+      });
+
       it('exposes options passed to constructor', (done) => {
         const wss = new WebSocket.Server({ port: 0 }, () => {
           assert.strictEqual(wss.options.port, 0);
