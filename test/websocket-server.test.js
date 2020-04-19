@@ -11,6 +11,7 @@ const fs = require('fs');
 
 const Sender = require('../lib/sender');
 const WebSocket = require('..');
+const { NOOP } = require('../lib/constants');
 
 describe('WebSocketServer', () => {
   describe('#ctor', () => {
@@ -378,6 +379,42 @@ describe('WebSocketServer', () => {
         req.on('response', (res) => {
           assert.strictEqual(res.statusCode, 400);
           wss.close(done);
+        });
+      });
+    });
+  });
+
+  describe('#completeUpgrade', () => {
+    it('throws an error if called twice with the same socket', (done) => {
+      const server = http.createServer();
+
+      server.listen(0, () => {
+        const wss = new WebSocket.Server({ noServer: true });
+
+        server.on('upgrade', (req, socket, head) => {
+          wss.handleUpgrade(req, socket, head, (ws) => {
+            ws.close();
+          });
+          assert.throws(
+            () => wss.handleUpgrade(req, socket, head, NOOP),
+            (err) => {
+              assert.ok(err instanceof Error);
+              assert.strictEqual(
+                err.message,
+                'server.handleUpgrade() was called more than once with the ' +
+                  'same socket, possibly due to a misconfiguration'
+              );
+              return true;
+            }
+          );
+        });
+
+        const ws = new WebSocket(`ws://localhost:${server.address().port}`);
+
+        ws.on('open', () => {
+          ws.on('close', () => {
+            server.close(done);
+          });
         });
       });
     });
