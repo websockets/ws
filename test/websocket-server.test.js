@@ -18,22 +18,11 @@ describe('WebSocketServer', () => {
       assert.throws(() => new WebSocket.Server());
     });
 
+    it('throws an error if no port or server is specified', () => {
+      assert.throws(() => new WebSocket.Server({}));
+    });
+
     describe('options', () => {
-      it('throws an error if no `port` or `server` option is specified', () => {
-        assert.throws(() => new WebSocket.Server({}));
-      });
-
-      it('throws an error if the server is already being used', () => {
-        const server = http.createServer();
-
-        new WebSocket.Server({ server });
-
-        assert.throws(
-          () => new WebSocket.Server({ server }),
-          /^Error: The HTTP\/S server is already being used by another WebSocket server$/
-        );
-      });
-
       it('exposes options passed to constructor', (done) => {
         const wss = new WebSocket.Server({ port: 0 }, () => {
           assert.strictEqual(wss.options.port, 0);
@@ -237,21 +226,15 @@ describe('WebSocketServer', () => {
 
     it('cleans event handlers on precreated server', (done) => {
       const server = http.createServer();
-      const wss1 = new WebSocket.Server({ server });
+      const wss = new WebSocket.Server({ server });
 
       server.listen(0, () => {
-        wss1.close(() => {
+        wss.close(() => {
           assert.strictEqual(server.listenerCount('listening'), 0);
           assert.strictEqual(server.listenerCount('upgrade'), 0);
           assert.strictEqual(server.listenerCount('error'), 0);
 
-          // Check that no error is thrown if `server` is resued now as there
-          // are no other `WebSocketServer`s using it.
-          const wss2 = new WebSocket.Server({ server });
-
-          wss2.close(() => {
-            server.close(done);
-          });
+          server.close(done);
         });
       });
     });
