@@ -393,89 +393,103 @@ describe('createWebSocketStream', () => {
     });
 
     it('handles backpressure (2/3)', (done) => {
-      const wss = new WebSocket.Server({ port: 0 }, () => {
-        const called = [];
-        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
-        const duplex = createWebSocketStream(ws);
-        const read = duplex._read;
+      const wss = new WebSocket.Server(
+        { port: 0, perMessageDeflate: true },
+        () => {
+          const called = [];
+          const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+          const duplex = createWebSocketStream(ws);
+          const read = duplex._read;
 
-        duplex._read = () => {
-          called.push('read');
-          assert.ok(ws._receiver._writableState.needDrain);
-          read();
-          assert.ok(ws._socket.isPaused());
-        };
+          duplex._read = () => {
+            duplex._read = read;
+            called.push('read');
+            assert.ok(ws._receiver._writableState.needDrain);
+            read();
+            assert.ok(ws._socket.isPaused());
+          };
 
-        ws.on('open', () => {
-          ws._socket.on('pause', () => {
-            duplex.resume();
+          ws.on('open', () => {
+            ws._socket.on('pause', () => {
+              duplex.resume();
+            });
+
+            ws._receiver.on('drain', () => {
+              called.push('drain');
+              assert.ok(!ws._socket.isPaused());
+              duplex.end();
+            });
+
+            const opts = {
+              fin: true,
+              opcode: 0x02,
+              mask: false,
+              readOnly: false
+            };
+
+            const list = [
+              ...Sender.frame(randomBytes(16 * 1024), { rsv1: false, ...opts }),
+              ...Sender.frame(Buffer.alloc(1), { rsv1: true, ...opts })
+            ];
+
+            // This hack is used because there is no guarantee that more than
+            // 16 KiB will be sent as a single TCP packet.
+            ws._socket.push(Buffer.concat(list));
           });
 
-          ws._receiver.on('drain', () => {
-            called.push('drain');
-            assert.ok(!ws._socket.isPaused());
-            duplex.end();
+          duplex.on('close', () => {
+            assert.deepStrictEqual(called, ['read', 'drain']);
+            wss.close(done);
           });
-
-          const list = Sender.frame(randomBytes(16 * 1024), {
-            fin: true,
-            rsv1: false,
-            opcode: 0x02,
-            mask: false,
-            readOnly: false
-          });
-
-          // This hack is used because there is no guarantee that more than
-          // 16KiB will be sent as a single TCP packet.
-          ws._socket.push(Buffer.concat(list));
-        });
-
-        duplex.on('close', () => {
-          assert.deepStrictEqual(called, ['read', 'drain']);
-          wss.close(done);
-        });
-      });
+        }
+      );
     });
 
     it('handles backpressure (3/3)', (done) => {
-      const wss = new WebSocket.Server({ port: 0 }, () => {
-        const called = [];
-        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
-        const duplex = createWebSocketStream(ws);
+      const wss = new WebSocket.Server(
+        { port: 0, perMessageDeflate: true },
+        () => {
+          const called = [];
+          const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+          const duplex = createWebSocketStream(ws);
+          const read = duplex._read;
 
-        const read = duplex._read;
+          duplex._read = () => {
+            called.push('read');
+            assert.ok(!ws._receiver._writableState.needDrain);
+            read();
+            assert.ok(!ws._socket.isPaused());
+            duplex.end();
+          };
 
-        duplex._read = () => {
-          called.push('read');
-          assert.ok(!ws._receiver._writableState.needDrain);
-          read();
-          assert.ok(!ws._socket.isPaused());
-          duplex.end();
-        };
+          ws.on('open', () => {
+            ws._receiver.on('drain', () => {
+              called.push('drain');
+              assert.ok(ws._socket.isPaused());
+              duplex.resume();
+            });
 
-        ws.on('open', () => {
-          ws._receiver.on('drain', () => {
-            called.push('drain');
-            assert.ok(ws._socket.isPaused());
-            duplex.resume();
+            const opts = {
+              fin: true,
+              opcode: 0x02,
+              mask: false,
+              readOnly: false
+            };
+
+            const list = [
+              ...Sender.frame(randomBytes(16 * 1024), { rsv1: false, ...opts }),
+              ...Sender.frame(Buffer.alloc(1), { rsv1: true, ...opts })
+            ];
+
+            ws._socket.push(Buffer.concat(list));
           });
 
-          const list = Sender.frame(randomBytes(16 * 1024), {
-            fin: true,
-            rsv1: false,
-            opcode: 0x02,
-            mask: false,
-            readOnly: false
+          duplex.on('close', () => {
+            assert.deepStrictEqual(called, ['drain', 'read']);
+            wss.close(done);
           });
-
-          ws._socket.push(Buffer.concat(list));
-        });
-
-        duplex.on('close', () => {
-          assert.deepStrictEqual(called, ['drain', 'read']);
-          wss.close(done);
-        });
-      });
+        }
+      );
     });
 
     it('can be destroyed (1/2)', (done) => {
