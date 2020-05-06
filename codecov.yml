@@ -1,0 +1,5 @@
+comment:
+  layout: diff, flags, files
+parsers:
+  javascript:
+    enable_partials: yes
