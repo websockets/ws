@@ -26,7 +26,7 @@
   - [Event: 'pong'](#event-pong)
   - [Event: 'unexpected-response'](#event-unexpected-response)
   - [Event: 'upgrade'](#event-upgrade)
-  - [websocket.addEventListener(type, listener)](#websocketaddeventlistenertype-listener)
+  - [websocket.addEventListener(type, listener[, options])](#websocketaddeventlistenertype-listener-options)
   - [websocket.binaryType](#websocketbinarytype)
   - [websocket.bufferedAmount](#websocketbufferedamount)
   - [websocket.close([code[, reason]])](#websocketclosecode-reason)
@@ -89,7 +89,7 @@ is provided with a single argument then that is:
   - `secure` {Boolean} `true` if `req.connection.authorized` or
     `req.connection.encrypted` is set.
 
-The return value (Boolean) of the function determines whether or not to accept
+The return value (`Boolean`) of the function determines whether or not to accept
 the handshake.
 
 if `verifyClient` is provided with two arguments then those are:
@@ -340,11 +340,10 @@ handshake. This allows you to read headers from the server, for example
 
 - `type` {String} A string representing the event type to listen for.
 - `listener` {Function} The listener to add.
-- `options` {object} An options object specifies characteristics about the event
-  listener. The available options are:
-  - `once` {Boolean} A Boolean indicating that the listener should be invoked at
-    most once after being added. If true, the listener would be automatically
-    removed when invoked.
+- `options` {Object}
+  - `once` {Boolean} A `Boolean` indicating that the listener should be invoked
+    at most once after being added. If `true`, the listener would be
+    automatically removed when invoked.
 
 Register an event listener emulating the `EventTarget` interface.
 
