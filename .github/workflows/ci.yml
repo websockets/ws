@@ -26,7 +26,7 @@ jobs:
           node-version: ${{ matrix.node }}
       - run: npm install
       - run: npm test
-      - uses: coverallsapp/github-action@v1.1.1
+      - uses: coverallsapp/github-action@v1.1.0
         with:
           flag-name: Node.js ${{ matrix.node }} on ${{ matrix.os }}
           github-token: ${{ secrets.github_token }}
