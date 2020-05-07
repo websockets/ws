@@ -1,7 +1,7 @@
 # ws: a Node.js WebSocket library
 
 [![Version npm](https://img.shields.io/npm/v/ws.svg?logo=npm)](https://www.npmjs.com/package/ws)
-[![Build](https://github.com/websockets/ws/workflows/build/badge.svg)](https://github.com/websockets/ws/actions?workflow=build)
+[![Build](https://img.shields.io/travis/websockets/ws/master.svg?logo=travis)](https://travis-ci.com/websockets/ws)
 [![Windows x86 Build](https://img.shields.io/appveyor/ci/lpinca/ws/master.svg?logo=appveyor)](https://ci.appveyor.com/project/lpinca/ws)
 [![Coverage Status](https://img.shields.io/coveralls/websockets/ws/master.svg)](https://coveralls.io/github/websockets/ws)
 
