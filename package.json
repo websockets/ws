@@ -53,11 +53,5 @@
     "nyc": "^15.0.0",
     "prettier": "^1.17.0",
     "utf-8-validate": "^5.0.2"
-  },
-  "greenkeeper": {
-    "commitMessages": {
-      "dependencyUpdate": "[pkg] Update ${dependency} to version ${version}",
-      "devDependencyUpdate": "[pkg] Update ${dependency} to version ${version}"
-    }
   }
 }
