@@ -26,8 +26,8 @@
     "lib/*.js"
   ],
   "scripts": {
-    "test": "npm run lint && nyc --reporter=html --reporter=text mocha --throw-deprecation test/*.test.js",
-    "integration": "npm run lint && mocha --throw-deprecation test/*.integration.js",
+    "test": "nyc --reporter=html --reporter=text mocha --throw-deprecation test/*.test.js",
+    "integration": "mocha --throw-deprecation test/*.integration.js",
     "lint": "eslint --ignore-path .gitignore . && prettier --check --ignore-path .gitignore \"**/*.{json,md,yaml,yml}\""
   },
   "peerDependencies": {
