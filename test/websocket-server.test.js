@@ -112,7 +112,7 @@ describe('WebSocketServer', () => {
       });
     });
 
-    it('uses a precreated http server listening on unix socket', function(done) {
+    it('uses a precreated http server listening on unix socket', function (done) {
       //
       // Skip this test on Windows as it throws errors for obvious reasons.
       //

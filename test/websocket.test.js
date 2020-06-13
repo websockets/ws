@@ -26,7 +26,7 @@ describe('WebSocket', () => {
       );
     });
 
-    it('accepts `url.URL` objects as url', function(done) {
+    it('accepts `url.URL` objects as url', function (done) {
       const agent = new CustomAgent();
 
       agent.addRequest = (req, opts) => {
@@ -1345,9 +1345,7 @@ describe('WebSocket', () => {
             'Invalid WebSocket frame: MASK must be set'
           );
           assert.ok(
-            Buffer.concat(chunks)
-              .slice(0, 2)
-              .equals(Buffer.from('8102', 'hex'))
+            Buffer.concat(chunks).slice(0, 2).equals(Buffer.from('8102', 'hex'))
           );
 
           ws.on('close', (code, reason) => {
