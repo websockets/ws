@@ -242,7 +242,8 @@ This class represents a WebSocket. It extends the `EventEmitter`.
 
 - `address` {String|url.URL} The URL to which to connect.
 - `protocols` {String|Array} The list of subprotocols.
-- `options` {Object}
+- `options` {Object} Options given do not have any effect if parsed from the URL
+  given with the `address` parameter.
   - `followRedirects` {Boolean} Whether or not to follow redirects. Defaults to
     `false`.
   - `handshakeTimeout` {Number} Timeout in milliseconds for the handshake
@@ -255,13 +256,6 @@ This class represents a WebSocket. It extends the `EventEmitter`.
     depending on the `protocolVersion`.
   - `maxPayload` {Number} The maximum allowed message size in bytes.
   - Any other option allowed in [http.request()][] or [https.request()][].
-    - Exceptions are: `createConnection`, `socketPath`, `hostname`, `protocol`,
-      `timeout`, `method`, `auth`, `host`, `path` and `port` where the following
-      can be provided via the `address` parameter:
-      - `auth`: `ws://user:password@host`
-      - `host`: `ws://host`
-      - `path`: `ws://host/path`
-      - `port`: `ws://host:port`
 
 `perMessageDeflate` default value is `true`. When using an object, parameters
 are the same of the server. The only difference is the direction of requests.
