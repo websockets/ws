@@ -255,6 +255,8 @@ This class represents a WebSocket. It extends the `EventEmitter`.
     depending on the `protocolVersion`.
   - `maxPayload` {Number} The maximum allowed message size in bytes.
   - Any other option allowed in [http.request()][] or [https.request()][].
+    Options given do not have any effect if parsed from the URL given with the
+    `address` parameter.
 
 `perMessageDeflate` default value is `true`. When using an object, parameters
 are the same of the server. The only difference is the direction of requests.
