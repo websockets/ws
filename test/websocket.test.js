@@ -185,13 +185,16 @@ describe('WebSocket', () => {
 
             ws.on('open', () => {
               ws.send('foo');
+
+              assert.strictEqual(ws.bufferedAmount, 3);
+
               ws.send('bar', (err) => {
                 assert.ifError(err);
                 assert.strictEqual(ws.bufferedAmount, 0);
                 wss.close(done);
               });
 
-              assert.strictEqual(ws.bufferedAmount, 3);
+              assert.strictEqual(ws.bufferedAmount, 6);
             });
           }
         );
