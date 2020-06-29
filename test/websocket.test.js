@@ -208,12 +208,15 @@ describe('WebSocket', () => {
         wss.on('connection', (ws) => {
           const data = Buffer.alloc(1024, 61);
 
-          while (ws._socket.bufferSize === 0) {
+          while (ws.bufferedAmount === 0) {
             ws.send(data);
           }
 
-          assert.ok(ws._socket.bufferSize > 0);
-          assert.strictEqual(ws.bufferedAmount, ws._socket.bufferSize);
+          assert.ok(ws.bufferedAmount > 0);
+          assert.strictEqual(
+            ws.bufferedAmount,
+            ws._socket._writableState.length
+          );
 
           ws.on('close', () => wss.close(done));
           ws.close();
