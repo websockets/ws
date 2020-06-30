@@ -26,7 +26,7 @@ describe('WebSocket', () => {
       );
     });
 
-    it('accepts `url.URL` objects as url', function(done) {
+    it('accepts `url.URL` objects as url', (done) => {
       const agent = new CustomAgent();
 
       agent.addRequest = (req, opts) => {
@@ -185,13 +185,16 @@ describe('WebSocket', () => {
 
             ws.on('open', () => {
               ws.send('foo');
+
+              assert.strictEqual(ws.bufferedAmount, 3);
+
               ws.send('bar', (err) => {
                 assert.ifError(err);
                 assert.strictEqual(ws.bufferedAmount, 0);
                 wss.close(done);
               });
 
-              assert.strictEqual(ws.bufferedAmount, 3);
+              assert.strictEqual(ws.bufferedAmount, 6);
             });
           }
         );
@@ -205,12 +208,15 @@ describe('WebSocket', () => {
         wss.on('connection', (ws) => {
           const data = Buffer.alloc(1024, 61);
 
-          while (ws._socket.bufferSize === 0) {
+          while (ws.bufferedAmount === 0) {
             ws.send(data);
           }
 
-          assert.ok(ws._socket.bufferSize > 0);
-          assert.strictEqual(ws.bufferedAmount, ws._socket.bufferSize);
+          assert.ok(ws.bufferedAmount > 0);
+          assert.strictEqual(
+            ws.bufferedAmount,
+            ws._socket._writableState.length
+          );
 
           ws.on('close', () => wss.close(done));
           ws.close();
@@ -878,6 +884,21 @@ describe('WebSocket', () => {
         });
       });
     });
+
+    it('throws an error if the data size is greater than 125 bytes', (done) => {
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+
+        ws.on('open', () => {
+          assert.throws(
+            () => ws.ping(Buffer.alloc(126)),
+            /^RangeError: The data size must not be greater than 125 bytes$/
+          );
+
+          wss.close(done);
+        });
+      });
+    });
   });
 
   describe('#pong', () => {
@@ -1015,6 +1036,21 @@ describe('WebSocket', () => {
       wss.on('connection', (ws) => {
         ws.on('pong', (message) => {
           assert.strictEqual(message.toString(), '0');
+          wss.close(done);
+        });
+      });
+    });
+
+    it('throws an error if the data size is greater than 125 bytes', (done) => {
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+
+        ws.on('open', () => {
+          assert.throws(
+            () => ws.pong(Buffer.alloc(126)),
+            /^RangeError: The data size must not be greater than 125 bytes$/
+          );
+
           wss.close(done);
         });
       });
@@ -1189,14 +1225,15 @@ describe('WebSocket', () => {
         }
 
         const partial = array.subarray(2, 5);
-        const buf = Buffer.from(partial.buffer).slice(
+        const buf = Buffer.from(
+          partial.buffer,
           partial.byteOffset,
-          partial.byteOffset + partial.byteLength
+          partial.byteLength
         );
 
         const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
-        ws.on('open', () => ws.send(partial, { binary: true }));
+        ws.on('open', () => ws.send(partial));
         ws.on('message', (message) => {
           assert.ok(message.equals(buf));
           wss.close(done);
@@ -1213,7 +1250,7 @@ describe('WebSocket', () => {
         const buf = Buffer.from('foobar');
         const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
-        ws.on('open', () => ws.send(buf, { binary: true }));
+        ws.on('open', () => ws.send(buf));
         ws.on('message', (message) => {
           assert.ok(message.equals(buf));
           wss.close(done);
@@ -1293,7 +1330,7 @@ describe('WebSocket', () => {
       });
     });
 
-    it('can send text data with `mask` option set to `false`', (done) => {
+    it('honors the `mask` option', (done) => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
@@ -1301,30 +1338,27 @@ describe('WebSocket', () => {
       });
 
       wss.on('connection', (ws) => {
-        ws.on('message', (message) => {
-          assert.strictEqual(message, 'hi');
-          wss.close(done);
+        const chunks = [];
+
+        ws._socket.prependListener('data', (chunk) => {
+          chunks.push(chunk);
         });
-      });
-    });
 
-    it('can send binary data with `mask` option set to `false`', (done) => {
-      const array = new Float32Array(5);
+        ws.on('error', (err) => {
+          assert.ok(err instanceof RangeError);
+          assert.strictEqual(
+            err.message,
+            'Invalid WebSocket frame: MASK must be set'
+          );
+          assert.ok(
+            Buffer.concat(chunks).slice(0, 2).equals(Buffer.from('8102', 'hex'))
+          );
 
-      for (let i = 0; i < array.length; ++i) {
-        array[i] = i / 2;
-      }
-
-      const wss = new WebSocket.Server({ port: 0 }, () => {
-        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
-
-        ws.on('open', () => ws.send(array, { mask: false }));
-      });
-
-      wss.on('connection', (ws) => {
-        ws.on('message', (message) => {
-          assert.ok(message.equals(Buffer.from(array.buffer)));
-          wss.close(done);
+          ws.on('close', (code, reason) => {
+            assert.strictEqual(code, 1002);
+            assert.strictEqual(reason, '');
+            wss.close(done);
+          });
         });
       });
     });
@@ -1423,6 +1457,21 @@ describe('WebSocket', () => {
           assert.throws(
             () => ws.close(1004),
             /^TypeError: First argument must be a valid error code number$/
+          );
+
+          wss.close(done);
+        });
+      });
+    });
+
+    it('throws an error if the message is greater than 123 bytes', (done) => {
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+
+        ws.on('open', () => {
+          assert.throws(
+            () => ws.close(1000, 'a'.repeat(124)),
+            /^RangeError: The message must not be greater than 123 bytes$/
           );
 
           wss.close(done);
@@ -1530,6 +1579,19 @@ describe('WebSocket', () => {
       });
 
       wss.on('connection', (ws) => ws.close(1013));
+    });
+
+    it('allows close code 1014', (done) => {
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+
+        ws.on('close', (code) => {
+          assert.strictEqual(code, 1014);
+          wss.close(done);
+        });
+      });
+
+      wss.on('connection', (ws) => ws.close(1014));
     });
 
     it('does nothing if `readyState` is `CLOSED`', (done) => {
@@ -1751,12 +1813,48 @@ describe('WebSocket', () => {
       assert.strictEqual(ws.listeners('bar').length, 0);
     });
 
+    it('allows to add one time listeners with `addEventListener`', (done) => {
+      const ws = new WebSocket('ws://localhost', { agent: new CustomAgent() });
+
+      ws.addEventListener(
+        'foo',
+        () => {
+          assert.strictEqual(ws.listenerCount('foo'), 0);
+          done();
+        },
+        { once: true }
+      );
+
+      assert.strictEqual(ws.listenerCount('foo'), 1);
+      ws.emit('foo');
+    });
+
     it('supports the `removeEventListener` method', () => {
       const ws = new WebSocket('ws://localhost', { agent: new CustomAgent() });
 
       ws.addEventListener('message', NOOP);
       ws.addEventListener('open', NOOP);
       ws.addEventListener('foo', NOOP);
+
+      assert.strictEqual(ws.listeners('message')[0]._listener, NOOP);
+      assert.strictEqual(ws.listeners('open')[0]._listener, NOOP);
+      assert.strictEqual(ws.listeners('foo')[0], NOOP);
+
+      ws.removeEventListener('message', () => {});
+
+      assert.strictEqual(ws.listeners('message')[0]._listener, NOOP);
+
+      ws.removeEventListener('message', NOOP);
+      ws.removeEventListener('open', NOOP);
+      ws.removeEventListener('foo', NOOP);
+
+      assert.strictEqual(ws.listenerCount('message'), 0);
+      assert.strictEqual(ws.listenerCount('open'), 0);
+      assert.strictEqual(ws.listenerCount('foo'), 0);
+
+      ws.addEventListener('message', NOOP, { once: true });
+      ws.addEventListener('open', NOOP, { once: true });
+      ws.addEventListener('foo', NOOP, { once: true });
 
       assert.strictEqual(ws.listeners('message')[0]._listener, NOOP);
       assert.strictEqual(ws.listeners('open')[0]._listener, NOOP);
@@ -2058,7 +2156,22 @@ describe('WebSocket', () => {
   describe('Request headers', () => {
     it('adds the authorization header if the url has userinfo', (done) => {
       const agent = new CustomAgent();
-      const auth = 'test:testpass';
+      const userinfo = 'test:testpass';
+
+      agent.addRequest = (req) => {
+        assert.strictEqual(
+          req.getHeader('authorization'),
+          `Basic ${Buffer.from(userinfo).toString('base64')}`
+        );
+        done();
+      };
+
+      const ws = new WebSocket(`ws://${userinfo}@localhost`, { agent });
+    });
+
+    it('honors the `auth` option', (done) => {
+      const agent = new CustomAgent();
+      const auth = 'user:pass';
 
       agent.addRequest = (req) => {
         assert.strictEqual(
@@ -2068,7 +2181,23 @@ describe('WebSocket', () => {
         done();
       };
 
-      const ws = new WebSocket(`ws://${auth}@localhost`, { agent });
+      const ws = new WebSocket('ws://localhost', { agent, auth });
+    });
+
+    it('favors the url userinfo over the `auth` option', (done) => {
+      const agent = new CustomAgent();
+      const auth = 'foo:bar';
+      const userinfo = 'baz:qux';
+
+      agent.addRequest = (req) => {
+        assert.strictEqual(
+          req.getHeader('authorization'),
+          `Basic ${Buffer.from(userinfo).toString('base64')}`
+        );
+        done();
+      };
+
+      const ws = new WebSocket(`ws://${userinfo}@localhost`, { agent, auth });
     });
 
     it('adds custom headers', (done) => {
@@ -2329,6 +2458,52 @@ describe('WebSocket', () => {
           ws.on('message', (message) => ws.send(message, { compress: true }));
         });
       });
+
+      it('calls the callback if the socket is closed prematurely', (done) => {
+        const wss = new WebSocket.Server(
+          { perMessageDeflate: true, port: 0 },
+          () => {
+            const called = [];
+            const ws = new WebSocket(`ws://localhost:${wss.address().port}`, {
+              perMessageDeflate: { threshold: 0 }
+            });
+
+            ws.on('open', () => {
+              ws.send('foo');
+              ws.send('bar', (err) => {
+                called.push(1);
+
+                assert.strictEqual(ws.readyState, WebSocket.CLOSING);
+                assert.ok(err instanceof Error);
+                assert.strictEqual(
+                  err.message,
+                  'The socket was closed while data was being compressed'
+                );
+              });
+              ws.send('baz');
+              ws.send('qux', (err) => {
+                called.push(2);
+
+                assert.strictEqual(ws.readyState, WebSocket.CLOSING);
+                assert.ok(err instanceof Error);
+                assert.strictEqual(
+                  err.message,
+                  'The socket was closed while data was being compressed'
+                );
+              });
+            });
+
+            ws.on('close', () => {
+              assert.deepStrictEqual(called, [1, 2]);
+              wss.close(done);
+            });
+          }
+        );
+
+        wss.on('connection', (ws) => {
+          ws._socket.end();
+        });
+      });
     });
 
     describe('#terminate', () => {
@@ -2344,19 +2519,22 @@ describe('WebSocket', () => {
             });
 
             ws.on('open', () => {
-              ws.send('hi', () =>
-                done(new Error('Unexpected callback invocation'))
-              );
+              ws.send('hi', (err) => {
+                assert.strictEqual(ws.readyState, WebSocket.CLOSING);
+                assert.ok(err instanceof Error);
+                assert.strictEqual(
+                  err.message,
+                  'The socket was closed while data was being compressed'
+                );
+
+                ws.on('close', () => {
+                  wss.close(done);
+                });
+              });
               ws.terminate();
             });
           }
         );
-
-        wss.on('connection', (ws) => {
-          ws.on('close', () => {
-            wss.close(done);
-          });
-        });
       });
 
       it('can be used while data is being decompressed', (done) => {

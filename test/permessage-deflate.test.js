@@ -589,6 +589,7 @@ describe('PerMessageDeflate', () => {
       perMessageDeflate.accept([{}]);
       perMessageDeflate.decompress(data, true, (err) => {
         assert.ok(err instanceof Error);
+        assert.strictEqual(err.code, 'Z_DATA_ERROR');
         assert.strictEqual(err.errno, -3);
         done();
       });
@@ -614,15 +615,19 @@ describe('PerMessageDeflate', () => {
       });
     });
 
-    it("doesn't call the callback if the deflate stream is closed prematurely", (done) => {
+    it('calls the callback if the deflate stream is closed prematurely', (done) => {
       const perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
       const buf = Buffer.from('A'.repeat(50));
 
       perMessageDeflate.accept([{}]);
-      perMessageDeflate.compress(buf, true, () => {
-        done(new Error('Unexpected callback invocation'));
+      perMessageDeflate.compress(buf, true, (err) => {
+        assert.ok(err instanceof Error);
+        assert.strictEqual(
+          err.message,
+          'The deflate stream was closed while data was being processed'
+        );
+        done();
       });
-      perMessageDeflate._deflate.on('close', done);
 
       process.nextTick(() => perMessageDeflate.cleanup());
     });

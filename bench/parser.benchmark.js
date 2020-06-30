@@ -16,27 +16,27 @@ const options = {
 };
 
 function createBinaryFrame(length) {
-  const list = Sender.frame(
-    crypto.randomBytes(length),
-    Object.assign({ opcode: 0x02 }, options)
-  );
+  const list = Sender.frame(crypto.randomBytes(length), {
+    opcode: 0x02,
+    ...options
+  });
 
   return Buffer.concat(list);
 }
 
 const pingFrame1 = Buffer.concat(
-  Sender.frame(crypto.randomBytes(5), Object.assign({ opcode: 0x09 }, options))
+  Sender.frame(crypto.randomBytes(5), { opcode: 0x09, ...options })
 );
 
 const textFrame = Buffer.from('819461616161' + '61'.repeat(20), 'hex');
-const pingFrame2 = Buffer.from('8900', 'hex');
+const pingFrame2 = Buffer.from('8980146e915a', 'hex');
 const binaryFrame1 = createBinaryFrame(125);
 const binaryFrame2 = createBinaryFrame(65535);
 const binaryFrame3 = createBinaryFrame(200 * 1024);
 const binaryFrame4 = createBinaryFrame(1024 * 1024);
 
 const suite = new benchmark.Suite();
-const receiver = new Receiver();
+const receiver = new Receiver('nodebuffer', {}, true);
 
 suite.add('ping frame (5 bytes payload)', {
   defer: true,

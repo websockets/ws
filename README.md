@@ -1,8 +1,8 @@
 # ws: a Node.js WebSocket library
 
 [![Version npm](https://img.shields.io/npm/v/ws.svg?logo=npm)](https://www.npmjs.com/package/ws)
-[![Linux Build](https://img.shields.io/travis/websockets/ws/master.svg?logo=travis)](https://travis-ci.com/websockets/ws)
-[![Windows Build](https://img.shields.io/appveyor/ci/lpinca/ws/master.svg?logo=appveyor)](https://ci.appveyor.com/project/lpinca/ws)
+[![Build](https://img.shields.io/travis/websockets/ws/master.svg?logo=travis)](https://travis-ci.com/websockets/ws)
+[![Windows x86 Build](https://img.shields.io/appveyor/ci/lpinca/ws/master.svg?logo=appveyor)](https://ci.appveyor.com/project/lpinca/ws)
 [![Coverage Status](https://img.shields.io/coveralls/websockets/ws/master.svg)](https://coveralls.io/github/websockets/ws)
 
 ws is a simple to use, blazing fast, and thoroughly tested WebSocket client and
@@ -266,8 +266,10 @@ wss.on('connection', function connection(ws, request, client) {
 });
 
 server.on('upgrade', function upgrade(request, socket, head) {
+  // This function is not defined on purpose. Implement it with your own logic.
   authenticate(request, (err, client) => {
     if (err || !client) {
+      socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
       socket.destroy();
       return;
     }
@@ -384,7 +386,7 @@ const WebSocket = require('ws');
 const wss = new WebSocket.Server({ port: 8080 });
 
 wss.on('connection', function connection(ws, req) {
-  const ip = req.connection.remoteAddress;
+  const ip = req.socket.remoteAddress;
 });
 ```
 
@@ -430,6 +432,10 @@ const interval = setInterval(function ping() {
     ws.ping(noop);
   });
 }, 30000);
+
+wss.on('close', function close() {
+  clearInterval(interval);
+});
 ```
 
 Pong messages are automatically sent in response to ping messages as required by

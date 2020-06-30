@@ -9,7 +9,9 @@ const http = require('http');
 const net = require('net');
 const fs = require('fs');
 
+const Sender = require('../lib/sender');
 const WebSocket = require('..');
+const { NOOP } = require('../lib/constants');
 
 describe('WebSocketServer', () => {
   describe('#ctor', () => {
@@ -20,17 +22,6 @@ describe('WebSocketServer', () => {
     describe('options', () => {
       it('throws an error if no `port` or `server` option is specified', () => {
         assert.throws(() => new WebSocket.Server({}));
-      });
-
-      it('throws an error if the server is already being used', () => {
-        const server = http.createServer();
-
-        new WebSocket.Server({ server });
-
-        assert.throws(
-          () => new WebSocket.Server({ server }),
-          /^Error: The HTTP\/S server is already being used by another WebSocket server$/
-        );
       });
 
       it('exposes options passed to constructor', (done) => {
@@ -121,7 +112,7 @@ describe('WebSocketServer', () => {
       });
     });
 
-    it('uses a precreated http server listening on unix socket', function(done) {
+    it('uses a precreated http server listening on unix socket', function (done) {
       //
       // Skip this test on Windows as it throws errors for obvious reasons.
       //
@@ -236,21 +227,15 @@ describe('WebSocketServer', () => {
 
     it('cleans event handlers on precreated server', (done) => {
       const server = http.createServer();
-      const wss1 = new WebSocket.Server({ server });
+      const wss = new WebSocket.Server({ server });
 
       server.listen(0, () => {
-        wss1.close(() => {
+        wss.close(() => {
           assert.strictEqual(server.listenerCount('listening'), 0);
           assert.strictEqual(server.listenerCount('upgrade'), 0);
           assert.strictEqual(server.listenerCount('error'), 0);
 
-          // Check that no error is thrown if `server` is resued now as there
-          // are no other `WebSocketServer`s using it.
-          const wss2 = new WebSocket.Server({ server });
-
-          wss2.close(() => {
-            server.close(done);
-          });
+          server.close(done);
         });
       });
     });
@@ -394,6 +379,42 @@ describe('WebSocketServer', () => {
         req.on('response', (res) => {
           assert.strictEqual(res.statusCode, 400);
           wss.close(done);
+        });
+      });
+    });
+  });
+
+  describe('#completeUpgrade', () => {
+    it('throws an error if called twice with the same socket', (done) => {
+      const server = http.createServer();
+
+      server.listen(0, () => {
+        const wss = new WebSocket.Server({ noServer: true });
+
+        server.on('upgrade', (req, socket, head) => {
+          wss.handleUpgrade(req, socket, head, (ws) => {
+            ws.close();
+          });
+          assert.throws(
+            () => wss.handleUpgrade(req, socket, head, NOOP),
+            (err) => {
+              assert.ok(err instanceof Error);
+              assert.strictEqual(
+                err.message,
+                'server.handleUpgrade() was called more than once with the ' +
+                  'same socket, possibly due to a misconfiguration'
+              );
+              return true;
+            }
+          );
+        });
+
+        const ws = new WebSocket(`ws://localhost:${server.address().port}`);
+
+        ws.on('open', () => {
+          ws.on('close', () => {
+            server.close(done);
+          });
         });
       });
     });
@@ -744,7 +765,15 @@ describe('WebSocketServer', () => {
           }
         });
 
-        req.write(Buffer.from([0x81, 0x05, 0x48, 0x65, 0x6c, 0x6c, 0x6f]));
+        const list = Sender.frame(Buffer.from('Hello'), {
+          fin: true,
+          rsv1: false,
+          opcode: 0x01,
+          mask: true,
+          readOnly: false
+        });
+
+        req.write(Buffer.concat(list));
         req.end();
       });
 

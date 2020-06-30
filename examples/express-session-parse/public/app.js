@@ -1,4 +1,4 @@
-(function() {
+(function () {
   const messages = document.querySelector('#messages');
   const wsButton = document.querySelector('#wsButton');
   const wsSendButton = document.querySelector('#wsSendButton');
@@ -16,46 +16,46 @@
       : Promise.reject(new Error('Unexpected response'));
   }
 
-  login.onclick = function() {
+  login.onclick = function () {
     fetch('/login', { method: 'POST', credentials: 'same-origin' })
       .then(handleResponse)
       .then(showMessage)
-      .catch(function(err) {
+      .catch(function (err) {
         showMessage(err.message);
       });
   };
 
-  logout.onclick = function() {
+  logout.onclick = function () {
     fetch('/logout', { method: 'DELETE', credentials: 'same-origin' })
       .then(handleResponse)
       .then(showMessage)
-      .catch(function(err) {
+      .catch(function (err) {
         showMessage(err.message);
       });
   };
 
   let ws;
 
-  wsButton.onclick = function() {
+  wsButton.onclick = function () {
     if (ws) {
       ws.onerror = ws.onopen = ws.onclose = null;
       ws.close();
     }
 
     ws = new WebSocket(`ws://${location.host}`);
-    ws.onerror = function() {
+    ws.onerror = function () {
       showMessage('WebSocket error');
     };
-    ws.onopen = function() {
+    ws.onopen = function () {
       showMessage('WebSocket connection established');
     };
-    ws.onclose = function() {
+    ws.onclose = function () {
       showMessage('WebSocket connection closed');
       ws = null;
     };
   };
 
-  wsSendButton.onclick = function() {
+  wsSendButton.onclick = function () {
     if (!ws) {
       showMessage('No WebSocket connection');
       return;

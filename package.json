@@ -1,6 +1,6 @@
 {
   "name": "ws",
-  "version": "7.2.0",
+  "version": "7.3.0",
   "description": "Simple to use, blazing fast and thoroughly tested websocket client and server for Node.js",
   "keywords": [
     "HyBi",
@@ -26,8 +26,8 @@
     "lib/*.js"
   ],
   "scripts": {
-    "test": "npm run lint && nyc --reporter=html --reporter=text mocha --throw-deprecation test/*.test.js",
-    "integration": "npm run lint && mocha --throw-deprecation test/*.integration.js",
+    "test": "nyc --reporter=html --reporter=text mocha --throw-deprecation test/*.test.js",
+    "integration": "mocha --throw-deprecation test/*.integration.js",
     "lint": "eslint --ignore-path .gitignore . && prettier --check --ignore-path .gitignore \"**/*.{json,md,yaml,yml}\""
   },
   "peerDependencies": {
@@ -46,18 +46,12 @@
     "benchmark": "^2.1.4",
     "bufferutil": "^4.0.1",
     "coveralls": "^3.0.3",
-    "eslint": "^6.0.0",
+    "eslint": "^7.2.0",
     "eslint-config-prettier": "^6.0.0",
     "eslint-plugin-prettier": "^3.0.1",
-    "mocha": "^6.1.3",
-    "nyc": "^14.0.0",
-    "prettier": "^1.17.0",
+    "mocha": "^7.0.0",
+    "nyc": "^15.0.0",
+    "prettier": "^2.0.5",
     "utf-8-validate": "^5.0.2"
-  },
-  "greenkeeper": {
-    "commitMessages": {
-      "dependencyUpdate": "[pkg] Update ${dependency} to version ${version}",
-      "devDependencyUpdate": "[pkg] Update ${dependency} to version ${version}"
-    }
   }
 }

@@ -2,6 +2,7 @@
 
 const assert = require('assert');
 const EventEmitter = require('events');
+const { createServer } = require('http');
 const { Duplex } = require('stream');
 const { randomBytes } = require('crypto');
 
@@ -49,7 +50,7 @@ describe('createWebSocketStream', () => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
-        assert.strictEqual(ws.readyState, 0);
+        assert.strictEqual(ws.readyState, WebSocket.CONNECTING);
 
         const duplex = createWebSocketStream(ws);
 
@@ -132,7 +133,7 @@ describe('createWebSocketStream', () => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
-        assert.strictEqual(ws.readyState, 0);
+        assert.strictEqual(ws.readyState, WebSocket.CONNECTING);
 
         const duplex = createWebSocketStream(ws);
 
@@ -142,6 +143,62 @@ describe('createWebSocketStream', () => {
 
         duplex.resume();
         duplex.end();
+      });
+    });
+
+    it('makes `_final()` a noop if no socket is assigned', (done) => {
+      const server = createServer();
+
+      server.on('upgrade', (request, socket) => {
+        socket.on('end', socket.end);
+
+        const headers = [
+          'HTTP/1.1 101 Switching Protocols',
+          'Upgrade: websocket',
+          'Connection: Upgrade',
+          'Sec-WebSocket-Accept: foo'
+        ];
+
+        socket.write(headers.concat('\r\n').join('\r\n'));
+      });
+
+      server.listen(() => {
+        const called = [];
+        const ws = new WebSocket(`ws://localhost:${server.address().port}`);
+        const duplex = WebSocket.createWebSocketStream(ws);
+        const final = duplex._final;
+
+        duplex._final = (callback) => {
+          called.push('final');
+          assert.strictEqual(ws.readyState, WebSocket.CLOSING);
+          assert.strictEqual(ws._socket, null);
+
+          final(callback);
+        };
+
+        duplex.on('error', (err) => {
+          called.push('error');
+          assert.ok(err instanceof Error);
+          assert.strictEqual(
+            err.message,
+            'Invalid Sec-WebSocket-Accept header'
+          );
+        });
+
+        duplex.on('finish', () => {
+          called.push('finish');
+        });
+
+        duplex.on('close', () => {
+          assert.deepStrictEqual(called, ['final', 'error']);
+          server.close(done);
+        });
+
+        ws.on('upgrade', () => {
+          process.nextTick(() => {
+            duplex.end();
+          });
+        });
       });
     });
 
@@ -165,6 +222,52 @@ describe('createWebSocketStream', () => {
 
       wss.on('connection', (ws) => {
         ws._socket.write(Buffer.from([0x85, 0x00]));
+      });
+    });
+
+    it('does not swallow errors that may occur while destroying', (done) => {
+      const frame = Buffer.concat(
+        Sender.frame(Buffer.from([0x22, 0xfa, 0xec, 0x78]), {
+          fin: true,
+          rsv1: true,
+          opcode: 0x02,
+          mask: false,
+          readOnly: false
+        })
+      );
+
+      const wss = new WebSocket.Server(
+        {
+          perMessageDeflate: true,
+          port: 0
+        },
+        () => {
+          const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+          const duplex = createWebSocketStream(ws);
+
+          duplex.on('error', (err) => {
+            assert.ok(err instanceof Error);
+            assert.strictEqual(err.code, 'Z_DATA_ERROR');
+            assert.strictEqual(err.errno, -3);
+
+            duplex.on('close', () => {
+              wss.close(done);
+            });
+          });
+
+          let bytesRead = 0;
+
+          ws.on('open', () => {
+            ws._socket.on('data', (chunk) => {
+              bytesRead += chunk.length;
+              if (bytesRead === frame.length) duplex.destroy();
+            });
+          });
+        }
+      );
+
+      wss.on('connection', (ws) => {
+        ws._socket.write(frame);
       });
     });
 
@@ -251,7 +354,6 @@ describe('createWebSocketStream', () => {
 
         duplex.on('finish', () => {
           events.push('finish');
-          assert.ok(duplex.destroyed);
         });
 
         duplex.resume();
@@ -291,89 +393,103 @@ describe('createWebSocketStream', () => {
     });
 
     it('handles backpressure (2/3)', (done) => {
-      const wss = new WebSocket.Server({ port: 0 }, () => {
-        const called = [];
-        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
-        const duplex = createWebSocketStream(ws);
-        const read = duplex._read;
+      const wss = new WebSocket.Server(
+        { port: 0, perMessageDeflate: true },
+        () => {
+          const called = [];
+          const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+          const duplex = createWebSocketStream(ws);
+          const read = duplex._read;
 
-        duplex._read = () => {
-          called.push('read');
-          assert.ok(ws._receiver._writableState.needDrain);
-          read();
-          assert.ok(ws._socket.isPaused());
-        };
+          duplex._read = () => {
+            duplex._read = read;
+            called.push('read');
+            assert.ok(ws._receiver._writableState.needDrain);
+            read();
+            assert.ok(ws._socket.isPaused());
+          };
 
-        ws.on('open', () => {
-          ws._socket.on('pause', () => {
-            duplex.resume();
+          ws.on('open', () => {
+            ws._socket.on('pause', () => {
+              duplex.resume();
+            });
+
+            ws._receiver.on('drain', () => {
+              called.push('drain');
+              assert.ok(!ws._socket.isPaused());
+              duplex.end();
+            });
+
+            const opts = {
+              fin: true,
+              opcode: 0x02,
+              mask: false,
+              readOnly: false
+            };
+
+            const list = [
+              ...Sender.frame(randomBytes(16 * 1024), { rsv1: false, ...opts }),
+              ...Sender.frame(Buffer.alloc(1), { rsv1: true, ...opts })
+            ];
+
+            // This hack is used because there is no guarantee that more than
+            // 16 KiB will be sent as a single TCP packet.
+            ws._socket.push(Buffer.concat(list));
           });
 
-          ws._receiver.on('drain', () => {
-            called.push('drain');
-            assert.ok(!ws._socket.isPaused());
+          duplex.on('close', () => {
+            assert.deepStrictEqual(called, ['read', 'drain']);
+            wss.close(done);
           });
-
-          const list = Sender.frame(randomBytes(16 * 1024), {
-            fin: true,
-            rsv1: false,
-            opcode: 0x02,
-            mask: false,
-            readOnly: false
-          });
-
-          // This hack is used because there is no guarantee that more than
-          // 16KiB will be sent as a single TCP packet.
-          ws._socket.push(Buffer.concat(list));
-        });
-
-        duplex.on('resume', duplex.end);
-        duplex.on('close', () => {
-          assert.deepStrictEqual(called, ['read', 'drain']);
-          wss.close(done);
-        });
-      });
+        }
+      );
     });
 
     it('handles backpressure (3/3)', (done) => {
-      const wss = new WebSocket.Server({ port: 0 }, () => {
-        const called = [];
-        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
-        const duplex = createWebSocketStream(ws);
+      const wss = new WebSocket.Server(
+        { port: 0, perMessageDeflate: true },
+        () => {
+          const called = [];
+          const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+          const duplex = createWebSocketStream(ws);
+          const read = duplex._read;
 
-        const read = duplex._read;
+          duplex._read = () => {
+            called.push('read');
+            assert.ok(!ws._receiver._writableState.needDrain);
+            read();
+            assert.ok(!ws._socket.isPaused());
+            duplex.end();
+          };
 
-        duplex._read = () => {
-          called.push('read');
-          assert.ok(!ws._receiver._writableState.needDrain);
-          read();
-          assert.ok(!ws._socket.isPaused());
-        };
+          ws.on('open', () => {
+            ws._receiver.on('drain', () => {
+              called.push('drain');
+              assert.ok(ws._socket.isPaused());
+              duplex.resume();
+            });
 
-        ws.on('open', () => {
-          ws._receiver.on('drain', () => {
-            called.push('drain');
-            assert.ok(ws._socket.isPaused());
-            duplex.resume();
+            const opts = {
+              fin: true,
+              opcode: 0x02,
+              mask: false,
+              readOnly: false
+            };
+
+            const list = [
+              ...Sender.frame(randomBytes(16 * 1024), { rsv1: false, ...opts }),
+              ...Sender.frame(Buffer.alloc(1), { rsv1: true, ...opts })
+            ];
+
+            ws._socket.push(Buffer.concat(list));
           });
 
-          const list = Sender.frame(randomBytes(16 * 1024), {
-            fin: true,
-            rsv1: false,
-            opcode: 0x02,
-            mask: false,
-            readOnly: false
+          duplex.on('close', () => {
+            assert.deepStrictEqual(called, ['drain', 'read']);
+            wss.close(done);
           });
-
-          ws._socket.push(Buffer.concat(list));
-        });
-
-        duplex.on('resume', duplex.end);
-        duplex.on('close', () => {
-          assert.deepStrictEqual(called, ['drain', 'read']);
-          wss.close(done);
-        });
-      });
+        }
+      );
     });
 
     it('can be destroyed (1/2)', (done) => {
