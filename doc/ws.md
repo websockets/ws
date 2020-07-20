@@ -364,7 +364,11 @@ of binary protocols transferring large messages with multiple fragments.
 - {Number}
 
 The number of bytes of data that have been queued using calls to `send()` but
-not yet transmitted to the network.
+not yet transmitted to the network. This deviates from the HTML standard in the
+following ways:
+
+1. If the data is immediately sent the value is `0`.
+1. All framing bytes are included.
 
 ### websocket.close([code[, reason]])
 
