@@ -477,7 +477,7 @@ Forcibly close the connection.
 
 - {String}
 
-The URL of the WebSocket server. Server clients don't have this attribute.
+The URL of the WebSocket server.
 
 ## WebSocket.createWebSocketStream(websocket[, options])
 
