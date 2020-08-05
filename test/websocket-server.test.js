@@ -116,7 +116,10 @@ describe('WebSocketServer', () => {
 
     it('uses a precreated http server listening on unix socket', function (done) {
       //
-      // Skip this test on Windows as it throws errors for obvious reasons.
+      // Skip this test on Windows. The URL parser:
+      //
+      // - Throws an error if the named pipe uses backward slashes.
+      // - Incorrectly parses the path if the named pipe used forward slashes.
       //
       if (process.platform === 'win32') return this.skip();
 
