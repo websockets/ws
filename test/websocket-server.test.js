@@ -6,8 +6,10 @@ const assert = require('assert');
 const crypto = require('crypto');
 const https = require('https');
 const http = require('http');
+const path = require('path');
 const net = require('net');
 const fs = require('fs');
+const os = require('os');
 
 const Sender = require('../lib/sender');
 const WebSocket = require('..');
@@ -119,9 +121,10 @@ describe('WebSocketServer', () => {
       if (process.platform === 'win32') return this.skip();
 
       const server = http.createServer();
-      const sockPath = `/tmp/ws.${crypto
-        .randomBytes(16)
-        .toString('hex')}.socket`;
+      const sockPath = path.join(
+        os.tmpdir(),
+        `ws.${crypto.randomBytes(16).toString('hex')}.sock`
+      );
 
       server.listen(sockPath, () => {
         const wss = new WebSocket.Server({ server });
