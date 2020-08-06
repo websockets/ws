@@ -119,7 +119,7 @@ describe('WebSocketServer', () => {
       // Skip this test on Windows. The URL parser:
       //
       // - Throws an error if the named pipe uses backward slashes.
-      // - Incorrectly parses the path if the named pipe used forward slashes.
+      // - Incorrectly parses the path if the named pipe uses forward slashes.
       //
       if (process.platform === 'win32') return this.skip();
 
