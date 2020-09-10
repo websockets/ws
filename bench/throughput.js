@@ -31,15 +31,24 @@ if (cluster.isMaster) {
   });
 } else {
   const configs = [
-    [true, 10000, 64],
-    [true, 5000, 16 * 1024],
-    [true, 1000, 128 * 1024],
-    [true, 100, 1024 * 1024],
-    [true, 1, 500 * 1024 * 1024],
-    [false, 10000, 64],
-    [false, 5000, 16 * 1024],
-    [false, 1000, 128 * 1024],
-    [false, 100, 1024 * 1024]
+    [true, 100000, 64, 1],
+    [true, 100000, 64, 32],
+    [true, 100000, 64, 64],
+    [true, 100000, 1024, 1],
+    [true, 100000, 1024, 32],
+    [true, 100000, 1024, 64],
+    [true, 10000, 128 * 1024, 1],
+    [true, 10000, 128 * 1024, 32],
+    [true, 10000, 128 * 1024, 64],
+    [false, 100000, 64, 1],
+    [false, 100000, 64, 32],
+    [false, 100000, 64, 64],
+    [false, 100000, 1024, 1],
+    [false, 100000, 1024, 32],
+    [false, 100000, 1024, 64],
+    [false, 10000, 128 * 1024, 1],
+    [false, 10000, 128 * 1024, 32],
+    [false, 10000, 128 * 1024, 64]
   ];
 
   const roundPrec = (num, prec) => {
@@ -67,7 +76,7 @@ if (cluster.isMaster) {
 
   console.log(`Testing ws on ${path || '[::]:' + port}`);
 
-  const runConfig = (useBinary, roundtrips, size, cb) => {
+  const runConfig = (useBinary, roundtrips, size, concurrency, cb) => {
     const data = randomBytes.slice(0, size);
     const url = path ? `ws+unix://${path}` : `ws://localhost:${port}`;
     const ws = new WebSocket(url, {
@@ -83,7 +92,9 @@ if (cluster.isMaster) {
     });
     ws.on('open', () => {
       time = process.hrtime();
-      ws.send(data, { binary: useBinary });
+      for (let i = 0; i < concurrency; i++) {
+        ws.send(data, { binary: useBinary });
+      }
     });
     ws.on('message', () => {
       if (++roundtrip !== roundtrips)
@@ -93,12 +104,14 @@ if (cluster.isMaster) {
       elapsed = elapsed[0] * 1e9 + elapsed[1];
 
       console.log(
-        '%d roundtrips of %s %s data:\t%ss\t%s',
+        '[c:%d] %d roundtrips of %s %s data:\t%ss\t%s',
+        concurrency,
         roundtrips,
         humanSize(size),
         useBinary ? 'binary' : 'text',
         roundPrec(elapsed / 1e9, 1),
-        humanSize(((size * 2 * roundtrips) / elapsed) * 1e9) + '/s'
+        roundPrec((roundtrips / elapsed) * 1e9, 0).toLocaleString() +
+          ' roundtrips/s'
       );
 
       ws.close();
