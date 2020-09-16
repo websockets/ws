@@ -52,10 +52,10 @@ app.delete('/logout', function (request, response) {
 // Create HTTP server by ourselves.
 //
 const server = http.createServer(app);
-const wss = new WebSocket.Server({
-  clientTracking: false,
-  noServer: true // Manually handle upgrade
-});
+//
+// Create WebSocket server without explicit HTTP server.
+//
+const wss = new WebSocket.Server({ clientTracking: false, noServer: true });
 
 server.on('upgrade', function (request, socket, head) {
   console.log('Parsing session from request...');
