@@ -49,11 +49,12 @@ app.delete('/logout', function (request, response) {
 });
 
 //
-// Create HTTP server by ourselves.
+// Create an HTTP server.
 //
 const server = http.createServer(app);
+
 //
-// Create WebSocket server without explicit HTTP server.
+// Create a WebSocket server completely detached from the HTTP server.
 //
 const wss = new WebSocket.Server({ clientTracking: false, noServer: true });
 
