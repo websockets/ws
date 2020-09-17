@@ -49,9 +49,13 @@ app.delete('/logout', function (request, response) {
 });
 
 //
-// Create HTTP server by ourselves.
+// Create an HTTP server.
 //
 const server = http.createServer(app);
+
+//
+// Create a WebSocket server completely detached from the HTTP server.
+//
 const wss = new WebSocket.Server({ clientTracking: false, noServer: true });
 
 server.on('upgrade', function (request, socket, head) {
@@ -59,6 +63,7 @@ server.on('upgrade', function (request, socket, head) {
 
   sessionParser(request, {}, () => {
     if (!request.session.userId) {
+      socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
       socket.destroy();
       return;
     }
