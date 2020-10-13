@@ -115,19 +115,15 @@ describe('WebSocketServer', () => {
     });
 
     it('uses a precreated http server listening on unix socket', function (done) {
-      //
-      // Skip this test on Windows. The URL parser:
-      //
-      // - Throws an error if the named pipe uses backward slashes.
-      // - Incorrectly parses the path if the named pipe uses forward slashes.
-      //
-      if (process.platform === 'win32') return this.skip();
-
       const server = http.createServer();
       const sockPath = path.join(
         os.tmpdir(),
         `ws.${crypto.randomBytes(16).toString('hex')}.sock`
       );
+
+      if (process.platform === 'win32') {
+        sockPath = '\\\\?\\pipe\\' + sockPath;
+      }
 
       server.listen(sockPath, () => {
         const wss = new WebSocket.Server({ server });
