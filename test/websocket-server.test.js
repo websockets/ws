@@ -116,7 +116,7 @@ describe('WebSocketServer', () => {
 
     it('uses a precreated http server listening on unix socket', function (done) {
       const server = http.createServer();
-      const sockPath = path.join(
+      let sockPath = path.join(
         os.tmpdir(),
         `ws.${crypto.randomBytes(16).toString('hex')}.sock`
       );
