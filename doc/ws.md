@@ -154,7 +154,7 @@ emitted independently.
 
 ### Event: 'connection'
 
-- `socket` {WebSocket}
+- `websocket` {WebSocket}
 - `request` {http.IncomingMessage}
 
 Emitted when the handshake is complete. `request` is the http GET request sent
@@ -211,8 +211,10 @@ when the HTTP server is passed via the `server` option, this method is called
 automatically. When operating in "noServer" mode, this method must be called
 manually.
 
-If the upgrade is successful, the `callback` is called with a `WebSocket` object
-as parameter.
+If the upgrade is successful, the `callback` is called with two arguments:
+
+- `websocket` {WebSocket} A `WebSocket` object.
+- `request` {http.IncomingMessage} The client HTTP GET request.
 
 ### server.shouldHandle(request)
 
