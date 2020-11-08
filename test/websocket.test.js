@@ -100,21 +100,28 @@ describe('WebSocket', () => {
     Object.keys(readyStates).forEach((state) => {
       describe(`\`${state}\``, () => {
         it('is enumerable property of class', () => {
-          const propertyDescripter = Object.getOwnPropertyDescriptor(
-            WebSocket,
+          const descriptor = Object.getOwnPropertyDescriptor(WebSocket, state);
+
+          assert.deepStrictEqual(descriptor, {
+            configurable: false,
+            enumerable: true,
+            value: readyStates[state],
+            writable: false
+          });
+        });
+
+        it('is enumerable property of prototype', () => {
+          const descriptor = Object.getOwnPropertyDescriptor(
+            WebSocket.prototype,
             state
           );
 
-          assert.strictEqual(propertyDescripter.value, readyStates[state]);
-          assert.strictEqual(propertyDescripter.enumerable, true);
-        });
-
-        it('is property of instance', () => {
-          const ws = new WebSocket('ws://localhost', {
-            agent: new CustomAgent()
+          assert.deepStrictEqual(descriptor, {
+            configurable: false,
+            enumerable: true,
+            value: readyStates[state],
+            writable: false
           });
-
-          assert.strictEqual(ws[state], readyStates[state]);
         });
       });
     });
@@ -122,6 +129,18 @@ describe('WebSocket', () => {
 
   describe('Attributes', () => {
     describe('`binaryType`', () => {
+      it('is enumerable and configurable', () => {
+        const descriptor = Object.getOwnPropertyDescriptor(
+          WebSocket.prototype,
+          'binaryType'
+        );
+
+        assert.strictEqual(descriptor.configurable, true);
+        assert.strictEqual(descriptor.enumerable, true);
+        assert.ok(descriptor.get !== undefined);
+        assert.ok(descriptor.set !== undefined);
+      });
+
       it("defaults to 'nodebuffer'", () => {
         const ws = new WebSocket('ws://localhost', {
           agent: new CustomAgent()
@@ -153,6 +172,18 @@ describe('WebSocket', () => {
     });
 
     describe('`bufferedAmount`', () => {
+      it('is enumerable and configurable', () => {
+        const descriptor = Object.getOwnPropertyDescriptor(
+          WebSocket.prototype,
+          'bufferedAmount'
+        );
+
+        assert.strictEqual(descriptor.configurable, true);
+        assert.strictEqual(descriptor.enumerable, true);
+        assert.ok(descriptor.get !== undefined);
+        assert.ok(descriptor.set === undefined);
+      });
+
       it('defaults to zero', () => {
         const ws = new WebSocket('ws://localhost', {
           agent: new CustomAgent()
@@ -225,6 +256,18 @@ describe('WebSocket', () => {
     });
 
     describe('`extensions`', () => {
+      it('is enumerable and configurable', () => {
+        const descriptor = Object.getOwnPropertyDescriptor(
+          WebSocket.prototype,
+          'bufferedAmount'
+        );
+
+        assert.strictEqual(descriptor.configurable, true);
+        assert.strictEqual(descriptor.enumerable, true);
+        assert.ok(descriptor.get !== undefined);
+        assert.ok(descriptor.set === undefined);
+      });
+
       it('exposes the negotiated extensions names (1/2)', (done) => {
         const wss = new WebSocket.Server({ port: 0 }, () => {
           const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
@@ -269,6 +312,18 @@ describe('WebSocket', () => {
     });
 
     describe('`protocol`', () => {
+      it('is enumerable and configurable', () => {
+        const descriptor = Object.getOwnPropertyDescriptor(
+          WebSocket.prototype,
+          'protocol'
+        );
+
+        assert.strictEqual(descriptor.configurable, true);
+        assert.strictEqual(descriptor.enumerable, true);
+        assert.ok(descriptor.get !== undefined);
+        assert.ok(descriptor.set === undefined);
+      });
+
       it('exposes the subprotocol selected by the server', (done) => {
         const wss = new WebSocket.Server({ port: 0 }, () => {
           const port = wss.address().port;
@@ -290,6 +345,18 @@ describe('WebSocket', () => {
     });
 
     describe('`readyState`', () => {
+      it('is enumerable and configurable', () => {
+        const descriptor = Object.getOwnPropertyDescriptor(
+          WebSocket.prototype,
+          'readyState'
+        );
+
+        assert.strictEqual(descriptor.configurable, true);
+        assert.strictEqual(descriptor.enumerable, true);
+        assert.ok(descriptor.get !== undefined);
+        assert.ok(descriptor.set === undefined);
+      });
+
       it('defaults to `CONNECTING`', () => {
         const ws = new WebSocket('ws://localhost', {
           agent: new CustomAgent()
@@ -339,6 +406,18 @@ describe('WebSocket', () => {
     });
 
     describe('`url`', () => {
+      it('is enumerable and configurable', () => {
+        const descriptor = Object.getOwnPropertyDescriptor(
+          WebSocket.prototype,
+          'url'
+        );
+
+        assert.strictEqual(descriptor.configurable, true);
+        assert.strictEqual(descriptor.enumerable, true);
+        assert.ok(descriptor.get !== undefined);
+        assert.ok(descriptor.set === undefined);
+      });
+
       it('exposes the server url', () => {
         const url = 'ws://localhost';
         const ws = new WebSocket(url, { agent: new CustomAgent() });
@@ -1729,6 +1808,18 @@ describe('WebSocket', () => {
 
   describe('WHATWG API emulation', () => {
     it('supports the `on{close,error,message,open}` attributes', () => {
+      for (const property of ['onclose', 'onerror', 'onmessage', 'onopen']) {
+        const descriptor = Object.getOwnPropertyDescriptor(
+          WebSocket.prototype,
+          property
+        );
+
+        assert.strictEqual(descriptor.configurable, true);
+        assert.strictEqual(descriptor.enumerable, true);
+        assert.ok(descriptor.get !== undefined);
+        assert.ok(descriptor.set !== undefined);
+      }
+
       const ws = new WebSocket('ws://localhost', { agent: new CustomAgent() });
 
       assert.strictEqual(ws.onmessage, undefined);
