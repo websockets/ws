@@ -2242,6 +2242,39 @@ describe('WebSocket', () => {
 
       const ws = new WebSocket('wss://127.0.0.1', { servername: '' });
     });
+
+    it("works around a double 'error' event bug in Node.js", function (done) {
+      //
+      // The `minVersion` and `maxVersion` options are not supported in
+      // Node.js < 10.16.0.
+      //
+      if (process.versions.modules < 64) return this.skip();
+
+      //
+      // The `'error'` event can be emitted multiple times by the
+      // `http.ClientRequest` object in Node.js < 13. This test reproduces the
+      // issue in Node.js 12.
+      //
+      const server = https.createServer({
+        cert: fs.readFileSync('test/fixtures/certificate.pem'),
+        key: fs.readFileSync('test/fixtures/key.pem'),
+        minVersion: 'TLSv1.2'
+      });
+      const wss = new WebSocket.Server({ server });
+
+      server.listen(0, () => {
+        const ws = new WebSocket(`wss://localhost:${server.address().port}`, {
+          maxVersion: 'TLSv1.1',
+          rejectUnauthorized: false
+        });
+
+        ws.on('error', (err) => {
+          assert.ok(err instanceof Error);
+          server.close(done);
+          wss.close();
+        });
+      });
+    });
   });
 
   describe('Request headers', () => {
