@@ -1,6 +1,6 @@
 {
   "name": "ws",
-  "version": "7.4.0",
+  "version": "7.4.1",
   "description": "Simple to use, blazing fast and thoroughly tested websocket client and server for Node.js",
   "keywords": [
     "HyBi",
