@@ -2123,7 +2123,7 @@ describe('WebSocket', () => {
       });
 
       server.listen(0, () => {
-        const ws = new WebSocket(`wss://localhost:${server.address().port}`, {
+        const ws = new WebSocket(`wss://127.0.0.1:${server.address().port}`, {
           rejectUnauthorized: false
         });
       });
