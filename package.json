@@ -47,7 +47,7 @@
     "bufferutil": "^4.0.1",
     "coveralls": "^3.0.3",
     "eslint": "^7.2.0",
-    "eslint-config-prettier": "^6.0.0",
+    "eslint-config-prettier": "^7.1.0",
     "eslint-plugin-prettier": "^3.0.1",
     "mocha": "^7.0.0",
     "nyc": "^15.0.0",
