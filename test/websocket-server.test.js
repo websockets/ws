@@ -320,6 +320,7 @@ describe('WebSocketServer', () => {
       const wss = new WebSocket.Server({ noServer: true, path: '/foo' });
 
       assert.strictEqual(wss.shouldHandle({ url: '/foo' }), true);
+      assert.strictEqual(wss.shouldHandle({ url: '/foo?bar=baz' }), true);
     });
 
     it("returns false when the path doesn't match", () => {
@@ -543,6 +544,41 @@ describe('WebSocketServer', () => {
 
       wss.on('connection', () => {
         done(new Error("Unexpected 'connection' event"));
+      });
+    });
+
+    it('handles unsupported extensions', (done) => {
+      const wss = new WebSocket.Server(
+        {
+          perMessageDeflate: true,
+          port: 0
+        },
+        () => {
+          const req = http.get({
+            port: wss.address().port,
+            headers: {
+              Connection: 'Upgrade',
+              Upgrade: 'websocket',
+              'Sec-WebSocket-Key': 'dGhlIHNhbXBsZSBub25jZQ==',
+              'Sec-WebSocket-Version': 13,
+              'Sec-WebSocket-Extensions': 'foo; bar'
+            }
+          });
+
+          req.on('upgrade', (res, socket, head) => {
+            if (head.length) socket.unshift(head);
+
+            socket.once('data', (chunk) => {
+              assert.strictEqual(chunk[0], 0x88);
+              wss.close(done);
+            });
+          });
+        }
+      );
+
+      wss.on('connection', (ws) => {
+        assert.strictEqual(ws.extensions, '');
+        ws.close();
       });
     });
 
