@@ -86,8 +86,8 @@ is provided with a single argument then that is:
 - `info` {Object}
   - `origin` {String} The value in the Origin header indicated by the client.
   - `req` {http.IncomingMessage} The client HTTP GET request.
-  - `secure` {Boolean} `true` if `req.connection.authorized` or
-    `req.connection.encrypted` is set.
+  - `secure` {Boolean} `true` if `req.socket.authorized` or
+    `req.socket.encrypted` is set.
 
 The return value (`Boolean`) of the function determines whether or not to accept
 the handshake.
