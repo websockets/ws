@@ -456,7 +456,7 @@ Removes an event listener emulating the `EventTarget` interface.
 
 ### websocket.send(data[, options][, callback])
 
-- `data` {number | array | arrayBuffer | buffer | object | string} The data to send.
+- `data` {Array|Number|Object|String|ArrayBuffer|Buffer|DataView|TypedArray} The data to send.
 - `options` {Object}
   - `compress` {Boolean} Specifies whether `data` should be compressed or not.
     Defaults to `true` when permessage-deflate is enabled.
