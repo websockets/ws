@@ -428,7 +428,8 @@ Send a ping.
 
 ### websocket.pong([data[, mask]][, callback])
 
-- `data` {Array|Number|Object|String|ArrayBuffer|Buffer|DataView|TypedArray} The data to send in the pong frame.
+- `data` {Array|Number|Object|String|ArrayBuffer|Buffer|DataView|TypedArray} The
+  data to send in the pong frame.
 - `mask` {Boolean} Specifies whether `data` should be masked or not. Defaults to
   `true` when `websocket` is not a server client.
 - `callback` {Function} An optional callback which is invoked when the pong
