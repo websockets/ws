@@ -417,7 +417,8 @@ receives an `OpenEvent` named "open".
 
 ### websocket.ping([data[, mask]][, callback])
 
-- `data` {Any} The data to send in the ping frame.
+- `data` {Array|Number|Object|String|ArrayBuffer|Buffer|DataView|TypedArray} The
+  data to send in the ping frame.
 - `mask` {Boolean} Specifies whether `data` should be masked or not. Defaults to
   `true` when `websocket` is not a server client.
 - `callback` {Function} An optional callback which is invoked when the ping
@@ -427,7 +428,8 @@ Send a ping.
 
 ### websocket.pong([data[, mask]][, callback])
 
-- `data` {Any} The data to send in the pong frame.
+- `data` {Array|Number|Object|String|ArrayBuffer|Buffer|DataView|TypedArray} The
+  data to send in the pong frame.
 - `mask` {Boolean} Specifies whether `data` should be masked or not. Defaults to
   `true` when `websocket` is not a server client.
 - `callback` {Function} An optional callback which is invoked when the pong
@@ -456,7 +458,8 @@ Removes an event listener emulating the `EventTarget` interface.
 
 ### websocket.send(data[, options][, callback])
 
-- `data` {Any} The data to send.
+- `data` {Array|Number|Object|String|ArrayBuffer|Buffer|DataView|TypedArray} The
+  data to send.
 - `options` {Object}
   - `compress` {Boolean} Specifies whether `data` should be compressed or not.
     Defaults to `true` when permessage-deflate is enabled.
