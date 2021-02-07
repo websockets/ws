@@ -417,7 +417,8 @@ receives an `OpenEvent` named "open".
 
 ### websocket.ping([data[, mask]][, callback])
 
-- `data` {Array|Number|Object|String|ArrayBuffer|Buffer|DataView|TypedArray} The data to send in the ping frame.
+- `data` {Array|Number|Object|String|ArrayBuffer|Buffer|DataView|TypedArray} The
+  data to send in the ping frame.
 - `mask` {Boolean} Specifies whether `data` should be masked or not. Defaults to
   `true` when `websocket` is not a server client.
 - `callback` {Function} An optional callback which is invoked when the ping
