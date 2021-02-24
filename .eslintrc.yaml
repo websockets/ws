@@ -5,16 +5,13 @@ env:
   node: true
 extends:
   - eslint:recommended
-  - prettier
+  - plugin:prettier/recommended
 parserOptions:
   ecmaVersion: 9
-plugins:
-  - prettier
 rules:
   no-console: off
   no-var: error
   prefer-const: error
-  prettier/prettier: error
   quotes:
     - error
     - single
