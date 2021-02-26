@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  - push
+  - pull_request
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        node:
+          - 8
+          - 10
+          - 12
+          - 14
+          - 15
+        os:
+          - macOS-latest
+          - ubuntu-latest
+          - windows-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node }}
+      - run: npm install
+      - run: npm run lint
+        if: matrix.node == 14 && matrix.os == 'ubuntu-latest'
+      - run: npm test
+      - uses: coverallsapp/github-action@v1.1.2
+        with:
+          flag-name: Node.js ${{ matrix.node }} on ${{ matrix.os }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          parallel: true
+  coverage:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: coverallsapp/github-action@v1.1.2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          parallel-finished: true
