@@ -476,7 +476,7 @@ Send `data` through the connection.
 
 ### websocket.terminate()
 
-Forcibly close the connection.
+Forcibly close the connection. Internally this calls [socket.destroy()][].
 
 ### websocket.url
 
@@ -502,4 +502,5 @@ given `WebSocket`.
   https://nodejs.org/api/https.html#https_https_request_options_callback
 [permessage-deflate]:
   https://tools.ietf.org/html/draft-ietf-hybi-permessage-compression-19
+[socket.destroy()]: https://nodejs.org/api/net.html#net_socket_destroy_error
 [zlib-options]: https://nodejs.org/api/zlib.html#zlib_class_options
