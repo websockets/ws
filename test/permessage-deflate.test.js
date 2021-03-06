@@ -631,5 +631,26 @@ describe('PerMessageDeflate', () => {
 
       process.nextTick(() => perMessageDeflate.cleanup());
     });
+
+    it('recreates the inflate stream if it ends', (done) => {
+      const perMessageDeflate = new PerMessageDeflate();
+      const extensions = extension.parse(
+        'permessage-deflate; client_no_context_takeover; ' +
+          'server_no_context_takeover'
+      );
+      const buf = Buffer.from('33343236313533b7000000', 'hex');
+      const expected = Buffer.from('12345678');
+
+      perMessageDeflate.accept(extensions['permessage-deflate']);
+
+      perMessageDeflate.decompress(buf, true, (err, data) => {
+        assert.ok(data.equals(expected));
+
+        perMessageDeflate.decompress(buf, true, (err, data) => {
+          assert.ok(data.equals(expected));
+          done();
+        });
+      });
+    });
   });
 });
