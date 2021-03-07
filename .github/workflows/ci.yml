@@ -30,7 +30,8 @@ jobs:
       - run: npm test
       - uses: coverallsapp/github-action@v1.1.2
         with:
-          flag-name: Node.js ${{ matrix.node }} on ${{ matrix.os }}
+          flag-name:
+            ${{github.sha}} - Node.js ${{ matrix.node }} on ${{ matrix.os }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           parallel: true
   coverage:
