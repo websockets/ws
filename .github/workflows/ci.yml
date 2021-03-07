@@ -28,10 +28,16 @@ jobs:
       - run: npm run lint
         if: matrix.node == 14 && matrix.os == 'ubuntu-latest'
       - run: npm test
+      - run:
+          echo ::set-output name=job_id::$(node -e
+          "console.log(crypto.randomBytes(16).toString('hex'))")
+        id: get_job_id
+        shell: bash
       - uses: coverallsapp/github-action@v1.1.2
         with:
           flag-name:
-            ${{github.sha}} - Node.js ${{ matrix.node }} on ${{ matrix.os }}
+            ${{ steps.get_job_id.outputs.job_id }} (Node.js ${{ matrix.node }}
+            on ${{ matrix.os }})
           github-token: ${{ secrets.GITHUB_TOKEN }}
           parallel: true
   coverage:
