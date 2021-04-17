@@ -56,7 +56,7 @@ can use one of the many wrappers available on npm, like
 npm install ws
 ```
 
-### Opt-in for performance and spec compliance
+### Opt-in for performance
 
 There are 2 optional modules that can be installed along side with the ws
 module. These modules are binary addons which improve certain operations.
@@ -67,7 +67,7 @@ necessarily need to have a C++ compiler installed on your machine.
   operations such as masking and unmasking the data payload of the WebSocket
   frames.
 - `npm install --save-optional utf-8-validate`: Allows to efficiently check if a
-  message contains valid UTF-8 as required by the spec.
+  message contains valid UTF-8.
 
 ## API docs
 
