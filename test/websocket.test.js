@@ -1444,7 +1444,7 @@ describe('WebSocket', () => {
   });
 
   describe('#close', () => {
-    it('closes the connection if called while connecting (1/2)', (done) => {
+    it('closes the connection if called while connecting (1/3)', (done) => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
@@ -1461,7 +1461,7 @@ describe('WebSocket', () => {
       });
     });
 
-    it('closes the connection if called while connecting (2/2)', (done) => {
+    it('closes the connection if called while connecting (2/3)', (done) => {
       const wss = new WebSocket.Server(
         {
           verifyClient: (info, cb) => setTimeout(cb, 300, true),
@@ -1482,6 +1482,54 @@ describe('WebSocket', () => {
           setTimeout(() => ws.close(1001), 150);
         }
       );
+    });
+
+    it('closes the connection if called while connecting (3/3)', (done) => {
+      const server = http.createServer();
+
+      server.listen(0, function () {
+        const ws = new WebSocket(`ws://localhost:${server.address().port}`);
+
+        ws.on('open', () => done(new Error("Unexpected 'open' event")));
+        ws.on('error', (err) => {
+          assert.ok(err instanceof Error);
+          assert.strictEqual(
+            err.message,
+            'WebSocket was closed before the connection was established'
+          );
+          ws.on('close', () => {
+            server.close(done);
+          });
+        });
+
+        ws.on('unexpected-response', (req, res) => {
+          assert.strictEqual(res.statusCode, 502);
+
+          const chunks = [];
+
+          res.on('data', (chunk) => {
+            chunks.push(chunk);
+          });
+
+          res.on('end', () => {
+            assert.strictEqual(Buffer.concat(chunks).toString(), 'foo');
+            ws.close();
+          });
+        });
+      });
+
+      server.on('upgrade', (req, socket) => {
+        socket.on('end', socket.end);
+
+        socket.write(
+          `HTTP/1.1 502 ${http.STATUS_CODES[502]}\r\n` +
+            'Connection: keep-alive\r\n' +
+            'Content-type: text/html\r\n' +
+            'Content-Length: 3\r\n' +
+            '\r\n' +
+            'foo'
+        );
+      });
     });
 
     it('can be called from an error listener while connecting', (done) => {
