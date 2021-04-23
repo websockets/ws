@@ -14,6 +14,7 @@ jobs:
           - 10
           - 12
           - 14
+          - 16
         os:
           - macOS-latest
           - ubuntu-latest
@@ -25,7 +26,7 @@ jobs:
           node-version: ${{ matrix.node }}
       - run: npm install
       - run: npm run lint
-        if: matrix.node == 14 && matrix.os == 'ubuntu-latest'
+        if: matrix.node == 16 && matrix.os == 'ubuntu-latest'
       - run: npm test
       - run:
           echo ::set-output name=job_id::$(node -e
