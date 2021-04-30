@@ -39,9 +39,11 @@
   - [websocket.pong([data[, mask]][, callback])](#websocketpongdata-mask-callback)
   - [websocket.protocol](#websocketprotocol)
   - [websocket.readyState](#websocketreadystate)
+  - [websocket.ref()](#websocketref)
   - [websocket.removeEventListener(type, listener)](#websocketremoveeventlistenertype-listener)
   - [websocket.send(data[, options][, callback])](#websocketsenddata-options-callback)
   - [websocket.terminate()](#websocketterminate)
+  - [websocket.unref()](#websocketunref)
   - [websocket.url](#websocketurl)
 - [WebSocket.createWebSocketStream(websocket[, options])](#websocketcreatewebsocketstreamwebsocket-options)
 
@@ -449,6 +451,14 @@ The subprotocol selected by the server.
 
 The current state of the connection. This is one of the ready state constants.
 
+### websocket.ref()
+
+- Returns this `websocket`
+
+Opposite of `unref()`, calling `ref()` on a previously `unref` ed websocket will _not_
+allow the program to exit while this websocket is active (the default behavior).
+Calling `ref()` multiple times will have no further effect.
+
 ### websocket.removeEventListener(type, listener)
 
 - `type` {String} A string representing the event type to remove.
@@ -477,6 +487,13 @@ Send `data` through the connection.
 ### websocket.terminate()
 
 Forcibly close the connection. Internally this calls [socket.destroy()][].
+
+### websocket.unref()
+
+- Returns this `websocket`
+
+Calling `unref()` on a websocket will allow the program to exit, even while this websocket is active.
+Calling `unref()` multiple times will have no further effect.
 
 ### websocket.url
 
