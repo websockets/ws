@@ -27,7 +27,7 @@ Once we have acknowledged receipt of your report and confirmed the bug ourselves
 we will work with you to fix the vulnerability and publicly acknowledge your
 responsible disclosure, if you wish. In addition to that we will create and
 publish a security advisory to
-[GitHub Security Advisories](https://github.com/websockets/ws/security/advisories).
+[GitHub Security Advisories](https://github.com/websockets/ws/security/advisories?state=published).
 
 ## History
 
