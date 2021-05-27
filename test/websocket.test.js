@@ -2180,7 +2180,7 @@ describe('WebSocket', () => {
     it('connects to secure websocket server with client side certificate', (done) => {
       const server = https.createServer({
         cert: fs.readFileSync('test/fixtures/certificate.pem'),
-        ca: [fs.readFileSync('test/fixtures/ca1-cert.pem')],
+        ca: [fs.readFileSync('test/fixtures/ca-certificate.pem')],
         key: fs.readFileSync('test/fixtures/key.pem'),
         requestCert: true
       });
@@ -2202,8 +2202,8 @@ describe('WebSocket', () => {
 
       server.listen(0, () => {
         const ws = new WebSocket(`wss://localhost:${server.address().port}`, {
-          cert: fs.readFileSync('test/fixtures/agent1-cert.pem'),
-          key: fs.readFileSync('test/fixtures/agent1-key.pem'),
+          cert: fs.readFileSync('test/fixtures/client-certificate.pem'),
+          key: fs.readFileSync('test/fixtures/client-key.pem'),
           rejectUnauthorized: false
         });
       });
