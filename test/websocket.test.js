@@ -1487,7 +1487,7 @@ describe('WebSocket', () => {
     it('closes the connection if called while connecting (3/3)', (done) => {
       const server = http.createServer();
 
-      server.listen(0, function () {
+      server.listen(0, () => {
         const ws = new WebSocket(`ws://localhost:${server.address().port}`);
 
         ws.on('open', () => done(new Error("Unexpected 'open' event")));
