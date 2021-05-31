@@ -395,7 +395,7 @@ the `X-Forwarded-For` header.
 
 ```js
 wss.on('connection', function connection(ws, req) {
-  const ip = req.headers['x-forwarded-for'].split(/\s*,\s*/)[0];
+  const ip = req.headers['x-forwarded-for'].split(',')[0].trim();
 });
 ```
 
