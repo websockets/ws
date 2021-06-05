@@ -56,7 +56,7 @@ can use one of the many wrappers available on npm, like
 npm install ws
 ```
 
-### Opt-in for performance
+### Opt-in for performance and spec compliance
 
 There are 2 optional modules that can be installed along side with the ws
 module. These modules are binary addons which improve certain operations.
