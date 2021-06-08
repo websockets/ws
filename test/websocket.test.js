@@ -429,6 +429,7 @@ describe('WebSocket', () => {
 
   describe('Events', () => {
     it("emits an 'error' event if an error occurs", (done) => {
+      let clientCloseEventEmitted = false;
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
@@ -440,14 +441,21 @@ describe('WebSocket', () => {
           );
 
           ws.on('close', (code, reason) => {
-            assert.strictEqual(code, 1002);
+            clientCloseEventEmitted = true;
+            assert.strictEqual(code, 1006);
             assert.strictEqual(reason, '');
-            wss.close(done);
           });
         });
       });
 
       wss.on('connection', (ws) => {
+        ws.on('close', (code, reason) => {
+          assert.ok(clientCloseEventEmitted);
+          assert.strictEqual(code, 1002);
+          assert.strictEqual(reason, '');
+          wss.close(done);
+        });
+
         ws._socket.write(Buffer.from([0x85, 0x00]));
       });
     });
@@ -1410,10 +1418,17 @@ describe('WebSocket', () => {
     });
 
     it('honors the `mask` option', (done) => {
+      let serverClientCloseEventEmitted = false;
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         ws.on('open', () => ws.send('hi', { mask: false }));
+        ws.on('close', (code, reason) => {
+          assert.ok(serverClientCloseEventEmitted);
+          assert.strictEqual(code, 1002);
+          assert.strictEqual(reason, '');
+          wss.close(done);
+        });
       });
 
       wss.on('connection', (ws) => {
@@ -1434,9 +1449,9 @@ describe('WebSocket', () => {
           );
 
           ws.on('close', (code, reason) => {
-            assert.strictEqual(code, 1002);
+            serverClientCloseEventEmitted = true;
+            assert.strictEqual(code, 1006);
             assert.strictEqual(reason, '');
-            wss.close(done);
           });
         });
       });
