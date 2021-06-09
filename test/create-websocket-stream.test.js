@@ -203,6 +203,7 @@ describe('createWebSocketStream', () => {
     });
 
     it('reemits errors', (done) => {
+      let duplexCloseEventEmitted = false;
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
         const duplex = createWebSocketStream(ws);
@@ -215,13 +216,19 @@ describe('createWebSocketStream', () => {
           );
 
           duplex.on('close', () => {
-            wss.close(done);
+            duplexCloseEventEmitted = true;
           });
         });
       });
 
       wss.on('connection', (ws) => {
         ws._socket.write(Buffer.from([0x85, 0x00]));
+        ws.on('close', (code, reason) => {
+          assert.ok(duplexCloseEventEmitted);
+          assert.strictEqual(code, 1002);
+          assert.strictEqual(reason, '');
+          wss.close(done);
+        });
       });
     });
 
