@@ -430,6 +430,8 @@ describe('WebSocket', () => {
   describe('Events', () => {
     it("emits an 'error' event if an error occurs", (done) => {
       let clientCloseEventEmitted = false;
+      let serverClientCloseEventEmitted = false;
+
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
@@ -442,19 +444,22 @@ describe('WebSocket', () => {
           );
 
           ws.on('close', (code, reason) => {
-            clientCloseEventEmitted = true;
             assert.strictEqual(code, 1006);
             assert.strictEqual(reason, '');
+
+            clientCloseEventEmitted = true;
+            if (serverClientCloseEventEmitted) wss.close(done);
           });
         });
       });
 
       wss.on('connection', (ws) => {
         ws.on('close', (code, reason) => {
-          assert.ok(clientCloseEventEmitted);
           assert.strictEqual(code, 1002);
           assert.strictEqual(reason, '');
-          wss.close(done);
+
+          serverClientCloseEventEmitted = true;
+          if (clientCloseEventEmitted) wss.close(done);
         });
 
         ws._socket.write(Buffer.from([0x85, 0x00]));
@@ -547,6 +552,7 @@ describe('WebSocket', () => {
           .update(req.headers['sec-websocket-key'] + GUID)
           .digest('base64');
 
+        socket.resume();
         socket.end(
           'HTTP/1.1 101 Switching Protocols\r\n' +
             'Upgrade: websocket\r\n' +
@@ -1419,16 +1425,19 @@ describe('WebSocket', () => {
     });
 
     it('honors the `mask` option', (done) => {
+      let clientCloseEventEmitted = false;
       let serverClientCloseEventEmitted = false;
+
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         ws.on('open', () => ws.send('hi', { mask: false }));
         ws.on('close', (code, reason) => {
-          assert.ok(serverClientCloseEventEmitted);
           assert.strictEqual(code, 1002);
           assert.strictEqual(reason, '');
-          wss.close(done);
+
+          clientCloseEventEmitted = true;
+          if (serverClientCloseEventEmitted) wss.close(done);
         });
       });
 
@@ -1450,9 +1459,11 @@ describe('WebSocket', () => {
           );
 
           ws.on('close', (code, reason) => {
-            serverClientCloseEventEmitted = true;
             assert.strictEqual(code, 1006);
             assert.strictEqual(reason, '');
+
+            serverClientCloseEventEmitted = true;
+            if (clientCloseEventEmitted) wss.close(done);
           });
         });
       });
@@ -2624,7 +2635,9 @@ describe('WebSocket', () => {
         ws.send('foo');
         ws.send('bar');
         ws.send('baz');
-        ws.send('qux', () => ws._socket.end());
+        ws.send('qux', () => {
+          ws.terminate();
+        });
       });
     });
 
@@ -2679,6 +2692,8 @@ describe('WebSocket', () => {
                   'The socket was closed while data was being compressed'
                 );
               });
+
+              ws.terminate();
             });
 
             ws.on('close', () => {
@@ -2687,10 +2702,6 @@ describe('WebSocket', () => {
             });
           }
         );
-
-        wss.on('connection', (ws) => {
-          ws._socket.end();
-        });
       });
     });
 

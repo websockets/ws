@@ -400,7 +400,9 @@ describe('WebSocketServer', () => {
 
         server.on('upgrade', (req, socket, head) => {
           wss.handleUpgrade(req, socket, head, (ws) => {
-            ws.close();
+            process.nextTick(() => {
+              ws.close();
+            });
           });
           assert.throws(
             () => wss.handleUpgrade(req, socket, head, NOOP),

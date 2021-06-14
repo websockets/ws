@@ -13,9 +13,10 @@ class MockSocket {
     if (write) this.write = write;
   }
 
+  end() {}
   cork() {}
-  write() {}
   uncork() {}
+  write() {}
 }
 
 describe('Sender', () => {
