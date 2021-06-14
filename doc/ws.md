@@ -44,6 +44,17 @@
   - [websocket.terminate()](#websocketterminate)
   - [websocket.url](#websocketurl)
 - [WebSocket.createWebSocketStream(websocket[, options])](#websocketcreatewebsocketstreamwebsocket-options)
+- [WS Error Codes](#ws-error-codes)
+  - [WS_ERR_INVALID_DATA_PAYLOAD_LENGTH](#wserrinvaliddatapayloadlength)
+  - [WS_ERR_INVALID_CONTROL_PAYLOAD_LENGTH](#wserrinvalidcontrolpayloadlength)
+  - [WS_ERR_INVALID_UTF8](#wserrinvalidutf8)
+  - [WS_ERR_INVALID_OPCODE](#wserrinvalidopcode)
+  - [WS_ERR_INVALID_CLOSE_CODE](#wserrinvalidclosecode)
+  - [WS_ERR_UNEXPECTED_RSV_1](#wserrunexpectedrsv1)
+  - [WS_ERR_UNEXPECTED_RSV_2_3](#wserrunexpectedrsv23)
+  - [WS_ERR_EXPECTED_FIN](#wserrexpectedfin)
+  - [WS_ERR_EXPECTED_MASK](#wserrexpectedmask)
+  - [WS_ERR_UNEXPECTED_MASK](#wserrunexpectedmask)
 
 ## Class: WebSocket.Server
 
@@ -298,7 +309,7 @@ human-readable string explaining why the connection has been closed.
 
 - `error` {Error}
 
-Emitted when an error occurs.
+Emitted when an error occurs. Errors may have a `.code` property, matching one of the string values defined below under [WS Error Codes](#ws-error-codes).
 
 ### Event: 'message'
 
@@ -492,6 +503,50 @@ The URL of the WebSocket server. Server clients don't have this attribute.
 
 Returns a `Duplex` stream that allows to use the Node.js streams API on top of a
 given `WebSocket`.
+
+## WS Error Codes
+
+Errors emitted by the websocket may have a `.code` property, describing the specific type of error that has occurred:
+
+### WS_ERR_INVALID_DATA_PAYLOAD_LENGTH
+
+A data frame with an unexpectedly long payload was received.
+
+### WS_ERR_INVALID_CONTROL_PAYLOAD_LENGTH
+
+A control frame with an unexpectedly long payload was received.
+
+### WS_ERR_INVALID_UTF8
+
+A text frame was received containing invalid UTF-8 data.
+
+### WS_ERR_INVALID_OPCODE
+
+A WebSocket frame was received with an invalid opcode.
+
+### WS_ERR_INVALID_CLOSE_CODE
+
+A WebSocket close frame was received with an invalid close code.
+
+### WS_ERR_UNEXPECTED_RSV_1
+
+A WebSocket frame was received with the RSV 1 bit set unexpectedly.
+
+### WS_ERR_UNEXPECTED_RSV_2_3
+
+A WebSocket frame was received with the RSV 2 or 3 bits set unexpectedly.
+
+### WS_ERR_EXPECTED_FIN
+
+A WebSocket frame was received with the FIN bit not set when it was expected.
+
+### WS_ERR_EXPECTED_MASK
+
+An unmasked WebSocket frame was received by a WebSocket server.
+
+### WS_ERR_UNEXPECTED_MASK
+
+A masked WebSocket frame was received by a WebSocket client.
 
 [concurrency-limit]: https://github.com/websockets/ws/issues/1202
 [duplex-options]:
