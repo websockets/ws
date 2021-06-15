@@ -435,6 +435,7 @@ describe('WebSocket', () => {
 
         ws.on('error', (err) => {
           assert.ok(err instanceof RangeError);
+          assert.strictEqual(err.code, 'WS_ERR_INVALID_OPCODE');
           assert.strictEqual(
             err.message,
             'Invalid WebSocket frame: invalid opcode 5'
