@@ -46,6 +46,7 @@
 - [WebSocket.createWebSocketStream(websocket[, options])](#websocketcreatewebsocketstreamwebsocket-options)
 - [WS Error Codes](#ws-error-codes)
   - [WS_ERR_UNSUPPORTED_MESSAGE_LENGTH](#wserrunsupporteddatapayloadlength)
+  - [WS_ERR_UNSUPPORTED_DATA_PAYLOAD_LENGTH](#wserrunsupporteddatapayloadlength)
   - [WS_ERR_INVALID_CONTROL_PAYLOAD_LENGTH](#wserrinvalidcontrolpayloadlength)
   - [WS_ERR_INVALID_UTF8](#wserrinvalidutf8)
   - [WS_ERR_INVALID_OPCODE](#wserrinvalidopcode)
@@ -526,7 +527,7 @@ A control frame with an invalid payload length was received.
 
 ### WS_ERR_INVALID_UTF8
 
-A text frame was received containing invalid UTF-8 data.
+A text or close frame was received containing invalid UTF-8 data.
 
 ### WS_ERR_INVALID_OPCODE
 
@@ -538,11 +539,11 @@ A WebSocket close frame was received with an invalid close code.
 
 ### WS_ERR_UNEXPECTED_RSV_1
 
-A WebSocket frame was received with the RSV 1 bit set unexpectedly.
+A WebSocket frame was received with the RSV1 bit set unexpectedly.
 
 ### WS_ERR_UNEXPECTED_RSV_2_3
 
-A WebSocket frame was received with the RSV 2 or 3 bits set unexpectedly.
+A WebSocket frame was received with the RSV2 or RSV3 bit set unexpectedly.
 
 ### WS_ERR_EXPECTED_FIN
 
