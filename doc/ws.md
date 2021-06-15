@@ -549,8 +549,8 @@ A WebSocket frame was received with the RSV2 or RSV3 bit set unexpectedly.
 
 ### WS_ERR_UNSUPPORTED_DATA_PAYLOAD_LENGTH
 
-A data frame was received with a length longer the max supported length (2^53-1,
-due to JavaScript language limitations).
+A data frame was received with a length longer than the max supported length
+(2^53 - 1, due to JavaScript language limitations).
 
 ### WS_ERR_UNSUPPORTED_MESSAGE_LENGTH
 
