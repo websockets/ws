@@ -45,7 +45,7 @@
   - [websocket.url](#websocketurl)
 - [WebSocket.createWebSocketStream(websocket[, options])](#websocketcreatewebsocketstreamwebsocket-options)
 - [WS Error Codes](#ws-error-codes)
-  - [WS_ERR_INVALID_DATA_PAYLOAD_LENGTH](#wserrinvaliddatapayloadlength)
+  - [WS_ERR_UNSUPPORTED_MESSAGE_LENGTH](#wserrunsupporteddatapayloadlength)
   - [WS_ERR_INVALID_CONTROL_PAYLOAD_LENGTH](#wserrinvalidcontrolpayloadlength)
   - [WS_ERR_INVALID_UTF8](#wserrinvalidutf8)
   - [WS_ERR_INVALID_OPCODE](#wserrinvalidopcode)
@@ -309,7 +309,8 @@ human-readable string explaining why the connection has been closed.
 
 - `error` {Error}
 
-Emitted when an error occurs. Errors may have a `.code` property, matching one of the string values defined below under [WS Error Codes](#ws-error-codes).
+Emitted when an error occurs. Errors may have a `.code` property, matching one
+of the string values defined below under [WS Error Codes](#ws-error-codes).
 
 ### Event: 'message'
 
@@ -506,11 +507,13 @@ given `WebSocket`.
 
 ## WS Error Codes
 
-Errors emitted by the websocket may have a `.code` property, describing the specific type of error that has occurred:
+Errors emitted by the websocket may have a `.code` property, describing the
+specific type of error that has occurred:
 
-### WS_ERR_INVALID_DATA_PAYLOAD_LENGTH
+### WS_ERR_UNSUPPORTED_MESSAGE_LENGTH
 
-A data frame with an unexpectedly long payload was received.
+A message was received with a length longer than the maximum supported length
+for this endpoint.
 
 ### WS_ERR_INVALID_CONTROL_PAYLOAD_LENGTH
 

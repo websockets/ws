@@ -748,7 +748,7 @@ describe('Receiver', () => {
 
     receiver.on('error', (err) => {
       assert.ok(err instanceof RangeError);
-      assert.strictEqual(err.code, 'WS_ERR_INVALID_DATA_PAYLOAD_LENGTH');
+      assert.strictEqual(err.code, 'WS_ERR_UNSUPPORTED_MESSAGE_LENGTH');
       assert.strictEqual(
         err.message,
         'Unsupported WebSocket frame: payload length > 2^53 - 1'
@@ -879,7 +879,7 @@ describe('Receiver', () => {
 
     receiver.on('error', (err) => {
       assert.ok(err instanceof RangeError);
-      assert.strictEqual(err.code, 'WS_ERR_INVALID_DATA_PAYLOAD_LENGTH');
+      assert.strictEqual(err.code, 'WS_ERR_UNSUPPORTED_MESSAGE_LENGTH');
       assert.strictEqual(err.message, 'Max payload size exceeded');
       assert.strictEqual(err[kStatusCode], 1009);
       done();
@@ -904,7 +904,7 @@ describe('Receiver', () => {
 
     receiver.on('error', (err) => {
       assert.ok(err instanceof RangeError);
-      assert.strictEqual(err.code, 'WS_ERR_INVALID_DATA_PAYLOAD_LENGTH');
+      assert.strictEqual(err.code, 'WS_ERR_UNSUPPORTED_MESSAGE_LENGTH');
       assert.strictEqual(err.message, 'Max payload size exceeded');
       assert.strictEqual(err[kStatusCode], 1009);
       done();
@@ -934,7 +934,7 @@ describe('Receiver', () => {
 
     receiver.on('error', (err) => {
       assert.ok(err instanceof RangeError);
-      assert.strictEqual(err.code, 'WS_ERR_INVALID_DATA_PAYLOAD_LENGTH');
+      assert.strictEqual(err.code, 'WS_ERR_UNSUPPORTED_MESSAGE_LENGTH');
       assert.strictEqual(err.message, 'Max payload size exceeded');
       assert.strictEqual(err[kStatusCode], 1009);
       done();
