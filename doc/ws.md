@@ -512,12 +512,17 @@ specific type of error that has occurred:
 
 ### WS_ERR_UNSUPPORTED_MESSAGE_LENGTH
 
-A message was received with a length longer than the maximum supported length
-for this endpoint.
+A message was received with a length longer than the maximum supported length,
+as configured by the `maxPayload` option.
+
+### WS_ERR_UNSUPPORTED_DATA_PAYLOAD_LENGTH
+
+A data frame was received with a length longer the max supported length (2^53-1,
+due to JavaScript language limitations).
 
 ### WS_ERR_INVALID_CONTROL_PAYLOAD_LENGTH
 
-A control frame with an unexpectedly long payload was received.
+A control frame with an invalid payload length was received.
 
 ### WS_ERR_INVALID_UTF8
 
