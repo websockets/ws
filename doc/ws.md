@@ -45,17 +45,17 @@
   - [websocket.url](#websocketurl)
 - [WebSocket.createWebSocketStream(websocket[, options])](#websocketcreatewebsocketstreamwebsocket-options)
 - [WS Error Codes](#ws-error-codes)
-  - [WS_ERR_UNSUPPORTED_MESSAGE_LENGTH](#wserrunsupporteddatapayloadlength)
-  - [WS_ERR_UNSUPPORTED_DATA_PAYLOAD_LENGTH](#wserrunsupporteddatapayloadlength)
-  - [WS_ERR_INVALID_CONTROL_PAYLOAD_LENGTH](#wserrinvalidcontrolpayloadlength)
-  - [WS_ERR_INVALID_UTF8](#wserrinvalidutf8)
-  - [WS_ERR_INVALID_OPCODE](#wserrinvalidopcode)
-  - [WS_ERR_INVALID_CLOSE_CODE](#wserrinvalidclosecode)
-  - [WS_ERR_UNEXPECTED_RSV_1](#wserrunexpectedrsv1)
-  - [WS_ERR_UNEXPECTED_RSV_2_3](#wserrunexpectedrsv23)
   - [WS_ERR_EXPECTED_FIN](#wserrexpectedfin)
   - [WS_ERR_EXPECTED_MASK](#wserrexpectedmask)
+  - [WS_ERR_INVALID_CLOSE_CODE](#wserrinvalidclosecode)
+  - [WS_ERR_INVALID_CONTROL_PAYLOAD_LENGTH](#wserrinvalidcontrolpayloadlength)
+  - [WS_ERR_INVALID_OPCODE](#wserrinvalidopcode)
+  - [WS_ERR_INVALID_UTF8](#wserrinvalidutf8)
   - [WS_ERR_UNEXPECTED_MASK](#wserrunexpectedmask)
+  - [WS_ERR_UNEXPECTED_RSV_1](#wserrunexpectedrsv1)
+  - [WS_ERR_UNEXPECTED_RSV_2_3](#wserrunexpectedrsv23)
+  - [WS_ERR_UNSUPPORTED_DATA_PAYLOAD_LENGTH](#wserrunsupporteddatapayloadlength)
+  - [WS_ERR_UNSUPPORTED_MESSAGE_LENGTH](#wserrunsupporteddatapayloadlength)
 
 ## Class: WebSocket.Server
 
@@ -511,31 +511,33 @@ given `WebSocket`.
 Errors emitted by the websocket may have a `.code` property, describing the
 specific type of error that has occurred:
 
-### WS_ERR_UNSUPPORTED_MESSAGE_LENGTH
+### WS_ERR_EXPECTED_FIN
 
-A message was received with a length longer than the maximum supported length,
-as configured by the `maxPayload` option.
+A WebSocket frame was received with the FIN bit not set when it was expected.
 
-### WS_ERR_UNSUPPORTED_DATA_PAYLOAD_LENGTH
+### WS_ERR_EXPECTED_MASK
 
-A data frame was received with a length longer the max supported length (2^53-1,
-due to JavaScript language limitations).
+An unmasked WebSocket frame was received by a WebSocket server.
+
+### WS_ERR_INVALID_CLOSE_CODE
+
+A WebSocket close frame was received with an invalid close code.
 
 ### WS_ERR_INVALID_CONTROL_PAYLOAD_LENGTH
 
 A control frame with an invalid payload length was received.
 
-### WS_ERR_INVALID_UTF8
-
-A text or close frame was received containing invalid UTF-8 data.
-
 ### WS_ERR_INVALID_OPCODE
 
 A WebSocket frame was received with an invalid opcode.
 
-### WS_ERR_INVALID_CLOSE_CODE
+### WS_ERR_INVALID_UTF8
 
-A WebSocket close frame was received with an invalid close code.
+A text or close frame was received containing invalid UTF-8 data.
+
+### WS_ERR_UNEXPECTED_MASK
+
+A masked WebSocket frame was received by a WebSocket client.
 
 ### WS_ERR_UNEXPECTED_RSV_1
 
@@ -545,17 +547,15 @@ A WebSocket frame was received with the RSV1 bit set unexpectedly.
 
 A WebSocket frame was received with the RSV2 or RSV3 bit set unexpectedly.
 
-### WS_ERR_EXPECTED_FIN
+### WS_ERR_UNSUPPORTED_DATA_PAYLOAD_LENGTH
 
-A WebSocket frame was received with the FIN bit not set when it was expected.
+A data frame was received with a length longer the max supported length (2^53-1,
+due to JavaScript language limitations).
 
-### WS_ERR_EXPECTED_MASK
+### WS_ERR_UNSUPPORTED_MESSAGE_LENGTH
 
-An unmasked WebSocket frame was received by a WebSocket server.
-
-### WS_ERR_UNEXPECTED_MASK
-
-A masked WebSocket frame was received by a WebSocket client.
+A message was received with a length longer than the maximum supported length,
+as configured by the `maxPayload` option.
 
 [concurrency-limit]: https://github.com/websockets/ws/issues/1202
 [duplex-options]:
