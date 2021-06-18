@@ -26,6 +26,15 @@ describe('WebSocket', () => {
       );
     });
 
+    it('throws an error if a subprotocol is invalid or duplicated', () => {
+      for (const subprotocol of [null, '', 'a,b', ['a', 'a']]) {
+        assert.throws(
+          () => new WebSocket('ws://localhost', subprotocol),
+          /^SyntaxError: An invalid or duplicated subprotocol was specified$/
+        );
+      }
+    });
+
     it('accepts `url.URL` objects as url', (done) => {
       const agent = new CustomAgent();
 
@@ -44,13 +53,18 @@ describe('WebSocket', () => {
         let count = 0;
         let ws;
 
-        agent.addRequest = () => count++;
+        agent.addRequest = (req) => {
+          assert.strictEqual(
+            req.getHeader('sec-websocket-protocol'),
+            undefined
+          );
+          count++;
+        };
 
         ws = new WebSocket('ws://localhost', undefined, { agent });
-        ws = new WebSocket('ws://localhost', null, { agent });
         ws = new WebSocket('ws://localhost', [], { agent });
 
-        assert.strictEqual(count, 3);
+        assert.strictEqual(count, 2);
       });
 
       it('accepts the `maxPayload` option', (done) => {
@@ -651,7 +665,7 @@ describe('WebSocket', () => {
       server.once('upgrade', (req, socket) => socket.on('end', socket.end));
 
       const port = server.address().port;
-      const ws = new WebSocket(`ws://localhost:${port}`, null, {
+      const ws = new WebSocket(`ws://localhost:${port}`, {
         handshakeTimeout: 100
       });
 
