@@ -582,6 +582,30 @@ describe('WebSocketServer', () => {
       });
     });
 
+    it('fails is the Sec-WebSocket-Protocol header is invalid', (done) => {
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const req = http.get({
+          port: wss.address().port,
+          headers: {
+            Connection: 'Upgrade',
+            Upgrade: 'websocket',
+            'Sec-WebSocket-Key': 'dGhlIHNhbXBsZSBub25jZQ==',
+            'Sec-WebSocket-Version': 13,
+            'Sec-WebSocket-Protocol': 'foo;bar'
+          }
+        });
+
+        req.on('response', (res) => {
+          assert.strictEqual(res.statusCode, 400);
+          wss.close(done);
+        });
+      });
+
+      wss.on('connection', () => {
+        done(new Error("Unexpected 'connection' event"));
+      });
+    });
+
     it('fails if the Sec-WebSocket-Extensions header is invalid', (done) => {
       const wss = new WebSocket.Server(
         {
@@ -920,7 +944,7 @@ describe('WebSocketServer', () => {
         const handleProtocols = (protocols, request) => {
           assert.ok(request instanceof http.IncomingMessage);
           assert.strictEqual(request.url, '/');
-          return protocols.pop();
+          return Array.from(protocols).pop();
         };
         const wss = new WebSocket.Server({ handleProtocols, port: 0 }, () => {
           const ws = new WebSocket(`ws://localhost:${wss.address().port}`, [
