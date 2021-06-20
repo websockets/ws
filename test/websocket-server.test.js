@@ -471,7 +471,7 @@ describe('WebSocketServer', () => {
       });
     });
 
-    it('fails is the Sec-WebSocket-Version header is invalid (1/2)', (done) => {
+    it('fails if the Sec-WebSocket-Version header is invalid (1/2)', (done) => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const req = http.get({
           port: wss.address().port,
@@ -493,7 +493,7 @@ describe('WebSocketServer', () => {
       });
     });
 
-    it('fails is the Sec-WebSocket-Version header is invalid (2/2)', (done) => {
+    it('fails if the Sec-WebSocket-Version header is invalid (2/2)', (done) => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const req = http.get({
           port: wss.address().port,
@@ -516,7 +516,7 @@ describe('WebSocketServer', () => {
       });
     });
 
-    it('fails is the Sec-WebSocket-Extensions header is invalid', (done) => {
+    it('fails if the Sec-WebSocket-Extensions header is invalid', (done) => {
       const wss = new WebSocket.Server(
         {
           perMessageDeflate: true,
