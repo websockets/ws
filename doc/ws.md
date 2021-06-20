@@ -120,7 +120,7 @@ if `verifyClient` is provided with two arguments then those are:
 
 `handleProtocols` takes two arguments:
 
-- `protocols` {Array} The list of WebSocket subprotocols indicated by the client
+- `protocols` {Set} The list of WebSocket subprotocols indicated by the client
   in the `Sec-WebSocket-Protocol` header.
 - `request` {http.IncomingMessage} The client HTTP GET request.
 
