@@ -2638,6 +2638,87 @@ describe('WebSocket', () => {
       });
     });
 
+    it('handles a close frame received while compressing data', (done) => {
+      const wss = new WebSocket.Server(
+        {
+          perMessageDeflate: true,
+          port: 0
+        },
+        () => {
+          const ws = new WebSocket(`ws://localhost:${wss.address().port}`, {
+            perMessageDeflate: { threshold: 0 }
+          });
+
+          ws.on('open', () => {
+            ws._receiver.on('conclude', () => {
+              assert.ok(ws._sender._deflating);
+            });
+
+            ws.send('foo');
+            ws.send('bar');
+            ws.send('baz');
+            ws.send('qux');
+          });
+        }
+      );
+
+      wss.on('connection', (ws) => {
+        const messages = [];
+
+        ws.on('message', (message) => {
+          messages.push(message);
+        });
+
+        ws.on('close', (code, reason) => {
+          assert.deepStrictEqual(messages, ['foo', 'bar', 'baz', 'qux']);
+          assert.strictEqual(code, 1000);
+          assert.strictEqual(reason, '');
+          wss.close(done);
+        });
+
+        ws.close(1000);
+      });
+    });
+
+    describe('#close', () => {
+      it('can be used while data is being decompressed', (done) => {
+        const wss = new WebSocket.Server(
+          {
+            perMessageDeflate: true,
+            port: 0
+          },
+          () => {
+            const messages = [];
+            const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+
+            ws.on('open', () => {
+              ws._socket.on('end', () => {
+                assert.strictEqual(ws._receiver._state, 5);
+              });
+            });
+
+            ws.on('message', (message) => {
+              if (messages.push(message) > 1) return;
+
+              ws.close(1000);
+            });
+
+            ws.on('close', (code, reason) => {
+              assert.deepStrictEqual(messages, ['', '', '', '']);
+              assert.strictEqual(code, 1000);
+              assert.strictEqual(reason, '');
+              wss.close(done);
+            });
+          }
+        );
+
+        wss.on('connection', (ws) => {
+          const buf = Buffer.from('c10100c10100c10100c10100', 'hex');
+          ws._socket.write(buf);
+        });
+      });
+    });
+
     describe('#send', () => {
       it('ignores the `compress` option if the extension is disabled', (done) => {
         const wss = new WebSocket.Server({ port: 0 }, () => {
