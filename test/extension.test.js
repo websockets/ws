@@ -6,11 +6,6 @@ const { format, parse } = require('../lib/extension');
 
 describe('extension', () => {
   describe('parse', () => {
-    it('returns an empty object if the argument is `undefined`', () => {
-      assert.deepStrictEqual(parse(), { __proto__: null });
-      assert.deepStrictEqual(parse(''), { __proto__: null });
-    });
-
     it('parses a single extension', () => {
       assert.deepStrictEqual(parse('foo'), {
         foo: [{ __proto__: null }],
@@ -73,7 +68,7 @@ describe('extension', () => {
     });
 
     it('ignores the optional white spaces', () => {
-      const header = 'foo; bar\t; \tbaz=1\t ;  bar="1"\t\t, \tqux\t ;norf ';
+      const header = 'foo; bar\t; \tbaz=1\t ;  bar="1"\t\t, \tqux\t ;norf';
 
       assert.deepStrictEqual(parse(header), {
         foo: [{ bar: [true, '1'], baz: ['1'], __proto__: null }],
@@ -105,10 +100,12 @@ describe('extension', () => {
 
     it('throws an error if a white space is misplaced', () => {
       [
+        [' foo', 0],
         ['f oo', 2],
         ['foo;ba r', 7],
         ['foo;bar =', 8],
-        ['foo;bar= ', 8]
+        ['foo;bar= ', 8],
+        ['foo;bar=ba z', 11]
       ].forEach((element) => {
         assert.throws(
           () => parse(element[0]),
@@ -147,13 +144,18 @@ describe('extension', () => {
 
     it('throws an error if the header value ends prematurely', () => {
       [
+        '',
+        'foo ',
+        'foo\t',
         'foo, ',
         'foo;',
+        'foo;bar ',
         'foo;bar,',
         'foo;bar; ',
         'foo;bar=',
         'foo;bar="baz',
-        'foo;bar="1\\'
+        'foo;bar="1\\',
+        'foo;bar="baz" '
       ].forEach((header) => {
         assert.throws(
           () => parse(header),
