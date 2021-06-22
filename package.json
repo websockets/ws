@@ -18,7 +18,7 @@
   "main": "index.js",
   "browser": "browser.js",
   "engines": {
-    "node": ">=8.3.0"
+    "node": ">=10.0.0"
   },
   "files": [
     "browser.js",
