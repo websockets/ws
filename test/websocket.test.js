@@ -13,6 +13,8 @@ const { URL } = require('url');
 const WebSocket = require('..');
 const { GUID, NOOP } = require('../lib/constants');
 
+const { makeDeflateSlow } = require('./fixtures/slow-deflate');
+
 class CustomAgent extends http.Agent {
   addRequest() {}
 }
@@ -2759,6 +2761,403 @@ describe('WebSocket', () => {
         wss.on('connection', (ws) => {
           const buf = Buffer.from('c10100c10100c10100c10100', 'hex');
           ws._socket.write(buf);
+        });
+      });
+    });
+  });
+
+  describe('Connection close edge cases', () => {
+    it('cleanly shuts down after parsing errors', (done) => {
+      let clientClosedCleanly = false;
+      let serverClosedCleanly = false;
+
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+
+        ws.on('open', () => {
+          // Client's socket should never see an error (i.e. no ECONNRESET)
+          ws._socket.on('error', (err) => {
+            assert.fail(err);
+          });
+        });
+
+        // Client will see an error when server sends garbage, that's OK:
+        ws.on('error', (err) => {
+          assert.ok(err instanceof RangeError);
+          assert.strictEqual(err.code, 'WS_ERR_INVALID_OPCODE');
+
+          // This should be reported as close with no close frame received:
+          ws.on('close', (code, reason) => {
+            assert.strictEqual(code, 1006);
+            assert.strictEqual(reason, '');
+            clientClosedCleanly = true;
+          });
+        });
+      });
+
+      wss.on('connection', (ws) => {
+        // Server's socket should never see an error (i.e. no ECONNRESET)
+        ws._socket.on('error', (err) => {
+          assert.fail(err);
+        });
+
+        // Server should report close due to protocol error close frame received:
+        ws.on('close', (code, reason) => {
+          assert.strictEqual(code, 1002);
+          assert.strictEqual(reason, '');
+          serverClosedCleanly = true;
+
+          if (clientClosedCleanly && serverClosedCleanly) {
+            wss.close(done);
+          } else {
+            assert.fail('Server closed before client');
+          }
+        });
+
+        // Write an invalid frame, triggering everything to break:
+        ws._socket.write(Buffer.from([0x85, 0x00]));
+      });
+    });
+
+    it('cleanly shuts down after simultaneous errors', (done) => {
+      let clientClosed = false;
+      let serverClosed = false;
+      let serverWs;
+
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+
+        // Both peers will see an OPCODE error due to invalid frames:
+        ws.on('error', (err) => {
+          assert.strictEqual(err.code, 'WS_ERR_INVALID_OPCODE');
+        });
+
+        ws.on('close', () => {
+          clientClosed = true;
+          if (serverClosed) wss.close(done);
+        });
+
+        ws.on('open', () => {
+          // Write an invalid frame in both directions to trigger simultaneous failure:
+          serverWs._socket.write(Buffer.from([0x85, 0x00]));
+          ws._socket.write(Buffer.from([0x85, 0x00]));
+        });
+      });
+
+      wss.on('connection', (ws) => {
+        serverWs = ws;
+
+        // Both peers will see an OPCODE error due to invalid frames:
+        serverWs.on('error', (err) => {
+          assert.strictEqual(err.code, 'WS_ERR_INVALID_OPCODE');
+        });
+
+        serverWs.on('close', () => {
+          serverClosed = true;
+          if (clientClosed) wss.close(done);
+        });
+      });
+    });
+
+    it('handles an incoming close frame while compressing outgoing frames', (done) => {
+      const wss = new WebSocket.Server(
+        {
+          port: 0,
+          perMessageDeflate: { threshold: 0 }
+        },
+        () => {
+          const ws = new WebSocket(`ws://localhost:${wss.address().port}`, {
+            perMessageDeflate: { threshold: 0 }
+          });
+
+          ws.on('open', () => {
+            // Add 200ms delay to compression:
+            makeDeflateSlow(ws, 200);
+
+            ws.send('hello', { compress: true });
+          });
+        }
+      );
+
+      wss.on('connection', (ws) => {
+        // Server closes after 100ms, before the client finishes sending its compressed message:
+        setTimeout(() => ws.close(1000), 100);
+
+        let receivedMessage = false;
+        ws.on('message', () => {
+          receivedMessage = true;
+        });
+
+        ws.on('close', () => {
+          if (receivedMessage) {
+            // The client waited for the client's sender to finish compressing & sending all data
+            // before sending its close frame response that fires the server's close event
+            wss.close(done);
+          } else {
+            wss.close();
+            done(
+              new Error(
+                'Server did not wait for client to finish sending before close event'
+              )
+            );
+          }
+        });
+      });
+    });
+
+    it('handles socket shutdown while compressing outgoing frames', (done) => {
+      const wss = new WebSocket.Server(
+        {
+          port: 0,
+          perMessageDeflate: { threshold: 0 }
+        },
+        () => {
+          const ws = new WebSocket(`ws://localhost:${wss.address().port}`, {
+            perMessageDeflate: { threshold: 0 }
+          });
+
+          ws.on('open', () => {
+            // Add 200ms delay to compression:
+            makeDeflateSlow(ws, 200);
+
+            ws.send('hello', { compress: true });
+          });
+        }
+      );
+
+      wss.on('connection', (ws) => {
+        // Server closes and ends() after 100ms, before the client finishes sending its compressed message:
+        setTimeout(() => {
+          ws.close(1000);
+          ws._socket.end(); // Immediately half-close the socket
+        }, 100);
+
+        let receivedMessage = false;
+        ws.on('message', () => {
+          receivedMessage = true;
+        });
+
+        ws.on('close', () => {
+          if (receivedMessage) {
+            // The client waited for the client's sender to finish compressing & sending all data
+            // before sending its close frame response that fires the server's close event
+            wss.close(done);
+          } else {
+            wss.close();
+            done(
+              new Error(
+                'Server did not wait for client to finish sending before close event'
+              )
+            );
+          }
+        });
+      });
+    });
+
+    it('handles outgoing close while decompressing incoming frames', (done) => {
+      const wss = new WebSocket.Server(
+        {
+          port: 0,
+          perMessageDeflate: { threshold: 0 }
+        },
+        () => {
+          const ws = new WebSocket(`ws://localhost:${wss.address().port}`, {
+            perMessageDeflate: { threshold: 0 }
+          });
+
+          ws.on('open', () => {
+            // Add 200ms delay to decompression:
+            makeDeflateSlow(ws, 200);
+
+            // Client closes after 100ms, before decompression finishes:
+            setTimeout(() => ws.close(1000), 100);
+
+            let receivedMessage = false;
+
+            ws.on('message', () => {
+              receivedMessage = true;
+            });
+
+            ws.on('close', () => {
+              if (receivedMessage) {
+                // The client waited for decompression to finish before processing the server's
+                // close frame response which fires the client's close event.
+                wss.close(done);
+              } else {
+                wss.close();
+                done(
+                  new Error(
+                    'Client did not wait for decompression before close event'
+                  )
+                );
+              }
+            });
+          });
+        }
+      );
+
+      wss.on('connection', (ws) => {
+        ws.send('hello', { compress: true }); // This will take the client 200ms to decompress
+      });
+    });
+
+    it('handles socket shutdown while decompressing incoming frames', (done) => {
+      const wss = new WebSocket.Server(
+        {
+          port: 0,
+          perMessageDeflate: { threshold: 0 }
+        },
+        () => {
+          const ws = new WebSocket(`ws://localhost:${wss.address().port}`, {
+            perMessageDeflate: { threshold: 0 }
+          });
+
+          ws.on('open', () => {
+            // Add 200ms delay to decompression:
+            makeDeflateSlow(ws, 200);
+
+            // Client closes after 100ms, before decompression finishes:
+            setTimeout(() => {
+              ws.close(1000);
+              ws._socket.end();
+            }, 100);
+
+            let receivedMessage = false;
+
+            ws.on('message', () => {
+              receivedMessage = true;
+            });
+
+            ws.on('close', () => {
+              if (receivedMessage) {
+                // The clien waited for decompression to finish before processing the server's
+                // close frame response which fires the client's close event.
+                wss.close(done);
+              } else {
+                wss.close();
+                done(
+                  new Error(
+                    'Client did not wait for decompression before close event'
+                  )
+                );
+              }
+            });
+          });
+        }
+      );
+
+      wss.on('connection', (ws) => {
+        ws.send('hello', { compress: true }); // This will take the client 200ms to decompress
+      });
+    });
+
+    it('handles connection closures over both half-open-allowed sockets', (done) => {
+      let clientClosed = false;
+      let serverClosed = false;
+
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+        // HTTP servers & clients allow half-open by default so nothing to do here
+
+        ws.on('open', () => {
+          ws.close();
+        });
+
+        ws.on('close', () => {
+          clientClosed = true;
+          if (serverClosed) wss.close(done);
+        });
+      });
+
+      wss.on('connection', (ws) => {
+        ws.on('close', () => {
+          serverClosed = true;
+          if (clientClosed) wss.close(done);
+        });
+      });
+    });
+
+    it('handles connections over both full-open-only sockets', (done) => {
+      let clientClosed = false;
+      let serverClosed = false;
+
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+
+        ws.on('open', () => {
+          // Never allow a half-open client socket:
+          ws._socket.on('end', () => process.nextTick(() => ws._socket.end()));
+          ws.close();
+        });
+
+        ws.on('close', () => {
+          clientClosed = true;
+          if (serverClosed) wss.close(done);
+        });
+      });
+
+      wss.on('connection', (ws) => {
+        // Never allow a half-open server socket:
+        ws._socket.on('end', () => process.nextTick(() => ws._socket.end()));
+
+        ws.on('close', () => {
+          serverClosed = true;
+          if (clientClosed) wss.close(done);
+        });
+      });
+    });
+
+    it('handles connections over server half-open client full-open sockets', (done) => {
+      let clientClosed = false;
+      let serverClosed = false;
+
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+
+        ws.on('open', () => {
+          ws.close();
+        });
+
+        ws.on('close', () => {
+          clientClosed = true;
+          if (serverClosed) wss.close(done);
+        });
+      });
+
+      wss.on('connection', (ws) => {
+        // Never allow a half-open server socket:
+        ws._socket.on('end', () => process.nextTick(() => ws._socket.end()));
+
+        ws.on('close', () => {
+          serverClosed = true;
+          if (clientClosed) wss.close(done);
+        });
+      });
+    });
+
+    it('handles connections over client half-open server half-open sockets', (done) => {
+      let clientClosed = false;
+      let serverClosed = false;
+
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+
+        ws.on('open', () => {
+          // Never allow a half-open client socket:
+          ws._socket.on('end', () => process.nextTick(() => ws._socket.end()));
+          ws.close();
+        });
+
+        ws.on('close', () => {
+          clientClosed = true;
+          if (serverClosed) wss.close(done);
+        });
+      });
+
+      wss.on('connection', (ws) => {
+        ws.on('close', () => {
+          serverClosed = true;
+          if (clientClosed) wss.close(done);
         });
       });
     });
