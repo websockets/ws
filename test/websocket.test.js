@@ -2791,6 +2791,10 @@ describe('WebSocket', () => {
             assert.strictEqual(code, 1006);
             assert.strictEqual(reason, '');
             clientClosedCleanly = true;
+
+            if (serverClosedCleanly) {
+              wss.close(done);
+            }
           });
         });
       });
@@ -2807,10 +2811,8 @@ describe('WebSocket', () => {
           assert.strictEqual(reason, '');
           serverClosedCleanly = true;
 
-          if (clientClosedCleanly && serverClosedCleanly) {
+          if (clientClosedCleanly) {
             wss.close(done);
-          } else {
-            assert.fail('Server closed before client');
           }
         });
 
