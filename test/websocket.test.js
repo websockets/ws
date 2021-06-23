@@ -21,8 +21,23 @@ describe('WebSocket', () => {
   describe('#ctor', () => {
     it('throws an error when using an invalid url', () => {
       assert.throws(
+        () => new WebSocket('foo'),
+        /^SyntaxError: Invalid URL: foo$/
+      );
+
+      assert.throws(
+        () => new WebSocket('https://echo.websocket.org'),
+        /^SyntaxError: The URL's protocol must be one of "ws:", "wss:", or "ws\+unix:"$/
+      );
+
+      assert.throws(
         () => new WebSocket('ws+unix:'),
-        /^Error: Invalid URL: ws\+unix:$/
+        /^SyntaxError: The URL's pathname is empty$/
+      );
+
+      assert.throws(
+        () => new WebSocket('wss://echo.websocket.org#foo'),
+        /^SyntaxError: The URL contains a fragment identifier$/
       );
     });
 
