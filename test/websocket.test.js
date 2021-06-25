@@ -430,6 +430,8 @@ describe('WebSocket', () => {
   describe('Events', () => {
     it("emits an 'error' event if an error occurs", (done) => {
       let clientCloseEventEmitted = false;
+      let serverClientCloseEventEmitted = false;
+
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
@@ -442,19 +444,22 @@ describe('WebSocket', () => {
           );
 
           ws.on('close', (code, reason) => {
-            clientCloseEventEmitted = true;
             assert.strictEqual(code, 1006);
             assert.strictEqual(reason, '');
+
+            clientCloseEventEmitted = true;
+            if (serverClientCloseEventEmitted) wss.close(done);
           });
         });
       });
 
       wss.on('connection', (ws) => {
         ws.on('close', (code, reason) => {
-          assert.ok(clientCloseEventEmitted);
           assert.strictEqual(code, 1002);
           assert.strictEqual(reason, '');
-          wss.close(done);
+
+          serverClientCloseEventEmitted = true;
+          if (clientCloseEventEmitted) wss.close(done);
         });
 
         ws._socket.write(Buffer.from([0x85, 0x00]));
@@ -1419,16 +1424,19 @@ describe('WebSocket', () => {
     });
 
     it('honors the `mask` option', (done) => {
+      let clientCloseEventEmitted = false;
       let serverClientCloseEventEmitted = false;
+
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         ws.on('open', () => ws.send('hi', { mask: false }));
         ws.on('close', (code, reason) => {
-          assert.ok(serverClientCloseEventEmitted);
           assert.strictEqual(code, 1002);
           assert.strictEqual(reason, '');
-          wss.close(done);
+
+          clientCloseEventEmitted = true;
+          if (serverClientCloseEventEmitted) wss.close(done);
         });
       });
 
@@ -1450,9 +1458,11 @@ describe('WebSocket', () => {
           );
 
           ws.on('close', (code, reason) => {
-            serverClientCloseEventEmitted = true;
             assert.strictEqual(code, 1006);
             assert.strictEqual(reason, '');
+
+            serverClientCloseEventEmitted = true;
+            if (clientCloseEventEmitted) wss.close(done);
           });
         });
       });
@@ -2756,6 +2766,120 @@ describe('WebSocket', () => {
         wss.on('connection', (ws) => {
           const buf = Buffer.from('c10100c10100c10100c10100', 'hex');
           ws._socket.write(buf);
+        });
+      });
+    });
+  });
+
+  describe('Connection close edge cases', () => {
+    it('closes cleanly after simultaneous errors (1/2)', (done) => {
+      let clientCloseEventEmitted = false;
+      let serverClientCloseEventEmitted = false;
+
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+
+        ws.on('error', (err) => {
+          assert.ok(err instanceof RangeError);
+          assert.strictEqual(err.code, 'WS_ERR_INVALID_OPCODE');
+          assert.strictEqual(
+            err.message,
+            'Invalid WebSocket frame: invalid opcode 5'
+          );
+
+          ws.on('close', (code, reason) => {
+            assert.strictEqual(code, 1006);
+            assert.strictEqual(reason, '');
+
+            clientCloseEventEmitted = true;
+            if (serverClientCloseEventEmitted) wss.close(done);
+          });
+        });
+
+        ws.on('open', () => {
+          // Write an invalid frame in both directions to trigger simultaneous
+          // failure.
+          const chunk = Buffer.from([0x85, 0x00]);
+
+          wss.clients.values().next().value._socket.write(chunk);
+          ws._socket.write(chunk);
+        });
+      });
+
+      wss.on('connection', (ws) => {
+        ws.on('error', (err) => {
+          assert.ok(err instanceof RangeError);
+          assert.strictEqual(err.code, 'WS_ERR_INVALID_OPCODE');
+          assert.strictEqual(
+            err.message,
+            'Invalid WebSocket frame: invalid opcode 5'
+          );
+
+          ws.on('close', (code, reason) => {
+            assert.strictEqual(code, 1006);
+            assert.strictEqual(reason, '');
+
+            serverClientCloseEventEmitted = true;
+            if (clientCloseEventEmitted) wss.close(done);
+          });
+        });
+      });
+    });
+
+    it('closes cleanly after simultaneous errors (2/2)', (done) => {
+      let clientCloseEventEmitted = false;
+      let serverClientCloseEventEmitted = false;
+
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+
+        ws.on('error', (err) => {
+          assert.ok(err instanceof RangeError);
+          assert.strictEqual(err.code, 'WS_ERR_INVALID_OPCODE');
+          assert.strictEqual(
+            err.message,
+            'Invalid WebSocket frame: invalid opcode 5'
+          );
+
+          ws.on('close', (code, reason) => {
+            assert.strictEqual(code, 1006);
+            assert.strictEqual(reason, '');
+
+            clientCloseEventEmitted = true;
+            if (serverClientCloseEventEmitted) wss.close(done);
+          });
+        });
+
+        ws.on('open', () => {
+          // Write an invalid frame in both directions and change the
+          // `readyState` to `WebSocket.CLOSING`.
+          const chunk = Buffer.from([0x85, 0x00]);
+          const serverWs = wss.clients.values().next().value;
+
+          serverWs._socket.write(chunk);
+          serverWs.close();
+
+          ws._socket.write(chunk);
+          ws.close();
+        });
+      });
+
+      wss.on('connection', (ws) => {
+        ws.on('error', (err) => {
+          assert.ok(err instanceof RangeError);
+          assert.strictEqual(err.code, 'WS_ERR_INVALID_OPCODE');
+          assert.strictEqual(
+            err.message,
+            'Invalid WebSocket frame: invalid opcode 5'
+          );
+
+          ws.on('close', (code, reason) => {
+            assert.strictEqual(code, 1006);
+            assert.strictEqual(reason, '');
+
+            serverClientCloseEventEmitted = true;
+            if (clientCloseEventEmitted) wss.close(done);
+          });
         });
       });
     });

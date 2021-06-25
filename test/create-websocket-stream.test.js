@@ -204,6 +204,8 @@ describe('createWebSocketStream', () => {
 
     it('reemits errors', (done) => {
       let duplexCloseEventEmitted = false;
+      let serverClientCloseEventEmitted = false;
+
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
         const duplex = createWebSocketStream(ws);
@@ -218,6 +220,7 @@ describe('createWebSocketStream', () => {
 
           duplex.on('close', () => {
             duplexCloseEventEmitted = true;
+            if (serverClientCloseEventEmitted) wss.close(done);
           });
         });
       });
@@ -225,10 +228,11 @@ describe('createWebSocketStream', () => {
       wss.on('connection', (ws) => {
         ws._socket.write(Buffer.from([0x85, 0x00]));
         ws.on('close', (code, reason) => {
-          assert.ok(duplexCloseEventEmitted);
           assert.strictEqual(code, 1002);
           assert.strictEqual(reason, '');
-          wss.close(done);
+
+          serverClientCloseEventEmitted = true;
+          if (duplexCloseEventEmitted) wss.close(done);
         });
       });
     });
