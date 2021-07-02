@@ -11,7 +11,7 @@ const fs = require('fs');
 const { URL } = require('url');
 
 const WebSocket = require('..');
-const { GUID, NOOP } = require('../lib/constants');
+const { EMPTY_BUFFER, GUID, NOOP } = require('../lib/constants');
 
 class CustomAgent extends http.Agent {
   addRequest() {}
@@ -474,7 +474,7 @@ describe('WebSocket', () => {
 
           ws.on('close', (code, reason) => {
             assert.strictEqual(code, 1006);
-            assert.strictEqual(reason, '');
+            assert.strictEqual(reason, EMPTY_BUFFER);
 
             clientCloseEventEmitted = true;
             if (serverClientCloseEventEmitted) wss.close(done);
@@ -485,7 +485,7 @@ describe('WebSocket', () => {
       wss.on('connection', (ws) => {
         ws.on('close', (code, reason) => {
           assert.strictEqual(code, 1002);
-          assert.strictEqual(reason, '');
+          assert.deepStrictEqual(reason, EMPTY_BUFFER);
 
           serverClientCloseEventEmitted = true;
           if (clientCloseEventEmitted) wss.close(done);
@@ -505,8 +505,8 @@ describe('WebSocket', () => {
             assert.ok(err instanceof Error);
             assert.ok(codes.includes(err.code), `Unexpected code: ${err.code}`);
             ws.on('close', (code, message) => {
-              assert.strictEqual(message, '');
               assert.strictEqual(code, 1006);
+              assert.strictEqual(message, EMPTY_BUFFER);
               wss.close(done);
             });
           });
@@ -594,7 +594,7 @@ describe('WebSocket', () => {
 
       ws.on('close', (code, reason) => {
         assert.strictEqual(code, 1006);
-        assert.strictEqual(reason, '');
+        assert.strictEqual(reason, EMPTY_BUFFER);
         done();
       });
     });
@@ -1401,15 +1401,19 @@ describe('WebSocket', () => {
 
         const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
-        ws.on('open', () => ws.send(array, { compress: false }));
-        ws.on('message', (msg) => {
-          assert.ok(msg.equals(Buffer.from(array.buffer)));
+        ws.on('open', () => ws.send(array));
+        ws.on('message', (msg, isBinary) => {
+          assert.deepStrictEqual(msg, Buffer.from(array.buffer));
+          assert.ok(isBinary);
           wss.close(done);
         });
       });
 
       wss.on('connection', (ws) => {
-        ws.on('message', (msg) => ws.send(msg, { compress: false }));
+        ws.on('message', (msg, isBinary) => {
+          assert.ok(isBinary);
+          ws.send(msg);
+        });
       });
     });
 
@@ -1418,14 +1422,17 @@ describe('WebSocket', () => {
         const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         ws.on('open', () => ws.send('hi'));
-        ws.on('message', (message) => {
-          assert.strictEqual(message, 'hi');
+        ws.on('message', (message, isBinary) => {
+          assert.deepStrictEqual(message, Buffer.from('hi'));
+          assert.ok(!isBinary);
           wss.close(done);
         });
       });
 
       wss.on('connection', (ws) => {
-        ws.on('message', (msg) => ws.send(msg));
+        ws.on('message', (msg, isBinary) => {
+          ws.send(msg, { binary: isBinary });
+        });
       });
     });
 
@@ -1440,8 +1447,9 @@ describe('WebSocket', () => {
       });
 
       wss.on('connection', (ws) => {
-        ws.on('message', (msg) => {
-          assert.strictEqual(msg, 'fragmentfragment');
+        ws.on('message', (msg, isBinary) => {
+          assert.deepStrictEqual(msg, Buffer.from('fragmentfragment'));
+          assert.ok(!isBinary);
           wss.close(done);
         });
       });
@@ -1455,14 +1463,15 @@ describe('WebSocket', () => {
       });
 
       wss.on('connection', (ws) => {
-        ws.on('message', (msg) => {
-          assert.strictEqual(msg, '0');
+        ws.on('message', (msg, isBinary) => {
+          assert.deepStrictEqual(msg, Buffer.from('0'));
+          assert.ok(!isBinary);
           wss.close(done);
         });
       });
     });
 
-    it('can send binary data as an array', (done) => {
+    it('can send a `TypedArray`', (done) => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const array = new Float32Array(6);
 
@@ -1480,31 +1489,18 @@ describe('WebSocket', () => {
         const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         ws.on('open', () => ws.send(partial));
-        ws.on('message', (message) => {
-          assert.ok(message.equals(buf));
+        ws.on('message', (message, isBinary) => {
+          assert.deepStrictEqual(message, buf);
+          assert.ok(isBinary);
           wss.close(done);
         });
       });
 
       wss.on('connection', (ws) => {
-        ws.on('message', (msg) => ws.send(msg));
-      });
-    });
-
-    it('can send binary data as a buffer', (done) => {
-      const wss = new WebSocket.Server({ port: 0 }, () => {
-        const buf = Buffer.from('foobar');
-        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
-
-        ws.on('open', () => ws.send(buf));
-        ws.on('message', (message) => {
-          assert.ok(message.equals(buf));
-          wss.close(done);
+        ws.on('message', (msg, isBinary) => {
+          assert.ok(isBinary);
+          ws.send(msg);
         });
-      });
-
-      wss.on('connection', (ws) => {
-        ws.on('message', (msg) => ws.send(msg));
       });
     });
 
@@ -1526,7 +1522,10 @@ describe('WebSocket', () => {
       });
 
       wss.on('connection', (ws) => {
-        ws.on('message', (msg) => ws.send(msg));
+        ws.on('message', (msg, isBinary) => {
+          assert.ok(isBinary);
+          ws.send(msg);
+        });
       });
     });
 
@@ -1538,13 +1537,16 @@ describe('WebSocket', () => {
         ws.on('open', () => ws.send(buf));
 
         ws.onmessage = (event) => {
-          assert.ok(event.data.equals(buf));
+          assert.deepStrictEqual(event.data, buf);
           wss.close(done);
         };
       });
 
       wss.on('connection', (ws) => {
-        ws.on('message', (msg) => ws.send(msg));
+        ws.on('message', (msg, isBinary) => {
+          assert.ok(isBinary);
+          ws.send(msg);
+        });
       });
     });
 
@@ -1569,8 +1571,9 @@ describe('WebSocket', () => {
       });
 
       wss.on('connection', (ws) => {
-        ws.on('message', (message) => {
-          assert.ok(message.equals(Buffer.alloc(0)));
+        ws.on('message', (message, isBinary) => {
+          assert.strictEqual(message, EMPTY_BUFFER);
+          assert.ok(isBinary);
           wss.close(done);
         });
       });
@@ -1586,7 +1589,7 @@ describe('WebSocket', () => {
         ws.on('open', () => ws.send('hi', { mask: false }));
         ws.on('close', (code, reason) => {
           assert.strictEqual(code, 1002);
-          assert.strictEqual(reason, '');
+          assert.deepStrictEqual(reason, EMPTY_BUFFER);
 
           clientCloseEventEmitted = true;
           if (serverClientCloseEventEmitted) wss.close(done);
@@ -1612,7 +1615,7 @@ describe('WebSocket', () => {
 
           ws.on('close', (code, reason) => {
             assert.strictEqual(code, 1006);
-            assert.strictEqual(reason, '');
+            assert.strictEqual(reason, EMPTY_BUFFER);
 
             serverClientCloseEventEmitted = true;
             if (clientCloseEventEmitted) wss.close(done);
@@ -1799,12 +1802,15 @@ describe('WebSocket', () => {
 
       wss.on('connection', (ws) => {
         ws._socket.once('data', (received) => {
-          assert.ok(received.slice(0, 2).equals(Buffer.from([0x88, 0x80])));
-          assert.ok(sent.equals(Buffer.from([0x88, 0x00])));
+          assert.deepStrictEqual(
+            received.slice(0, 2),
+            Buffer.from([0x88, 0x80])
+          );
+          assert.deepStrictEqual(sent, Buffer.from([0x88, 0x00]));
 
           ws.on('close', (code, reason) => {
             assert.strictEqual(code, 1005);
-            assert.strictEqual(reason, '');
+            assert.strictEqual(reason, EMPTY_BUFFER);
             wss.close(done);
           });
         });
@@ -1821,8 +1827,8 @@ describe('WebSocket', () => {
 
       wss.on('connection', (ws) => {
         ws.on('close', (code, message) => {
-          assert.strictEqual(message, '');
           assert.strictEqual(code, 1000);
+          assert.deepStrictEqual(message, EMPTY_BUFFER);
           wss.close(done);
         });
       });
@@ -1837,8 +1843,8 @@ describe('WebSocket', () => {
 
       wss.on('connection', (ws) => {
         ws.on('close', (code, message) => {
-          assert.strictEqual(message, 'some reason');
           assert.strictEqual(code, 1000);
+          assert.deepStrictEqual(message, Buffer.from('some reason'));
           wss.close(done);
         });
       });
@@ -1854,7 +1860,10 @@ describe('WebSocket', () => {
           const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
           const messages = [];
 
-          ws.on('message', (message) => messages.push(message));
+          ws.on('message', (message, isBinary) => {
+            assert.ok(!isBinary);
+            messages.push(message.toString());
+          });
           ws.on('close', (code) => {
             assert.strictEqual(code, 1005);
             assert.deepStrictEqual(messages, ['foo', 'bar', 'baz']);
@@ -1921,7 +1930,7 @@ describe('WebSocket', () => {
 
         ws.on('close', (code, reason) => {
           assert.strictEqual(code, 1000);
-          assert.strictEqual(reason, 'some reason');
+          assert.deepStrictEqual(reason, Buffer.from('some reason'));
           wss.close(done);
         });
 
@@ -2084,7 +2093,9 @@ describe('WebSocket', () => {
       });
 
       wss.on('connection', (ws) => {
-        ws.on('message', (msg) => ws.send(msg));
+        ws.on('message', (msg, isBinary) => {
+          ws.send(msg, { binary: isBinary });
+        });
       });
     });
 
@@ -2203,7 +2214,9 @@ describe('WebSocket', () => {
       });
 
       wss.on('connection', (ws) => {
-        ws.on('message', (msg) => ws.send(msg));
+        ws.on('message', (msg, isBinary) => {
+          ws.send(msg, { binary: isBinary });
+        });
       });
     });
 
@@ -2331,7 +2344,10 @@ describe('WebSocket', () => {
       });
 
       wss.on('connection', (ws) => {
-        ws.on('message', (msg) => ws.send(msg));
+        ws.on('message', (msg, isBinary) => {
+          assert.ok(isBinary);
+          ws.send(msg);
+        });
       });
     });
   });
@@ -2415,8 +2431,9 @@ describe('WebSocket', () => {
       const wss = new WebSocket.Server({ server });
 
       wss.on('connection', (ws) => {
-        ws.on('message', (message) => {
-          assert.strictEqual(message, 'foobar');
+        ws.on('message', (message, isBinary) => {
+          assert.deepStrictEqual(message, Buffer.from('foobar'));
+          assert.ok(!isBinary);
           server.close(done);
           wss.close();
         });
@@ -2440,7 +2457,10 @@ describe('WebSocket', () => {
       const wss = new WebSocket.Server({ server });
 
       wss.on('connection', (ws) => {
-        ws.on('message', (message) => ws.send(message));
+        ws.on('message', (message, isBinary) => {
+          assert.ok(isBinary);
+          ws.send(message);
+        });
       });
 
       server.listen(0, () => {
@@ -2449,8 +2469,9 @@ describe('WebSocket', () => {
         });
 
         ws.on('open', () => ws.send(buf));
-        ws.on('message', (message) => {
-          assert.ok(buf.equals(message));
+        ws.on('message', (message, isBinary) => {
+          assert.deepStrictEqual(message, buf);
+          assert.ok(isBinary);
 
           server.close(done);
           wss.close();
@@ -2692,15 +2713,18 @@ describe('WebSocket', () => {
           });
 
           ws.on('open', () => ws.send('hi', { compress: true }));
-          ws.on('message', (message) => {
-            assert.strictEqual(message, 'hi');
+          ws.on('message', (message, isBinary) => {
+            assert.deepStrictEqual(message, Buffer.from('hi'));
+            assert.ok(!isBinary);
             wss.close(done);
           });
         }
       );
 
       wss.on('connection', (ws) => {
-        ws.on('message', (message) => ws.send(message, { compress: true }));
+        ws.on('message', (message, isBinary) => {
+          ws.send(message, { binary: isBinary, compress: true });
+        });
       });
     });
 
@@ -2722,15 +2746,19 @@ describe('WebSocket', () => {
           });
 
           ws.on('open', () => ws.send(array, { compress: true }));
-          ws.on('message', (message) => {
-            assert.ok(message.equals(Buffer.from(array.buffer)));
+          ws.on('message', (message, isBinary) => {
+            assert.deepStrictEqual(message, Buffer.from(array.buffer));
+            assert.ok(isBinary);
             wss.close(done);
           });
         }
       );
 
       wss.on('connection', (ws) => {
-        ws.on('message', (message) => ws.send(message, { compress: true }));
+        ws.on('message', (message, isBinary) => {
+          assert.ok(isBinary);
+          ws.send(message, { compress: true });
+        });
       });
     });
 
@@ -2752,15 +2780,19 @@ describe('WebSocket', () => {
           });
 
           ws.on('open', () => ws.send(array.buffer, { compress: true }));
-          ws.on('message', (message) => {
-            assert.ok(message.equals(Buffer.from(array.buffer)));
+          ws.on('message', (message, isBinary) => {
+            assert.deepStrictEqual(message, Buffer.from(array.buffer));
+            assert.ok(isBinary);
             wss.close(done);
           });
         }
       );
 
       wss.on('connection', (ws) => {
-        ws.on('message', (message) => ws.send(message, { compress: true }));
+        ws.on('message', (message, isBinary) => {
+          assert.ok(isBinary);
+          ws.send(message, { compress: true });
+        });
       });
     });
 
@@ -2774,7 +2806,11 @@ describe('WebSocket', () => {
           const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
           const messages = [];
 
-          ws.on('message', (message) => messages.push(message));
+          ws.on('message', (message, isBinary) => {
+            assert.ok(!isBinary);
+            messages.push(message.toString());
+          });
+
           ws.on('close', (code) => {
             assert.strictEqual(code, 1006);
             assert.deepStrictEqual(messages, ['foo', 'bar', 'baz', 'qux']);
@@ -2818,14 +2854,15 @@ describe('WebSocket', () => {
       wss.on('connection', (ws) => {
         const messages = [];
 
-        ws.on('message', (message) => {
-          messages.push(message);
+        ws.on('message', (message, isBinary) => {
+          assert.ok(!isBinary);
+          messages.push(message.toString());
         });
 
         ws.on('close', (code, reason) => {
           assert.deepStrictEqual(messages, ['foo', 'bar', 'baz', 'qux']);
           assert.strictEqual(code, 1000);
-          assert.strictEqual(reason, '');
+          assert.deepStrictEqual(reason, EMPTY_BUFFER);
           wss.close(done);
         });
 
@@ -2850,8 +2887,10 @@ describe('WebSocket', () => {
               });
             });
 
-            ws.on('message', (message) => {
-              if (messages.push(message) > 1) return;
+            ws.on('message', (message, isBinary) => {
+              assert.ok(!isBinary);
+
+              if (messages.push(message.toString()) > 1) return;
 
               ws.close(1000);
             });
@@ -2859,7 +2898,7 @@ describe('WebSocket', () => {
             ws.on('close', (code, reason) => {
               assert.deepStrictEqual(messages, ['', '', '', '']);
               assert.strictEqual(code, 1000);
-              assert.strictEqual(reason, '');
+              assert.deepStrictEqual(reason, EMPTY_BUFFER);
               wss.close(done);
             });
           }
@@ -2880,14 +2919,17 @@ describe('WebSocket', () => {
           });
 
           ws.on('open', () => ws.send('hi', { compress: true }));
-          ws.on('message', (message) => {
-            assert.strictEqual(message, 'hi');
+          ws.on('message', (message, isBinary) => {
+            assert.deepStrictEqual(message, Buffer.from('hi'));
+            assert.ok(!isBinary);
             wss.close(done);
           });
         });
 
         wss.on('connection', (ws) => {
-          ws.on('message', (message) => ws.send(message, { compress: true }));
+          ws.on('message', (message, isBinary) => {
+            ws.send(message, { binary: isBinary, compress: true });
+          });
         });
       });
 
@@ -2979,8 +3021,10 @@ describe('WebSocket', () => {
             const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
             const messages = [];
 
-            ws.on('message', (message) => {
-              if (messages.push(message) > 1) return;
+            ws.on('message', (message, isBinary) => {
+              assert.ok(!isBinary);
+
+              if (messages.push(message.toString()) > 1) return;
 
               process.nextTick(() => {
                 assert.strictEqual(ws._receiver._state, 5);
@@ -2991,7 +3035,7 @@ describe('WebSocket', () => {
             ws.on('close', (code, reason) => {
               assert.deepStrictEqual(messages, ['', '', '', '']);
               assert.strictEqual(code, 1006);
-              assert.strictEqual(reason, '');
+              assert.strictEqual(reason, EMPTY_BUFFER);
               wss.close(done);
             });
           }
@@ -3023,7 +3067,7 @@ describe('WebSocket', () => {
 
           ws.on('close', (code, reason) => {
             assert.strictEqual(code, 1006);
-            assert.strictEqual(reason, '');
+            assert.strictEqual(reason, EMPTY_BUFFER);
 
             clientCloseEventEmitted = true;
             if (serverClientCloseEventEmitted) wss.close(done);
@@ -3051,7 +3095,7 @@ describe('WebSocket', () => {
 
           ws.on('close', (code, reason) => {
             assert.strictEqual(code, 1006);
-            assert.strictEqual(reason, '');
+            assert.strictEqual(reason, EMPTY_BUFFER);
 
             serverClientCloseEventEmitted = true;
             if (clientCloseEventEmitted) wss.close(done);
@@ -3077,7 +3121,7 @@ describe('WebSocket', () => {
 
           ws.on('close', (code, reason) => {
             assert.strictEqual(code, 1006);
-            assert.strictEqual(reason, '');
+            assert.strictEqual(reason, EMPTY_BUFFER);
 
             clientCloseEventEmitted = true;
             if (serverClientCloseEventEmitted) wss.close(done);
@@ -3109,7 +3153,7 @@ describe('WebSocket', () => {
 
           ws.on('close', (code, reason) => {
             assert.strictEqual(code, 1006);
-            assert.strictEqual(reason, '');
+            assert.strictEqual(reason, EMPTY_BUFFER);
 
             serverClientCloseEventEmitted = true;
             if (clientCloseEventEmitted) wss.close(done);

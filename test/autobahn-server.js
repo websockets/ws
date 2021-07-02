@@ -10,6 +10,8 @@ const wss = new WebSocket.Server({ port }, () => {
 });
 
 wss.on('connection', (ws) => {
-  ws.on('message', (data) => ws.send(data));
+  ws.on('message', (data, isBinary) => {
+    ws.send(data, { binary: isBinary });
+  });
   ws.on('error', (e) => console.error(e));
 });

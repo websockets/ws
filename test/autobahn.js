@@ -18,7 +18,9 @@ function nextTest() {
   ws = new WebSocket(
     `ws://localhost:9001/runCase?case=${currentTest}&agent=ws`
   );
-  ws.on('message', (data) => ws.send(data));
+  ws.on('message', (data, isBinary) => {
+    ws.send(data, { binary: isBinary });
+  });
   ws.on('close', () => {
     currentTest++;
     process.nextTick(nextTest);
