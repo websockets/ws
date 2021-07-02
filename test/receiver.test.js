@@ -4,18 +4,17 @@ const assert = require('assert');
 const crypto = require('crypto');
 
 const PerMessageDeflate = require('../lib/permessage-deflate');
-const constants = require('../lib/constants');
 const Receiver = require('../lib/receiver');
 const Sender = require('../lib/sender');
-
-const kStatusCode = constants.kStatusCode;
+const { EMPTY_BUFFER, kStatusCode } = require('../lib/constants');
 
 describe('Receiver', () => {
   it('parses an unmasked text message', (done) => {
     const receiver = new Receiver();
 
-    receiver.on('message', (data) => {
-      assert.strictEqual(data, 'Hello');
+    receiver.on('message', (data, isBinary) => {
+      assert.deepStrictEqual(data, Buffer.from('Hello'));
+      assert.ok(!isBinary);
       done();
     });
 
@@ -27,7 +26,7 @@ describe('Receiver', () => {
 
     receiver.on('conclude', (code, data) => {
       assert.strictEqual(code, 1005);
-      assert.strictEqual(data, '');
+      assert.strictEqual(data, EMPTY_BUFFER);
       done();
     });
 
@@ -39,7 +38,7 @@ describe('Receiver', () => {
 
     receiver.on('conclude', (code, data) => {
       assert.strictEqual(code, 1000);
-      assert.strictEqual(data, 'DONE');
+      assert.deepStrictEqual(data, Buffer.from('DONE'));
       done();
     });
 
@@ -50,8 +49,9 @@ describe('Receiver', () => {
   it('parses a masked text message', (done) => {
     const receiver = new Receiver(undefined, {}, true);
 
-    receiver.on('message', (data) => {
-      assert.strictEqual(data, '5:::{"name":"echo"}');
+    receiver.on('message', (data, isBinary) => {
+      assert.deepStrictEqual(data, Buffer.from('5:::{"name":"echo"}'));
+      assert.ok(!isBinary);
       done();
     });
 
@@ -62,20 +62,21 @@ describe('Receiver', () => {
 
   it('parses a masked text message longer than 125 B', (done) => {
     const receiver = new Receiver(undefined, {}, true);
-    const msg = 'A'.repeat(200);
+    const msg = Buffer.from('A'.repeat(200));
 
-    const list = Sender.frame(Buffer.from(msg), {
+    const list = Sender.frame(msg, {
       fin: true,
       rsv1: false,
       opcode: 0x01,
       mask: true,
-      readOnly: false
+      readOnly: true
     });
 
     const frame = Buffer.concat(list);
 
-    receiver.on('message', (data) => {
-      assert.strictEqual(data, msg);
+    receiver.on('message', (data, isBinary) => {
+      assert.deepStrictEqual(data, msg);
+      assert.ok(!isBinary);
       done();
     });
 
@@ -85,20 +86,21 @@ describe('Receiver', () => {
 
   it('parses a really long masked text message', (done) => {
     const receiver = new Receiver(undefined, {}, true);
-    const msg = 'A'.repeat(64 * 1024);
+    const msg = Buffer.from('A'.repeat(64 * 1024));
 
-    const list = Sender.frame(Buffer.from(msg), {
+    const list = Sender.frame(msg, {
       fin: true,
       rsv1: false,
       opcode: 0x01,
       mask: true,
-      readOnly: false
+      readOnly: true
     });
 
     const frame = Buffer.concat(list);
 
-    receiver.on('message', (data) => {
-      assert.strictEqual(data, msg);
+    receiver.on('message', (data, isBinary) => {
+      assert.deepStrictEqual(data, msg);
+      assert.ok(!isBinary);
       done();
     });
 
@@ -107,30 +109,31 @@ describe('Receiver', () => {
 
   it('parses a 300 B fragmented masked text message', (done) => {
     const receiver = new Receiver(undefined, {}, true);
-    const msg = 'A'.repeat(300);
+    const msg = Buffer.from('A'.repeat(300));
 
-    const fragment1 = msg.substr(0, 150);
-    const fragment2 = msg.substr(150);
+    const fragment1 = msg.slice(0, 150);
+    const fragment2 = msg.slice(150);
 
-    const options = { rsv1: false, mask: true, readOnly: false };
+    const options = { rsv1: false, mask: true, readOnly: true };
 
     const frame1 = Buffer.concat(
-      Sender.frame(Buffer.from(fragment1), {
+      Sender.frame(fragment1, {
         fin: false,
         opcode: 0x01,
         ...options
       })
     );
     const frame2 = Buffer.concat(
-      Sender.frame(Buffer.from(fragment2), {
+      Sender.frame(fragment2, {
         fin: true,
         opcode: 0x00,
         ...options
       })
     );
 
-    receiver.on('message', (data) => {
-      assert.strictEqual(data, msg);
+    receiver.on('message', (data, isBinary) => {
+      assert.deepStrictEqual(data, msg);
+      assert.ok(!isBinary);
       done();
     });
 
@@ -140,20 +143,20 @@ describe('Receiver', () => {
 
   it('parses a ping message', (done) => {
     const receiver = new Receiver(undefined, {}, true);
-    const msg = 'Hello';
+    const msg = Buffer.from('Hello');
 
-    const list = Sender.frame(Buffer.from(msg), {
+    const list = Sender.frame(msg, {
       fin: true,
       rsv1: false,
       opcode: 0x09,
       mask: true,
-      readOnly: false
+      readOnly: true
     });
 
     const frame = Buffer.concat(list);
 
     receiver.on('ping', (data) => {
-      assert.strictEqual(data.toString(), msg);
+      assert.deepStrictEqual(data, msg);
       done();
     });
 
@@ -164,7 +167,7 @@ describe('Receiver', () => {
     const receiver = new Receiver();
 
     receiver.on('ping', (data) => {
-      assert.ok(data.equals(Buffer.alloc(0)));
+      assert.strictEqual(data, EMPTY_BUFFER);
       done();
     });
 
@@ -173,30 +176,30 @@ describe('Receiver', () => {
 
   it('parses a 300 B fragmented masked text message with a ping in the middle (1/2)', (done) => {
     const receiver = new Receiver(undefined, {}, true);
-    const msg = 'A'.repeat(300);
-    const pingMessage = 'Hello';
+    const msg = Buffer.from('A'.repeat(300));
+    const pingMessage = Buffer.from('Hello');
 
-    const fragment1 = msg.substr(0, 150);
-    const fragment2 = msg.substr(150);
+    const fragment1 = msg.slice(0, 150);
+    const fragment2 = msg.slice(150);
 
-    const options = { rsv1: false, mask: true, readOnly: false };
+    const options = { rsv1: false, mask: true, readOnly: true };
 
     const frame1 = Buffer.concat(
-      Sender.frame(Buffer.from(fragment1), {
+      Sender.frame(fragment1, {
         fin: false,
         opcode: 0x01,
         ...options
       })
     );
     const frame2 = Buffer.concat(
-      Sender.frame(Buffer.from(pingMessage), {
+      Sender.frame(pingMessage, {
         fin: true,
         opcode: 0x09,
         ...options
       })
     );
     const frame3 = Buffer.concat(
-      Sender.frame(Buffer.from(fragment2), {
+      Sender.frame(fragment2, {
         fin: true,
         opcode: 0x00,
         ...options
@@ -205,14 +208,15 @@ describe('Receiver', () => {
 
     let gotPing = false;
 
-    receiver.on('message', (data) => {
-      assert.strictEqual(data, msg);
+    receiver.on('message', (data, isBinary) => {
+      assert.deepStrictEqual(data, msg);
+      assert.ok(!isBinary);
       assert.ok(gotPing);
       done();
     });
     receiver.on('ping', (data) => {
       gotPing = true;
-      assert.strictEqual(data.toString(), pingMessage);
+      assert.ok(data.equals(pingMessage));
     });
 
     receiver.write(frame1);
@@ -222,11 +226,11 @@ describe('Receiver', () => {
 
   it('parses a 300 B fragmented masked text message with a ping in the middle (2/2)', (done) => {
     const receiver = new Receiver(undefined, {}, true);
-    const msg = 'A'.repeat(300);
-    const pingMessage = 'Hello';
+    const msg = Buffer.from('A'.repeat(300));
+    const pingMessage = Buffer.from('Hello');
 
-    const fragment1 = msg.substr(0, 150);
-    const fragment2 = msg.substr(150);
+    const fragment1 = msg.slice(0, 150);
+    const fragment2 = msg.slice(150);
 
     const options = { rsv1: false, mask: true, readOnly: false };
 
@@ -264,14 +268,15 @@ describe('Receiver', () => {
 
     let gotPing = false;
 
-    receiver.on('message', (data) => {
-      assert.strictEqual(data, msg);
+    receiver.on('message', (data, isBinary) => {
+      assert.deepStrictEqual(data, msg);
+      assert.ok(!isBinary);
       assert.ok(gotPing);
       done();
     });
     receiver.on('ping', (data) => {
       gotPing = true;
-      assert.strictEqual(data.toString(), pingMessage);
+      assert.ok(data.equals(pingMessage));
     });
 
     for (let i = 0; i < chunks.length; ++i) {
@@ -293,8 +298,9 @@ describe('Receiver', () => {
 
     const frame = Buffer.concat(list);
 
-    receiver.on('message', (data) => {
-      assert.ok(data.equals(msg));
+    receiver.on('message', (data, isBinary) => {
+      assert.deepStrictEqual(data, msg);
+      assert.ok(isBinary);
       done();
     });
 
@@ -315,8 +321,9 @@ describe('Receiver', () => {
 
     const frame = Buffer.concat(list);
 
-    receiver.on('message', (data) => {
-      assert.ok(data.equals(msg));
+    receiver.on('message', (data, isBinary) => {
+      assert.deepStrictEqual(data, msg);
+      assert.ok(isBinary);
       done();
     });
 
@@ -337,8 +344,9 @@ describe('Receiver', () => {
 
     const frame = Buffer.concat(list);
 
-    receiver.on('message', (data) => {
-      assert.ok(data.equals(msg));
+    receiver.on('message', (data, isBinary) => {
+      assert.deepStrictEqual(data, msg);
+      assert.ok(isBinary);
       done();
     });
 
@@ -359,8 +367,9 @@ describe('Receiver', () => {
 
     const frame = Buffer.concat(list);
 
-    receiver.on('message', (data) => {
-      assert.ok(data.equals(msg));
+    receiver.on('message', (data, isBinary) => {
+      assert.deepStrictEqual(data, msg);
+      assert.ok(isBinary);
       done();
     });
 
@@ -376,8 +385,9 @@ describe('Receiver', () => {
     });
     const buf = Buffer.from('Hello');
 
-    receiver.on('message', (data) => {
-      assert.strictEqual(data, 'Hello');
+    receiver.on('message', (data, isBinary) => {
+      assert.deepStrictEqual(data, buf);
+      assert.ok(!isBinary);
       done();
     });
 
@@ -399,8 +409,9 @@ describe('Receiver', () => {
     const buf1 = Buffer.from('foo');
     const buf2 = Buffer.from('bar');
 
-    receiver.on('message', (data) => {
-      assert.strictEqual(data, 'foobar');
+    receiver.on('message', (data, isBinary) => {
+      assert.deepStrictEqual(data, Buffer.concat([buf1, buf2]));
+      assert.ok(!isBinary);
       done();
     });
 
@@ -430,8 +441,9 @@ describe('Receiver', () => {
     const receiver = new Receiver();
     let counter = 0;
 
-    receiver.on('message', (data) => {
-      assert.strictEqual(data, '');
+    receiver.on('message', (data, isBinary) => {
+      assert.strictEqual(data, EMPTY_BUFFER);
+      assert.ok(!isBinary);
       if (++counter === 20000) done();
     });
 
@@ -441,9 +453,10 @@ describe('Receiver', () => {
   it('resets `totalPayloadLength` only on final frame (unfragmented)', (done) => {
     const receiver = new Receiver(undefined, {}, false, 10);
 
-    receiver.on('message', (data) => {
+    receiver.on('message', (data, isBinary) => {
       assert.strictEqual(receiver._totalPayloadLength, 0);
-      assert.strictEqual(data, 'Hello');
+      assert.deepStrictEqual(data, Buffer.from('Hello'));
+      assert.ok(!isBinary);
       done();
     });
 
@@ -454,9 +467,10 @@ describe('Receiver', () => {
   it('resets `totalPayloadLength` only on final frame (fragmented)', (done) => {
     const receiver = new Receiver(undefined, {}, false, 10);
 
-    receiver.on('message', (data) => {
+    receiver.on('message', (data, isBinary) => {
       assert.strictEqual(receiver._totalPayloadLength, 0);
-      assert.strictEqual(data, 'Hello');
+      assert.deepStrictEqual(data, Buffer.from('Hello'));
+      assert.ok(!isBinary);
       done();
     });
 
@@ -472,12 +486,13 @@ describe('Receiver', () => {
 
     receiver.on('ping', (buf) => {
       assert.strictEqual(receiver._totalPayloadLength, 2);
-      data = buf.toString();
+      data = buf;
     });
-    receiver.on('message', (buf) => {
+    receiver.on('message', (buf, isBinary) => {
       assert.strictEqual(receiver._totalPayloadLength, 0);
-      assert.strictEqual(data, '');
-      assert.strictEqual(buf.toString(), 'Hello');
+      assert.deepStrictEqual(data, EMPTY_BUFFER);
+      assert.deepStrictEqual(buf, Buffer.from('Hello'));
+      assert.ok(isBinary);
       done();
     });
 
@@ -499,7 +514,12 @@ describe('Receiver', () => {
 
     receiver.on('conclude', push).on('message', push);
     receiver.on('finish', () => {
-      assert.deepStrictEqual(results, ['', 1005, '']);
+      assert.deepStrictEqual(results, [
+        EMPTY_BUFFER,
+        false,
+        1005,
+        EMPTY_BUFFER
+      ]);
       done();
     });
 
@@ -964,9 +984,9 @@ describe('Receiver', () => {
       crypto.randomBytes(3)
     ];
 
-    receiver.on('message', (data) => {
-      assert.ok(Buffer.isBuffer(data));
-      assert.ok(data.equals(Buffer.concat(frags)));
+    receiver.on('message', (data, isBinary) => {
+      assert.deepStrictEqual(data, Buffer.concat(frags));
+      assert.ok(isBinary);
       done();
     });
 
@@ -982,17 +1002,17 @@ describe('Receiver', () => {
   });
 
   it("honors the 'arraybuffer' binary type", (done) => {
-    const receiver = new Receiver();
+    const receiver = new Receiver('arraybuffer');
     const frags = [
       crypto.randomBytes(19221),
       crypto.randomBytes(954),
       crypto.randomBytes(623987)
     ];
 
-    receiver._binaryType = 'arraybuffer';
-    receiver.on('message', (data) => {
+    receiver.on('message', (data, isBinary) => {
       assert.ok(data instanceof ArrayBuffer);
-      assert.ok(Buffer.from(data).equals(Buffer.concat(frags)));
+      assert.deepStrictEqual(Buffer.from(data), Buffer.concat(frags));
+      assert.ok(isBinary);
       done();
     });
 
@@ -1008,7 +1028,7 @@ describe('Receiver', () => {
   });
 
   it("honors the 'fragments' binary type", (done) => {
-    const receiver = new Receiver();
+    const receiver = new Receiver('fragments');
     const frags = [
       crypto.randomBytes(17),
       crypto.randomBytes(419872),
@@ -1017,9 +1037,9 @@ describe('Receiver', () => {
       crypto.randomBytes(1)
     ];
 
-    receiver._binaryType = 'fragments';
-    receiver.on('message', (data) => {
+    receiver.on('message', (data, isBinary) => {
       assert.deepStrictEqual(data, frags);
+      assert.ok(isBinary);
       done();
     });
 

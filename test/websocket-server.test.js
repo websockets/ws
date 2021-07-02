@@ -411,8 +411,9 @@ describe('WebSocketServer', () => {
 
         const ws = new WebSocket(`ws://localhost:${server.address().port}`);
 
-        ws.on('message', (message) => {
-          assert.strictEqual(message, 'hello');
+        ws.on('message', (message, isBinary) => {
+          assert.deepStrictEqual(message, Buffer.from('hello'));
+          assert.ok(!isBinary);
           wss.close();
           server.close(done);
         });
@@ -932,8 +933,9 @@ describe('WebSocketServer', () => {
       });
 
       wss.on('connection', (ws) => {
-        ws.on('message', (data) => {
-          assert.strictEqual(data, 'Hello');
+        ws.on('message', (data, isBinary) => {
+          assert.deepStrictEqual(data, Buffer.from('Hello'));
+          assert.ok(!isBinary);
           wss.close(done);
         });
       });

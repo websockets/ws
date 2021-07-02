@@ -9,6 +9,7 @@ const { randomBytes } = require('crypto');
 const createWebSocketStream = require('../lib/stream');
 const Sender = require('../lib/sender');
 const WebSocket = require('..');
+const { EMPTY_BUFFER } = require('../lib/constants');
 
 describe('createWebSocketStream', () => {
   it('is exposed as a property of the `WebSocket` class', () => {
@@ -58,11 +59,12 @@ describe('createWebSocketStream', () => {
       });
 
       wss.on('connection', (ws) => {
-        ws.on('message', (message) => {
+        ws.on('message', (message, isBinary) => {
           ws.on('close', (code, reason) => {
-            assert.ok(message.equals(chunk));
+            assert.deepStrictEqual(message, chunk);
+            assert.ok(isBinary);
             assert.strictEqual(code, 1005);
-            assert.strictEqual(reason, '');
+            assert.strictEqual(reason, EMPTY_BUFFER);
             wss.close(done);
           });
         });
@@ -229,7 +231,7 @@ describe('createWebSocketStream', () => {
         ws._socket.write(Buffer.from([0x85, 0x00]));
         ws.on('close', (code, reason) => {
           assert.strictEqual(code, 1002);
-          assert.strictEqual(reason, '');
+          assert.deepStrictEqual(reason, EMPTY_BUFFER);
 
           serverClientCloseEventEmitted = true;
           if (duplexCloseEventEmitted) wss.close(done);
@@ -536,6 +538,34 @@ describe('createWebSocketStream', () => {
         ws.on('open', () => {
           duplex.destroy();
         });
+      });
+    });
+
+    it('converts text messages to strings in readable object mode', (done) => {
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const events = [];
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+        const duplex = createWebSocketStream(ws, { readableObjectMode: true });
+
+        duplex.on('data', (data) => {
+          events.push('data');
+          assert.strictEqual(data, 'foo');
+        });
+
+        duplex.on('end', () => {
+          events.push('end');
+          duplex.end();
+        });
+
+        duplex.on('close', () => {
+          assert.deepStrictEqual(events, ['data', 'end']);
+          wss.close(done);
+        });
+      });
+
+      wss.on('connection', (ws) => {
+        ws.send('foo');
+        ws.close();
       });
     });
   });

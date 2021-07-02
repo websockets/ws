@@ -14,7 +14,7 @@ const wss = new WebSocket.Server({ server });
 
 wss.on('connection', function connection(ws) {
   ws.on('message', function message(msg) {
-    console.log(msg);
+    console.log(msg.toString());
   });
 });
 

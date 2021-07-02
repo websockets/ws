@@ -300,11 +300,12 @@ it defaults to `/`.
 ### Event: 'close'
 
 - `code` {Number}
-- `reason` {String}
+- `reason` {Buffer}
 
 Emitted when the connection is closed. `code` is a numeric value indicating the
 status code explaining why the connection has been closed. `reason` is a
-human-readable string explaining why the connection has been closed.
+`Buffer` containing a human-readable string explaining why the connection has
+been closed.
 
 ### Event: 'error'
 
@@ -315,9 +316,11 @@ of the string values defined below under [WS Error Codes](#ws-error-codes).
 
 ### Event: 'message'
 
-- `data` {String|Buffer|ArrayBuffer|Buffer[]}
+- `data` {Buffer|ArrayBuffer|Buffer[]}
+- `isBinary` {Boolean}
 
-Emitted when a message is received from the server.
+Emitted when a message is received. `data` is the message content. `isBinary`
+specifies whether the message is binary or not.
 
 ### Event: 'open'
 
@@ -389,8 +392,7 @@ following ways:
 
 - `code` {Number} A numeric value indicating the status code explaining why the
   connection is being closed.
-- `reason` {String} A human-readable string explaining why the connection is
-  closing.
+- `reason` {String|Buffer} The reason why the connection is closing.
 
 Initiate a closing handshake.
 
