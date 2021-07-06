@@ -98,9 +98,9 @@ into the creation of [raw deflate/inflate streams][node-zlib-deflaterawdocs].
 See [the docs][ws-server-options] for more options.
 
 ```js
-const WebSocket = require('ws');
+import WebSocket, { WebSocketServer } from 'ws';
 
-const wss = new WebSocket.Server({
+const wss = new WebSocketServer({
   port: 8080,
   perMessageDeflate: {
     zlibDeflateOptions: {
@@ -129,7 +129,7 @@ server. To always disable the extension on the client set the
 `perMessageDeflate` option to `false`.
 
 ```js
-const WebSocket = require('ws');
+import WebSocket from 'ws';
 
 const ws = new WebSocket('ws://www.host.com/path', {
   perMessageDeflate: false
@@ -141,7 +141,7 @@ const ws = new WebSocket('ws://www.host.com/path', {
 ### Sending and receiving text data
 
 ```js
-const WebSocket = require('ws');
+import WebSocket from 'ws';
 
 const ws = new WebSocket('ws://www.host.com/path');
 
@@ -157,7 +157,7 @@ ws.on('message', function incoming(message) {
 ### Sending binary data
 
 ```js
-const WebSocket = require('ws');
+import WebSocket from 'ws';
 
 const ws = new WebSocket('ws://www.host.com/path');
 
@@ -175,9 +175,9 @@ ws.on('open', function open() {
 ### Simple server
 
 ```js
-const WebSocket = require('ws');
+import { WebSocketServer } from 'ws';
 
-const wss = new WebSocket.Server({ port: 8080 });
+const wss = new WebSocketServer({ port: 8080 });
 
 wss.on('connection', function connection(ws) {
   ws.on('message', function incoming(message) {
@@ -191,15 +191,15 @@ wss.on('connection', function connection(ws) {
 ### External HTTP/S server
 
 ```js
-const fs = require('fs');
-const https = require('https');
-const WebSocket = require('ws');
+import { createServer } from 'https';
+import { readFileSync } from 'fs';
+import { WebSocketServer } from 'ws';
 
-const server = https.createServer({
-  cert: fs.readFileSync('/path/to/cert.pem'),
-  key: fs.readFileSync('/path/to/key.pem')
+const server = createServer({
+  cert: readFileSync('/path/to/cert.pem'),
+  key: readFileSync('/path/to/key.pem')
 });
-const wss = new WebSocket.Server({ server });
+const wss = new WebSocketServer({ server });
 
 wss.on('connection', function connection(ws) {
   ws.on('message', function incoming(message) {
@@ -215,13 +215,13 @@ server.listen(8080);
 ### Multiple servers sharing a single HTTP/S server
 
 ```js
-const http = require('http');
-const WebSocket = require('ws');
-const url = require('url');
+import { createServer } from 'http';
+import { parse } from 'url';
+import { WebSocketServer } from 'ws';
 
-const server = http.createServer();
-const wss1 = new WebSocket.Server({ noServer: true });
-const wss2 = new WebSocket.Server({ noServer: true });
+const server = createServer();
+const wss1 = new WebSocketServer({ noServer: true });
+const wss2 = new WebSocketServer({ noServer: true });
 
 wss1.on('connection', function connection(ws) {
   // ...
@@ -232,7 +232,7 @@ wss2.on('connection', function connection(ws) {
 });
 
 server.on('upgrade', function upgrade(request, socket, head) {
-  const pathname = url.parse(request.url).pathname;
+  const { pathname } = parse(request.url);
 
   if (pathname === '/foo') {
     wss1.handleUpgrade(request, socket, head, function done(ws) {
@@ -253,11 +253,11 @@ server.listen(8080);
 ### Client authentication
 
 ```js
-const http = require('http');
-const WebSocket = require('ws');
+import WebSocket from 'ws';
+import { createServer } from 'http';
 
-const server = http.createServer();
-const wss = new WebSocket.Server({ noServer: true });
+const server = createServer();
+const wss = new WebSocketServer({ noServer: true });
 
 wss.on('connection', function connection(ws, request, client) {
   ws.on('message', function message(msg) {
@@ -291,9 +291,9 @@ A client WebSocket broadcasting to all connected WebSocket clients, including
 itself.
 
 ```js
-const WebSocket = require('ws');
+import WebSocket, { WebSocketServer } from 'ws';
 
-const wss = new WebSocket.Server({ port: 8080 });
+const wss = new WebSocketServer({ port: 8080 });
 
 wss.on('connection', function connection(ws) {
   ws.on('message', function incoming(data, isBinary) {
@@ -310,9 +310,9 @@ A client WebSocket broadcasting to every other connected WebSocket clients,
 excluding itself.
 
 ```js
-const WebSocket = require('ws');
+import WebSocket, { WebSocketServer } from 'ws';
 
-const wss = new WebSocket.Server({ port: 8080 });
+const wss = new WebSocketServer({ port: 8080 });
 
 wss.on('connection', function connection(ws) {
   ws.on('message', function incoming(data, isBinary) {
@@ -328,7 +328,7 @@ wss.on('connection', function connection(ws) {
 ### echo.websocket.org demo
 
 ```js
-const WebSocket = require('ws');
+import WebSocket from 'ws';
 
 const ws = new WebSocket('wss://echo.websocket.org/', {
   origin: 'https://websocket.org'
@@ -355,13 +355,13 @@ ws.on('message', function incoming(data) {
 ### Use the Node.js streams API
 
 ```js
-const WebSocket = require('ws');
+import WebSocket, { createWebSocketStream } from 'ws';
 
 const ws = new WebSocket('wss://echo.websocket.org/', {
   origin: 'https://websocket.org'
 });
 
-const duplex = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' });
+const duplex = createWebSocketStream(ws, { encoding: 'utf8' });
 
 duplex.pipe(process.stdout);
 process.stdin.pipe(duplex);
@@ -381,9 +381,9 @@ Otherwise, see the test cases.
 The remote IP address can be obtained from the raw socket.
 
 ```js
-const WebSocket = require('ws');
+import { WebSocketServer } from 'ws';
 
-const wss = new WebSocket.Server({ port: 8080 });
+const wss = new WebSocketServer({ port: 8080 });
 
 wss.on('connection', function connection(ws, req) {
   const ip = req.socket.remoteAddress;
@@ -409,7 +409,7 @@ In these cases ping messages can be used as a means to verify that the remote
 endpoint is still responsive.
 
 ```js
-const WebSocket = require('ws');
+import { WebSocketServer } from 'ws';
 
 function noop() {}
 
@@ -417,7 +417,7 @@ function heartbeat() {
   this.isAlive = true;
 }
 
-const wss = new WebSocket.Server({ port: 8080 });
+const wss = new WebSocketServer({ port: 8080 });
 
 wss.on('connection', function connection(ws) {
   ws.isAlive = true;
@@ -446,7 +446,7 @@ without knowing it. You might want to add a ping listener on your clients to
 prevent that. A simple implementation would be:
 
 ```js
-const WebSocket = require('ws');
+import WebSocket from 'ws';
 
 function heartbeat() {
   clearTimeout(this.pingTimeout);

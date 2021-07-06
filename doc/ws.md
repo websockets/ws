@@ -2,8 +2,8 @@
 
 ## Table of Contents
 
-- [Class: WebSocket.Server](#class-websocketserver)
-  - [new WebSocket.Server(options[, callback])](#new-websocketserveroptions-callback)
+- [Class: WebSocketServer](#class-websocketserver)
+  - [new WebSocketServer(options[, callback])](#new-websocketserveroptions-callback)
   - [Event: 'close'](#event-close)
   - [Event: 'connection'](#event-connection)
   - [Event: 'error'](#event-error)
@@ -57,11 +57,11 @@
   - [WS_ERR_UNSUPPORTED_DATA_PAYLOAD_LENGTH](#ws_err_unsupported_data_payload_length)
   - [WS_ERR_UNSUPPORTED_MESSAGE_LENGTH](#ws_err_unsupported_message_length)
 
-## Class: WebSocket.Server
+## Class: WebSocketServer
 
 This class represents a WebSocket server. It extends the `EventEmitter`.
 
-### new WebSocket.Server(options[, callback])
+### new WebSocketServer(options[, callback])
 
 - `options` {Object}
   - `host` {String} The hostname where to bind the server.
