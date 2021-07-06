@@ -16,6 +16,10 @@
   "author": "Einar Otto Stangvik <einaros@gmail.com> (http://2x.io)",
   "license": "MIT",
   "main": "index.js",
+  "exports": {
+    "import": "./wrapper.mjs",
+    "require": "./index.js"
+  },
   "browser": "browser.js",
   "engines": {
     "node": ">=10.0.0"
@@ -23,7 +27,8 @@
   "files": [
     "browser.js",
     "index.js",
-    "lib/*.js"
+    "lib/*.js",
+    "wrapper.mjs"
   ],
   "scripts": {
     "test": "nyc --reporter=lcov --reporter=text mocha --throw-deprecation test/*.test.js",
