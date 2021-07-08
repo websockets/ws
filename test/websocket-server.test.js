@@ -18,12 +18,44 @@ const { NOOP } = require('../lib/constants');
 describe('WebSocketServer', () => {
   describe('#ctor', () => {
     it('throws an error if no option object is passed', () => {
-      assert.throws(() => new WebSocket.Server());
+      assert.throws(
+        () => new WebSocket.Server(),
+        new RegExp(
+          '^TypeError: One and only one of the "port", "server", or ' +
+            '"noServer" options must be specified$'
+        )
+      );
     });
 
     describe('options', () => {
-      it('throws an error if no `port` or `server` option is specified', () => {
-        assert.throws(() => new WebSocket.Server({}));
+      it('throws an error if required options are not specified', () => {
+        assert.throws(
+          () => new WebSocket.Server({}),
+          new RegExp(
+            '^TypeError: One and only one of the "port", "server", or ' +
+              '"noServer" options must be specified$'
+          )
+        );
+      });
+
+      it('throws an error if mutually exclusive options are specified', () => {
+        const server = http.createServer();
+        const variants = [
+          { port: 0, noServer: true, server },
+          { port: 0, noServer: true },
+          { port: 0, server },
+          { noServer: true, server }
+        ];
+
+        for (const options of variants) {
+          assert.throws(
+            () => new WebSocket.Server(options),
+            new RegExp(
+              '^TypeError: One and only one of the "port", "server", or ' +
+                '"noServer" options must be specified$'
+            )
+          );
+        }
       });
 
       it('exposes options passed to constructor', (done) => {

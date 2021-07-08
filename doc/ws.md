@@ -80,8 +80,8 @@ This class represents a WebSocket server. It extends the `EventEmitter`.
   - `maxPayload` {Number} The maximum allowed message size in bytes.
 - `callback` {Function}
 
-Create a new server instance. One of `port`, `server` or `noServer` must be
-provided or an error is thrown. An HTTP server is automatically created,
+Create a new server instance. One and only one of `port`, `server` or `noServer`
+must be provided or an error is thrown. An HTTP server is automatically created,
 started, and used if `port` is set. To use an external HTTP/S server instead,
 specify only `server` or `noServer`. In this case the HTTP/S server must be
 started manually. The "noServer" mode allows the WebSocket server to be
