@@ -278,11 +278,45 @@ describe('WebSocketServer', () => {
       });
     });
 
-    it("emits the 'close' event", (done) => {
-      const wss = new WebSocket.Server({ noServer: true });
+    it("emits the 'close' event after the server closes", (done) => {
+      let serverCloseEventEmitted = false;
 
-      wss.on('close', done);
-      wss.close();
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        net.createConnection({ port: wss.address().port });
+      });
+
+      wss._server.on('connection', (socket) => {
+        wss.close();
+
+        //
+        // The server is closing. Ensure this does not emit a `'close'`
+        // event before the server is actually closed.
+        //
+        wss.close();
+
+        process.nextTick(() => {
+          socket.end();
+        });
+      });
+
+      wss._server.on('close', () => {
+        serverCloseEventEmitted = true;
+      });
+
+      wss.on('close', () => {
+        assert.ok(serverCloseEventEmitted);
+        done();
+      });
+    });
+
+    it("emits the 'close' event if the server is already closed", (done) => {
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        wss.close(() => {
+          assert.strictEqual(wss._state, 2);
+          wss.on('close', done);
+          wss.close();
+        });
+      });
     });
   });
 
