@@ -613,6 +613,28 @@ describe('WebSocketServer', () => {
       });
     });
 
+    it('fails if the WebSocket server is closing or closed', (done) => {
+      const server = http.createServer();
+      const wss = new WebSocket.Server({ noServer: true });
+
+      server.on('upgrade', (req, socket, head) => {
+        wss.close();
+        wss.handleUpgrade(req, socket, head, () => {
+          done(new Error('Unexpected callback invocation'));
+        });
+      });
+
+      server.listen(0, () => {
+        const ws = new WebSocket(`ws://localhost:${server.address().port}`);
+
+        ws.on('unexpected-response', (req, res) => {
+          assert.strictEqual(res.statusCode, 503);
+          res.resume();
+          server.close(done);
+        });
+      });
+    });
+
     it('handles unsupported extensions', (done) => {
       const wss = new WebSocket.Server(
         {
