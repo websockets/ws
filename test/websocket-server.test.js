@@ -75,6 +75,8 @@ describe('WebSocketServer', () => {
           },
           () => {
             const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+
+            ws.on('open', ws.close);
           }
         );
 
@@ -103,6 +105,8 @@ describe('WebSocketServer', () => {
       const port = 1337;
       const wss = new WebSocket.Server({ port }, () => {
         const ws = new WebSocket(`ws://localhost:${port}`);
+
+        ws.on('open', ws.close);
       });
 
       wss.on('connection', () => wss.close(done));
@@ -120,12 +124,14 @@ describe('WebSocketServer', () => {
 
       server.listen(0, () => {
         const wss = new WebSocket.Server({ server });
-        const ws = new WebSocket(`ws://localhost:${server.address().port}`);
 
         wss.on('connection', () => {
-          wss.close();
           server.close(done);
         });
+
+        const ws = new WebSocket(`ws://localhost:${server.address().port}`);
+
+        ws.on('open', ws.close);
       });
     });
 
@@ -169,7 +175,11 @@ describe('WebSocketServer', () => {
             assert.strictEqual(req.url, '/foo?bar=bar');
           } else {
             assert.strictEqual(req.url, '/');
-            wss.close();
+
+            for (const client of wss.clients) {
+              client.close();
+            }
+
             server.close(done);
           }
         });
@@ -209,29 +219,12 @@ describe('WebSocketServer', () => {
   });
 
   describe('#close', () => {
-    it('does not throw when called twice', (done) => {
+    it('does not throw if called multiple times', (done) => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
+        wss.on('close', done);
+
         wss.close();
         wss.close();
-        wss.close();
-
-        done();
-      });
-    });
-
-    it('closes all clients', (done) => {
-      let closes = 0;
-      const wss = new WebSocket.Server({ port: 0 }, () => {
-        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
-        ws.on('close', () => {
-          if (++closes === 2) done();
-        });
-      });
-
-      wss.on('connection', (ws) => {
-        ws.on('close', () => {
-          if (++closes === 2) done();
-        });
         wss.close();
       });
     });
@@ -254,6 +247,8 @@ describe('WebSocketServer', () => {
 
       server.listen(0, () => {
         const ws = new WebSocket(`ws://localhost:${server.address().port}`);
+
+        ws.on('open', ws.close);
       });
     });
 
@@ -309,6 +304,16 @@ describe('WebSocketServer', () => {
       });
     });
 
+    it("emits the 'close' event if client tracking is disabled", (done) => {
+      const wss = new WebSocket.Server({
+        noServer: true,
+        clientTracking: false
+      });
+
+      wss.on('close', done);
+      wss.close();
+    });
+
     it("emits the 'close' event if the server is already closed", (done) => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         wss.close(() => {
@@ -324,7 +329,10 @@ describe('WebSocketServer', () => {
     it('returns a list of connected clients', (done) => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         assert.strictEqual(wss.clients.size, 0);
+
         const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+
+        ws.on('open', ws.close);
       });
 
       wss.on('connection', () => {
@@ -404,9 +412,10 @@ describe('WebSocketServer', () => {
         const wss = new WebSocket.Server({ noServer: true });
 
         server.on('upgrade', (req, socket, head) => {
-          wss.handleUpgrade(req, socket, head, (client) =>
-            client.send('hello')
-          );
+          wss.handleUpgrade(req, socket, head, (ws) => {
+            ws.send('hello');
+            ws.close();
+          });
         });
 
         const ws = new WebSocket(`ws://localhost:${server.address().port}`);
@@ -414,7 +423,6 @@ describe('WebSocketServer', () => {
         ws.on('message', (message, isBinary) => {
           assert.deepStrictEqual(message, Buffer.from('hello'));
           assert.ok(!isBinary);
-          wss.close();
           server.close(done);
         });
       });
@@ -683,6 +691,7 @@ describe('WebSocketServer', () => {
 
             socket.once('data', (chunk) => {
               assert.strictEqual(chunk[0], 0x88);
+              socket.destroy();
               wss.close(done);
             });
           });
@@ -742,7 +751,6 @@ describe('WebSocketServer', () => {
         });
 
         wss.on('connection', () => {
-          wss.close();
           server.close(done);
         });
 
@@ -751,6 +759,8 @@ describe('WebSocketServer', () => {
             headers: { Origin: 'https://example.com', foo: 'bar' },
             rejectUnauthorized: false
           });
+
+          ws.on('open', ws.close);
         });
       });
 
@@ -762,6 +772,8 @@ describe('WebSocketServer', () => {
           },
           () => {
             const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+
+            ws.on('open', ws.close);
           }
         );
 
@@ -959,6 +971,10 @@ describe('WebSocketServer', () => {
             wss.close(done);
           });
         });
+
+        wss.on('connection', (ws) => {
+          ws.close();
+        });
       });
     });
 
@@ -966,17 +982,19 @@ describe('WebSocketServer', () => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
-        wss.on('headers', (headers, request) => {
-          assert.deepStrictEqual(headers.slice(0, 3), [
-            'HTTP/1.1 101 Switching Protocols',
-            'Upgrade: websocket',
-            'Connection: Upgrade'
-          ]);
-          assert.ok(request instanceof http.IncomingMessage);
-          assert.strictEqual(request.url, '/');
+        ws.on('open', ws.close);
+      });
 
-          wss.on('connection', () => wss.close(done));
-        });
+      wss.on('headers', (headers, request) => {
+        assert.deepStrictEqual(headers.slice(0, 3), [
+          'HTTP/1.1 101 Switching Protocols',
+          'Upgrade: websocket',
+          'Connection: Upgrade'
+        ]);
+        assert.ok(request instanceof http.IncomingMessage);
+        assert.strictEqual(request.url, '/');
+
+        wss.on('connection', () => wss.close(done));
       });
     });
   });
@@ -985,6 +1003,8 @@ describe('WebSocketServer', () => {
     it('is disabled by default', (done) => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+
+        ws.on('open', ws.close);
       });
 
       wss.on('connection', (ws, req) => {
@@ -1016,6 +1036,10 @@ describe('WebSocketServer', () => {
           });
         }
       );
+
+      wss.on('connection', (ws) => {
+        ws.close();
+      });
     });
   });
 });

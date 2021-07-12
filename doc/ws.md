@@ -207,9 +207,14 @@ added when the `clientTracking` is truthy.
 
 ### server.close([callback])
 
-Close the HTTP server if created internally, terminate all clients and call
-callback when done. If an external HTTP server is used via the `server` or
-`noServer` constructor options, it must be closed manually.
+Prevent the server from accepting new connections and close the HTTP server if
+created internally. If an external HTTP server is used via the `server` or
+`noServer` constructor options, it must be closed manually. Existing connections
+are not closed automatically. The server emits a `'close'` event when all
+connections are closed unless an external HTTP server is used and client
+tracking is disabled. In this case the `'close'` event is emitted in the next
+tick. The optional callback is called when the `'close'` event occurs and
+receives an `Error` if the server is already closed.
 
 ### server.handleUpgrade(request, socket, head, callback)
 
