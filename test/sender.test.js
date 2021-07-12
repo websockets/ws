@@ -266,6 +266,31 @@ describe('Sender', () => {
   });
 
   describe('#close', () => {
+    it('throws an error if the first argument is invalid', () => {
+      const mockSocket = new MockSocket();
+      const sender = new Sender(mockSocket);
+
+      assert.throws(
+        () => sender.close('error'),
+        /^TypeError: First argument must be a valid error code number$/
+      );
+
+      assert.throws(
+        () => sender.close(1004),
+        /^TypeError: First argument must be a valid error code number$/
+      );
+    });
+
+    it('throws an error if the message is greater than 123 bytes', () => {
+      const mockSocket = new MockSocket();
+      const sender = new Sender(mockSocket);
+
+      assert.throws(
+        () => sender.close(1000, 'a'.repeat(124)),
+        /^RangeError: The message must not be greater than 123 bytes$/
+      );
+    });
+
     it('should consume all data before closing', (done) => {
       const perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
 
