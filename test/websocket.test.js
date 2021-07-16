@@ -2097,10 +2097,10 @@ describe('WebSocket', () => {
 
       const ws = new WebSocket('ws://localhost', { agent: new CustomAgent() });
 
-      assert.strictEqual(ws.onmessage, undefined);
-      assert.strictEqual(ws.onclose, undefined);
-      assert.strictEqual(ws.onerror, undefined);
-      assert.strictEqual(ws.onopen, undefined);
+      assert.strictEqual(ws.onmessage, null);
+      assert.strictEqual(ws.onclose, null);
+      assert.strictEqual(ws.onerror, null);
+      assert.strictEqual(ws.onopen, null);
 
       ws.onmessage = NOOP;
       ws.onerror = NOOP;
@@ -2114,7 +2114,7 @@ describe('WebSocket', () => {
 
       ws.onmessage = 'foo';
 
-      assert.strictEqual(ws.onmessage, undefined);
+      assert.strictEqual(ws.onmessage, null);
       assert.strictEqual(ws.listenerCount('onmessage'), 0);
     });
 
@@ -2149,7 +2149,7 @@ describe('WebSocket', () => {
       ws.on('open', NOOP);
 
       assert.deepStrictEqual(ws.listeners('open'), [NOOP]);
-      assert.strictEqual(ws.onopen, undefined);
+      assert.strictEqual(ws.onopen, null);
     });
 
     it("doesn't remove listeners added with `on`", () => {
@@ -2214,7 +2214,7 @@ describe('WebSocket', () => {
       assert.strictEqual(listeners.length, 1);
       assert.strictEqual(listeners[0][kListener], NOOP);
 
-      assert.strictEqual(ws.onopen, undefined);
+      assert.strictEqual(ws.onopen, null);
     });
 
     it("doesn't remove listeners added with `addEventListener`", () => {
