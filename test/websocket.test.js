@@ -2233,6 +2233,30 @@ describe('WebSocket', () => {
 
       assert.strictEqual(ws.listenerCount('message'), 0);
       assert.strictEqual(ws.listenerCount('open'), 0);
+
+      // Multiple listeners.
+      ws.addEventListener('message', NOOP);
+      ws.addEventListener('message', NOOP);
+
+      assert.strictEqual(ws.listeners('message')[0][kListener], NOOP);
+      assert.strictEqual(ws.listeners('message')[1][kListener], NOOP);
+
+      ws.removeEventListener('message', NOOP);
+
+      assert.strictEqual(ws.listeners('message')[0][kListener], NOOP);
+
+      ws.removeEventListener('message', NOOP);
+
+      assert.strictEqual(ws.listenerCount('message'), 0);
+
+      // Listeners not added with `websocket.addEventListener()`.
+      ws.on('message', NOOP);
+
+      assert.deepStrictEqual(ws.listeners('message'), [NOOP]);
+
+      ws.removeEventListener('message', NOOP);
+
+      assert.deepStrictEqual(ws.listeners('message'), [NOOP]);
     });
 
     it('wraps text data in a `MessageEvent`', (done) => {
