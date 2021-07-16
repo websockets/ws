@@ -370,7 +370,9 @@ handshake. This allows you to read headers from the server, for example
     at most once after being added. If `true`, the listener would be
     automatically removed when invoked.
 
-Register an event listener emulating the `EventTarget` interface.
+Register an event listener emulating the `EventTarget` interface. This method
+does nothing if `type` is not one of `'close'`, `'error'`, `'message'`, or
+`'open'`.
 
 ### websocket.binaryType
 
