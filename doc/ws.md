@@ -476,7 +476,9 @@ The current state of the connection. This is one of the ready state constants.
 - `type` {String} A string representing the event type to remove.
 - `listener` {Function} The listener to remove.
 
-Removes an event listener emulating the `EventTarget` interface.
+Removes an event listener emulating the `EventTarget` interface. This method
+only removes listeners added with
+[`websocket.addEventListener()`](#websocketaddeventlistenertype-listener-options).
 
 ### websocket.send(data[, options][, callback])
 
