@@ -2111,6 +2111,11 @@ describe('WebSocket', () => {
       assert.strictEqual(ws.onclose, NOOP);
       assert.strictEqual(ws.onerror, NOOP);
       assert.strictEqual(ws.onopen, NOOP);
+
+      ws.onmessage = 'foo';
+
+      assert.strictEqual(ws.onmessage, undefined);
+      assert.strictEqual(ws.listenerCount('onmessage'), 0);
     });
 
     it('works like the `EventEmitter` interface', (done) => {
@@ -2199,6 +2204,40 @@ describe('WebSocket', () => {
       assert.deepStrictEqual(events, ['open', 'message']);
     });
 
+    it("doesn't return listeners added with `addEventListener`", () => {
+      const ws = new WebSocket('ws://localhost', { agent: new CustomAgent() });
+
+      ws.addEventListener('open', NOOP);
+
+      const listeners = ws.listeners('open');
+
+      assert.strictEqual(listeners.length, 1);
+      assert.strictEqual(listeners[0][kListener], NOOP);
+
+      assert.strictEqual(ws.onopen, undefined);
+    });
+
+    it("doesn't remove listeners added with `addEventListener`", () => {
+      const ws = new WebSocket('ws://localhost', { agent: new CustomAgent() });
+
+      ws.addEventListener('close', NOOP);
+      ws.onclose = NOOP;
+
+      let listeners = ws.listeners('close');
+
+      assert.strictEqual(listeners.length, 2);
+      assert.strictEqual(listeners[0][kListener], NOOP);
+      assert.strictEqual(listeners[1][kListener], NOOP);
+
+      ws.onclose = NOOP;
+
+      listeners = ws.listeners('close');
+
+      assert.strictEqual(listeners.length, 2);
+      assert.strictEqual(listeners[0][kListener], NOOP);
+      assert.strictEqual(listeners[1][kListener], NOOP);
+    });
+
     it('supports the `removeEventListener` method', () => {
       const ws = new WebSocket('ws://localhost', { agent: new CustomAgent() });
 
@@ -2257,6 +2296,14 @@ describe('WebSocket', () => {
       ws.removeEventListener('message', NOOP);
 
       assert.deepStrictEqual(ws.listeners('message'), [NOOP]);
+
+      ws.onclose = NOOP;
+
+      assert.strictEqual(ws.listeners('close')[0][kListener], NOOP);
+
+      ws.removeEventListener('close', NOOP);
+
+      assert.strictEqual(ws.listeners('close')[0][kListener], NOOP);
     });
 
     it('wraps text data in a `MessageEvent`', (done) => {
