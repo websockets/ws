@@ -11,6 +11,12 @@ const fs = require('fs');
 const { URL } = require('url');
 
 const WebSocket = require('..');
+const {
+  CloseEvent,
+  ErrorEvent,
+  Event,
+  MessageEvent
+} = require('../lib/event-target');
 const { EMPTY_BUFFER, GUID, kListener, NOOP } = require('../lib/constants');
 
 class CustomAgent extends http.Agent {
@@ -2315,8 +2321,9 @@ describe('WebSocket', () => {
           ws.close();
         });
 
-        ws.addEventListener('message', (messageEvent) => {
-          assert.strictEqual(messageEvent.data, 'hi');
+        ws.addEventListener('message', (event) => {
+          assert.ok(event instanceof MessageEvent);
+          assert.strictEqual(event.data, 'hi');
           wss.close(done);
         });
       });
@@ -2332,10 +2339,11 @@ describe('WebSocket', () => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
-        ws.addEventListener('close', (closeEvent) => {
-          assert.ok(closeEvent.wasClean);
-          assert.strictEqual(closeEvent.reason, '');
-          assert.strictEqual(closeEvent.code, 1000);
+        ws.addEventListener('close', (event) => {
+          assert.ok(event instanceof CloseEvent);
+          assert.ok(event.wasClean);
+          assert.strictEqual(event.reason, '');
+          assert.strictEqual(event.code, 1000);
           wss.close(done);
         });
       });
@@ -2347,10 +2355,11 @@ describe('WebSocket', () => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
-        ws.addEventListener('close', (closeEvent) => {
-          assert.ok(closeEvent.wasClean);
-          assert.strictEqual(closeEvent.reason, 'some daft reason');
-          assert.strictEqual(closeEvent.code, 4000);
+        ws.addEventListener('close', (event) => {
+          assert.ok(event instanceof CloseEvent);
+          assert.ok(event.wasClean);
+          assert.strictEqual(event.reason, 'some daft reason');
+          assert.strictEqual(event.code, 4000);
           wss.close(done);
         });
       });
@@ -2363,25 +2372,29 @@ describe('WebSocket', () => {
         const err = new Error('forced');
         const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
-        ws.addEventListener('open', (openEvent) => {
-          assert.strictEqual(openEvent.type, 'open');
-          assert.strictEqual(openEvent.target, ws);
+        ws.addEventListener('open', (event) => {
+          assert.ok(event instanceof Event);
+          assert.strictEqual(event.type, 'open');
+          assert.strictEqual(event.target, ws);
         });
-        ws.addEventListener('message', (messageEvent) => {
-          assert.strictEqual(messageEvent.type, 'message');
-          assert.strictEqual(messageEvent.target, ws);
+        ws.addEventListener('message', (event) => {
+          assert.ok(event instanceof MessageEvent);
+          assert.strictEqual(event.type, 'message');
+          assert.strictEqual(event.target, ws);
           ws.close();
         });
-        ws.addEventListener('close', (closeEvent) => {
-          assert.strictEqual(closeEvent.type, 'close');
-          assert.strictEqual(closeEvent.target, ws);
+        ws.addEventListener('close', (event) => {
+          assert.ok(event instanceof CloseEvent);
+          assert.strictEqual(event.type, 'close');
+          assert.strictEqual(event.target, ws);
           ws.emit('error', err);
         });
-        ws.addEventListener('error', (errorEvent) => {
-          assert.strictEqual(errorEvent.message, 'forced');
-          assert.strictEqual(errorEvent.type, 'error');
-          assert.strictEqual(errorEvent.target, ws);
-          assert.strictEqual(errorEvent.error, err);
+        ws.addEventListener('error', (event) => {
+          assert.ok(event instanceof ErrorEvent);
+          assert.strictEqual(event.message, 'forced');
+          assert.strictEqual(event.type, 'error');
+          assert.strictEqual(event.target, ws);
+          assert.strictEqual(event.error, err);
 
           wss.close(done);
         });
