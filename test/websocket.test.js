@@ -10,6 +10,7 @@ const tls = require('tls');
 const fs = require('fs');
 const { URL } = require('url');
 
+const Sender = require('../lib/sender');
 const WebSocket = require('..');
 const {
   CloseEvent,
@@ -2942,15 +2943,21 @@ describe('WebSocket', () => {
       });
     });
 
-    it('consumes all received data when connection is closed abnormally', (done) => {
+    it('consumes all received data when connection is closed (1/2)', (done) => {
       const wss = new WebSocket.Server(
         {
           perMessageDeflate: { threshold: 0 },
           port: 0
         },
         () => {
-          const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
           const messages = [];
+          const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+
+          ws.on('open', () => {
+            ws._socket.on('close', () => {
+              assert.strictEqual(ws._receiver._state, 5);
+            });
+          });
 
           ws.on('message', (message, isBinary) => {
             assert.ok(!isBinary);
@@ -2971,6 +2978,77 @@ describe('WebSocket', () => {
         ws.send('baz');
         ws.send('qux', () => ws._socket.end());
       });
+    });
+
+    it('consumes all received data when connection is closed (2/2)', (done) => {
+      const payload1 = Buffer.alloc(15 * 1024);
+      const payload2 = Buffer.alloc(1);
+
+      const opts = {
+        fin: true,
+        opcode: 0x02,
+        mask: false,
+        readOnly: false
+      };
+
+      const list = [
+        ...Sender.frame(payload1, { rsv1: false, ...opts }),
+        ...Sender.frame(payload2, { rsv1: true, ...opts })
+      ];
+
+      for (let i = 0; i < 399; i++) {
+        list.push(list[list.length - 2], list[list.length - 1]);
+      }
+
+      const data = Buffer.concat(list);
+
+      const wss = new WebSocket.Server(
+        {
+          perMessageDeflate: true,
+          port: 0
+        },
+        () => {
+          const messageLengths = [];
+          const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+
+          ws.on('open', () => {
+            ws._socket.prependListener('close', () => {
+              assert.strictEqual(ws._receiver._state, 5);
+              assert.strictEqual(ws._socket._readableState.length, 3);
+            });
+
+            const push = ws._socket.push;
+
+            ws._socket.push = (data) => {
+              ws._socket.push = push;
+              ws._socket.push(data);
+              ws.terminate();
+            };
+
+            // This hack is used because there is no guarantee that more than
+            // 16 KiB will be sent as a single TCP packet.
+            push.call(ws._socket, data);
+
+            wss.clients
+              .values()
+              .next()
+              .value.send(payload2, { compress: false });
+          });
+
+          ws.on('message', (message, isBinary) => {
+            assert.ok(isBinary);
+            messageLengths.push(message.length);
+          });
+
+          ws.on('close', (code) => {
+            assert.strictEqual(code, 1006);
+            assert.strictEqual(messageLengths.length, 402);
+            assert.strictEqual(messageLengths[0], 15360);
+            assert.strictEqual(messageLengths[messageLengths.length - 1], 1);
+            wss.close(done);
+          });
+        }
+      );
     });
 
     it('handles a close frame received while compressing data', (done) => {
