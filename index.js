@@ -1,3 +1,4 @@
+//Start Of Index
 'use strict';
 
 const WebSocket = require('./lib/websocket');
@@ -8,3 +9,5 @@ WebSocket.Receiver = require('./lib/receiver');
 WebSocket.Sender = require('./lib/sender');
 
 module.exports = WebSocket;
+
+//End Of Index
