@@ -3011,27 +3011,6 @@ describe('WebSocket', () => {
     });
 
     it('consumes all received data when connection is closed (2/2)', (done) => {
-      const payload1 = Buffer.alloc(15 * 1024);
-      const payload2 = Buffer.alloc(1);
-
-      const opts = {
-        fin: true,
-        opcode: 0x02,
-        mask: false,
-        readOnly: false
-      };
-
-      const list = [
-        ...Sender.frame(payload1, { rsv1: false, ...opts }),
-        ...Sender.frame(payload2, { rsv1: true, ...opts })
-      ];
-
-      for (let i = 0; i < 399; i++) {
-        list.push(list[list.length - 2], list[list.length - 1]);
-      }
-
-      const data = Buffer.concat(list);
-
       const wss = new WebSocket.Server(
         {
           perMessageDeflate: true,
@@ -3049,15 +3028,37 @@ describe('WebSocket', () => {
 
             const push = ws._socket.push;
 
+            // Override `ws._socket.push()` to know exactly when data is
+            // received and call `ws.terminate()` immediately after that without
+            // relying on a timer.
             ws._socket.push = (data) => {
               ws._socket.push = push;
               ws._socket.push(data);
               ws.terminate();
             };
 
+            const payload1 = Buffer.alloc(15 * 1024);
+            const payload2 = Buffer.alloc(1);
+
+            const opts = {
+              fin: true,
+              opcode: 0x02,
+              mask: false,
+              readOnly: false
+            };
+
+            const list = [
+              ...Sender.frame(payload1, { rsv1: false, ...opts }),
+              ...Sender.frame(payload2, { rsv1: true, ...opts })
+            ];
+
+            for (let i = 0; i < 399; i++) {
+              list.push(list[list.length - 2], list[list.length - 1]);
+            }
+
             // This hack is used because there is no guarantee that more than
             // 16 KiB will be sent as a single TCP packet.
-            push.call(ws._socket, data);
+            push.call(ws._socket, Buffer.concat(list));
 
             wss.clients
               .values()
