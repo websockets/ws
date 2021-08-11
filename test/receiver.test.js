@@ -1059,4 +1059,28 @@ describe('Receiver', () => {
       }).forEach((buf) => receiver.write(buf));
     });
   });
+
+  it('honors the `skipUTF8Validation` option (1/2)', (done) => {
+    const receiver = new Receiver({ skipUTF8Validation: true });
+
+    receiver.on('message', (data, isBinary) => {
+      assert.deepStrictEqual(data, Buffer.from([0xf8]));
+      assert.ok(!isBinary);
+      done();
+    });
+
+    receiver.write(Buffer.from([0x81, 0x01, 0xf8]));
+  });
+
+  it('honors the `skipUTF8Validation` option (2/2)', (done) => {
+    const receiver = new Receiver({ skipUTF8Validation: true });
+
+    receiver.on('conclude', (code, data) => {
+      assert.strictEqual(code, 1000);
+      assert.deepStrictEqual(data, Buffer.from([0xf8]));
+      done();
+    });
+
+    receiver.write(Buffer.from([0x88, 0x03, 0x03, 0xe8, 0xf8]));
+  });
 });
