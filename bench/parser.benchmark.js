@@ -39,7 +39,8 @@ const suite = new benchmark.Suite();
 const receiver = new Receiver({
   binaryType: 'nodebuffer',
   extensions: {},
-  isServer: true
+  isServer: true,
+  skipUTF8Validation: false
 });
 
 suite.add('ping frame (5 bytes payload)', {

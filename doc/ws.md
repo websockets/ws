@@ -78,6 +78,9 @@ This class represents a WebSocket server. It extends the `EventEmitter`.
   - `clientTracking` {Boolean} Specifies whether or not to track clients.
   - `perMessageDeflate` {Boolean|Object} Enable/disable permessage-deflate.
   - `maxPayload` {Number} The maximum allowed message size in bytes.
+  - `skipUTF8Validation` {Boolean} Specifies whether or not to skip UTF-8
+    validation for text and close messages. Defaults to `false`. Set to `true`
+    only if clients are trusted.
 - `callback` {Function}
 
 Create a new server instance. One and only one of `port`, `server` or `noServer`
@@ -273,6 +276,9 @@ This class represents a WebSocket. It extends the `EventEmitter`.
   - `origin` {String} Value of the `Origin` or `Sec-WebSocket-Origin` header
     depending on the `protocolVersion`.
   - `maxPayload` {Number} The maximum allowed message size in bytes.
+  - `skipUTF8Validation` {Boolean} Specifies whether or not to skip UTF-8
+    validation for text and close messages. Defaults to `false`. Set to `true`
+    only if the server is trusted.
   - Any other option allowed in [http.request()][] or [https.request()][].
     Options given do not have any effect if parsed from the URL given with the
     `address` parameter.
