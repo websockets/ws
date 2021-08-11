@@ -47,7 +47,7 @@ describe('Receiver', () => {
   });
 
   it('parses a masked text message', (done) => {
-    const receiver = new Receiver(undefined, {}, true);
+    const receiver = new Receiver({ isServer: true });
 
     receiver.on('message', (data, isBinary) => {
       assert.deepStrictEqual(data, Buffer.from('5:::{"name":"echo"}'));
@@ -61,7 +61,7 @@ describe('Receiver', () => {
   });
 
   it('parses a masked text message longer than 125 B', (done) => {
-    const receiver = new Receiver(undefined, {}, true);
+    const receiver = new Receiver({ isServer: true });
     const msg = Buffer.from('A'.repeat(200));
 
     const list = Sender.frame(msg, {
@@ -85,7 +85,7 @@ describe('Receiver', () => {
   });
 
   it('parses a really long masked text message', (done) => {
-    const receiver = new Receiver(undefined, {}, true);
+    const receiver = new Receiver({ isServer: true });
     const msg = Buffer.from('A'.repeat(64 * 1024));
 
     const list = Sender.frame(msg, {
@@ -108,7 +108,7 @@ describe('Receiver', () => {
   });
 
   it('parses a 300 B fragmented masked text message', (done) => {
-    const receiver = new Receiver(undefined, {}, true);
+    const receiver = new Receiver({ isServer: true });
     const msg = Buffer.from('A'.repeat(300));
 
     const fragment1 = msg.slice(0, 150);
@@ -142,7 +142,7 @@ describe('Receiver', () => {
   });
 
   it('parses a ping message', (done) => {
-    const receiver = new Receiver(undefined, {}, true);
+    const receiver = new Receiver({ isServer: true });
     const msg = Buffer.from('Hello');
 
     const list = Sender.frame(msg, {
@@ -175,7 +175,7 @@ describe('Receiver', () => {
   });
 
   it('parses a 300 B fragmented masked text message with a ping in the middle (1/2)', (done) => {
-    const receiver = new Receiver(undefined, {}, true);
+    const receiver = new Receiver({ isServer: true });
     const msg = Buffer.from('A'.repeat(300));
     const pingMessage = Buffer.from('Hello');
 
@@ -225,7 +225,7 @@ describe('Receiver', () => {
   });
 
   it('parses a 300 B fragmented masked text message with a ping in the middle (2/2)', (done) => {
-    const receiver = new Receiver(undefined, {}, true);
+    const receiver = new Receiver({ isServer: true });
     const msg = Buffer.from('A'.repeat(300));
     const pingMessage = Buffer.from('Hello');
 
@@ -285,7 +285,7 @@ describe('Receiver', () => {
   });
 
   it('parses a 100 B masked binary message', (done) => {
-    const receiver = new Receiver(undefined, {}, true);
+    const receiver = new Receiver({ isServer: true });
     const msg = crypto.randomBytes(100);
 
     const list = Sender.frame(msg, {
@@ -308,7 +308,7 @@ describe('Receiver', () => {
   });
 
   it('parses a 256 B masked binary message', (done) => {
-    const receiver = new Receiver(undefined, {}, true);
+    const receiver = new Receiver({ isServer: true });
     const msg = crypto.randomBytes(256);
 
     const list = Sender.frame(msg, {
@@ -331,7 +331,7 @@ describe('Receiver', () => {
   });
 
   it('parses a 200 KiB masked binary message', (done) => {
-    const receiver = new Receiver(undefined, {}, true);
+    const receiver = new Receiver({ isServer: true });
     const msg = crypto.randomBytes(200 * 1024);
 
     const list = Sender.frame(msg, {
@@ -380,8 +380,10 @@ describe('Receiver', () => {
     const perMessageDeflate = new PerMessageDeflate();
     perMessageDeflate.accept([{}]);
 
-    const receiver = new Receiver(undefined, {
-      'permessage-deflate': perMessageDeflate
+    const receiver = new Receiver({
+      extensions: {
+        'permessage-deflate': perMessageDeflate
+      }
     });
     const buf = Buffer.from('Hello');
 
@@ -403,8 +405,10 @@ describe('Receiver', () => {
     const perMessageDeflate = new PerMessageDeflate();
     perMessageDeflate.accept([{}]);
 
-    const receiver = new Receiver(undefined, {
-      'permessage-deflate': perMessageDeflate
+    const receiver = new Receiver({
+      extensions: {
+        'permessage-deflate': perMessageDeflate
+      }
     });
     const buf1 = Buffer.from('foo');
     const buf2 = Buffer.from('bar');
@@ -451,7 +455,7 @@ describe('Receiver', () => {
   });
 
   it('resets `totalPayloadLength` only on final frame (unfragmented)', (done) => {
-    const receiver = new Receiver(undefined, {}, false, 10);
+    const receiver = new Receiver({ maxPayload: 10 });
 
     receiver.on('message', (data, isBinary) => {
       assert.strictEqual(receiver._totalPayloadLength, 0);
@@ -465,7 +469,7 @@ describe('Receiver', () => {
   });
 
   it('resets `totalPayloadLength` only on final frame (fragmented)', (done) => {
-    const receiver = new Receiver(undefined, {}, false, 10);
+    const receiver = new Receiver({ maxPayload: 10 });
 
     receiver.on('message', (data, isBinary) => {
       assert.strictEqual(receiver._totalPayloadLength, 0);
@@ -481,7 +485,7 @@ describe('Receiver', () => {
   });
 
   it('resets `totalPayloadLength` only on final frame (fragmented + ping)', (done) => {
-    const receiver = new Receiver(undefined, {}, false, 10);
+    const receiver = new Receiver({ maxPayload: 10 });
     let data;
 
     receiver.on('ping', (buf) => {
@@ -506,8 +510,10 @@ describe('Receiver', () => {
     const perMessageDeflate = new PerMessageDeflate();
     perMessageDeflate.accept([{}]);
 
-    const receiver = new Receiver(undefined, {
-      'permessage-deflate': perMessageDeflate
+    const receiver = new Receiver({
+      extensions: {
+        'permessage-deflate': perMessageDeflate
+      }
     });
     const results = [];
     const push = results.push.bind(results);
@@ -549,8 +555,10 @@ describe('Receiver', () => {
     const perMessageDeflate = new PerMessageDeflate();
     perMessageDeflate.accept([{}]);
 
-    const receiver = new Receiver(undefined, {
-      'permessage-deflate': perMessageDeflate
+    const receiver = new Receiver({
+      extensions: {
+        'permessage-deflate': perMessageDeflate
+      }
     });
 
     receiver.on('error', (err) => {
@@ -675,8 +683,10 @@ describe('Receiver', () => {
     const perMessageDeflate = new PerMessageDeflate();
     perMessageDeflate.accept([{}]);
 
-    const receiver = new Receiver(undefined, {
-      'permessage-deflate': perMessageDeflate
+    const receiver = new Receiver({
+      extensions: {
+        'permessage-deflate': perMessageDeflate
+      }
     });
 
     receiver.on('error', (err) => {
@@ -711,7 +721,7 @@ describe('Receiver', () => {
   });
 
   it('emits an error if a frame has the MASK bit off (server mode)', (done) => {
-    const receiver = new Receiver(undefined, {}, true);
+    const receiver = new Receiver({ isServer: true });
 
     receiver.on('error', (err) => {
       assert.ok(err instanceof RangeError);
@@ -728,7 +738,7 @@ describe('Receiver', () => {
   });
 
   it('emits an error if a frame has the MASK bit on (client mode)', (done) => {
-    const receiver = new Receiver(undefined, {}, false);
+    const receiver = new Receiver();
 
     receiver.on('error', (err) => {
       assert.ok(err instanceof RangeError);
@@ -806,8 +816,10 @@ describe('Receiver', () => {
     const perMessageDeflate = new PerMessageDeflate();
     perMessageDeflate.accept([{}]);
 
-    const receiver = new Receiver(undefined, {
-      'permessage-deflate': perMessageDeflate
+    const receiver = new Receiver({
+      extensions: {
+        'permessage-deflate': perMessageDeflate
+      }
     });
     const buf = Buffer.from([0xce, 0xba, 0xe1, 0xbd]);
 
@@ -884,7 +896,7 @@ describe('Receiver', () => {
   });
 
   it('emits an error if a frame payload length is bigger than `maxPayload`', (done) => {
-    const receiver = new Receiver(undefined, {}, true, 20 * 1024);
+    const receiver = new Receiver({ isServer: true, maxPayload: 20 * 1024 });
     const msg = crypto.randomBytes(200 * 1024);
 
     const list = Sender.frame(msg, {
@@ -912,14 +924,11 @@ describe('Receiver', () => {
     const perMessageDeflate = new PerMessageDeflate({}, false, 25);
     perMessageDeflate.accept([{}]);
 
-    const receiver = new Receiver(
-      undefined,
-      {
-        'permessage-deflate': perMessageDeflate
-      },
-      false,
-      25
-    );
+    const receiver = new Receiver({
+      extensions: { 'permessage-deflate': perMessageDeflate },
+      isServer: false,
+      maxPayload: 25
+    });
     const buf = Buffer.from('A'.repeat(50));
 
     receiver.on('error', (err) => {
@@ -942,14 +951,11 @@ describe('Receiver', () => {
     const perMessageDeflate = new PerMessageDeflate({}, false, 25);
     perMessageDeflate.accept([{}]);
 
-    const receiver = new Receiver(
-      undefined,
-      {
-        'permessage-deflate': perMessageDeflate
-      },
-      false,
-      25
-    );
+    const receiver = new Receiver({
+      extensions: { 'permessage-deflate': perMessageDeflate },
+      isServer: false,
+      maxPayload: 25
+    });
     const buf = Buffer.from('A'.repeat(15));
 
     receiver.on('error', (err) => {
@@ -1002,7 +1008,7 @@ describe('Receiver', () => {
   });
 
   it("honors the 'arraybuffer' binary type", (done) => {
-    const receiver = new Receiver('arraybuffer');
+    const receiver = new Receiver({ binaryType: 'arraybuffer' });
     const frags = [
       crypto.randomBytes(19221),
       crypto.randomBytes(954),
@@ -1028,7 +1034,7 @@ describe('Receiver', () => {
   });
 
   it("honors the 'fragments' binary type", (done) => {
-    const receiver = new Receiver('fragments');
+    const receiver = new Receiver({ binaryType: 'fragments' });
     const frags = [
       crypto.randomBytes(17),
       crypto.randomBytes(419872),
