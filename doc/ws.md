@@ -64,23 +64,23 @@ This class represents a WebSocket server. It extends the `EventEmitter`.
 ### new WebSocketServer(options[, callback])
 
 - `options` {Object}
-  - `host` {String} The hostname where to bind the server.
-  - `port` {Number} The port where to bind the server.
   - `backlog` {Number} The maximum length of the queue of pending connections.
-  - `server` {http.Server|https.Server} A pre-created Node.js HTTP/S server.
-  - `verifyClient` {Function} A function which can be used to validate incoming
-    connections. See description below. (Usage is discouraged: see
-    [Issue #337](https://github.com/websockets/ws/issues/377#issuecomment-462152231))
+  - `clientTracking` {Boolean} Specifies whether or not to track clients.
   - `handleProtocols` {Function} A function which can be used to handle the
     WebSocket subprotocols. See description below.
-  - `path` {String} Accept only connections matching this path.
-  - `noServer` {Boolean} Enable no server mode.
-  - `clientTracking` {Boolean} Specifies whether or not to track clients.
-  - `perMessageDeflate` {Boolean|Object} Enable/disable permessage-deflate.
+  - `host` {String} The hostname where to bind the server.
   - `maxPayload` {Number} The maximum allowed message size in bytes.
+  - `noServer` {Boolean} Enable no server mode.
+  - `path` {String} Accept only connections matching this path.
+  - `perMessageDeflate` {Boolean|Object} Enable/disable permessage-deflate.
+  - `port` {Number} The port where to bind the server.
+  - `server` {http.Server|https.Server} A pre-created Node.js HTTP/S server.
   - `skipUTF8Validation` {Boolean} Specifies whether or not to skip UTF-8
     validation for text and close messages. Defaults to `false`. Set to `true`
     only if clients are trusted.
+  - `verifyClient` {Function} A function which can be used to validate incoming
+    connections. See description below. (Usage is discouraged: see
+    [Issue #337](https://github.com/websockets/ws/issues/377#issuecomment-462152231))
 - `callback` {Function}
 
 Create a new server instance. One and only one of `port`, `server` or `noServer`
@@ -269,13 +269,13 @@ This class represents a WebSocket. It extends the `EventEmitter`.
     `false`.
   - `handshakeTimeout` {Number} Timeout in milliseconds for the handshake
     request. This is reset after every redirection.
+  - `maxPayload` {Number} The maximum allowed message size in bytes.
   - `maxRedirects` {Number} The maximum number of redirects allowed. Defaults
     to 10.
-  - `perMessageDeflate` {Boolean|Object} Enable/disable permessage-deflate.
-  - `protocolVersion` {Number} Value of the `Sec-WebSocket-Version` header.
   - `origin` {String} Value of the `Origin` or `Sec-WebSocket-Origin` header
     depending on the `protocolVersion`.
-  - `maxPayload` {Number} The maximum allowed message size in bytes.
+  - `perMessageDeflate` {Boolean|Object} Enable/disable permessage-deflate.
+  - `protocolVersion` {Number} Value of the `Sec-WebSocket-Version` header.
   - `skipUTF8Validation` {Boolean} Specifies whether or not to skip UTF-8
     validation for text and close messages. Defaults to `false`. Set to `true`
     only if the server is trusted.
@@ -491,14 +491,14 @@ only removes listeners added with
 - `data` {Array|Number|Object|String|ArrayBuffer|Buffer|DataView|TypedArray} The
   data to send.
 - `options` {Object}
-  - `compress` {Boolean} Specifies whether `data` should be compressed or not.
-    Defaults to `true` when permessage-deflate is enabled.
   - `binary` {Boolean} Specifies whether `data` should be sent as a binary or
     not. Default is autodetected.
-  - `mask` {Boolean} Specifies whether `data` should be masked or not. Defaults
-    to `true` when `websocket` is not a server client.
+  - `compress` {Boolean} Specifies whether `data` should be compressed or not.
+    Defaults to `true` when permessage-deflate is enabled.
   - `fin` {Boolean} Specifies whether `data` is the last fragment of a message
     or not. Defaults to `true`.
+  - `mask` {Boolean} Specifies whether `data` should be masked or not. Defaults
+    to `true` when `websocket` is not a server client.
 - `callback` {Function} An optional callback which is invoked when `data` is
   written out.
 
