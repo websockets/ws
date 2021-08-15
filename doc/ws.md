@@ -43,7 +43,7 @@
   - [websocket.send(data[, options][, callback])](#websocketsenddata-options-callback)
   - [websocket.terminate()](#websocketterminate)
   - [websocket.url](#websocketurl)
-- [WebSocket.createWebSocketStream(websocket[, options])](#websocketcreatewebsocketstreamwebsocket-options)
+- [createWebSocketStream(websocket[, options])](#createwebsocketstreamwebsocket-options)
 - [WS Error Codes](#ws-error-codes)
   - [WS_ERR_EXPECTED_FIN](#ws_err_expected_fin)
   - [WS_ERR_EXPECTED_MASK](#ws_err_expected_mask)
@@ -514,7 +514,7 @@ Forcibly close the connection. Internally this calls [socket.destroy()][].
 
 The URL of the WebSocket server. Server clients don't have this attribute.
 
-## WebSocket.createWebSocketStream(websocket[, options])
+## createWebSocketStream(websocket[, options])
 
 - `websocket` {WebSocket} A `WebSocket` object.
 - `options` {Object} [Options][duplex-options] to pass to the `Duplex`
