@@ -2866,113 +2866,6 @@ describe('WebSocket', () => {
       });
     });
 
-    it('can send and receive text data', (done) => {
-      const wss = new WebSocket.Server(
-        {
-          perMessageDeflate: { threshold: 0 },
-          port: 0
-        },
-        () => {
-          const ws = new WebSocket(`ws://localhost:${wss.address().port}`, {
-            perMessageDeflate: { threshold: 0 }
-          });
-
-          ws.on('open', () => {
-            ws.send('hi', { compress: true });
-            ws.close();
-          });
-
-          ws.on('message', (message, isBinary) => {
-            assert.deepStrictEqual(message, Buffer.from('hi'));
-            assert.ok(!isBinary);
-            wss.close(done);
-          });
-        }
-      );
-
-      wss.on('connection', (ws) => {
-        ws.on('message', (message, isBinary) => {
-          ws.send(message, { binary: isBinary, compress: true });
-        });
-      });
-    });
-
-    it('can send and receive a `TypedArray`', (done) => {
-      const array = new Float32Array(5);
-
-      for (let i = 0; i < array.length; i++) {
-        array[i] = i / 2;
-      }
-
-      const wss = new WebSocket.Server(
-        {
-          perMessageDeflate: { threshold: 0 },
-          port: 0
-        },
-        () => {
-          const ws = new WebSocket(`ws://localhost:${wss.address().port}`, {
-            perMessageDeflate: { threshold: 0 }
-          });
-
-          ws.on('open', () => {
-            ws.send(array, { compress: true });
-            ws.close();
-          });
-
-          ws.on('message', (message, isBinary) => {
-            assert.deepStrictEqual(message, Buffer.from(array.buffer));
-            assert.ok(isBinary);
-            wss.close(done);
-          });
-        }
-      );
-
-      wss.on('connection', (ws) => {
-        ws.on('message', (message, isBinary) => {
-          assert.ok(isBinary);
-          ws.send(message, { compress: true });
-        });
-      });
-    });
-
-    it('can send and receive an `ArrayBuffer`', (done) => {
-      const array = new Float32Array(5);
-
-      for (let i = 0; i < array.length; i++) {
-        array[i] = i / 2;
-      }
-
-      const wss = new WebSocket.Server(
-        {
-          perMessageDeflate: { threshold: 0 },
-          port: 0
-        },
-        () => {
-          const ws = new WebSocket(`ws://localhost:${wss.address().port}`, {
-            perMessageDeflate: { threshold: 0 }
-          });
-
-          ws.on('open', () => {
-            ws.send(array.buffer, { compress: true });
-            ws.close();
-          });
-
-          ws.on('message', (message, isBinary) => {
-            assert.deepStrictEqual(message, Buffer.from(array.buffer));
-            assert.ok(isBinary);
-            wss.close(done);
-          });
-        }
-      );
-
-      wss.on('connection', (ws) => {
-        ws.on('message', (message, isBinary) => {
-          assert.ok(isBinary);
-          ws.send(message, { compress: true });
-        });
-      });
-    });
-
     it('consumes all received data when connection is closed (1/2)', (done) => {
       const wss = new WebSocket.Server(
         {
@@ -3167,6 +3060,113 @@ describe('WebSocket', () => {
     });
 
     describe('#send', () => {
+      it('can send text data', (done) => {
+        const wss = new WebSocket.Server(
+          {
+            perMessageDeflate: { threshold: 0 },
+            port: 0
+          },
+          () => {
+            const ws = new WebSocket(`ws://localhost:${wss.address().port}`, {
+              perMessageDeflate: { threshold: 0 }
+            });
+
+            ws.on('open', () => {
+              ws.send('hi', { compress: true });
+              ws.close();
+            });
+
+            ws.on('message', (message, isBinary) => {
+              assert.deepStrictEqual(message, Buffer.from('hi'));
+              assert.ok(!isBinary);
+              wss.close(done);
+            });
+          }
+        );
+
+        wss.on('connection', (ws) => {
+          ws.on('message', (message, isBinary) => {
+            ws.send(message, { binary: isBinary, compress: true });
+          });
+        });
+      });
+
+      it('can send a `TypedArray`', (done) => {
+        const array = new Float32Array(5);
+
+        for (let i = 0; i < array.length; i++) {
+          array[i] = i / 2;
+        }
+
+        const wss = new WebSocket.Server(
+          {
+            perMessageDeflate: { threshold: 0 },
+            port: 0
+          },
+          () => {
+            const ws = new WebSocket(`ws://localhost:${wss.address().port}`, {
+              perMessageDeflate: { threshold: 0 }
+            });
+
+            ws.on('open', () => {
+              ws.send(array, { compress: true });
+              ws.close();
+            });
+
+            ws.on('message', (message, isBinary) => {
+              assert.deepStrictEqual(message, Buffer.from(array.buffer));
+              assert.ok(isBinary);
+              wss.close(done);
+            });
+          }
+        );
+
+        wss.on('connection', (ws) => {
+          ws.on('message', (message, isBinary) => {
+            assert.ok(isBinary);
+            ws.send(message, { compress: true });
+          });
+        });
+      });
+
+      it('can send an `ArrayBuffer`', (done) => {
+        const array = new Float32Array(5);
+
+        for (let i = 0; i < array.length; i++) {
+          array[i] = i / 2;
+        }
+
+        const wss = new WebSocket.Server(
+          {
+            perMessageDeflate: { threshold: 0 },
+            port: 0
+          },
+          () => {
+            const ws = new WebSocket(`ws://localhost:${wss.address().port}`, {
+              perMessageDeflate: { threshold: 0 }
+            });
+
+            ws.on('open', () => {
+              ws.send(array.buffer, { compress: true });
+              ws.close();
+            });
+
+            ws.on('message', (message, isBinary) => {
+              assert.deepStrictEqual(message, Buffer.from(array.buffer));
+              assert.ok(isBinary);
+              wss.close(done);
+            });
+          }
+        );
+
+        wss.on('connection', (ws) => {
+          ws.on('message', (message, isBinary) => {
+            assert.ok(isBinary);
+            ws.send(message, { compress: true });
+          });
+        });
+      });
+
       it('ignores the `compress` option if the extension is disabled', (done) => {
         const wss = new WebSocket.Server({ port: 0 }, () => {
           const ws = new WebSocket(`ws://localhost:${wss.address().port}`, {
