@@ -12,7 +12,7 @@ const { URL } = require('url');
 
 const Sender = require('../lib/sender');
 const WebSocket = require('..');
-const { GUID, NOOP } = require('../lib/constants');
+const { EMPTY_BUFFER, GUID, NOOP } = require('../lib/constants');
 
 class CustomAgent extends http.Agent {
   addRequest() {}
@@ -3053,7 +3053,7 @@ describe('WebSocket', () => {
     });
   });
 
-  describe('Connection close edge cases', () => {
+  describe('Connection close', () => {
     it('closes cleanly after simultaneous errors (1/2)', (done) => {
       let clientCloseEventEmitted = false;
       let serverClientCloseEventEmitted = false;
@@ -3163,6 +3163,60 @@ describe('WebSocket', () => {
             if (clientCloseEventEmitted) wss.close(done);
           });
         });
+      });
+    });
+
+    it('resumes the socket when an error occurs', (done) => {
+      const maxPayload = 16 * 1024;
+      const wss = new WebSocket.Server({ maxPayload, port: 0 }, () => {
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+      });
+
+      wss.on('connection', (ws) => {
+        const list = [
+          ...Sender.frame(Buffer.alloc(maxPayload + 1), {
+            fin: true,
+            opcode: 0x02,
+            mask: true,
+            readOnly: false
+          })
+        ];
+
+        ws.on('error', (err) => {
+          assert.ok(err instanceof RangeError);
+          assert.strictEqual(err.code, 'WS_ERR_UNSUPPORTED_MESSAGE_LENGTH');
+          assert.strictEqual(err.message, 'Max payload size exceeded');
+
+          ws.on('close', (code, reason) => {
+            assert.strictEqual(code, 1006);
+            assert.strictEqual(reason, '');
+            wss.close(done);
+          });
+        });
+
+        ws._socket.push(Buffer.concat(list));
+      });
+    });
+
+    it('resumes the socket when the close frame is received', (done) => {
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+      });
+
+      wss.on('connection', (ws) => {
+        const opts = { fin: true, mask: true, readOnly: false };
+        const list = [
+          ...Sender.frame(Buffer.alloc(16 * 1024), { opcode: 0x02, ...opts }),
+          ...Sender.frame(EMPTY_BUFFER, { opcode: 0x08, ...opts })
+        ];
+
+        ws.on('close', (code, reason) => {
+          assert.strictEqual(code, 1005);
+          assert.strictEqual(reason, '');
+          wss.close(done);
+        });
+
+        ws._socket.push(Buffer.concat(list));
       });
     });
   });
