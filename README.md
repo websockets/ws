@@ -410,8 +410,6 @@ endpoint is still responsive.
 ```js
 import { WebSocketServer } from 'ws';
 
-function noop() {}
-
 function heartbeat() {
   this.isAlive = true;
 }
@@ -428,7 +426,7 @@ const interval = setInterval(function ping() {
     if (ws.isAlive === false) return ws.terminate();
 
     ws.isAlive = false;
-    ws.ping(noop);
+    ws.ping();
   });
 }, 30000);
 
