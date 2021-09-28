@@ -450,9 +450,10 @@ receives an `OpenEvent` named "open".
 - `mask` {Boolean} Specifies whether `data` should be masked or not. Defaults to
   `true` when `websocket` is not a server client.
 - `callback` {Function} An optional callback which is invoked when the ping
-  frame is written out.
+  frame is written out. If an error occurs, the callback is called with the
+  error as its first argument.
 
-Send a ping.
+Send a ping. This method throws an error if the ready state is `CONNECTING`.
 
 ### websocket.pong([data[, mask]][, callback])
 
@@ -461,9 +462,10 @@ Send a ping.
 - `mask` {Boolean} Specifies whether `data` should be masked or not. Defaults to
   `true` when `websocket` is not a server client.
 - `callback` {Function} An optional callback which is invoked when the pong
-  frame is written out.
+  frame is written out. If an error occurs, the callback is called with the
+  error as its first argument.
 
-Send a pong.
+Send a pong. This method throws an error if the ready state is `CONNECTING`.
 
 ### websocket.protocol
 
@@ -500,9 +502,11 @@ only removes listeners added with
   - `mask` {Boolean} Specifies whether `data` should be masked or not. Defaults
     to `true` when `websocket` is not a server client.
 - `callback` {Function} An optional callback which is invoked when `data` is
-  written out.
+  written out. If an error occurs, the callback is called with the error as its
+  first argument.
 
-Send `data` through the connection.
+Send `data` through the connection. This method throws an error if the ready
+state is `CONNECTING`.
 
 ### websocket.terminate()
 
