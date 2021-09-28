@@ -344,7 +344,7 @@ describe('PerMessageDeflate', () => {
 
   describe('#compress and #decompress', () => {
     it('works with unfragmented messages', (done) => {
-      const perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
+      const perMessageDeflate = new PerMessageDeflate();
       const buf = Buffer.from([1, 2, 3]);
 
       perMessageDeflate.accept([{}]);
@@ -361,7 +361,7 @@ describe('PerMessageDeflate', () => {
     });
 
     it('works with fragmented messages', (done) => {
-      const perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
+      const perMessageDeflate = new PerMessageDeflate();
       const buf = Buffer.from([1, 2, 3, 4]);
 
       perMessageDeflate.accept([{}]);
@@ -388,7 +388,6 @@ describe('PerMessageDeflate', () => {
 
     it('works with the negotiated parameters', (done) => {
       const perMessageDeflate = new PerMessageDeflate({
-        threshold: 0,
         memLevel: 5,
         level: 9
       });
@@ -415,11 +414,9 @@ describe('PerMessageDeflate', () => {
 
     it('honors the `level` option', (done) => {
       const lev0 = new PerMessageDeflate({
-        threshold: 0,
         zlibDeflateOptions: { level: 0 }
       });
       const lev9 = new PerMessageDeflate({
-        threshold: 0,
         zlibDeflateOptions: { level: 9 }
       });
       const extensionStr =
@@ -459,7 +456,6 @@ describe('PerMessageDeflate', () => {
 
     it('honors the `zlib{Deflate,Inflate}Options` option', (done) => {
       const lev0 = new PerMessageDeflate({
-        threshold: 0,
         zlibDeflateOptions: {
           level: 0,
           chunkSize: 256
@@ -469,7 +465,6 @@ describe('PerMessageDeflate', () => {
         }
       });
       const lev9 = new PerMessageDeflate({
-        threshold: 0,
         zlibDeflateOptions: {
           level: 9,
           chunkSize: 128
@@ -523,7 +518,7 @@ describe('PerMessageDeflate', () => {
     });
 
     it("doesn't use contex takeover if not allowed", (done) => {
-      const perMessageDeflate = new PerMessageDeflate({ threshold: 0 }, true);
+      const perMessageDeflate = new PerMessageDeflate({}, true);
       const extensions = extension.parse(
         'permessage-deflate;server_no_context_takeover'
       );
@@ -554,7 +549,7 @@ describe('PerMessageDeflate', () => {
     });
 
     it('uses contex takeover if allowed', (done) => {
-      const perMessageDeflate = new PerMessageDeflate({ threshold: 0 }, true);
+      const perMessageDeflate = new PerMessageDeflate({}, true);
       const extensions = extension.parse('permessage-deflate');
       const buf = Buffer.from('foofoo');
 
@@ -583,7 +578,7 @@ describe('PerMessageDeflate', () => {
     });
 
     it('calls the callback when an error occurs (inflate)', (done) => {
-      const perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
+      const perMessageDeflate = new PerMessageDeflate();
       const data = Buffer.from('something invalid');
 
       perMessageDeflate.accept([{}]);
@@ -596,11 +591,7 @@ describe('PerMessageDeflate', () => {
     });
 
     it("doesn't call the callback twice when `maxPayload` is exceeded", (done) => {
-      const perMessageDeflate = new PerMessageDeflate(
-        { threshold: 0 },
-        false,
-        25
-      );
+      const perMessageDeflate = new PerMessageDeflate({}, false, 25);
       const buf = Buffer.from('A'.repeat(50));
 
       perMessageDeflate.accept([{}]);
@@ -616,7 +607,7 @@ describe('PerMessageDeflate', () => {
     });
 
     it('calls the callback if the deflate stream is closed prematurely', (done) => {
-      const perMessageDeflate = new PerMessageDeflate({ threshold: 0 });
+      const perMessageDeflate = new PerMessageDeflate();
       const buf = Buffer.from('A'.repeat(50));
 
       perMessageDeflate.accept([{}]);

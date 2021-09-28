@@ -147,8 +147,8 @@ value). If an object is provided then that is extension parameters:
   zlib on deflate.
 - `zlibInflateOptions` {Object} [Additional options][zlib-options] to pass to
   zlib on inflate.
-- `threshold` {Number} Payloads smaller than this will not be compressed.
-  Defaults to 1024 bytes.
+- `threshold` {Number} Payloads smaller than this will not be compressed if
+  context takeover is disabled. Defaults to 1024 bytes.
 - `concurrencyLimit` {Number} The number of concurrent calls to zlib. Calls
   above this limit will be queued. Default 10. You usually won't need to touch
   this option. See [this issue][concurrency-limit] for more details.
