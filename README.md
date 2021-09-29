@@ -118,7 +118,7 @@ const wss = new WebSocketServer({
     // Below options specified as default values.
     concurrencyLimit: 10, // Limits zlib concurrency for perf.
     threshold: 1024 // Size (in bytes) below which messages
-    // should not be compressed.
+    // should not be compressed if context takeover is disabled.
   }
 });
 ```
