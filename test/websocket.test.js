@@ -359,6 +359,39 @@ describe('WebSocket', () => {
       });
     });
 
+    describe('`isPaused`', () => {
+      it('is enumerable and configurable', () => {
+        const descriptor = Object.getOwnPropertyDescriptor(
+          WebSocket.prototype,
+          'isPaused'
+        );
+
+        assert.strictEqual(descriptor.configurable, true);
+        assert.strictEqual(descriptor.enumerable, true);
+        assert.ok(descriptor.get !== undefined);
+        assert.ok(descriptor.set === undefined);
+      });
+
+      it('indicates whether the websocket is paused', (done) => {
+        const wss = new WebSocket.Server({ port: 0 }, () => {
+          const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+
+          ws.on('open', () => {
+            ws.pause();
+            assert.ok(ws.isPaused);
+
+            ws.resume();
+            assert.ok(!ws.isPaused);
+
+            ws.close();
+            wss.close(done);
+          });
+
+          assert.ok(!ws.isPaused);
+        });
+      });
+    });
+
     describe('`protocol`', () => {
       it('is enumerable and configurable', () => {
         const descriptor = Object.getOwnPropertyDescriptor(
@@ -1062,6 +1095,55 @@ describe('WebSocket', () => {
     });
   });
 
+  describe('#pause', () => {
+    it('does nothing if `readyState` is not `OPEN`', (done) => {
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+
+        assert.strictEqual(ws.readyState, WebSocket.CONNECTING);
+        assert.ok(!ws.isPaused);
+
+        ws.pause();
+        assert.ok(!ws.isPaused);
+
+        ws.on('open', () => {
+          ws.close();
+          assert.strictEqual(ws.readyState, WebSocket.CLOSING);
+
+          ws.pause();
+          assert.ok(!ws.isPaused);
+
+          ws.on('close', () => {
+            assert.strictEqual(ws.readyState, WebSocket.CLOSED);
+
+            ws.pause();
+            assert.ok(!ws.isPaused);
+
+            wss.close(done);
+          });
+        });
+      });
+    });
+
+    it('pauses the socket', (done) => {
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+      });
+
+      wss.on('connection', (ws) => {
+        assert.ok(!ws.isPaused);
+        assert.ok(!ws._socket.isPaused());
+
+        ws.pause();
+        assert.ok(ws.isPaused);
+        assert.ok(ws._socket.isPaused());
+
+        ws.terminate();
+        wss.close(done);
+      });
+    });
+  });
+
   describe('#ping', () => {
     it('throws an error if `readyState` is `CONNECTING`', () => {
       const ws = new WebSocket('ws://localhost', {
@@ -1396,6 +1478,56 @@ describe('WebSocket', () => {
 
       wss.on('connection', (ws) => {
         ws.close();
+      });
+    });
+  });
+
+  describe('#resume', () => {
+    it('does nothing if `readyState` is not `OPEN`', (done) => {
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+
+        ws.on('open', () => {
+          ws.pause();
+          assert.ok(ws.isPaused);
+
+          ws.terminate();
+          assert.strictEqual(ws.readyState, WebSocket.CLOSING);
+
+          ws.resume();
+          assert.ok(ws.isPaused);
+
+          ws.on('close', () => {
+            assert.strictEqual(ws.readyState, WebSocket.CLOSED);
+
+            ws.resume();
+            assert.ok(ws.isPaused);
+
+            wss.close(done);
+          });
+        });
+      });
+    });
+
+    it('resumes the socket', (done) => {
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+      });
+
+      wss.on('connection', (ws) => {
+        assert.ok(!ws.isPaused);
+        assert.ok(!ws._socket.isPaused());
+
+        ws.pause();
+        assert.ok(ws.isPaused);
+        assert.ok(ws._socket.isPaused());
+
+        ws.resume();
+        assert.ok(!ws.isPaused);
+        assert.ok(!ws._socket.isPaused());
+
+        ws.close();
+        wss.close(done);
       });
     });
   });
