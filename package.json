@@ -1,6 +1,6 @@
 {
   "name": "@thzero/ws",
-  "version": "8.2.3",
+  "version": "0.0.1",
   "description": "Simple to use, blazing fast and thoroughly tested websocket client and server for Node.js",
   "keywords": [
     "HyBi",
@@ -57,5 +57,9 @@
     "prettier": "^2.0.5",
     "utf-8-validate": "^5.0.2",
     "@thzero/library_cli": "^0.13.21"
-  }
+  },
+  "version_major": 0,
+  "version_minor": 0,
+  "version_patch": 1,
+  "version_date": "10/18/2021"
 }
