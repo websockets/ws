@@ -1,6 +1,6 @@
 {
   "name": "@thzero/ws",
-  "version": "8.2.4",
+  "version": "0.0.2",
   "description": "Simple to use, blazing fast and thoroughly tested websocket client and server for Node.js",
   "keywords": [
     "HyBi",
