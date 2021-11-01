@@ -148,8 +148,8 @@ ws.on('open', function open() {
   ws.send('something');
 });
 
-ws.on('message', function incoming(message) {
-  console.log('received: %s', message);
+ws.on('message', function message(data) {
+  console.log('received: %s', data);
 });
 ```
 
@@ -179,8 +179,8 @@ import { WebSocketServer } from 'ws';
 const wss = new WebSocketServer({ port: 8080 });
 
 wss.on('connection', function connection(ws) {
-  ws.on('message', function incoming(message) {
-    console.log('received: %s', message);
+  ws.on('message', function message(data) {
+    console.log('received: %s', data);
   });
 
   ws.send('something');
@@ -201,8 +201,8 @@ const server = createServer({
 const wss = new WebSocketServer({ server });
 
 wss.on('connection', function connection(ws) {
-  ws.on('message', function incoming(message) {
-    console.log('received: %s', message);
+  ws.on('message', function message(data) {
+    console.log('received: %s', data);
   });
 
   ws.send('something');
@@ -259,14 +259,14 @@ const server = createServer();
 const wss = new WebSocketServer({ noServer: true });
 
 wss.on('connection', function connection(ws, request, client) {
-  ws.on('message', function message(msg) {
-    console.log(`Received message ${msg} from user ${client}`);
+  ws.on('message', function message(data) {
+    console.log(`Received message ${data} from user ${client}`);
   });
 });
 
 server.on('upgrade', function upgrade(request, socket, head) {
   // This function is not defined on purpose. Implement it with your own logic.
-  authenticate(request, (err, client) => {
+  authenticate(request, function next(err, client) {
     if (err || !client) {
       socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
       socket.destroy();
@@ -295,7 +295,7 @@ import WebSocket, { WebSocketServer } from 'ws';
 const wss = new WebSocketServer({ port: 8080 });
 
 wss.on('connection', function connection(ws) {
-  ws.on('message', function incoming(data, isBinary) {
+  ws.on('message', function message(data, isBinary) {
     wss.clients.forEach(function each(client) {
       if (client.readyState === WebSocket.OPEN) {
         client.send(data, { binary: isBinary });
@@ -314,7 +314,7 @@ import WebSocket, { WebSocketServer } from 'ws';
 const wss = new WebSocketServer({ port: 8080 });
 
 wss.on('connection', function connection(ws) {
-  ws.on('message', function incoming(data, isBinary) {
+  ws.on('message', function message(data, isBinary) {
     wss.clients.forEach(function each(client) {
       if (client !== ws && client.readyState === WebSocket.OPEN) {
         client.send(data, { binary: isBinary });
@@ -342,7 +342,7 @@ ws.on('close', function close() {
   console.log('disconnected');
 });
 
-ws.on('message', function incoming(data) {
+ws.on('message', function message(data) {
   console.log(`Roundtrip time: ${Date.now() - data} ms`);
 
   setTimeout(function timeout() {
