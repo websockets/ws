@@ -219,7 +219,7 @@ tracking is disabled. In this case the `'close'` event is emitted in the next
 tick. The optional callback is called when the `'close'` event occurs and
 receives an `Error` if the server is already closed.
 
-### server.handleUpgrade(request, socket, head, callback)
+### server.handleUpgrade(request, socket, head[, callback])
 
 - `request` {http.IncomingMessage} The client HTTP GET request.
 - `socket` {net.Socket} The network socket between the server and client.
@@ -235,6 +235,9 @@ If the upgrade is successful, the `callback` is called with two arguments:
 
 - `websocket` {WebSocket} A `WebSocket` object.
 - `request` {http.IncomingMessage} The client HTTP GET request.
+
+If the `callback` is not provided the [`'connection'`](#event-connection) event
+is emitted instead.
 
 ### server.shouldHandle(request)
 
