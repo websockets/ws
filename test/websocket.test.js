@@ -1028,6 +1028,35 @@ describe('WebSocket', () => {
         ws.on('close', () => done());
       });
     });
+
+    it('emits an error on incorrect protocol redirection', (done) => {
+      const wss = new WebSocket.Server({ noServer: true, path: '/foo' });
+      const port = server.address().port;
+
+      server.once('upgrade', (req, socket) => {
+        socket.end(`HTTP/1.1 302 Found\r\nLocation: https://localhost:${port}/foo\r\n\r\n`);
+        server.once('upgrade', (req, socket, head) => {
+          wss.handleUpgrade(req, socket, head, NOOP);
+        });
+      });
+
+      const ws = new WebSocket(`ws://localhost:${port}`, {
+        followRedirects: true
+      });
+
+      ws.on('open', () => {
+        assert.strictEqual(ws.url, `ws://localhost:${port}/foo`);
+        assert.strictEqual(ws._redirects, 1);
+        ws.close();
+      });
+
+      ws.on('error', (error) => {
+        assert.strictEqual(`The URL's protocol must be one of "ws:", "wss:", or "ws+unix:"`)
+        ws.on('close', () => done());
+        ws.close();
+      });
+    });
+
   });
 
   describe('Connection with query string', () => {
