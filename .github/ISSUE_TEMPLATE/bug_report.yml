@@ -1,4 +1,4 @@
-name: 'Bug report'
+name: Bug report
 description: Create a bug report
 body:
   - type: markdown
@@ -12,6 +12,10 @@ body:
         Please fill in as much of the template below as you're able.
   - type: checkboxes
     attributes:
+      label: Is there an existing issue for this?
+      description:
+        Please search to see if an issue already exists for the bug you
+        encountered.
       options:
         - label:
             I've searched for any related issues and avoided creating a
