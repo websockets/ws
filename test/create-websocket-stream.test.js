@@ -568,5 +568,31 @@ describe('createWebSocketStream', () => {
         ws.close();
       });
     });
+
+    it('resumes the socket if `readyState` is `CLOSING`', (done) => {
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+        const duplex = createWebSocketStream(ws);
+
+        ws.on('message', () => {
+          assert.ok(ws._socket.isPaused());
+
+          duplex.on('close', () => {
+            wss.close(done);
+          });
+
+          duplex.end();
+
+          process.nextTick(() => {
+            assert.strictEqual(ws.readyState, WebSocket.CLOSING);
+            duplex.resume();
+          });
+        });
+      });
+
+      wss.on('connection', (ws) => {
+        ws.send(randomBytes(16 * 1024));
+      });
+    });
   });
 });
