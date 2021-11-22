@@ -941,6 +941,51 @@ describe('WebSocket', () => {
         ws.on('close', () => done());
       });
     });
+
+    it('emits an error if the redirect URL is invalid (1/2)', (done) => {
+      const onUpgrade = (req, socket) => {
+        socket.end('HTTP/1.1 302 Found\r\nLocation: ws://\r\n\r\n');
+      };
+
+      server.on('upgrade', onUpgrade);
+
+      const ws = new WebSocket(`ws://localhost:${server.address().port}`, {
+        followRedirects: true
+      });
+
+      ws.on('open', () => done(new Error("Unexpected 'open' event")));
+      ws.on('error', (err) => {
+        assert.ok(err instanceof Error);
+        assert.ok(/Invalid URL/.test(err.message));
+        assert.strictEqual(err.input, 'ws://');
+        assert.strictEqual(ws._redirects, 1);
+
+        server.removeListener('upgrade', onUpgrade);
+        ws.on('close', () => done());
+      });
+    });
+
+    it('emits an error if the redirect URL is invalid (2/2)', (done) => {
+      const onUpgrade = (req, socket) => {
+        socket.end('HTTP/1.1 302 Found\r\nLocation: ws+unix:\r\n\r\n');
+      };
+
+      server.on('upgrade', onUpgrade);
+
+      const ws = new WebSocket(`ws://localhost:${server.address().port}`, {
+        followRedirects: true
+      });
+
+      ws.on('open', () => done(new Error("Unexpected 'open' event")));
+      ws.on('error', (err) => {
+        assert.ok(err instanceof Error);
+        assert.strictEqual(err.message, 'Invalid URL: ws+unix:');
+        assert.strictEqual(ws._redirects, 1);
+
+        server.removeListener('upgrade', onUpgrade);
+        ws.on('close', () => done());
+      });
+    });
   });
 
   describe('Connection with query string', () => {
