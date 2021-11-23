@@ -31,15 +31,18 @@
   - [websocket.bufferedAmount](#websocketbufferedamount)
   - [websocket.close([code[, reason]])](#websocketclosecode-reason)
   - [websocket.extensions](#websocketextensions)
+  - [websocket.isPaused](#websocketispaused)
   - [websocket.onclose](#websocketonclose)
   - [websocket.onerror](#websocketonerror)
   - [websocket.onmessage](#websocketonmessage)
   - [websocket.onopen](#websocketonopen)
+  - [websocket.pause()](#websocketpause)
   - [websocket.ping([data[, mask]][, callback])](#websocketpingdata-mask-callback)
   - [websocket.pong([data[, mask]][, callback])](#websocketpongdata-mask-callback)
   - [websocket.protocol](#websocketprotocol)
   - [websocket.readyState](#websocketreadystate)
   - [websocket.removeEventListener(type, listener)](#websocketremoveeventlistenertype-listener)
+  - [websocket.resume()](#websocketresume)
   - [websocket.send(data[, options][, callback])](#websocketsenddata-options-callback)
   - [websocket.terminate()](#websocketterminate)
   - [websocket.url](#websocketurl)
@@ -409,6 +412,12 @@ following ways:
 
 Initiate a closing handshake.
 
+### websocket.isPaused
+
+- {Boolean}
+
+Indicates whether the websocket is paused.
+
 ### websocket.extensions
 
 - {Object}
@@ -443,6 +452,12 @@ listener receives a `MessageEvent` named "message".
 An event listener to be called when the connection is established. The listener
 receives an `OpenEvent` named "open".
 
+### websocket.pause()
+
+Pause the websocket causing it to stop emitting events. Some events can still be
+emitted after this is called, until all buffered data is consumed. This method
+is a noop if the ready state is `CONNECTING` or `CLOSED`.
+
 ### websocket.ping([data[, mask]][, callback])
 
 - `data` {Array|Number|Object|String|ArrayBuffer|Buffer|DataView|TypedArray} The
@@ -472,6 +487,11 @@ Send a pong. This method throws an error if the ready state is `CONNECTING`.
 - {String}
 
 The subprotocol selected by the server.
+
+### websocket.resume()
+
+Make a paused socket resume emitting events. This method is a noop if the ready
+state is `CONNECTING` or `CLOSED`.
 
 ### websocket.readyState
 
