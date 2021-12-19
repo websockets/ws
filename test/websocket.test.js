@@ -1299,10 +1299,11 @@ describe('WebSocket', () => {
 
     it('can send a ping with data', (done) => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
+        const mask = Buffer.alloc(4);
         const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         ws.on('open', () => {
-          ws.ping('hi', () => {
+          ws.ping('hi', mask, () => {
             ws.ping('hi', true);
             ws.close();
           });
@@ -1468,10 +1469,11 @@ describe('WebSocket', () => {
 
     it('can send a pong with data', (done) => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
+        const mask = Buffer.alloc(4);
         const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         ws.on('open', () => {
-          ws.pong('hi', () => {
+          ws.pong('hi', mask, () => {
             ws.pong('hi', true);
             ws.close();
           });
@@ -1877,7 +1879,7 @@ describe('WebSocket', () => {
       });
     });
 
-    it('honors the `mask` option', (done) => {
+    it('honors the `mask` option (1/2)', (done) => {
       let clientCloseEventEmitted = false;
       let serverClientCloseEventEmitted = false;
 
@@ -1918,6 +1920,51 @@ describe('WebSocket', () => {
             serverClientCloseEventEmitted = true;
             if (clientCloseEventEmitted) wss.close(done);
           });
+        });
+      });
+    });
+
+    it('honors the `mask` option (2/2)', (done) => {
+      const mask1 = Buffer.from('00000000', 'hex');
+      const mask2 = Buffer.from('00000001', 'hex');
+      const wss = new WebSocket.Server(
+        { perMessageDeflate: true, port: 0 },
+        () => {
+          const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+
+          ws.on('open', () => {
+            ws.send('foo', { mask: mask1 });
+            ws.send('bar', { mask: mask2 });
+
+            assert.strictEqual(ws.bufferedAmount, 14);
+
+            ws.on('close', (code, reason) => {
+              assert.strictEqual(code, 1005);
+              assert.deepStrictEqual(reason, EMPTY_BUFFER);
+
+              wss.close(done);
+            });
+          });
+        }
+      );
+
+      wss.on('connection', (ws) => {
+        const chunks = [];
+
+        ws._socket.prependListener('data', (chunk) => {
+          chunks.push(chunk);
+        });
+
+        ws.on('message', (message) => {
+          if (message.toString() === 'foo') return;
+
+          const data = Buffer.concat(chunks);
+          const length = data[1] & 0x7f;
+
+          assert.ok(data.slice(2, 6).equals(mask1));
+          assert.ok(data.slice(length + 8, length + 12).equals(mask2));
+
+          ws.close();
         });
       });
     });

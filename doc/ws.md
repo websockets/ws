@@ -462,8 +462,9 @@ is a noop if the ready state is `CONNECTING` or `CLOSED`.
 
 - `data` {Array|Number|Object|String|ArrayBuffer|Buffer|DataView|TypedArray} The
   data to send in the ping frame.
-- `mask` {Boolean} Specifies whether `data` should be masked or not. Defaults to
-  `true` when `websocket` is not a server client.
+- `mask` {Boolean|Buffer} Specifies whether `data` should be masked or not. If a
+  `Buffer` is provided, then its contents is used as the masking key. Defaults
+  to `true` when `websocket` is not a server client.
 - `callback` {Function} An optional callback which is invoked when the ping
   frame is written out. If an error occurs, the callback is called with the
   error as its first argument.
@@ -474,8 +475,9 @@ Send a ping. This method throws an error if the ready state is `CONNECTING`.
 
 - `data` {Array|Number|Object|String|ArrayBuffer|Buffer|DataView|TypedArray} The
   data to send in the pong frame.
-- `mask` {Boolean} Specifies whether `data` should be masked or not. Defaults to
-  `true` when `websocket` is not a server client.
+- `mask` {Boolean|Buffer} Specifies whether `data` should be masked or not. If a
+  `Buffer` is provided, then its contents is used as the masking key. Defaults
+  to `true` when `websocket` is not a server client.
 - `callback` {Function} An optional callback which is invoked when the pong
   frame is written out. If an error occurs, the callback is called with the
   error as its first argument.
@@ -519,8 +521,9 @@ only removes listeners added with
     Defaults to `true` when permessage-deflate is enabled.
   - `fin` {Boolean} Specifies whether `data` is the last fragment of a message
     or not. Defaults to `true`.
-  - `mask` {Boolean} Specifies whether `data` should be masked or not. Defaults
-    to `true` when `websocket` is not a server client.
+  - `mask` {Boolean|Buffer} Specifies whether `data` should be masked or not. If
+    a `Buffer` is provided, then its contents is used as the masking key.
+    Defaults to `true` when `websocket` is not a server client.
 - `callback` {Function} An optional callback which is invoked when `data` is
   written out. If an error occurs, the callback is called with the error as its
   first argument.
