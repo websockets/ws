@@ -126,6 +126,41 @@ describe('WebSocket', () => {
           /^RangeError: Unsupported protocol version: 1000 \(supported versions: 8, 13\)$/
         );
       });
+
+      it('honors the `generateMask` option', (done) => {
+        const wss = new WebSocket.Server({ port: 0 }, () => {
+          const ws = new WebSocket(`ws://localhost:${wss.address().port}`, {
+            generateMask() {}
+          });
+
+          ws.on('open', () => {
+            ws.send('foo');
+          });
+
+          ws.on('close', (code, reason) => {
+            assert.strictEqual(code, 1005);
+            assert.deepStrictEqual(reason, EMPTY_BUFFER);
+
+            wss.close(done);
+          });
+        });
+
+        wss.on('connection', (ws) => {
+          const chunks = [];
+
+          ws._socket.prependListener('data', (chunk) => {
+            chunks.push(chunk);
+          });
+
+          ws.on('message', () => {
+            assert.ok(
+              Buffer.concat(chunks).slice(2, 6).equals(Buffer.alloc(4))
+            );
+
+            ws.close();
+          });
+        });
+      });
     });
   });
 
