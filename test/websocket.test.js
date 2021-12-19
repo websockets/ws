@@ -128,13 +128,14 @@ describe('WebSocket', () => {
       });
 
       it('honors the `generateMask` option', (done) => {
+        const data = Buffer.from('foo');
         const wss = new WebSocket.Server({ port: 0 }, () => {
           const ws = new WebSocket(`ws://localhost:${wss.address().port}`, {
             generateMask() {}
           });
 
           ws.on('open', () => {
-            ws.send('foo');
+            ws.send(data);
           });
 
           ws.on('close', (code, reason) => {
@@ -152,9 +153,11 @@ describe('WebSocket', () => {
             chunks.push(chunk);
           });
 
-          ws.on('message', () => {
-            assert.ok(
-              Buffer.concat(chunks).slice(2, 6).equals(Buffer.alloc(4))
+          ws.on('message', (message) => {
+            assert.deepStrictEqual(message, data);
+            assert.deepStrictEqual(
+              Buffer.concat(chunks).slice(2, 6),
+              Buffer.alloc(4)
             );
 
             ws.close();
