@@ -110,7 +110,7 @@ has a single parameter then `ws` will invoke it with the following argument:
 The return value (`Boolean`) of the function determines whether or not to accept
 the handshake.
 
-if `verifyClient` has two parameters then `ws` will invoke it with the
+If `verifyClient` has two parameters then `ws` will invoke it with the
 following arguments:
 
 - `info` {Object} Same as above.
