@@ -110,8 +110,8 @@ has a single parameter then `ws` will invoke it with the following argument:
 The return value (`Boolean`) of the function determines whether or not to accept
 the handshake.
 
-If `verifyClient` has two parameters then `ws` will invoke it with the
-following arguments:
+If `verifyClient` has two parameters then `ws` will invoke it with the following
+arguments:
 
 - `info` {Object} Same as above.
 - `cb` {Function} A callback that must be called by the user upon inspection of
