@@ -50,12 +50,22 @@ describe('Sender', () => {
 
   describe('#send', () => {
     it('compresses data if compress option is enabled', (done) => {
+      const chunks = [];
       const perMessageDeflate = new PerMessageDeflate();
-      let count = 0;
       const mockSocket = new MockSocket({
-        write: (data) => {
-          assert.strictEqual(data[0] & 0x40, 0x40);
-          if (++count === 3) done();
+        write: (chunk) => {
+          chunks.push(chunk);
+          if (chunks.length !== 6) return;
+
+          assert.strictEqual(chunks[0].length, 2);
+          assert.strictEqual(chunks[0][0] & 0x40, 0x40);
+
+          assert.strictEqual(chunks[2].length, 2);
+          assert.strictEqual(chunks[2][0] & 0x40, 0x40);
+
+          assert.strictEqual(chunks[4].length, 2);
+          assert.strictEqual(chunks[4][0] & 0x40, 0x40);
+          done();
         }
       });
       const sender = new Sender(mockSocket, {
@@ -74,10 +84,16 @@ describe('Sender', () => {
 
     describe('when context takeover is disabled', () => {
       it('honors the compression threshold', (done) => {
+        const chunks = [];
         const perMessageDeflate = new PerMessageDeflate();
         const mockSocket = new MockSocket({
-          write: (data) => {
-            assert.notStrictEqual(data[0] & 0x40, 0x40);
+          write: (chunk) => {
+            chunks.push(chunk);
+            if (chunks.length !== 2) return;
+
+            assert.strictEqual(chunks[0].length, 2);
+            assert.notStrictEqual(chunk[0][0] & 0x40, 0x40);
+            assert.deepStrictEqual(chunks[1], Buffer.from('hi'));
             done();
           }
         });
