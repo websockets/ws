@@ -2,9 +2,10 @@
 
 const assert = require('assert');
 
-const PerMessageDeflate = require('../lib/permessage-deflate');
 const extension = require('../lib/extension');
+const PerMessageDeflate = require('../lib/permessage-deflate');
 const Sender = require('../lib/sender');
+const { EMPTY_BUFFER } = require('../lib/constants');
 
 class MockSocket {
   constructor({ write } = {}) {
@@ -35,8 +36,8 @@ describe('Sender', () => {
       assert.ok(buf.equals(Buffer.from([1, 2, 3, 4, 5])));
     });
 
-    it('sets RSV1 bit if compressed', () => {
-      const list = Sender.frame(Buffer.from('hi'), {
+    it('honors the `rsv1` option', () => {
+      const list = Sender.frame(EMPTY_BUFFER, {
         readOnly: false,
         mask: false,
         rsv1: true,
