@@ -46,6 +46,19 @@ describe('Sender', () => {
 
       assert.strictEqual(list[0][0] & 0x40, 0x40);
     });
+
+    it('accepts a string as first argument', () => {
+      const list = Sender.frame('€', {
+        readOnly: false,
+        rsv1: false,
+        mask: false,
+        opcode: 1,
+        fin: true
+      });
+
+      assert.deepStrictEqual(list[0], Buffer.from('8103', 'hex'));
+      assert.strictEqual(list[1], '€');
+    });
   });
 
   describe('#send', () => {
@@ -93,7 +106,7 @@ describe('Sender', () => {
 
             assert.strictEqual(chunks[0].length, 2);
             assert.notStrictEqual(chunk[0][0] & 0x40, 0x40);
-            assert.deepStrictEqual(chunks[1], Buffer.from('hi'));
+            assert.strictEqual(chunks[1], 'hi');
             done();
           }
         });
@@ -245,11 +258,12 @@ describe('Sender', () => {
 
           if (count % 2) {
             assert.ok(data.equals(Buffer.from([0x89, 0x02])));
-          } else {
+          } else if (count < 8) {
             assert.ok(data.equals(Buffer.from([0x68, 0x69])));
+          } else {
+            assert.strictEqual(data, 'hi');
+            done();
           }
-
-          if (count === 8) done();
         }
       });
       const sender = new Sender(mockSocket, {
@@ -277,11 +291,12 @@ describe('Sender', () => {
 
           if (count % 2) {
             assert.ok(data.equals(Buffer.from([0x8a, 0x02])));
-          } else {
+          } else if (count < 8) {
             assert.ok(data.equals(Buffer.from([0x68, 0x69])));
+          } else {
+            assert.strictEqual(data, 'hi');
+            done();
           }
-
-          if (count === 8) done();
         }
       });
       const sender = new Sender(mockSocket, {
