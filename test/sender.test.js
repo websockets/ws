@@ -57,7 +57,7 @@ describe('Sender', () => {
       });
 
       assert.deepStrictEqual(list[0], Buffer.from('8103', 'hex'));
-      assert.strictEqual(list[1], '€');
+      assert.deepStrictEqual(list[1], Buffer.from('e282ac', 'hex'));
     });
   });
 
