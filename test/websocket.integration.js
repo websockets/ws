@@ -6,8 +6,7 @@ const WebSocket = require('..');
 
 describe('WebSocket', () => {
   it('communicates successfully with echo service (ws)', (done) => {
-    const ws = new WebSocket('ws://echo.websocket.org/', {
-      origin: 'http://www.websocket.org',
+    const ws = new WebSocket('ws://websocket-echo.com/', {
       protocolVersion: 13
     });
     const str = Date.now().toString();
@@ -27,8 +26,7 @@ describe('WebSocket', () => {
   });
 
   it('communicates successfully with echo service (wss)', (done) => {
-    const ws = new WebSocket('wss://echo.websocket.org/', {
-      origin: 'https://www.websocket.org',
+    const ws = new WebSocket('wss://websocket-echo.com/', {
       protocolVersion: 13
     });
     const str = Date.now().toString();

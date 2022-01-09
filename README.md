@@ -33,7 +33,7 @@ can use one of the many wrappers available on npm, like
   - [Multiple servers sharing a single HTTP/S server](#multiple-servers-sharing-a-single-https-server)
   - [Client authentication](#client-authentication)
   - [Server broadcast](#server-broadcast)
-  - [echo.websocket.org demo](#echowebsocketorg-demo)
+  - [Round-trip time](#round-trip-time)
   - [Use the Node.js streams API](#use-the-nodejs-streams-api)
   - [Other examples](#other-examples)
 - [FAQ](#faq)
@@ -324,14 +324,12 @@ wss.on('connection', function connection(ws) {
 });
 ```
 
-### echo.websocket.org demo
+### Round-trip time
 
 ```js
 import WebSocket from 'ws';
 
-const ws = new WebSocket('wss://echo.websocket.org/', {
-  origin: 'https://websocket.org'
-});
+const ws = new WebSocket('wss://websocket-echo.com/');
 
 ws.on('open', function open() {
   console.log('connected');
@@ -343,7 +341,7 @@ ws.on('close', function close() {
 });
 
 ws.on('message', function message(data) {
-  console.log(`Roundtrip time: ${Date.now() - data} ms`);
+  console.log(`Round-trip time: ${Date.now() - data} ms`);
 
   setTimeout(function timeout() {
     ws.send(Date.now());
@@ -356,9 +354,7 @@ ws.on('message', function message(data) {
 ```js
 import WebSocket, { createWebSocketStream } from 'ws';
 
-const ws = new WebSocket('wss://echo.websocket.org/', {
-  origin: 'https://websocket.org'
-});
+const ws = new WebSocket('wss://websocket-echo.com/');
 
 const duplex = createWebSocketStream(ws, { encoding: 'utf8' });
 
@@ -457,7 +453,7 @@ function heartbeat() {
   }, 30000 + 1000);
 }
 
-const client = new WebSocket('wss://echo.websocket.org/');
+const client = new WebSocket('wss://websocket-echo.com/');
 
 client.on('open', heartbeat);
 client.on('ping', heartbeat);

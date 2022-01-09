@@ -33,7 +33,7 @@ describe('WebSocket', () => {
       );
 
       assert.throws(
-        () => new WebSocket('https://echo.websocket.org'),
+        () => new WebSocket('https://websocket-echo.com'),
         /^SyntaxError: The URL's protocol must be one of "ws:", "wss:", or "ws\+unix:"$/
       );
 
@@ -43,7 +43,7 @@ describe('WebSocket', () => {
       );
 
       assert.throws(
-        () => new WebSocket('wss://echo.websocket.org#foo'),
+        () => new WebSocket('wss://websocket-echo.com#foo'),
         /^SyntaxError: The URL contains a fragment identifier$/
       );
     });
