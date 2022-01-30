@@ -2757,18 +2757,17 @@ describe('WebSocket', () => {
         requestCert: true
       });
 
-      let success = false;
-      const wss = new WebSocket.Server({
-        verifyClient: (info) => {
-          success = !!info.req.client.authorized;
-          return true;
-        },
-        server
-      });
+      const wss = new WebSocket.Server({ noServer: true });
 
-      wss.on('connection', () => {
-        assert.ok(success);
-        server.close(done);
+      server.on('upgrade', (request, socket, head) => {
+        assert.ok(socket.authorized);
+
+        wss.handleUpgrade(request, socket, head, (ws) => {
+          ws.on('close', (code) => {
+            assert.strictEqual(code, 1005);
+            server.close(done);
+          });
+        });
       });
 
       server.listen(0, () => {
