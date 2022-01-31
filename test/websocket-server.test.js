@@ -510,6 +510,42 @@ describe('WebSocketServer', () => {
         });
       });
     });
+
+    it('uses the parent `WebSocket` class', (done) => {
+      const custom_field = '123';
+
+      class CustomWebSocket extends WebSocket.WebSocket {
+        get custom_field() {
+          return custom_field;
+        }
+      }
+
+      const server = http.createServer();
+
+      server.listen(0, () => {
+        const wss = new WebSocket.Server({
+          noServer: true,
+          WebSocket: CustomWebSocket
+        });
+
+        server.on('upgrade', (req, socket, head) => {
+          wss.handleUpgrade(req, socket, head, (ws) => {
+            assert.ok(ws instanceof CustomWebSocket);
+            assert.ok(CustomWebSocket.prototype instanceof WebSocket.WebSocket);
+            assert.deepStrictEqual(ws.custom_field, custom_field);
+            ws.close();
+          });
+        });
+
+        const ws = new WebSocket(`ws://localhost:${server.address().port}`);
+
+        ws.on('open', () => {
+          ws.on('close', () => {
+            server.close(done);
+          });
+        });
+      });
+    });
   });
 
   describe('Connection establishing', () => {
