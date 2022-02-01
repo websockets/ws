@@ -84,6 +84,8 @@ This class represents a WebSocket server. It extends the `EventEmitter`.
   - `verifyClient` {Function} A function which can be used to validate incoming
     connections. See description below. (Usage is discouraged: see
     [Issue #337](https://github.com/websockets/ws/issues/377#issuecomment-462152231))
+  - `WebSocket` {Function} Specifies the `WebSocket` class to be used. It must
+    be extended from the original `WebSocket`. _Default_: `WebSocket`.
 - `callback` {Function}
 
 Create a new server instance. One and only one of `port`, `server` or `noServer`
