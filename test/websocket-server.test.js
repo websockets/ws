@@ -89,6 +89,32 @@ describe('WebSocketServer', () => {
           wss.close(done);
         });
       });
+
+      it('honors the `WebSocket` option', (done) => {
+        class CustomWebSocket extends WebSocket.WebSocket {
+          get foo() {
+            return 'foo';
+          }
+        }
+
+        const wss = new WebSocket.Server(
+          {
+            port: 0,
+            WebSocket: CustomWebSocket
+          },
+          () => {
+            const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+
+            ws.on('open', ws.close);
+          }
+        );
+
+        wss.on('connection', (ws) => {
+          assert.ok(ws instanceof CustomWebSocket);
+          assert.strictEqual(ws.foo, 'foo');
+          wss.close(done);
+        });
+      });
     });
 
     it('emits an error if http server bind fails', (done) => {
