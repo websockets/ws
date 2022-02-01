@@ -511,38 +511,29 @@ describe('WebSocketServer', () => {
       });
     });
 
-    it('uses the parent `WebSocket` class', (done) => {
-      const custom_field = '123';
-
+    it('honors the `WebSocket` option', (done) => {
       class CustomWebSocket extends WebSocket.WebSocket {
-        get custom_field() {
-          return custom_field;
+        get foo() {
+          return 'foo';
         }
       }
 
-      const server = http.createServer();
-
-      server.listen(0, () => {
-        const wss = new WebSocket.Server({
-          noServer: true,
+      const wss = new WebSocket.Server(
+        {
+          port: 0,
           WebSocket: CustomWebSocket
-        });
+        },
+        () => {
+          const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
-        server.on('upgrade', (req, socket, head) => {
-          wss.handleUpgrade(req, socket, head, (ws) => {
-            assert.ok(ws instanceof CustomWebSocket);
-            assert.deepStrictEqual(ws.custom_field, custom_field);
-            ws.close();
-          });
-        });
+          ws.on('open', ws.close);
+        }
+      );
 
-        const ws = new WebSocket(`ws://localhost:${server.address().port}`);
-
-        ws.on('open', () => {
-          ws.on('close', () => {
-            server.close(done);
-          });
-        });
+      wss.on('connection', (ws) => {
+        assert.ok(ws instanceof CustomWebSocket);
+        assert.strictEqual(ws.foo, 'foo');
+        wss.close(done);
       });
     });
   });
