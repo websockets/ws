@@ -531,7 +531,6 @@ describe('WebSocketServer', () => {
         server.on('upgrade', (req, socket, head) => {
           wss.handleUpgrade(req, socket, head, (ws) => {
             assert.ok(ws instanceof CustomWebSocket);
-            assert.ok(CustomWebSocket.prototype instanceof WebSocket.WebSocket);
             assert.deepStrictEqual(ws.custom_field, custom_field);
             ws.close();
           });
