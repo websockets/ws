@@ -1101,11 +1101,9 @@ describe('WebSocket', () => {
     });
 
     it('emits an error if the redirect URL is invalid (1/2)', (done) => {
-      const onUpgrade = (req, socket) => {
+      server.once('upgrade', (req, socket) => {
         socket.end('HTTP/1.1 302 Found\r\nLocation: ws://\r\n\r\n');
-      };
-
-      server.on('upgrade', onUpgrade);
+      });
 
       const ws = new WebSocket(`ws://localhost:${server.address().port}`, {
         followRedirects: true
@@ -1117,17 +1115,14 @@ describe('WebSocket', () => {
         assert.strictEqual(err.message, 'Invalid URL: ws://');
         assert.strictEqual(ws._redirects, 1);
 
-        server.removeListener('upgrade', onUpgrade);
         ws.on('close', () => done());
       });
     });
 
     it('emits an error if the redirect URL is invalid (2/2)', (done) => {
-      const onUpgrade = (req, socket) => {
+      server.once('upgrade', (req, socket) => {
         socket.end('HTTP/1.1 302 Found\r\nLocation: http://localhost\r\n\r\n');
-      };
-
-      server.on('upgrade', onUpgrade);
+      });
 
       const ws = new WebSocket(`ws://localhost:${server.address().port}`, {
         followRedirects: true
@@ -1142,7 +1137,6 @@ describe('WebSocket', () => {
         );
         assert.strictEqual(ws._redirects, 1);
 
-        server.removeListener('upgrade', onUpgrade);
         ws.on('close', () => done());
       });
     });
