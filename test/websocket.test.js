@@ -1268,10 +1268,10 @@ describe('WebSocket', () => {
               Authorization: 'Basic Zm9vOmJhcg==',
               Cookie: 'foo=bar',
               Host: 'foo',
-              'x-api-key': 'secret-api-key',
-              'x-api-signature': 'secret-api-signature'
+              'X-API-KEY': 'secret-api-key',
+              'X-API-SIGNATURE': 'secret-api-signature'
             },
-            followRedirects: new Set(['x-api-key', 'x-api-signature'])
+            followRedirects: new Set(['X-API-KEY', 'X-API-SIGNATURE'])
           });
 
           assert.strictEqual(
@@ -1280,9 +1280,9 @@ describe('WebSocket', () => {
           );
           assert.strictEqual(ws._req.getHeader('Cookie'), 'foo=bar');
           assert.strictEqual(ws._req.getHeader('Host'), 'foo');
-          assert.strictEqual(ws._req.getHeader('x-api-key'), 'secret-api-key');
+          assert.strictEqual(ws._req.getHeader('X-API-KEY'), 'secret-api-key');
           assert.strictEqual(
-            ws._req.getHeader('x-api-signature'),
+            ws._req.getHeader('X-API-SIGNATURE'),
             'secret-api-signature'
           );
 
