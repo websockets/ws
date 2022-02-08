@@ -1252,6 +1252,62 @@ describe('WebSocket', () => {
           ws.close();
         });
       });
+
+      it('drops the custom provided headers (via `followRedirects`)', (done) => {
+        const wss = new WebSocket.Server({ port: 0 }, () => {
+          const port = wss.address().port;
+
+          server.once('upgrade', (req, socket) => {
+            socket.end(
+              `HTTP/1.1 302 Found\r\nLocation: ws://localhost:${port}/\r\n\r\n`
+            );
+          });
+
+          const ws = new WebSocket(`ws://localhost:${server.address().port}`, {
+            headers: {
+              Authorization: 'Basic Zm9vOmJhcg==',
+              Cookie: 'foo=bar',
+              Host: 'foo',
+              'x-api-key': 'secret-api-key',
+              'x-api-signature': 'secret-api-signature'
+            },
+            followRedirects: new Set(['x-api-key', 'x-api-signature'])
+          });
+
+          assert.strictEqual(
+            ws._req.getHeader('Authorization'),
+            'Basic Zm9vOmJhcg=='
+          );
+          assert.strictEqual(ws._req.getHeader('Cookie'), 'foo=bar');
+          assert.strictEqual(ws._req.getHeader('Host'), 'foo');
+          assert.strictEqual(ws._req.getHeader('x-api-key'), 'secret-api-key');
+          assert.strictEqual(
+            ws._req.getHeader('x-api-signature'),
+            'secret-api-signature'
+          );
+
+          ws.on('close', (code) => {
+            assert.strictEqual(code, 1005);
+            assert.strictEqual(ws.url, `ws://localhost:${port}/`);
+            assert.strictEqual(ws._redirects, 1);
+
+            wss.close(done);
+          });
+        });
+
+        wss.on('connection', (ws, req) => {
+          assert.strictEqual(req.headers.authorization, undefined);
+          assert.strictEqual(req.headers.cookie, undefined);
+          assert.strictEqual(req.headers['x-api-key'], undefined);
+          assert.strictEqual(req.headers['x-api-signature'], undefined);
+
+          assert.strictEqual(
+            req.headers.host,
+            `localhost:${wss.address().port}`
+          );
+          ws.close();
+        });
+      });
     });
   });
 
