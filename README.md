@@ -252,7 +252,7 @@ server.listen(8080);
 ### Client authentication
 
 ```js
-import WebSocket from 'ws';
+import { WebSocketServer } from 'ws';
 import { createServer } from 'http';
 
 const server = createServer();
