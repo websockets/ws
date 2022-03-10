@@ -280,8 +280,8 @@ This class represents a WebSocket. It extends the `EventEmitter`.
     cryptographically strong random bytes.
   - `handshakeTimeout` {Number} Timeout in milliseconds for the handshake
     request. This is reset after every redirection.
-  - `maxPayload` {Number} The maximum allowed message size in bytes. Defaults
-    to 100 MiB (104857600 bytes).
+  - `maxPayload` {Number} The maximum allowed message size in bytes. Defaults to
+    100 MiB (104857600 bytes).
   - `maxRedirects` {Number} The maximum number of redirects allowed. Defaults
     to 10.
   - `origin` {String} Value of the `Origin` or `Sec-WebSocket-Origin` header
