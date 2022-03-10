@@ -72,8 +72,8 @@ This class represents a WebSocket server. It extends the `EventEmitter`.
   - `handleProtocols` {Function} A function which can be used to handle the
     WebSocket subprotocols. See description below.
   - `host` {String} The hostname where to bind the server.
-  - `maxPayload` {Number} The maximum allowed message size in bytes. Defaults
-    to 100 MiB (104857600 bytes).
+  - `maxPayload` {Number} The maximum allowed message size in bytes. Defaults to
+    100 MiB (104857600 bytes).
   - `noServer` {Boolean} Enable no server mode.
   - `path` {String} Accept only connections matching this path.
   - `perMessageDeflate` {Boolean|Object} Enable/disable permessage-deflate.
