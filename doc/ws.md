@@ -239,8 +239,9 @@ receives an `Error` if the server is already closed.
 
 Creates a new `WebSocket` client instance.
 
-This method can be overridden to provide custom constructor arguments to your
-custom `WebSocket` class (see the [`WebSocket` option](#new-websocketserveroptions-callback)).
+An alternative to [the `WebSocket` option](#new-websocketserveroptions-callback),
+this method can be overridden when you need to construct custom `WebSocket`
+instances that require extended constructor arguments.
 
 ### server.handleUpgrade(request, socket, head, callback)
 
