@@ -12,6 +12,7 @@
   - [server.address()](#serveraddress)
   - [server.clients](#serverclients)
   - [server.close([callback])](#serverclosecallback)
+  - [server.createClient(extensions, key, protocols, request, socket, head)](#servercreateclientextensions-key-protocols-request-socket-head)
   - [server.handleUpgrade(request, socket, head, callback)](#serverhandleupgraderequest-socket-head-callback)
   - [server.shouldHandle(request)](#servershouldhandlerequest)
 - [Class: WebSocket](#class-websocket)
@@ -225,6 +226,21 @@ connections are closed unless an external HTTP server is used and client
 tracking is disabled. In this case the `'close'` event is emitted in the next
 tick. The optional callback is called when the `'close'` event occurs and
 receives an `Error` if the server is already closed.
+
+### server.createClient(extensions, key, protocols, request, socket, head)
+
+- `extensions` {Object} The accepted extensions.
+- `key` {String} The value of the `Sec-WebSocket-Key` header.
+- `protocols` {Set} The subprotocols.
+- `request` {http.IncomingMessage} The request object.
+- `socket` {(net.Socket|tls.Socket)} The network socket between the server and
+  client.
+- `head` {Buffer} The first packet of the upgraded stream
+
+Creates a new `WebSocket` client instance.
+
+This method can be overridden to provide custom constructor arguments to your
+custom `WebSocket` class (see the [`WebSocket` option](#new-websocketserveroptions-callback)).
 
 ### server.handleUpgrade(request, socket, head, callback)
 
