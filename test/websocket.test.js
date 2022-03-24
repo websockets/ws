@@ -1146,7 +1146,10 @@ describe('WebSocket', () => {
       const authorization = 'Basic Zm9vOmJhcg==';
 
       server.once('upgrade', (req, socket) => {
-        socket.end('HTTP/1.1 302 Found\r\nLocation: /foo\r\n\r\n');
+        socket.end(
+          'HTTP/1.1 302 Found\r\n' +
+            `Location: ws://baz:qux@localhost:${port}/foo\r\n\r\n`
+        );
         server.once('upgrade', (req, socket, head) => {
           wss.handleUpgrade(req, socket, head, (ws, req) => {
             assert.strictEqual(req.headers.authorization, authorization);
@@ -1164,7 +1167,7 @@ describe('WebSocket', () => {
 
       ws.on('close', (code) => {
         assert.strictEqual(code, 1005);
-        assert.strictEqual(ws.url, `ws://foo:bar@localhost:${port}/foo`);
+        assert.strictEqual(ws.url, `ws://baz:qux@localhost:${port}/foo`);
         assert.strictEqual(ws._redirects, 1);
 
         wss.close(done);
