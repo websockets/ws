@@ -291,7 +291,7 @@ This class represents a WebSocket. It extends the `EventEmitter`.
   - `skipUTF8Validation` {Boolean} Specifies whether or not to skip UTF-8
     validation for text and close messages. Defaults to `false`. Set to `true`
     only if the server is trusted.
-  - Any other option allowed in [http.request()][] or [https.request()][].
+  - Any other option allowed in [`http.request()`][] or [`https.request()`][].
     Options given do not have any effect if parsed from the URL given with the
     `address` parameter.
 
@@ -539,7 +539,7 @@ state is `CONNECTING`.
 
 ### websocket.terminate()
 
-Forcibly close the connection. Internally this calls [socket.destroy()][].
+Forcibly close the connection. Internally this calls [`socket.destroy()`][].
 
 ### websocket.url
 
@@ -610,11 +610,11 @@ as configured by the `maxPayload` option.
 [concurrency-limit]: https://github.com/websockets/ws/issues/1202
 [duplex-options]:
   https://nodejs.org/api/stream.html#stream_new_stream_duplex_options
-[http.request()]:
+[`http.request()`]:
   https://nodejs.org/api/http.html#http_http_request_options_callback
-[https.request()]:
+[`https.request()`]:
   https://nodejs.org/api/https.html#https_https_request_options_callback
 [permessage-deflate]:
   https://tools.ietf.org/html/draft-ietf-hybi-permessage-compression-19
-[socket.destroy()]: https://nodejs.org/api/net.html#net_socket_destroy_error
+[`socket.destroy()`]: https://nodejs.org/api/net.html#net_socket_destroy_error
 [zlib-options]: https://nodejs.org/api/zlib.html#zlib_class_options
