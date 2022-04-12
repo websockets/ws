@@ -4,13 +4,13 @@ const express = require('express');
 const path = require('path');
 const { createServer } = require('http');
 
-const WebSocket = require('../../');
+const { WebSocketServer } = require('..');
 
 const app = express();
 app.use(express.static(path.join(__dirname, '/public')));
 
 const server = createServer(app);
-const wss = new WebSocket.Server({ server });
+const wss = new WebSocketServer({ server });
 
 wss.on('connection', function (ws) {
   const id = setInterval(function () {

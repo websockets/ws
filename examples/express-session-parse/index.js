@@ -5,7 +5,7 @@ const express = require('express');
 const http = require('http');
 const uuid = require('uuid');
 
-const WebSocket = require('../..');
+const { WebSocketServer } = require('..');
 
 const app = express();
 const map = new Map();
@@ -56,7 +56,7 @@ const server = http.createServer(app);
 //
 // Create a WebSocket server completely detached from the HTTP server.
 //
-const wss = new WebSocket.Server({ clientTracking: false, noServer: true });
+const wss = new WebSocketServer({ clientTracking: false, noServer: true });
 
 server.on('upgrade', function (request, socket, head) {
   console.log('Parsing session from request...');
