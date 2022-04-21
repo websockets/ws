@@ -37,7 +37,7 @@ app.post('/login', function (req, res) {
   res.send({ result: 'OK', message: 'Session updated' });
 });
 
-app.delete('/logout', function (request, response) {
+app.post('/logout', function (request, response) {
   const ws = map.get(request.session.userId);
 
   console.log('Destroying session');
