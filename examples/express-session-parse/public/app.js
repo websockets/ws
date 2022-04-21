@@ -40,19 +40,19 @@
     if (ws) {
       ws.onerror = ws.onopen = ws.onclose = null;
       ws.close();
+    } else {
+      ws = new WebSocket(`ws://${location.host}`);
+      ws.onerror = function () {
+        showMessage('WebSocket error');
+      };
+      ws.onopen = function () {
+        showMessage('WebSocket connection established');
+      };
+      ws.onclose = function () {
+        showMessage('WebSocket connection closed');
+        ws = null;
+      };
     }
-
-    ws = new WebSocket(`ws://${location.host}`);
-    ws.onerror = function () {
-      showMessage('WebSocket error');
-    };
-    ws.onopen = function () {
-      showMessage('WebSocket connection established');
-    };
-    ws.onclose = function () {
-      showMessage('WebSocket connection closed');
-      ws = null;
-    };
   };
 
   wsSendButton.onclick = function () {
