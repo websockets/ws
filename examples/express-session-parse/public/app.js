@@ -26,7 +26,7 @@
   };
 
   logout.onclick = function () {
-    fetch('/logout', { method: 'DELETE', credentials: 'same-origin' })
+    fetch('/logout', { method: 'POST', credentials: 'same-origin' })
       .then(handleResponse)
       .then(showMessage)
       .catch(function (err) {
