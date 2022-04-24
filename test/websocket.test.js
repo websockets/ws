@@ -645,6 +645,38 @@ describe('WebSocket', () => {
         ws.close();
       });
     });
+
+    it("emits a 'redirect' event", (done) => {
+      const server = http.createServer();
+      const wss = new WebSocket.Server({ noServer: true, path: '/foo' });
+
+      server.once('upgrade', (req, socket) => {
+        socket.end('HTTP/1.1 302 Found\r\nLocation: /foo\r\n\r\n');
+        server.once('upgrade', (req, socket, head) => {
+          wss.handleUpgrade(req, socket, head, (ws) => {
+            ws.close();
+          });
+        });
+      });
+
+      server.listen(() => {
+        const port = server.address().port;
+        const ws = new WebSocket(`ws://localhost:${port}`, {
+          followRedirects: true
+        });
+
+        ws.on('redirect', (url, req) => {
+          assert.strictEqual(ws._redirects, 1);
+          assert.strictEqual(url, `ws://localhost:${port}/foo`);
+          assert.ok(req instanceof http.ClientRequest);
+
+          ws.on('close', (code) => {
+            assert.strictEqual(code, 1005);
+            server.close(done);
+          });
+        });
+      });
+    });
   });
 
   describe('Connection establishing', () => {
@@ -1175,83 +1207,237 @@ describe('WebSocket', () => {
     });
 
     describe('When the redirect host is different', () => {
-      it('drops the `auth` option', (done) => {
-        const wss = new WebSocket.Server({ port: 0 }, () => {
-          const port = wss.address().port;
+      describe("If there is no 'redirect' event listener", () => {
+        it('drops the `auth` option', (done) => {
+          const wss = new WebSocket.Server({ port: 0 }, () => {
+            const port = wss.address().port;
 
-          server.once('upgrade', (req, socket) => {
-            socket.end(
-              `HTTP/1.1 302 Found\r\nLocation: ws://localhost:${port}/\r\n\r\n`
+            server.once('upgrade', (req, socket) => {
+              socket.end(
+                'HTTP/1.1 302 Found\r\n' +
+                  `Location: ws://localhost:${port}/\r\n\r\n`
+              );
+            });
+
+            const ws = new WebSocket(
+              `ws://localhost:${server.address().port}`,
+              {
+                auth: 'foo:bar',
+                followRedirects: true
+              }
             );
+
+            assert.strictEqual(
+              ws._req.getHeader('Authorization'),
+              'Basic Zm9vOmJhcg=='
+            );
+
+            ws.on('close', (code) => {
+              assert.strictEqual(code, 1005);
+              assert.strictEqual(ws.url, `ws://localhost:${port}/`);
+              assert.strictEqual(ws._redirects, 1);
+
+              wss.close(done);
+            });
           });
 
-          const ws = new WebSocket(`ws://localhost:${server.address().port}`, {
-            auth: 'foo:bar',
-            followRedirects: true
-          });
-
-          assert.strictEqual(
-            ws._req.getHeader('Authorization'),
-            'Basic Zm9vOmJhcg=='
-          );
-
-          ws.on('close', (code) => {
-            assert.strictEqual(code, 1005);
-            assert.strictEqual(ws.url, `ws://localhost:${port}/`);
-            assert.strictEqual(ws._redirects, 1);
-
-            wss.close(done);
+          wss.on('connection', (ws, req) => {
+            assert.strictEqual(req.headers.authorization, undefined);
+            ws.close();
           });
         });
 
-        wss.on('connection', (ws, req) => {
-          assert.strictEqual(req.headers.authorization, undefined);
-          ws.close();
+        it('drops the Authorization, Cookie, and Host headers', (done) => {
+          const wss = new WebSocket.Server({ port: 0 }, () => {
+            const port = wss.address().port;
+
+            server.once('upgrade', (req, socket) => {
+              socket.end(
+                'HTTP/1.1 302 Found\r\n' +
+                  `Location: ws://localhost:${port}/\r\n\r\n`
+              );
+            });
+
+            const ws = new WebSocket(
+              `ws://localhost:${server.address().port}`,
+              {
+                headers: {
+                  Authorization: 'Basic Zm9vOmJhcg==',
+                  Cookie: 'foo=bar',
+                  Host: 'foo'
+                },
+                followRedirects: true
+              }
+            );
+
+            assert.strictEqual(
+              ws._req.getHeader('Authorization'),
+              'Basic Zm9vOmJhcg=='
+            );
+            assert.strictEqual(ws._req.getHeader('Cookie'), 'foo=bar');
+            assert.strictEqual(ws._req.getHeader('Host'), 'foo');
+
+            ws.on('close', (code) => {
+              assert.strictEqual(code, 1005);
+              assert.strictEqual(ws.url, `ws://localhost:${port}/`);
+              assert.strictEqual(ws._redirects, 1);
+
+              wss.close(done);
+            });
+          });
+
+          wss.on('connection', (ws, req) => {
+            assert.strictEqual(req.headers.authorization, undefined);
+            assert.strictEqual(req.headers.cookie, undefined);
+            assert.strictEqual(
+              req.headers.host,
+              `localhost:${wss.address().port}`
+            );
+            ws.close();
+          });
         });
       });
 
-      it('drops the Authorization, Cookie, and Host headers', (done) => {
+      describe("If there is at least one 'redirect' event listener", () => {
+        it('does not drop any headers by default', (done) => {
+          const headers = {
+            authorization: 'Basic Zm9vOmJhcg==',
+            cookie: 'foo=bar',
+            host: 'foo'
+          };
+
+          const wss = new WebSocket.Server({ port: 0 }, () => {
+            const port = wss.address().port;
+
+            server.once('upgrade', (req, socket) => {
+              socket.end(
+                'HTTP/1.1 302 Found\r\n' +
+                  `Location: ws://localhost:${port}/\r\n\r\n`
+              );
+            });
+
+            const ws = new WebSocket(
+              `ws://localhost:${server.address().port}`,
+              { headers, followRedirects: true }
+            );
+
+            const firstRequest = ws._req;
+
+            assert.strictEqual(
+              firstRequest.getHeader('Authorization'),
+              headers.authorization
+            );
+            assert.strictEqual(
+              firstRequest.getHeader('Cookie'),
+              headers.cookie
+            );
+            assert.strictEqual(firstRequest.getHeader('Host'), headers.host);
+
+            ws.on('redirect', (url, req) => {
+              assert.strictEqual(ws._redirects, 1);
+              assert.strictEqual(url, `ws://localhost:${port}/`);
+              assert.notStrictEqual(firstRequest, req);
+              assert.strictEqual(
+                req.getHeader('Authorization'),
+                headers.authorization
+              );
+              assert.strictEqual(req.getHeader('Cookie'), headers.cookie);
+              assert.strictEqual(req.getHeader('Host'), headers.host);
+
+              ws.on('close', (code) => {
+                assert.strictEqual(code, 1005);
+                wss.close(done);
+              });
+            });
+          });
+
+          wss.on('connection', (ws, req) => {
+            assert.strictEqual(
+              req.headers.authorization,
+              headers.authorization
+            );
+            assert.strictEqual(req.headers.cookie, headers.cookie);
+            assert.strictEqual(req.headers.host, headers.host);
+            ws.close();
+          });
+        });
+      });
+    });
+
+    describe("In a listener of the 'redirect' event", () => {
+      it('allows to abort the request without swallowing errors', (done) => {
+        server.once('upgrade', (req, socket) => {
+          socket.end('HTTP/1.1 302 Found\r\nLocation: /foo\r\n\r\n');
+        });
+
+        const port = server.address().port;
+        const ws = new WebSocket(`ws://localhost:${port}`, {
+          followRedirects: true
+        });
+
+        ws.on('redirect', (url, req) => {
+          assert.strictEqual(ws._redirects, 1);
+          assert.strictEqual(url, `ws://localhost:${port}/foo`);
+
+          req.on('socket', () => {
+            req.abort();
+          });
+
+          ws.on('error', (err) => {
+            assert.ok(err instanceof Error);
+            assert.strictEqual(err.message, 'socket hang up');
+
+            ws.on('close', (code) => {
+              assert.strictEqual(code, 1006);
+              done();
+            });
+          });
+        });
+      });
+
+      it('allows to remove headers', (done) => {
         const wss = new WebSocket.Server({ port: 0 }, () => {
           const port = wss.address().port;
 
           server.once('upgrade', (req, socket) => {
             socket.end(
-              `HTTP/1.1 302 Found\r\nLocation: ws://localhost:${port}/\r\n\r\n`
+              'HTTP/1.1 302 Found\r\n' +
+                `Location: ws://localhost:${port}/\r\n\r\n`
             );
           });
 
+          const headers = {
+            authorization: 'Basic Zm9vOmJhcg==',
+            cookie: 'foo=bar'
+          };
+
           const ws = new WebSocket(`ws://localhost:${server.address().port}`, {
-            headers: {
-              Authorization: 'Basic Zm9vOmJhcg==',
-              Cookie: 'foo=bar',
-              Host: 'foo'
-            },
+            headers,
             followRedirects: true
           });
 
-          assert.strictEqual(
-            ws._req.getHeader('Authorization'),
-            'Basic Zm9vOmJhcg=='
-          );
-          assert.strictEqual(ws._req.getHeader('Cookie'), 'foo=bar');
-          assert.strictEqual(ws._req.getHeader('Host'), 'foo');
-
-          ws.on('close', (code) => {
-            assert.strictEqual(code, 1005);
-            assert.strictEqual(ws.url, `ws://localhost:${port}/`);
+          ws.on('redirect', (url, req) => {
             assert.strictEqual(ws._redirects, 1);
+            assert.strictEqual(url, `ws://localhost:${port}/`);
+            assert.strictEqual(
+              req.getHeader('Authorization'),
+              headers.authorization
+            );
+            assert.strictEqual(req.getHeader('Cookie'), headers.cookie);
 
-            wss.close(done);
+            req.removeHeader('authorization');
+            req.removeHeader('cookie');
+
+            ws.on('close', (code) => {
+              assert.strictEqual(code, 1005);
+              wss.close(done);
+            });
           });
         });
 
         wss.on('connection', (ws, req) => {
           assert.strictEqual(req.headers.authorization, undefined);
           assert.strictEqual(req.headers.cookie, undefined);
-          assert.strictEqual(
-            req.headers.host,
-            `localhost:${wss.address().port}`
-          );
           ws.close();
         });
       });
@@ -2172,6 +2358,42 @@ describe('WebSocket', () => {
       });
     }).timeout(4000);
 
+    it("can be called from a listener of the 'redirect' event", (done) => {
+      const server = http.createServer();
+
+      server.once('upgrade', (req, socket) => {
+        socket.end('HTTP/1.1 302 Found\r\nLocation: /foo\r\n\r\n');
+      });
+
+      server.listen(() => {
+        const port = server.address().port;
+        const ws = new WebSocket(`ws://localhost:${port}`, {
+          followRedirects: true
+        });
+
+        ws.on('open', () => {
+          done(new Error("Unexpected 'open' event"));
+        });
+
+        ws.on('error', (err) => {
+          assert.ok(err instanceof Error);
+          assert.strictEqual(
+            err.message,
+            'WebSocket was closed before the connection was established'
+          );
+
+          ws.on('close', (code) => {
+            assert.strictEqual(code, 1006);
+            server.close(done);
+          });
+        });
+
+        ws.on('redirect', () => {
+          ws.close();
+        });
+      });
+    });
+
     it("can be called from a listener of the 'upgrade' event", (done) => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
@@ -2409,6 +2631,42 @@ describe('WebSocket', () => {
         ws.on('close', () => done());
       });
     }).timeout(4000);
+
+    it("can be called from a listener of the 'redirect' event", (done) => {
+      const server = http.createServer();
+
+      server.once('upgrade', (req, socket) => {
+        socket.end('HTTP/1.1 302 Found\r\nLocation: /foo\r\n\r\n');
+      });
+
+      server.listen(() => {
+        const port = server.address().port;
+        const ws = new WebSocket(`ws://localhost:${port}`, {
+          followRedirects: true
+        });
+
+        ws.on('open', () => {
+          done(new Error("Unexpected 'open' event"));
+        });
+
+        ws.on('error', (err) => {
+          assert.ok(err instanceof Error);
+          assert.strictEqual(
+            err.message,
+            'WebSocket was closed before the connection was established'
+          );
+
+          ws.on('close', (code) => {
+            assert.strictEqual(code, 1006);
+            server.close(done);
+          });
+        });
+
+        ws.on('redirect', () => {
+          ws.terminate();
+        });
+      });
+    });
 
     it("can be called from a listener of the 'upgrade' event", (done) => {
       const wss = new WebSocket.Server({ port: 0 }, () => {

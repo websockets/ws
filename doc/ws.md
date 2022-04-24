@@ -24,6 +24,7 @@
   - [Event: 'open'](#event-open)
   - [Event: 'ping'](#event-ping)
   - [Event: 'pong'](#event-pong)
+  - [Event: 'redirect'](#event-redirect)
   - [Event: 'unexpected-response'](#event-unexpected-response)
   - [Event: 'upgrade'](#event-upgrade)
   - [websocket.addEventListener(type, listener[, options])](#websocketaddeventlistenertype-listener-options)
@@ -361,6 +362,19 @@ Emitted when a ping is received from the server.
 
 Emitted when a pong is received from the server.
 
+### Event: 'redirect'
+
+- `url` {String}
+- `request` {http.ClientRequest}
+
+Emitted before a redirect is followed. `url` is the redirect URL. `request` is
+the HTTP GET request with the headers queued. This event gives the ability to
+inspect confidential headers and remove them on a per-redirect basis using the
+[`request.getHeader()`][] and [`request.removeHeader()`][] API. The `request`
+object should be used only for this purpose. When there is at least one listener
+for this event, no header is removed by default, even if the redirect is to a
+different domain.
+
 ### Event: 'unexpected-response'
 
 - `request` {http.ClientRequest}
@@ -616,5 +630,8 @@ as configured by the `maxPayload` option.
   https://nodejs.org/api/https.html#https_https_request_options_callback
 [permessage-deflate]:
   https://tools.ietf.org/html/draft-ietf-hybi-permessage-compression-19
+[`request.getheader()`]: https://nodejs.org/api/http.html#requestgetheadername
+[`request.removeheader()`]:
+  https://nodejs.org/api/http.html#requestremoveheadername
 [`socket.destroy()`]: https://nodejs.org/api/net.html#net_socket_destroy_error
 [zlib-options]: https://nodejs.org/api/zlib.html#zlib_class_options
