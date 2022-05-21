@@ -340,22 +340,27 @@ describe('WebSocketServer', () => {
       wss.close();
     });
 
-    it("emits the 'close' event if the server is already closed", (done) => {
-      let callbackCalled = false;
+    it('calls the callback if the server is already closed', (done) => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         wss.close(() => {
           assert.strictEqual(wss._state, 2);
 
-          wss.on('close', () => {
-            callbackCalled = true;
-          });
-
           wss.close((err) => {
-            assert.ok(callbackCalled);
             assert.ok(err instanceof Error);
             assert.strictEqual(err.message, 'The server is not running');
             done();
           });
+        });
+      });
+    });
+
+    it("emits the 'close' event if the server is already closed", (done) => {
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        wss.close(() => {
+          assert.strictEqual(wss._state, 2);
+
+          wss.on('close', done);
+          wss.close();
         });
       });
     });
