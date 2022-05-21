@@ -508,7 +508,7 @@ describe('WebSocketServer', () => {
           res.on('end', () => {
             assert.strictEqual(
               Buffer.concat(chunks).toString(),
-              'The Sec-WebSocket-Key header is missing or invalid'
+              'Missing or invalid Sec-WebSocket-Key header'
             );
             wss.close(done);
           });
@@ -577,7 +577,7 @@ describe('WebSocketServer', () => {
           res.on('end', () => {
             assert.strictEqual(
               Buffer.concat(chunks).toString(),
-              'The HTTP method is invalid'
+              'Invalid HTTP method'
             );
             wss.close(done);
           });
@@ -613,7 +613,7 @@ describe('WebSocketServer', () => {
           res.on('end', () => {
             assert.strictEqual(
               Buffer.concat(chunks).toString(),
-              'The Upgrade header is invalid'
+              'Invalid Upgrade header'
             );
             wss.close(done);
           });
@@ -647,7 +647,7 @@ describe('WebSocketServer', () => {
           res.on('end', () => {
             assert.strictEqual(
               Buffer.concat(chunks).toString(),
-              'The Sec-WebSocket-Key header is missing or invalid'
+              'Missing or invalid Sec-WebSocket-Key header'
             );
             wss.close(done);
           });
@@ -682,7 +682,7 @@ describe('WebSocketServer', () => {
           res.on('end', () => {
             assert.strictEqual(
               Buffer.concat(chunks).toString(),
-              'The Sec-WebSocket-Key header is missing or invalid'
+              'Missing or invalid Sec-WebSocket-Key header'
             );
             wss.close(done);
           });
@@ -717,7 +717,7 @@ describe('WebSocketServer', () => {
           res.on('end', () => {
             assert.strictEqual(
               Buffer.concat(chunks).toString(),
-              'The Sec-WebSocket-Version header is missing or invalid'
+              'Missing or invalid Sec-WebSocket-Version header'
             );
             wss.close(done);
           });
@@ -753,7 +753,7 @@ describe('WebSocketServer', () => {
           res.on('end', () => {
             assert.strictEqual(
               Buffer.concat(chunks).toString(),
-              'The Sec-WebSocket-Version header is missing or invalid'
+              'Missing or invalid Sec-WebSocket-Version header'
             );
             wss.close(done);
           });
@@ -790,7 +790,7 @@ describe('WebSocketServer', () => {
           res.on('end', () => {
             assert.strictEqual(
               Buffer.concat(chunks).toString(),
-              'The Sec-WebSocket-Protocol header is invalid'
+              'Invalid Sec-WebSocket-Protocol header'
             );
             wss.close(done);
           });
@@ -833,8 +833,7 @@ describe('WebSocketServer', () => {
             res.on('end', () => {
               assert.strictEqual(
                 Buffer.concat(chunks).toString(),
-                'The Sec-WebSocket-Extensions header is invalid or not ' +
-                  'acceptable'
+                'Invalid or unacceptable Sec-WebSocket-Extensions header'
               );
               wss.close(done);
             });
