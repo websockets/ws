@@ -6,6 +6,7 @@ const assert = require('assert');
 const crypto = require('crypto');
 const https = require('https');
 const http = require('http');
+const net = require('net');
 const tls = require('tls');
 const fs = require('fs');
 const { URL } = require('url');
@@ -1034,6 +1035,133 @@ describe('WebSocket', () => {
         assert.strictEqual(ws._redirects, 1);
 
         wss.close(done);
+      });
+    });
+
+    describe('When moving away from a secure context', () => {
+      function proxy(httpServer, httpsServer) {
+        const server = net.createServer({ allowHalfOpen: true });
+
+        server.on('connection', (socket) => {
+          socket.on('readable', function read() {
+            socket.removeListener('readable', read);
+
+            const buf = socket.read(1);
+            const target = buf[0] === 22 ? httpsServer : httpServer;
+
+            socket.unshift(buf);
+            target.emit('connection', socket);
+          });
+        });
+
+        return server;
+      }
+
+      it('drops the `auth` option', (done) => {
+        const httpServer = http.createServer();
+        const httpsServer = https.createServer({
+          cert: fs.readFileSync('test/fixtures/certificate.pem'),
+          key: fs.readFileSync('test/fixtures/key.pem')
+        });
+        const server = proxy(httpServer, httpsServer);
+
+        server.listen(() => {
+          const port = server.address().port;
+
+          httpsServer.on('upgrade', (req, socket) => {
+            socket.on('error', NOOP);
+            socket.end(
+              'HTTP/1.1 302 Found\r\n' +
+                `Location: ws://localhost:${port}/\r\n\r\n`
+            );
+          });
+
+          const wss = new WebSocket.Server({ server: httpServer });
+
+          wss.on('connection', (ws, req) => {
+            assert.strictEqual(req.headers.authorization, undefined);
+            ws.close();
+          });
+
+          const ws = new WebSocket(`wss://localhost:${server.address().port}`, {
+            auth: 'foo:bar',
+            followRedirects: true,
+            rejectUnauthorized: false
+          });
+
+          assert.strictEqual(
+            ws._req.getHeader('Authorization'),
+            'Basic Zm9vOmJhcg=='
+          );
+
+          ws.on('close', (code) => {
+            assert.strictEqual(code, 1005);
+            assert.strictEqual(ws.url, `ws://localhost:${port}/`);
+            assert.strictEqual(ws._redirects, 1);
+
+            server.close(done);
+          });
+        });
+      });
+
+      it('drops the Authorization, and Cookie headers', (done) => {
+        const headers = {
+          authorization: 'Basic Zm9vOmJhcg==',
+          cookie: 'foo=bar',
+          host: 'foo'
+        };
+
+        const httpServer = http.createServer();
+        const httpsServer = https.createServer({
+          cert: fs.readFileSync('test/fixtures/certificate.pem'),
+          key: fs.readFileSync('test/fixtures/key.pem')
+        });
+        const server = proxy(httpServer, httpsServer);
+
+        server.listen(() => {
+          const port = server.address().port;
+
+          httpsServer.on('upgrade', (req, socket) => {
+            socket.on('error', NOOP);
+            socket.end(
+              'HTTP/1.1 302 Found\r\n' +
+                `Location: ws://localhost:${port}/\r\n\r\n`
+            );
+          });
+
+          const wss = new WebSocket.Server({ server: httpServer });
+
+          wss.on('connection', (ws, req) => {
+            assert.strictEqual(req.headers.authorization, undefined);
+            assert.strictEqual(req.headers.cookie, undefined);
+            assert.strictEqual(req.headers.host, 'foo');
+
+            ws.close();
+          });
+
+          const ws = new WebSocket(`wss://localhost:${server.address().port}`, {
+            headers,
+            followRedirects: true,
+            rejectUnauthorized: false
+          });
+
+          const firstRequest = ws._req;
+
+          assert.strictEqual(
+            firstRequest.getHeader('Authorization'),
+            headers.authorization
+          );
+          assert.strictEqual(firstRequest.getHeader('Cookie'), headers.cookie);
+          assert.strictEqual(firstRequest.getHeader('Host'), headers.host);
+
+          ws.on('close', (code) => {
+            assert.strictEqual(code, 1005);
+            assert.strictEqual(ws.url, `ws://localhost:${port}/`);
+            assert.strictEqual(ws._redirects, 1);
+
+            server.close(done);
+          });
+        });
       });
     });
 
