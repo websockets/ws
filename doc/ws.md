@@ -230,7 +230,8 @@ receives an `Error` if the server is already closed.
 ### server.handleUpgrade(request, socket, head, callback)
 
 - `request` {http.IncomingMessage} The client HTTP GET request.
-- `socket` {net.Socket} The network socket between the server and client.
+- `socket` {net.Socket|tls.Socket} The network socket between the server and
+  client.
 - `head` {Buffer} The first packet of the upgraded stream.
 - `callback` {Function}.
 
