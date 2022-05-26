@@ -851,6 +851,40 @@ describe('WebSocketServer', () => {
       });
     });
 
+    it("emits the 'wsClientError' event", (done) => {
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const req = http.request({
+          method: 'POST',
+          port: wss.address().port,
+          headers: {
+            Connection: 'Upgrade',
+            Upgrade: 'websocket'
+          }
+        });
+
+        req.on('response', (res) => {
+          assert.strictEqual(res.statusCode, 400);
+          wss.close(done);
+        });
+
+        req.end();
+      });
+
+      wss.on('wsClientError', (err, socket, request) => {
+        assert.ok(err instanceof Error);
+        assert.strictEqual(err.message, 'Invalid HTTP method');
+
+        assert.ok(request instanceof http.IncomingMessage);
+        assert.strictEqual(request.method, 'POST');
+
+        socket.end('HTTP/1.1 400 Bad Request\r\n\r\n');
+      });
+
+      wss.on('connection', () => {
+        done(new Error("Unexpected 'connection' event"));
+      });
+    });
+
     it('fails if the WebSocket server is closing or closed', (done) => {
       const server = http.createServer();
       const wss = new WebSocket.Server({ noServer: true });

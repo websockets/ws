@@ -9,6 +9,7 @@
   - [Event: 'error'](#event-error)
   - [Event: 'headers'](#event-headers)
   - [Event: 'listening'](#event-listening)
+  - [Event: 'wsClientError'](event-wsclienterror)
   - [server.address()](#serveraddress)
   - [server.clients](#serverclients)
   - [server.close([callback])](#serverclosecallback)
@@ -201,6 +202,21 @@ handshake. This allows you to inspect/modify the headers before they are sent.
 ### Event: 'listening'
 
 Emitted when the underlying server has been bound.
+
+### Event: 'wsClientError'
+
+- `error` {Error}
+- `socket` {net.Socket|tls.Socket}
+- `request` {http.IncomingMessage}
+
+Emitted when an error occurs before the WebSocket connection is established.
+`socket` and `request` are respectively the socket and the HTTP request from
+which the error originated. The listener of this event is responsible for
+closing the socket. When the `'wsClientError'` event is emitted there is no
+`http.ServerResponse` object, so any HTTP response, including the response
+headers and body, must be written directly to the `socket`. If there is no
+listener for this event, the socket is closed with a default 4xx response
+containing a descriptive error message.
 
 ### server.address()
 
