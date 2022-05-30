@@ -2966,7 +2966,7 @@ describe('WebSocket', () => {
       ws.onmessage = 'foo';
 
       assert.strictEqual(ws.onmessage, null);
-      assert.strictEqual(ws.listenerCount('onmessage'), 0);
+      assert.strictEqual(ws.listenerCount('message'), 0);
     });
 
     it('works like the `EventEmitter` interface', (done) => {
