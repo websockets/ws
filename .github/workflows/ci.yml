@@ -8,8 +8,6 @@ permissions: {}
 
 jobs:
   test:
-    permissions:
-      checks: write # Needed for coverallsapp/github-action.
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
