@@ -10,7 +10,7 @@ permissions:
 jobs:
   test:
     permissions:
-      checks: write  # for coverallsapp/github-action to create new checks
+      checks: write # Needed for coverallsapp/github-action.
       contents: read  # for actions/checkout to fetch code
     runs-on: ${{ matrix.os }}
     strategy:
