@@ -57,8 +57,6 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           parallel: true
   coverage:
-    permissions:
-      checks: write
     needs: test
     runs-on: ubuntu-latest
     steps:
