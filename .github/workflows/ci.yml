@@ -62,7 +62,7 @@ jobs:
           parallel: true
   coverage:
     permissions:
-      checks: write  # for coverallsapp/github-action to create new checks
+      checks: write
     needs: test
     runs-on: ubuntu-latest
     steps:
