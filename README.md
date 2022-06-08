@@ -485,5 +485,4 @@ We're using the GitHub [releases][changelog] for changelog entries.
 [server-report]: http://websockets.github.io/ws/autobahn/servers/
 [session-parse-example]: ./examples/express-session-parse
 [socks-proxy-agent]: https://github.com/TooTallNate/node-socks-proxy-agent
-[ws-server-options]:
-  https://github.com/websockets/ws/blob/master/doc/ws.md#new-websocketserveroptions-callback
+[ws-server-options]: ./doc/ws.md#new-websocketserveroptions-callback
