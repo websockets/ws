@@ -68,6 +68,13 @@ necessarily need to have a C++ compiler installed on your machine.
 - `npm install --save-optional utf-8-validate`: Allows to efficiently check if a
   message contains valid UTF-8.
 
+To not even try to require and use these modules, use the
+[`WS_NO_BUFFER_UTIL`](./doc/ws.md#ws_no_buffer_util) and
+[`WS_NO_UTF_8_VALIDATE`](./doc/ws.md#ws_no_utf_8_validate) environment
+variables. These might be useful to enhance security in systems where a user can
+put a package in the package search path of an application of another user, due
+to how the Node.js resolver algorithm works.
+
 ## API docs
 
 See [`/doc/ws.md`](./doc/ws.md) for Node.js-like documentation of ws classes and
