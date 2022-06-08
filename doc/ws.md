@@ -49,7 +49,7 @@
   - [websocket.terminate()](#websocketterminate)
   - [websocket.url](#websocketurl)
 - [createWebSocketStream(websocket[, options])](#createwebsocketstreamwebsocket-options)
-- [WS Error Codes](#ws-error-codes)
+- [Error codes](#error-codes)
   - [WS_ERR_EXPECTED_FIN](#ws_err_expected_fin)
   - [WS_ERR_EXPECTED_MASK](#ws_err_expected_mask)
   - [WS_ERR_INVALID_CLOSE_CODE](#ws_err_invalid_close_code)
@@ -353,7 +353,7 @@ been closed.
 - `error` {Error}
 
 Emitted when an error occurs. Errors may have a `.code` property, matching one
-of the string values defined below under [WS Error Codes](#ws-error-codes).
+of the string values defined below under [Error codes](#error-codes).
 
 ### Event: 'message'
 
@@ -587,7 +587,7 @@ The URL of the WebSocket server. Server clients don't have this attribute.
 Returns a `Duplex` stream that allows to use the Node.js streams API on top of a
 given `WebSocket`.
 
-## WS Error Codes
+## Error codes
 
 Errors emitted by the websocket may have a `.code` property, describing the
 specific type of error that has occurred:
