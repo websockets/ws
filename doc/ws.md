@@ -49,6 +49,9 @@
   - [websocket.terminate()](#websocketterminate)
   - [websocket.url](#websocketurl)
 - [createWebSocketStream(websocket[, options])](#createwebsocketstreamwebsocket-options)
+- [Environment variables](#environment-variables)
+  - [WS_NO_BUFFER_UTIL](#ws_no_buffer_util)
+  - [WS_NO_UTF_8_VALIDATE](#ws_no_utf_8_validate)
 - [Error codes](#error-codes)
   - [WS_ERR_EXPECTED_FIN](#ws_err_expected_fin)
   - [WS_ERR_EXPECTED_MASK](#ws_err_expected_mask)
@@ -586,6 +589,18 @@ The URL of the WebSocket server. Server clients don't have this attribute.
 
 Returns a `Duplex` stream that allows to use the Node.js streams API on top of a
 given `WebSocket`.
+
+## Environment variables
+
+### WS_NO_BUFFER_UTIL
+
+When set to a non empty value, prevents the optional `bufferutil` dependency
+from being required.
+
+### WS_NO_UTF_8_VALIDATE
+
+When set to a non empty value, prevents the optional `utf-8-validate` dependency
+from being required.
 
 ## Error codes
 
