@@ -9,7 +9,7 @@
   - [Event: 'error'](#event-error)
   - [Event: 'headers'](#event-headers)
   - [Event: 'listening'](#event-listening)
-  - [Event: 'wsClientError'](event-wsclienterror)
+  - [Event: 'wsClientError'](#event-wsclienterror)
   - [server.address()](#serveraddress)
   - [server.clients](#serverclients)
   - [server.close([callback])](#serverclosecallback)
