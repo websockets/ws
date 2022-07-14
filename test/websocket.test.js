@@ -1273,14 +1273,11 @@ describe('WebSocket', () => {
               ws.close();
             });
 
-            const ws = new WebSocket(
-              `wss://localhost:${server.address().port}`,
-              {
-                auth: 'foo:bar',
-                followRedirects: true,
-                rejectUnauthorized: false
-              }
-            );
+            const ws = new WebSocket(`wss://localhost:${port}`, {
+              auth: 'foo:bar',
+              followRedirects: true,
+              rejectUnauthorized: false
+            });
 
             assert.strictEqual(
               ws._req.getHeader('Authorization'),
@@ -1297,13 +1294,7 @@ describe('WebSocket', () => {
           });
         });
 
-        it('drops the Authorization, and Cookie headers', (done) => {
-          const headers = {
-            authorization: 'Basic Zm9vOmJhcg==',
-            cookie: 'foo=bar',
-            host: 'foo'
-          };
-
+        it('drops the Authorization and Cookie headers', (done) => {
           const httpServer = http.createServer();
           const httpsServer = https.createServer({
             cert: fs.readFileSync('test/fixtures/certificate.pem'),
@@ -1322,20 +1313,27 @@ describe('WebSocket', () => {
               );
             });
 
+            const headers = {
+              authorization: 'Basic Zm9vOmJhcg==',
+              cookie: 'foo=bar',
+              host: 'foo'
+            };
+
             const wss = new WebSocket.Server({ server: httpServer });
 
             wss.on('connection', (ws, req) => {
               assert.strictEqual(req.headers.authorization, undefined);
               assert.strictEqual(req.headers.cookie, undefined);
-              assert.strictEqual(req.headers.host, 'foo');
+              assert.strictEqual(req.headers.host, headers.host);
 
               ws.close();
             });
 
-            const ws = new WebSocket(
-              `wss://localhost:${server.address().port}`,
-              { headers, followRedirects: true, rejectUnauthorized: false }
-            );
+            const ws = new WebSocket(`wss://localhost:${port}`, {
+              followRedirects: true,
+              headers,
+              rejectUnauthorized: false
+            });
 
             const firstRequest = ws._req;
 
@@ -1362,12 +1360,6 @@ describe('WebSocket', () => {
 
       describe("If there is at least one 'redirect' event listener", () => {
         it('does not drop any headers by default', (done) => {
-          const headers = {
-            authorization: 'Basic Zm9vOmJhcg==',
-            cookie: 'foo=bar',
-            host: 'foo'
-          };
-
           const httpServer = http.createServer();
           const httpsServer = https.createServer({
             cert: fs.readFileSync('test/fixtures/certificate.pem'),
@@ -1386,6 +1378,12 @@ describe('WebSocket', () => {
               );
             });
 
+            const headers = {
+              authorization: 'Basic Zm9vOmJhcg==',
+              cookie: 'foo=bar',
+              host: 'foo'
+            };
+
             const wss = new WebSocket.Server({ server: httpServer });
 
             wss.on('connection', (ws, req) => {
@@ -1399,10 +1397,11 @@ describe('WebSocket', () => {
               ws.close();
             });
 
-            const ws = new WebSocket(
-              `wss://localhost:${server.address().port}`,
-              { headers, followRedirects: true, rejectUnauthorized: false }
-            );
+            const ws = new WebSocket(`wss://localhost:${port}`, {
+              followRedirects: true,
+              headers,
+              rejectUnauthorized: false
+            });
 
             const firstRequest = ws._req;
 
@@ -1478,7 +1477,7 @@ describe('WebSocket', () => {
           });
         });
 
-        it('drops the Authorization, Cookie, and Host headers', (done) => {
+        it('drops the Authorization, Cookie and Host headers', (done) => {
           const wss = new WebSocket.Server({ port: 0 }, () => {
             const port = wss.address().port;
 
@@ -1489,24 +1488,28 @@ describe('WebSocket', () => {
               );
             });
 
+            const headers = {
+              authorization: 'Basic Zm9vOmJhcg==',
+              cookie: 'foo=bar',
+              host: 'foo'
+            };
+
             const ws = new WebSocket(
               `ws://localhost:${server.address().port}`,
-              {
-                headers: {
-                  Authorization: 'Basic Zm9vOmJhcg==',
-                  Cookie: 'foo=bar',
-                  Host: 'foo'
-                },
-                followRedirects: true
-              }
+              { followRedirects: true, headers }
             );
 
+            const firstRequest = ws._req;
+
             assert.strictEqual(
-              ws._req.getHeader('Authorization'),
-              'Basic Zm9vOmJhcg=='
+              firstRequest.getHeader('Authorization'),
+              headers.authorization
             );
-            assert.strictEqual(ws._req.getHeader('Cookie'), 'foo=bar');
-            assert.strictEqual(ws._req.getHeader('Host'), 'foo');
+            assert.strictEqual(
+              firstRequest.getHeader('Cookie'),
+              headers.cookie
+            );
+            assert.strictEqual(firstRequest.getHeader('Host'), headers.host);
 
             ws.on('close', (code) => {
               assert.strictEqual(code, 1005);
@@ -1524,6 +1527,7 @@ describe('WebSocket', () => {
               req.headers.host,
               `localhost:${wss.address().port}`
             );
+
             ws.close();
           });
         });
@@ -1549,7 +1553,7 @@ describe('WebSocket', () => {
 
             const ws = new WebSocket(
               `ws://localhost:${server.address().port}`,
-              { headers, followRedirects: true }
+              { followRedirects: true, headers }
             );
 
             const firstRequest = ws._req;
@@ -1643,8 +1647,8 @@ describe('WebSocket', () => {
           };
 
           const ws = new WebSocket(`ws://localhost:${server.address().port}`, {
-            headers,
-            followRedirects: true
+            followRedirects: true,
+            headers
           });
 
           ws.on('redirect', (url, req) => {
