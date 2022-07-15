@@ -144,6 +144,32 @@ const ws = new WebSocket('ws://www.host.com/path', {
 
 ## Usage examples
 
+### Simple server
+
+```js
+import { WebSocketServer } from 'ws';
+
+const wss = new WebSocketServer({ port: 8080 });
+
+wss.on('connection', function connection(ws) {
+  ws.on('message', function message(data) {
+    console.log('received: %s', data);
+  });
+
+  ws.send('something');
+});
+
+console.log("Now hosting at ws://localhost:8080")
+```
+
+```html
+<!-- browser or node.js native connection -->
+<script>
+  const ws = new WebSocket('ws://localhost:8080');
+  ws.onopen = () => ws.send("Hello")
+</script>
+```
+
 ### Sending and receiving text data
 
 ```js
@@ -175,22 +201,6 @@ ws.on('open', function open() {
   }
 
   ws.send(array);
-});
-```
-
-### Simple server
-
-```js
-import { WebSocketServer } from 'ws';
-
-const wss = new WebSocketServer({ port: 8080 });
-
-wss.on('connection', function connection(ws) {
-  ws.on('message', function message(data) {
-    console.log('received: %s', data);
-  });
-
-  ws.send('something');
 });
 ```
 
