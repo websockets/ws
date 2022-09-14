@@ -2,68 +2,71 @@
 
 ## Table of Contents
 
-- [Class: WebSocketServer](#class-websocketserver)
-  - [new WebSocketServer(options[, callback])](#new-websocketserveroptions-callback)
-  - [Event: 'close'](#event-close)
-  - [Event: 'connection'](#event-connection)
-  - [Event: 'error'](#event-error)
-  - [Event: 'headers'](#event-headers)
-  - [Event: 'listening'](#event-listening)
-  - [Event: 'wsClientError'](#event-wsclienterror)
-  - [server.address()](#serveraddress)
-  - [server.clients](#serverclients)
-  - [server.close([callback])](#serverclosecallback)
-  - [server.handleUpgrade(request, socket, head, callback)](#serverhandleupgraderequest-socket-head-callback)
-  - [server.shouldHandle(request)](#servershouldhandlerequest)
-- [Class: WebSocket](#class-websocket)
-  - [Ready state constants](#ready-state-constants)
-  - [new WebSocket(address[, protocols][, options])](#new-websocketaddress-protocols-options)
-    - [UNIX Domain Sockets](#unix-domain-sockets)
-  - [Event: 'close'](#event-close-1)
-  - [Event: 'error'](#event-error-1)
-  - [Event: 'message'](#event-message)
-  - [Event: 'open'](#event-open)
-  - [Event: 'ping'](#event-ping)
-  - [Event: 'pong'](#event-pong)
-  - [Event: 'redirect'](#event-redirect)
-  - [Event: 'unexpected-response'](#event-unexpected-response)
-  - [Event: 'upgrade'](#event-upgrade)
-  - [websocket.addEventListener(type, listener[, options])](#websocketaddeventlistenertype-listener-options)
-  - [websocket.binaryType](#websocketbinarytype)
-  - [websocket.bufferedAmount](#websocketbufferedamount)
-  - [websocket.close([code[, reason]])](#websocketclosecode-reason)
-  - [websocket.extensions](#websocketextensions)
-  - [websocket.isPaused](#websocketispaused)
-  - [websocket.onclose](#websocketonclose)
-  - [websocket.onerror](#websocketonerror)
-  - [websocket.onmessage](#websocketonmessage)
-  - [websocket.onopen](#websocketonopen)
-  - [websocket.pause()](#websocketpause)
-  - [websocket.ping([data[, mask]][, callback])](#websocketpingdata-mask-callback)
-  - [websocket.pong([data[, mask]][, callback])](#websocketpongdata-mask-callback)
-  - [websocket.protocol](#websocketprotocol)
-  - [websocket.readyState](#websocketreadystate)
-  - [websocket.removeEventListener(type, listener)](#websocketremoveeventlistenertype-listener)
-  - [websocket.resume()](#websocketresume)
-  - [websocket.send(data[, options][, callback])](#websocketsenddata-options-callback)
-  - [websocket.terminate()](#websocketterminate)
-  - [websocket.url](#websocketurl)
-- [createWebSocketStream(websocket[, options])](#createwebsocketstreamwebsocket-options)
-- [Environment variables](#environment-variables)
-  - [WS_NO_BUFFER_UTIL](#ws_no_buffer_util)
-  - [WS_NO_UTF_8_VALIDATE](#ws_no_utf_8_validate)
-- [Error codes](#error-codes)
-  - [WS_ERR_EXPECTED_FIN](#ws_err_expected_fin)
-  - [WS_ERR_EXPECTED_MASK](#ws_err_expected_mask)
-  - [WS_ERR_INVALID_CLOSE_CODE](#ws_err_invalid_close_code)
-  - [WS_ERR_INVALID_CONTROL_PAYLOAD_LENGTH](#ws_err_invalid_control_payload_length)
-  - [WS_ERR_INVALID_OPCODE](#ws_err_invalid_opcode)
-  - [WS_ERR_INVALID_UTF8](#ws_err_invalid_utf8)
-  - [WS_ERR_UNEXPECTED_MASK](#ws_err_unexpected_mask)
-  - [WS_ERR_UNEXPECTED_RSV_1](#ws_err_unexpected_rsv_1)
-  - [WS_ERR_UNEXPECTED_RSV_2_3](#ws_err_unexpected_rsv_2_3)
-  - [WS_ERR_UNSUPPORTED_DATA_PAYLOAD_LENGTH](#ws_err_unsupported_data_payload_length)
-  - [WS_ERR_UNSUPPORTED_MESSAGE_LENGTH](#ws_err_unsupported_message_length)
+- [ws](#ws)
+  - [Table of Contents](#table-of-contents)
+  - [Class: WebSocketServer](#class-websocketserver)
+    - [new WebSocketServer(options[, callback])](#new-websocketserveroptions-callback)
+    - [Event: 'close'](#event-close)
+    - [Event: 'connection'](#event-connection)
+    - [Event: 'error'](#event-error)
+    - [Event: 'headers'](#event-headers)
+    - [Event: 'listening'](#event-listening)
+    - [Event: 'wsClientError'](#event-wsclienterror)
+    - [server.address()](#serveraddress)
+    - [server.clients](#serverclients)
+    - [server.close([callback])](#serverclosecallback)
+    - [server.handleUpgrade(request, socket, head, callback)](#serverhandleupgraderequest-socket-head-callback)
+    - [server.shouldHandle(request)](#servershouldhandlerequest)
+  - [Class: WebSocket](#class-websocket)
+    - [Ready state constants](#ready-state-constants)
+    - [new WebSocket(address, protocols)](#new-websocketaddress-protocols)
+      - [UNIX Domain Sockets](#unix-domain-sockets)
+      - [Windows Named Pipes](#windows-named-pipes)
+    - [Event: 'close'](#event-close-1)
+    - [Event: 'error'](#event-error-1)
+    - [Event: 'message'](#event-message)
+    - [Event: 'open'](#event-open)
+    - [Event: 'ping'](#event-ping)
+    - [Event: 'pong'](#event-pong)
+    - [Event: 'redirect'](#event-redirect)
+    - [Event: 'unexpected-response'](#event-unexpected-response)
+    - [Event: 'upgrade'](#event-upgrade)
+    - [websocket.addEventListener(type, listener[, options])](#websocketaddeventlistenertype-listener-options)
+    - [websocket.binaryType](#websocketbinarytype)
+    - [websocket.bufferedAmount](#websocketbufferedamount)
+    - [websocket.close([code[, reason]])](#websocketclosecode-reason)
+    - [websocket.isPaused](#websocketispaused)
+    - [websocket.extensions](#websocketextensions)
+    - [websocket.onclose](#websocketonclose)
+    - [websocket.onerror](#websocketonerror)
+    - [websocket.onmessage](#websocketonmessage)
+    - [websocket.onopen](#websocketonopen)
+    - [websocket.pause()](#websocketpause)
+    - [websocket.ping([data[, mask]][, callback])](#websocketpingdata-mask-callback)
+    - [websocket.pong([data[, mask]][, callback])](#websocketpongdata-mask-callback)
+    - [websocket.protocol](#websocketprotocol)
+    - [websocket.resume()](#websocketresume)
+    - [websocket.readyState](#websocketreadystate)
+    - [websocket.removeEventListener(type, listener)](#websocketremoveeventlistenertype-listener)
+    - [websocket.send(data, options)](#websocketsenddata-options)
+    - [websocket.terminate()](#websocketterminate)
+    - [websocket.url](#websocketurl)
+  - [createWebSocketStream(websocket[, options])](#createwebsocketstreamwebsocket-options)
+  - [Environment variables](#environment-variables)
+    - [WS_NO_BUFFER_UTIL](#ws_no_buffer_util)
+    - [WS_NO_UTF_8_VALIDATE](#ws_no_utf_8_validate)
+  - [Error codes](#error-codes)
+    - [WS_ERR_EXPECTED_FIN](#ws_err_expected_fin)
+    - [WS_ERR_EXPECTED_MASK](#ws_err_expected_mask)
+    - [WS_ERR_INVALID_CLOSE_CODE](#ws_err_invalid_close_code)
+    - [WS_ERR_INVALID_CONTROL_PAYLOAD_LENGTH](#ws_err_invalid_control_payload_length)
+    - [WS_ERR_INVALID_OPCODE](#ws_err_invalid_opcode)
+    - [WS_ERR_INVALID_UTF8](#ws_err_invalid_utf8)
+    - [WS_ERR_UNEXPECTED_MASK](#ws_err_unexpected_mask)
+    - [WS_ERR_UNEXPECTED_RSV_1](#ws_err_unexpected_rsv_1)
+    - [WS_ERR_UNEXPECTED_RSV_2_3](#ws_err_unexpected_rsv_2_3)
+    - [WS_ERR_UNSUPPORTED_DATA_PAYLOAD_LENGTH](#ws_err_unsupported_data_payload_length)
+    - [WS_ERR_UNSUPPORTED_MESSAGE_LENGTH](#ws_err_unsupported_message_length)
 
 ## Class: WebSocketServer
 
@@ -337,6 +340,23 @@ URL path is omitted
 
 ```
 ws+unix:///absolute/path/to/uds_socket
+```
+
+it defaults to `/`.
+
+#### Windows Named Pipes
+
+`ws` supports Windows named pipes. To make a request to a named pipe, prepend `\\\\.\\path` to the named pipe path:
+
+```
+ws+unix:///\\\\.\\path\\os_tempdir\\named_pipe:/pathname?search_params
+```
+
+Note that `:` is the separator between the socket path and the URL path. If the
+URL path is omitted
+
+```
+ws+unix:///\\\\.\\path\\os_tempdir\\named_pipe
 ```
 
 it defaults to `/`.
