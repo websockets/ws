@@ -179,12 +179,16 @@ describe('WebSocketServer', () => {
     });
 
     it('uses a precreated http server listening on unix socket', function (done) {
-      const server = http.createServer();
-      const sockPath = path.join(
+      const isWin32 = os.platform() === 'win32';
+      let sockPath = path.join(
         os.tmpdir(),
         `ws.${crypto.randomBytes(16).toString('hex')}.sock`
       );
+      if (isWin32) {
+        sockPath = path.join('\\\\.\\pipe', sockPath);
+      }
 
+      const server = http.createServer();
       server.listen(sockPath, () => {
         const wss = new WebSocket.Server({ server });
 
@@ -202,8 +206,15 @@ describe('WebSocketServer', () => {
           }
         });
 
-        const ws = new WebSocket(`ws+unix://${sockPath}:/foo?bar=bar`);
-        ws.on('open', () => new WebSocket(`ws+unix://${sockPath}`));
+        let protocol = 'ws+unix://';
+        if (isWin32) {
+          // add third `/` to make named pipe a valid URL
+          protocol += '/';
+        }
+        const address = protocol + sockPath;
+
+        const ws = new WebSocket(`${address}:/foo?bar=bar`);
+        ws.on('open', () => new WebSocket(address));
       });
     });
   });
