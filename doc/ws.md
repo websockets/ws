@@ -554,7 +554,9 @@ only removes listeners added with
 ### websocket.send(data[, options][, callback])
 
 - `data` {Array|Number|Object|String|ArrayBuffer|Buffer|DataView|TypedArray} The
-  data to send.
+  data to send. `Object` values are only supported if they conform to the
+  requirements of [`Buffer.from()`][]. If those constraints are not met, a
+  `TypeError` is thrown.
 - `options` {Object}
   - `binary` {Boolean} Specifies whether `data` should be sent as a binary or
     not. Default is autodetected.
@@ -656,6 +658,8 @@ as configured by the `maxPayload` option.
 [concurrency-limit]: https://github.com/websockets/ws/issues/1202
 [duplex-options]:
   https://nodejs.org/api/stream.html#stream_new_stream_duplex_options
+[`buffer.from()`]:
+  https://nodejs.org/api/buffer.html#static-method-bufferfromobject-offsetorencoding-length
 [`http.request()`]:
   https://nodejs.org/api/http.html#http_http_request_options_callback
 [`https.request()`]:
