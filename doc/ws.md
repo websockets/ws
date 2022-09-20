@@ -326,17 +326,17 @@ Create a new WebSocket instance.
 #### UNIX Domain Sockets
 
 `ws` supports making requests to UNIX domain sockets. To make one, use the
-following URL scheme:
+following URL form:
 
 ```
-ws+unix:///absolute/path/to/uds_socket:/pathname?search_params
+ws+unix:/absolute/path/to/uds_socket:/pathname?search_params
 ```
 
 Note that `:` is the separator between the socket path and the URL path. If the
 URL path is omitted
 
 ```
-ws+unix:///absolute/path/to/uds_socket
+ws+unix:/absolute/path/to/uds_socket
 ```
 
 it defaults to `/`.

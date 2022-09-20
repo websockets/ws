@@ -1548,7 +1548,7 @@ describe('WebSocket', () => {
 
           server.once('upgrade', (req, socket) => {
             socket.end(
-              `HTTP/1.1 302 Found\r\nLocation: ws+unix://${socketPath}\r\n\r\n`
+              `HTTP/1.1 302 Found\r\nLocation: ws+unix:${socketPath}\r\n\r\n`
             );
           });
 
@@ -1589,7 +1589,7 @@ describe('WebSocket', () => {
 
             ws.on('close', (code) => {
               assert.strictEqual(code, 1005);
-              assert.strictEqual(ws.url, `ws+unix://${socketPath}`);
+              assert.strictEqual(ws.url, `ws+unix:${socketPath}`);
               assert.strictEqual(ws._redirects, 1);
 
               redirectedServer.close(done);
@@ -1616,7 +1616,7 @@ describe('WebSocket', () => {
           redirectingServer.on('upgrade', (req, socket) => {
             socket.end(
               'HTTP/1.1 302 Found\r\n' +
-                `Location: ws+unix://${redirectedServerSocketPath}\r\n\r\n`
+                `Location: ws+unix:${redirectedServerSocketPath}\r\n\r\n`
             );
           });
 
@@ -1645,10 +1645,10 @@ describe('WebSocket', () => {
               host: 'foo'
             };
 
-            const ws = new WebSocket(
-              `ws+unix://${redirectingServerSocketPath}`,
-              { followRedirects: true, headers }
-            );
+            const ws = new WebSocket(`ws+unix:${redirectingServerSocketPath}`, {
+              followRedirects: true,
+              headers
+            });
 
             const firstRequest = ws._req;
 
@@ -1666,7 +1666,7 @@ describe('WebSocket', () => {
               assert.strictEqual(code, 1005);
               assert.strictEqual(
                 ws.url,
-                `ws+unix://${redirectedServerSocketPath}`
+                `ws+unix:${redirectedServerSocketPath}`
               );
               assert.strictEqual(ws._redirects, 1);
 
@@ -1723,7 +1723,7 @@ describe('WebSocket', () => {
               host: 'foo'
             };
 
-            const ws = new WebSocket(`ws+unix://${socketPath}`, {
+            const ws = new WebSocket(`ws+unix:${socketPath}`, {
               followRedirects: true,
               headers
             });
