@@ -210,8 +210,8 @@ describe('WebSocketServer', () => {
           }
         });
 
-        const ws = new WebSocket(`ws+unix://${sockPath}:/foo?bar=bar`);
-        ws.on('open', () => new WebSocket(`ws+unix://${sockPath}`));
+        const ws = new WebSocket(`ws+unix:${sockPath}:/foo?bar=bar`);
+        ws.on('open', () => new WebSocket(`ws+unix:${sockPath}`));
       });
     });
   });
