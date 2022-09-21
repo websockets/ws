@@ -18,7 +18,7 @@
 - [Class: WebSocket](#class-websocket)
   - [Ready state constants](#ready-state-constants)
   - [new WebSocket(address[, protocols][, options])](#new-websocketaddress-protocols-options)
-    - [UNIX Domain Sockets](#unix-domain-sockets)
+    - [IPC connections](#ipc-connections)
   - [Event: 'close'](#event-close-1)
   - [Event: 'error'](#event-error-1)
   - [Event: 'message'](#event-message)
@@ -323,17 +323,27 @@ context takeover.
 
 Create a new WebSocket instance.
 
-#### UNIX Domain Sockets
+#### IPC connections
 
-`ws` supports making requests to UNIX domain sockets. To make one, use the
-following URL form:
+`ws` supports IPC connections. To connect to an IPC endpoint, use the following
+URL form:
 
-```
-ws+unix:/absolute/path/to/uds_socket:/pathname?search_params
-```
+- On Unices
 
-The character `:` is the separator between the socket path and the URL path. If
-the URL path is omitted
+  ```
+  ws+unix:/absolute/path/to/uds_socket:/pathname?search_params
+  ```
+
+- On Windows
+
+  ```
+  ws+unix:\\.\pipe\pipe_name:/pathname?search_params
+  ```
+
+The character `:` is the separator between the IPC path (the Unix domain socket
+path or the Windows named pipe) and the URL path. The IPC path must not include
+the characters `:` and `?`, otherwise the URL is incorrectly parsed. If the URL
+path is omitted
 
 ```
 ws+unix:/absolute/path/to/uds_socket
