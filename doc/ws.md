@@ -232,8 +232,8 @@ a pipe or UNIX domain socket, the name is returned as a string.
 
 - {Set}
 
-A set that stores all connected clients. Please note that this property is only
-added when the `clientTracking` is truthy.
+A set that stores all connected clients. This property is only added when the
+`clientTracking` is truthy.
 
 ### server.close([callback])
 
@@ -332,8 +332,8 @@ following URL form:
 ws+unix:/absolute/path/to/uds_socket:/pathname?search_params
 ```
 
-Note that `:` is the separator between the socket path and the URL path. If the
-URL path is omitted
+The character `:` is the separator between the socket path and the URL path. If
+the URL path is omitted
 
 ```
 ws+unix:/absolute/path/to/uds_socket
