@@ -103,7 +103,7 @@ completely detached from the HTTP/S server. This makes it possible, for example,
 to share a single HTTP/S server between multiple WebSocket servers.
 
 > **NOTE:** Use of `verifyClient` is discouraged. Rather handle client
-> authentication in the `upgrade` event of the HTTP server. See examples for
+> authentication in the `'upgrade'` event of the HTTP server. See examples for
 > more details.
 
 If `verifyClient` is not set then the handshake is automatically accepted. If it
@@ -170,7 +170,7 @@ is used. When sending a fragmented message the length of the first fragment is
 compared to the threshold. This determines if compression is used for the entire
 message.
 
-`callback` will be added as a listener for the `listening` event on the HTTP
+`callback` will be added as a listener for the `'listening'` event on the HTTP
 server when not operating in "noServer" mode.
 
 ### Event: 'close'
