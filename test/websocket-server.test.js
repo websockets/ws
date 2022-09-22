@@ -178,22 +178,16 @@ describe('WebSocketServer', () => {
       });
     });
 
-    it('uses a precreated http server listening on unix socket', function (done) {
-      //
-      // Skip this test on Windows. The URL parser:
-      //
-      // - Throws an error if the named pipe uses backward slashes.
-      // - Incorrectly parses the path if the named pipe uses forward slashes.
-      //
-      if (process.platform === 'win32') return this.skip();
+    it('uses a precreated http server listening on IPC', (done) => {
+      const randomString = crypto.randomBytes(16).toString('hex');
+      const ipcPath =
+        process.platform === 'win32'
+          ? `\\\\.\\pipe\\ws-pipe-${randomString}`
+          : path.join(os.tmpdir(), `ws-${randomString}.sock`);
 
       const server = http.createServer();
-      const sockPath = path.join(
-        os.tmpdir(),
-        `ws.${crypto.randomBytes(16).toString('hex')}.sock`
-      );
 
-      server.listen(sockPath, () => {
+      server.listen(ipcPath, () => {
         const wss = new WebSocket.Server({ server });
 
         wss.on('connection', (ws, req) => {
@@ -210,8 +204,8 @@ describe('WebSocketServer', () => {
           }
         });
 
-        const ws = new WebSocket(`ws+unix:${sockPath}:/foo?bar=bar`);
-        ws.on('open', () => new WebSocket(`ws+unix:${sockPath}`));
+        const ws = new WebSocket(`ws+unix:${ipcPath}:/foo?bar=bar`);
+        ws.on('open', () => new WebSocket(`ws+unix:${ipcPath}`));
       });
     });
   });

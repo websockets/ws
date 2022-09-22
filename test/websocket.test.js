@@ -1536,19 +1536,18 @@ describe('WebSocket', () => {
           });
         });
 
-        it('drops the Authorization, Cookie and Host headers (2/4)', function (done) {
-          if (process.platform === 'win32') return this.skip();
-
+        it('drops the Authorization, Cookie and Host headers (2/4)', (done) => {
           // Test the `ws:` to `ws+unix:` case.
 
-          const socketPath = path.join(
-            os.tmpdir(),
-            `ws.${crypto.randomBytes(16).toString('hex')}.sock`
-          );
+          const randomString = crypto.randomBytes(16).toString('hex');
+          const ipcPath =
+            process.platform === 'win32'
+              ? `\\\\.\\pipe\\ws-pipe-${randomString}`
+              : path.join(os.tmpdir(), `ws-${randomString}.sock`);
 
           server.once('upgrade', (req, socket) => {
             socket.end(
-              `HTTP/1.1 302 Found\r\nLocation: ws+unix:${socketPath}\r\n\r\n`
+              `HTTP/1.1 302 Found\r\nLocation: ws+unix:${ipcPath}\r\n\r\n`
             );
           });
 
@@ -1563,7 +1562,7 @@ describe('WebSocket', () => {
             ws.close();
           });
 
-          redirectedServer.listen(socketPath, () => {
+          redirectedServer.listen(ipcPath, () => {
             const headers = {
               authorization: 'Basic Zm9vOmJhcg==',
               cookie: 'foo=bar',
@@ -1589,7 +1588,7 @@ describe('WebSocket', () => {
 
             ws.on('close', (code) => {
               assert.strictEqual(code, 1005);
-              assert.strictEqual(ws.url, `ws+unix:${socketPath}`);
+              assert.strictEqual(ws.url, `ws+unix:${ipcPath}`);
               assert.strictEqual(ws._redirects, 1);
 
               redirectedServer.close(done);
@@ -1597,26 +1596,34 @@ describe('WebSocket', () => {
           });
         });
 
-        it('drops the Authorization, Cookie and Host headers (3/4)', function (done) {
-          if (process.platform === 'win32') return this.skip();
-
+        it('drops the Authorization, Cookie and Host headers (3/4)', (done) => {
           // Test the `ws+unix:` to `ws+unix:` case.
 
-          const redirectingServerSocketPath = path.join(
-            os.tmpdir(),
-            `ws.${crypto.randomBytes(16).toString('hex')}.sock`
-          );
-          const redirectedServerSocketPath = path.join(
-            os.tmpdir(),
-            `ws.${crypto.randomBytes(16).toString('hex')}.sock`
-          );
+          const randomString1 = crypto.randomBytes(16).toString('hex');
+          const randomString2 = crypto.randomBytes(16).toString('hex');
+          let redirectingServerIpcPath;
+          let redirectedServerIpcPath;
+
+          if (process.platform === 'win32') {
+            redirectingServerIpcPath = `\\\\.\\pipe\\ws-pipe-${randomString1}`;
+            redirectedServerIpcPath = `\\\\.\\pipe\\ws-pipe-${randomString2}`;
+          } else {
+            redirectingServerIpcPath = path.join(
+              os.tmpdir(),
+              `ws-${randomString1}.sock`
+            );
+            redirectedServerIpcPath = path.join(
+              os.tmpdir(),
+              `ws-${randomString2}.sock`
+            );
+          }
 
           const redirectingServer = http.createServer();
 
           redirectingServer.on('upgrade', (req, socket) => {
             socket.end(
               'HTTP/1.1 302 Found\r\n' +
-                `Location: ws+unix:${redirectedServerSocketPath}\r\n\r\n`
+                `Location: ws+unix:${redirectedServerIpcPath}\r\n\r\n`
             );
           });
 
@@ -1631,8 +1638,8 @@ describe('WebSocket', () => {
             ws.close();
           });
 
-          redirectingServer.listen(redirectingServerSocketPath, listening);
-          redirectedServer.listen(redirectedServerSocketPath, listening);
+          redirectingServer.listen(redirectingServerIpcPath, listening);
+          redirectedServer.listen(redirectedServerIpcPath, listening);
 
           let callCount = 0;
 
@@ -1645,7 +1652,7 @@ describe('WebSocket', () => {
               host: 'foo'
             };
 
-            const ws = new WebSocket(`ws+unix:${redirectingServerSocketPath}`, {
+            const ws = new WebSocket(`ws+unix:${redirectingServerIpcPath}`, {
               followRedirects: true,
               headers
             });
@@ -1664,10 +1671,7 @@ describe('WebSocket', () => {
 
             ws.on('close', (code) => {
               assert.strictEqual(code, 1005);
-              assert.strictEqual(
-                ws.url,
-                `ws+unix:${redirectedServerSocketPath}`
-              );
+              assert.strictEqual(ws.url, `ws+unix:${redirectedServerIpcPath}`);
               assert.strictEqual(ws._redirects, 1);
 
               redirectingServer.close();
@@ -1676,9 +1680,7 @@ describe('WebSocket', () => {
           }
         });
 
-        it('drops the Authorization, Cookie and Host headers (4/4)', function (done) {
-          if (process.platform === 'win32') return this.skip();
-
+        it('drops the Authorization, Cookie and Host headers (4/4)', (done) => {
           // Test the `ws+unix:` to `ws:` case.
 
           const redirectingServer = http.createServer();
@@ -1696,12 +1698,13 @@ describe('WebSocket', () => {
             ws.close();
           });
 
-          const socketPath = path.join(
-            os.tmpdir(),
-            `ws.${crypto.randomBytes(16).toString('hex')}.sock`
-          );
+          const randomString = crypto.randomBytes(16).toString('hex');
+          const ipcPath =
+            process.platform === 'win32'
+              ? `\\\\.\\pipe\\ws-pipe-${randomString}`
+              : path.join(os.tmpdir(), `ws-${randomString}.sock`);
 
-          redirectingServer.listen(socketPath, listening);
+          redirectingServer.listen(ipcPath, listening);
           redirectedServer.listen(0, listening);
 
           let callCount = 0;
@@ -1723,7 +1726,7 @@ describe('WebSocket', () => {
               host: 'foo'
             };
 
-            const ws = new WebSocket(`ws+unix:${socketPath}`, {
+            const ws = new WebSocket(`ws+unix:${ipcPath}`, {
               followRedirects: true,
               headers
             });
