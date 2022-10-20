@@ -44,9 +44,10 @@ jobs:
           matrix.os == 'ubuntu-latest' && matrix.node == 16 && matrix.arch ==
           'x64'
       - run: npm test
-      - run:
-          echo ::set-output name=job_id::$(node -e
-          "console.log(crypto.randomBytes(16).toString('hex'))")
+      - run: |
+          id=$(node -e "console.log(crypto.randomBytes(16).toString('hex'))")
+
+          echo "job_id=$id" >> $GITHUB_OUTPUT
         id: get_job_id
         shell: bash
       - uses: coverallsapp/github-action@1.1.3
