@@ -429,7 +429,9 @@ const interval = setInterval(function ping() {
     if (ws.isAlive === false) return ws.terminate();
 
     ws.isAlive = false;
-    ws.ping();
+    if(ws.readyState === ws.OPEN) {
+      ws.ping();
+    }
   });
 }, 30000);
 
