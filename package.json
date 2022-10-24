@@ -17,8 +17,11 @@
   "license": "MIT",
   "main": "index.js",
   "exports": {
-    "import": "./wrapper.mjs",
-    "require": "./index.js"
+    ".": {
+      "import": "./wrapper.mjs",
+      "require": "./index.js"
+    },
+    "./package.json": "./package.json"
   },
   "browser": "browser.js",
   "engines": {
