@@ -20,6 +20,7 @@ jobs:
           - 14
           - 16
           - 18
+          - 19
         os:
           - macOS-latest
           - ubuntu-latest
