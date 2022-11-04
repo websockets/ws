@@ -3264,14 +3264,15 @@ describe('WebSocket', () => {
 
       assert.strictEqual(ws.listenerCount('open'), 1);
 
-      ws.addEventListener(
-        'message',
-        () => {
+      const listener = {
+        handleEvent() {
           events.push('message');
+          assert.strictEqual(this, listener);
           assert.strictEqual(ws.listenerCount('message'), 0);
-        },
-        { once: true }
-      );
+        }
+      };
+
+      ws.addEventListener('message', listener, { once: true });
 
       assert.strictEqual(ws.listenerCount('message'), 1);
 
@@ -3318,17 +3319,19 @@ describe('WebSocket', () => {
     it('supports the `removeEventListener` method', () => {
       const ws = new WebSocket('ws://localhost', { agent: new CustomAgent() });
 
-      ws.addEventListener('message', NOOP);
+      const listener = { handleEvent() {} };
+
+      ws.addEventListener('message', listener);
       ws.addEventListener('open', NOOP);
 
-      assert.strictEqual(ws.listeners('message')[0][kListener], NOOP);
+      assert.strictEqual(ws.listeners('message')[0][kListener], listener);
       assert.strictEqual(ws.listeners('open')[0][kListener], NOOP);
 
       ws.removeEventListener('message', () => {});
 
-      assert.strictEqual(ws.listeners('message')[0][kListener], NOOP);
+      assert.strictEqual(ws.listeners('message')[0][kListener], listener);
 
-      ws.removeEventListener('message', NOOP);
+      ws.removeEventListener('message', listener);
       ws.removeEventListener('open', NOOP);
 
       assert.strictEqual(ws.listenerCount('message'), 0);

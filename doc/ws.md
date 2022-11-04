@@ -426,7 +426,7 @@ handshake. This allows you to read headers from the server, for example
 ### websocket.addEventListener(type, listener[, options])
 
 - `type` {String} A string representing the event type to listen for.
-- `listener` {Function} The listener to add.
+- `listener` {Function|Object} The listener to add.
 - `options` {Object}
   - `once` {Boolean} A `Boolean` indicating that the listener should be invoked
     at most once after being added. If `true`, the listener would be
@@ -555,7 +555,7 @@ The current state of the connection. This is one of the ready state constants.
 ### websocket.removeEventListener(type, listener)
 
 - `type` {String} A string representing the event type to remove.
-- `listener` {Function} The listener to remove.
+- `listener` {Function|Object} The listener to remove.
 
 Removes an event listener emulating the `EventTarget` interface. This method
 only removes listeners added with
