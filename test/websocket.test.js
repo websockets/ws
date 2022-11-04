@@ -3257,10 +3257,13 @@ describe('WebSocket', () => {
       ws.addEventListener('foo', () => {});
       assert.strictEqual(ws.listenerCount('foo'), 0);
 
-      ws.addEventListener('open', () => {
+      function onOpen() {
         events.push('open');
         assert.strictEqual(ws.listenerCount('open'), 1);
-      });
+      }
+
+      ws.addEventListener('open', onOpen);
+      ws.addEventListener('open', onOpen);
 
       assert.strictEqual(ws.listenerCount('open'), 1);
 
@@ -3273,8 +3276,27 @@ describe('WebSocket', () => {
       };
 
       ws.addEventListener('message', listener, { once: true });
+      ws.addEventListener('message', listener);
 
       assert.strictEqual(ws.listenerCount('message'), 1);
+
+      ws.addEventListener('close', NOOP);
+      ws.onclose = NOOP;
+
+      let listeners = ws.listeners('close');
+
+      assert.strictEqual(listeners.length, 2);
+      assert.strictEqual(listeners[0][kListener], NOOP);
+      assert.strictEqual(listeners[1][kListener], NOOP);
+
+      ws.onerror = NOOP;
+      ws.addEventListener('error', NOOP);
+
+      listeners = ws.listeners('error');
+
+      assert.strictEqual(listeners.length, 2);
+      assert.strictEqual(listeners[0][kListener], NOOP);
+      assert.strictEqual(listeners[1][kListener], NOOP);
 
       ws.emit('open');
       ws.emit('message', EMPTY_BUFFER, false);
@@ -3352,21 +3374,6 @@ describe('WebSocket', () => {
 
       assert.strictEqual(ws.listenerCount('message'), 0);
       assert.strictEqual(ws.listenerCount('open'), 0);
-
-      // Multiple listeners.
-      ws.addEventListener('message', NOOP);
-      ws.addEventListener('message', NOOP);
-
-      assert.strictEqual(ws.listeners('message')[0][kListener], NOOP);
-      assert.strictEqual(ws.listeners('message')[1][kListener], NOOP);
-
-      ws.removeEventListener('message', NOOP);
-
-      assert.strictEqual(ws.listeners('message')[0][kListener], NOOP);
-
-      ws.removeEventListener('message', NOOP);
-
-      assert.strictEqual(ws.listenerCount('message'), 0);
 
       // Listeners not added with `websocket.addEventListener()`.
       ws.on('message', NOOP);
