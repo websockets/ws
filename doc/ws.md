@@ -171,7 +171,7 @@ compared to the threshold. This determines if compression is used for the entire
 message.
 
 `callback` will be added as a listener for the `'listening'` event on the HTTP
-server when not operating in "noServer" mode.
+server when the `port` option is set.
 
 ### Event: 'close'
 
