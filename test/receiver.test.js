@@ -856,7 +856,7 @@ describe('Receiver', () => {
       done();
     });
 
-    receiver.write(Buffer.from([0x88, 0x01, 0x00]));
+    receiver.write(Buffer.from([0x88, 0x01]));
   });
 
   it('emits an error if a close frame contains an invalid close code', (done) => {
