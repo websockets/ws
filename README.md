@@ -58,9 +58,9 @@ npm install ws
 ### Opt-in for performance
 
 There are 2 optional modules that can be installed along side with the ws
-module. These modules are binary addons which improve certain operations.
-Prebuilt binaries are available for the most popular platforms so you don't
-necessarily need to have a C++ compiler installed on your machine.
+module. These modules are binary addons that improve the performance of certain
+operations. Prebuilt binaries are available for the most popular platforms so
+you don't necessarily need to have a C++ compiler installed on your machine.
 
 - `npm install --save-optional bufferutil`: Allows to efficiently perform
   operations such as masking and unmasking the data payload of the WebSocket
@@ -74,6 +74,10 @@ To not even try to require and use these modules, use the
 variables. These might be useful to enhance security in systems where a user can
 put a package in the package search path of an application of another user, due
 to how the Node.js resolver algorithm works.
+
+The `utf-8-validate` module is not needed and is not required, even if it is
+already installed, regardless of the value of the `WS_NO_UTF_8_VALIDATE`
+environment variable, if [`buffer.isUtf8()`][] is available.
 
 ## API docs
 
@@ -482,6 +486,7 @@ We're using the GitHub [releases][changelog] for changelog entries.
 
 [MIT](LICENSE)
 
+[`buffer.isutf8()`]: https://nodejs.org/api/buffer.html#bufferisutf8input
 [changelog]: https://github.com/websockets/ws/releases
 [client-report]: http://websockets.github.io/ws/autobahn/clients/
 [https-proxy-agent]: https://github.com/TooTallNate/node-https-proxy-agent
