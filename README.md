@@ -20,28 +20,30 @@ can use one of the many wrappers available on npm, like
 
 ## Table of Contents
 
-- [Protocol support](#protocol-support)
-- [Installing](#installing)
-  - [Opt-in for performance](#opt-in-for-performance)
-- [API docs](#api-docs)
-- [WebSocket compression](#websocket-compression)
-- [Usage examples](#usage-examples)
-  - [Sending and receiving text data](#sending-and-receiving-text-data)
-  - [Sending binary data](#sending-binary-data)
-  - [Simple server](#simple-server)
-  - [External HTTP/S server](#external-https-server)
-  - [Multiple servers sharing a single HTTP/S server](#multiple-servers-sharing-a-single-https-server)
-  - [Client authentication](#client-authentication)
-  - [Server broadcast](#server-broadcast)
-  - [Round-trip time](#round-trip-time)
-  - [Use the Node.js streams API](#use-the-nodejs-streams-api)
-  - [Other examples](#other-examples)
-- [FAQ](#faq)
-  - [How to get the IP address of the client?](#how-to-get-the-ip-address-of-the-client)
-  - [How to detect and close broken connections?](#how-to-detect-and-close-broken-connections)
-  - [How to connect via a proxy?](#how-to-connect-via-a-proxy)
-- [Changelog](#changelog)
-- [License](#license)
+- [ws: a Node.js WebSocket library](#ws-a-nodejs-websocket-library)
+  - [Table of Contents](#table-of-contents)
+  - [Protocol support](#protocol-support)
+  - [Installing](#installing)
+    - [Opt-in for performance](#opt-in-for-performance)
+  - [API docs](#api-docs)
+  - [WebSocket compression](#websocket-compression)
+  - [Usage examples](#usage-examples)
+    - [Sending and receiving text data](#sending-and-receiving-text-data)
+    - [Sending binary data](#sending-binary-data)
+    - [Simple server](#simple-server)
+    - [External HTTP/S server](#external-https-server)
+    - [Multiple servers sharing a single HTTP/S server](#multiple-servers-sharing-a-single-https-server)
+    - [Client authentication](#client-authentication)
+    - [Server broadcast](#server-broadcast)
+    - [Round-trip time](#round-trip-time)
+    - [Use the Node.js streams API](#use-the-nodejs-streams-api)
+    - [Other examples](#other-examples)
+  - [FAQ](#faq)
+    - [How to get the IP address of the client?](#how-to-get-the-ip-address-of-the-client)
+    - [How to detect and close broken connections?](#how-to-detect-and-close-broken-connections)
+    - [How to connect via a proxy?](#how-to-connect-via-a-proxy)
+  - [Changelog](#changelog)
+  - [License](#license)
 
 ## Protocol support
 
@@ -193,6 +195,9 @@ wss.on('connection', function connection(ws) {
   ws.on('message', function message(data) {
     console.log('received: %s', data);
   });
+  ws.on('error', function error(err) {
+    console.log('error: %s', err);
+  });
 
   ws.send('something');
 });
@@ -214,6 +219,9 @@ const wss = new WebSocketServer({ server });
 wss.on('connection', function connection(ws) {
   ws.on('message', function message(data) {
     console.log('received: %s', data);
+  });
+  ws.on('error', function error(err) {
+    console.log('error: %s', err);
   });
 
   ws.send('something');
@@ -272,6 +280,9 @@ const wss = new WebSocketServer({ noServer: true });
 wss.on('connection', function connection(ws, request, client) {
   ws.on('message', function message(data) {
     console.log(`Received message ${data} from user ${client}`);
+  });
+  ws.on('error', function error(err) {
+    console.log('error: %s', err);
   });
 });
 
