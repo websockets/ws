@@ -13,6 +13,8 @@ const server = https.createServer({
 const wss = new WebSocketServer({ server });
 
 wss.on('connection', function connection(ws) {
+  ws.on('error', console.error);
+
   ws.on('message', function message(msg) {
     console.log(msg.toString());
   });
@@ -30,6 +32,8 @@ server.listen(function listening() {
   const ws = new WebSocket(`wss://localhost:${server.address().port}`, {
     rejectUnauthorized: false
   });
+
+  ws.on('error', console.error);
 
   ws.on('open', function open() {
     ws.send('All glory to WebSockets!');

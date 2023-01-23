@@ -155,6 +155,8 @@ import WebSocket from 'ws';
 
 const ws = new WebSocket('ws://www.host.com/path');
 
+ws.on('error', console.error);
+
 ws.on('open', function open() {
   ws.send('something');
 });
@@ -170,6 +172,8 @@ ws.on('message', function message(data) {
 import WebSocket from 'ws';
 
 const ws = new WebSocket('ws://www.host.com/path');
+
+ws.on('error', console.error);
 
 ws.on('open', function open() {
   const array = new Float32Array(5);
@@ -190,6 +194,8 @@ import { WebSocketServer } from 'ws';
 const wss = new WebSocketServer({ port: 8080 });
 
 wss.on('connection', function connection(ws) {
+  ws.on('error', console.error);
+
   ws.on('message', function message(data) {
     console.log('received: %s', data);
   });
@@ -212,6 +218,8 @@ const server = createServer({
 const wss = new WebSocketServer({ server });
 
 wss.on('connection', function connection(ws) {
+  ws.on('error', console.error);
+
   ws.on('message', function message(data) {
     console.log('received: %s', data);
   });
@@ -234,10 +242,14 @@ const wss1 = new WebSocketServer({ noServer: true });
 const wss2 = new WebSocketServer({ noServer: true });
 
 wss1.on('connection', function connection(ws) {
+  ws.on('error', console.error);
+
   // ...
 });
 
 wss2.on('connection', function connection(ws) {
+  ws.on('error', console.error);
+
   // ...
 });
 
@@ -266,16 +278,24 @@ server.listen(8080);
 import { createServer } from 'http';
 import { WebSocketServer } from 'ws';
 
+function onSocketError(err) {
+  console.error(err);
+}
+
 const server = createServer();
 const wss = new WebSocketServer({ noServer: true });
 
 wss.on('connection', function connection(ws, request, client) {
+  ws.on('error', console.error);
+
   ws.on('message', function message(data) {
     console.log(`Received message ${data} from user ${client}`);
   });
 });
 
 server.on('upgrade', function upgrade(request, socket, head) {
+  socket.on('error', onSocketError);
+
   // This function is not defined on purpose. Implement it with your own logic.
   authenticate(request, function next(err, client) {
     if (err || !client) {
@@ -283,6 +303,8 @@ server.on('upgrade', function upgrade(request, socket, head) {
       socket.destroy();
       return;
     }
+
+    socket.removeListener('error', onSocketError);
 
     wss.handleUpgrade(request, socket, head, function done(ws) {
       wss.emit('connection', ws, request, client);
@@ -306,6 +328,8 @@ import WebSocket, { WebSocketServer } from 'ws';
 const wss = new WebSocketServer({ port: 8080 });
 
 wss.on('connection', function connection(ws) {
+  ws.on('error', console.error);
+
   ws.on('message', function message(data, isBinary) {
     wss.clients.forEach(function each(client) {
       if (client.readyState === WebSocket.OPEN) {
@@ -325,6 +349,8 @@ import WebSocket, { WebSocketServer } from 'ws';
 const wss = new WebSocketServer({ port: 8080 });
 
 wss.on('connection', function connection(ws) {
+  ws.on('error', console.error);
+
   ws.on('message', function message(data, isBinary) {
     wss.clients.forEach(function each(client) {
       if (client !== ws && client.readyState === WebSocket.OPEN) {
@@ -341,6 +367,8 @@ wss.on('connection', function connection(ws) {
 import WebSocket from 'ws';
 
 const ws = new WebSocket('wss://websocket-echo.com/');
+
+ws.on('error', console.error);
 
 ws.on('open', function open() {
   console.log('connected');
@@ -369,6 +397,8 @@ const ws = new WebSocket('wss://websocket-echo.com/');
 
 const duplex = createWebSocketStream(ws, { encoding: 'utf8' });
 
+duplex.on('error', console.error);
+
 duplex.pipe(process.stdout);
 process.stdin.pipe(duplex);
 ```
@@ -393,6 +423,8 @@ const wss = new WebSocketServer({ port: 8080 });
 
 wss.on('connection', function connection(ws, req) {
   const ip = req.socket.remoteAddress;
+
+  ws.on('error', console.error);
 });
 ```
 
@@ -402,6 +434,8 @@ the `X-Forwarded-For` header.
 ```js
 wss.on('connection', function connection(ws, req) {
   const ip = req.headers['x-forwarded-for'].split(',')[0].trim();
+
+  ws.on('error', console.error);
 });
 ```
 
@@ -425,6 +459,7 @@ const wss = new WebSocketServer({ port: 8080 });
 
 wss.on('connection', function connection(ws) {
   ws.isAlive = true;
+  ws.on('error', console.error);
   ws.on('pong', heartbeat);
 });
 
@@ -466,6 +501,7 @@ function heartbeat() {
 
 const client = new WebSocket('wss://websocket-echo.com/');
 
+client.on('error', console.error);
 client.on('open', heartbeat);
 client.on('ping', heartbeat);
 client.on('close', function clear() {
