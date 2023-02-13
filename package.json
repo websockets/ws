@@ -18,9 +18,7 @@
   "main": "index.js",
   "exports": {
     ".": {
-      "browser": {
-        "default": "./browser.js"
-      },
+      "browser": "./browser.js",
       "import": "./wrapper.mjs",
       "require": "./index.js"
     },
