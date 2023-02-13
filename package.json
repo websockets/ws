@@ -18,6 +18,7 @@
   "main": "index.js",
   "exports": {
     ".": {
+      "browser": "./browser.js",
       "import": "./wrapper.mjs",
       "require": "./index.js"
     },
