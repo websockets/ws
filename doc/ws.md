@@ -384,13 +384,13 @@ Emitted when the connection is established.
 
 - `data` {Buffer}
 
-Emitted when a ping is received from the server.
+Emitted when a ping is received.
 
 ### Event: 'pong'
 
 - `data` {Buffer}
 
-Emitted when a pong is received from the server.
+Emitted when a pong is received.
 
 ### Event: 'redirect'
 
@@ -495,8 +495,8 @@ An event listener to be called when an error occurs. The listener receives an
 
 - {Function}
 
-An event listener to be called when a message is received from the server. The
-listener receives a `MessageEvent` named "message".
+An event listener to be called when a message is received. The listener receives
+a `MessageEvent` named "message".
 
 ### websocket.onopen
 
