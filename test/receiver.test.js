@@ -737,6 +737,19 @@ describe('Receiver', () => {
     receiver.write(Buffer.from([0x81, 0x02, 0x68, 0x69]));
   });
 
+  it('does not emit an error if a frame has the MASK bit off (server mode) but unmasked is allowed', (done) => {
+    const receiver = new Receiver({ isServer: true, allowUnmasked: true });
+
+    const timeout = setTimeout(() => done(), 100);
+
+    receiver.on('error', () => {
+      clearTimeout(timeout);
+      done(new Error('receiver error'));
+    });
+
+    receiver.write(Buffer.from([0x81, 0x02, 0x68, 0x69]));
+  });
+
   it('emits an error if a frame has the MASK bit on (client mode)', (done) => {
     const receiver = new Receiver();
 
