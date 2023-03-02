@@ -115,6 +115,28 @@ describe('WebSocketServer', () => {
           wss.close(done);
         });
       });
+
+      it('honors the `IncomingMessage` option', (done) => {
+        class CustomIncomingMessage extends http.IncomingMessage {
+          get bar() {
+            return 'bar';
+          }
+        }
+
+        const wss = new WebSocket.Server(
+          { port: 0, IncomingMessage: CustomIncomingMessage },
+          () => {
+            const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+            ws.on('open', ws.close);
+          }
+        );
+
+        wss.on('connection', (_ws, request) => {
+          assert.ok(request instanceof CustomIncomingMessage);
+          assert.strictEqual(request.bar, 'bar');
+          wss.close(done);
+        });
+      });
     });
 
     it('emits an error if http server bind fails', (done) => {
