@@ -295,11 +295,14 @@ describe('createWebSocketStream', () => {
         ws._socket.write(Buffer.from([0x85, 0x00]));
       });
 
-      assert.strictEqual(process.listenerCount('uncaughtException'), 1);
+      assert.strictEqual(
+        process.listenerCount('uncaughtException'),
+        EventEmitter.usingDomains ? 2 : 1
+      );
 
-      const [listener] = process.listeners('uncaughtException');
+      const listener = process.listeners('uncaughtException').pop();
 
-      process.removeAllListeners('uncaughtException');
+      process.removeListener('uncaughtException', listener);
       process.once('uncaughtException', (err) => {
         assert.ok(err instanceof Error);
         assert.strictEqual(
