@@ -3860,16 +3860,18 @@ describe('WebSocket', () => {
 
     it('honors the `finishRequest` option', (done) => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
-        const ws = new WebSocket(`ws://localhost:${wss.address().port}`, {
-          finishRequest(request, websocket) {
-            process.nextTick(() => {
-              assert.strictEqual(request, ws._req);
-              assert.strictEqual(websocket, ws);
-            });
-            request.on('socket', (socket) => {
+        const host = `localhost:${wss.address().port}`;
+        const ws = new WebSocket(`ws://${host}`, {
+          finishRequest(req, ws) {
+            assert.ok(req instanceof http.ClientRequest);
+            assert.strictEqual(req.getHeader('host'), host);
+            assert.ok(ws instanceof WebSocket);
+            assert.strictEqual(req, ws._req);
+
+            req.on('socket', (socket) => {
               socket.on('connect', () => {
-                request.setHeader('Cookie', 'foo=bar');
-                request.end();
+                req.setHeader('Cookie', 'foo=bar');
+                req.end();
               });
             });
           }
