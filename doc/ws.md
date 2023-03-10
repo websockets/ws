@@ -293,6 +293,8 @@ This class represents a WebSocket. It extends the `EventEmitter`.
 - `address` {String|url.URL} The URL to which to connect.
 - `protocols` {String|Array} The list of subprotocols.
 - `options` {Object}
+  - `finishRequest` {Function} A function which can be used to customize the
+    headers of each http request before it is sent. See description below.
   - `followRedirects` {Boolean} Whether or not to follow redirects. Defaults to
     `false`.
   - `generateMask` {Function} The function used to generate the masking key. It
@@ -316,12 +318,24 @@ This class represents a WebSocket. It extends the `EventEmitter`.
     Options given do not have any effect if parsed from the URL given with the
     `address` parameter.
 
+Create a new WebSocket instance.
+
 `perMessageDeflate` default value is `true`. When using an object, parameters
 are the same of the server. The only difference is the direction of requests.
 For example, `serverNoContextTakeover` can be used to ask the server to disable
 context takeover.
 
-Create a new WebSocket instance.
+`finishRequest` is called with arguments
+
+- `request` {http.ClientRequest}
+- `websocket` {WebSocket}
+
+for each HTTP GET request (the initial one and any caused by redirects) when it
+is ready to be sent, to allow for last minute customization of the headers. If
+`finishRequest` is set then it has the responsibility to call `request.end()`
+once it is done setting request headers. This is intended for niche use-cases
+where some headers can't be provided in advance e.g. because they depend on the
+underlying socket.
 
 #### IPC connections
 

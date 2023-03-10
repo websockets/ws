@@ -3857,6 +3857,35 @@ describe('WebSocket', () => {
         agent
       });
     });
+
+    it('honors the `finishRequest` option', (done) => {
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`, {
+          finishRequest(request, websocket) {
+            process.nextTick(() => {
+              assert.strictEqual(request, ws._req);
+              assert.strictEqual(websocket, ws);
+            });
+            request.on('socket', (socket) => {
+              socket.on('connect', () => {
+                request.setHeader('Cookie', 'foo=bar');
+                request.end();
+              });
+            });
+          }
+        });
+
+        ws.on('close', (code) => {
+          assert.strictEqual(code, 1005);
+          wss.close(done);
+        });
+      });
+
+      wss.on('connection', (ws, req) => {
+        assert.strictEqual(req.headers.cookie, 'foo=bar');
+        ws.close();
+      });
+    });
   });
 
   describe('permessage-deflate', () => {
