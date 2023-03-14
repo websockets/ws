@@ -365,6 +365,11 @@ ws+unix:/absolute/path/to/uds_socket
 
 it defaults to `/`.
 
+### Event: 'closing'
+
+Emitted when the remote server starts the close handshake and before the close
+frame is sent back.
+
 ### Event: 'close'
 
 - `code` {Number}
