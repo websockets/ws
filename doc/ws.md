@@ -367,6 +367,9 @@ it defaults to `/`.
 
 ### Event: 'closing'
 
+- `code` {Number}
+- `reason` {Buffer}
+
 Emitted when the remote server starts the close handshake and before the close
 frame is sent back.
 
