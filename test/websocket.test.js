@@ -1052,7 +1052,7 @@ describe('WebSocket', () => {
             'Upgrade: websocket\r\n' +
             'Connection: Upgrade\r\n' +
             `Sec-WebSocket-Accept: ${key}\r\n` +
-            'Sec-WebSocket-Protocol:\r\n' +
+            'Sec-WebSocket-Protocol: foo1\r\n' +
             '\r\n'
         );
       });
@@ -1070,7 +1070,7 @@ describe('WebSocket', () => {
       });
     });
 
-    it('fails if server sends no subprotocol', (done) => {
+    it('fails if server sends no subprotocol (1/2)', (done) => {
       const wss = new WebSocket.Server({
         handleProtocols() {},
         server
@@ -1086,6 +1086,36 @@ describe('WebSocket', () => {
         assert.ok(err instanceof Error);
         assert.strictEqual(err.message, 'Server sent no subprotocol');
         ws.on('close', () => wss.close(done));
+      });
+    });
+
+    it('fails if server sends no subprotocol (2/2)', (done) => {
+      server.once('upgrade', (req, socket) => {
+        const key = crypto
+          .createHash('sha1')
+          .update(req.headers['sec-websocket-key'] + GUID)
+          .digest('base64');
+
+        socket.end(
+          'HTTP/1.1 101 Switching Protocols\r\n' +
+            'Upgrade: websocket\r\n' +
+            'Connection: Upgrade\r\n' +
+            `Sec-WebSocket-Accept: ${key}\r\n` +
+            'Sec-WebSocket-Protocol:\r\n' +
+            '\r\n'
+        );
+      });
+
+      const ws = new WebSocket(`ws://localhost:${server.address().port}`, [
+        'foo',
+        'bar'
+      ]);
+
+      ws.on('open', () => done(new Error("Unexpected 'open' event")));
+      ws.on('error', (err) => {
+        assert.ok(err instanceof Error);
+        assert.strictEqual(err.message, 'Server sent no subprotocol');
+        ws.on('close', () => done());
       });
     });
 
