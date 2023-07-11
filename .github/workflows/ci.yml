@@ -42,7 +42,7 @@ jobs:
       - run: npm install
       - run: npm run lint
         if:
-          matrix.os == 'ubuntu-latest' && matrix.node == 16 && matrix.arch ==
+          matrix.os == 'ubuntu-latest' && matrix.node == 20 && matrix.arch ==
           'x64'
       - run: npm test
       - run: |
