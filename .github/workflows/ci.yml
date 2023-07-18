@@ -44,6 +44,9 @@ jobs:
         if:
           matrix.os == 'ubuntu-latest' && matrix.node == 20 && matrix.arch ==
           'x64'
+
+      - run: npm run generate-types
+
       - run: npm test
       - run: |
           id=$(node -e "console.log(crypto.randomBytes(16).toString('hex'))")

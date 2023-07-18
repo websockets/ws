@@ -1,0 +1,10 @@
+{
+  "exclude": ["node_modules", "test"],
+  "include": ["lib", "index.js", "browser.js"],
+  "compilerOptions": {
+    "declaration": true,
+    "declarationDir": "types",
+    "emitDeclarationOnly": true,
+    "allowJs": true,
+  }
+}

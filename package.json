@@ -16,6 +16,7 @@
   "author": "Einar Otto Stangvik <einaros@gmail.com> (http://2x.io)",
   "license": "MIT",
   "main": "index.js",
+  "types": "types/index.d.ts",
   "exports": {
     ".": {
       "browser": "./browser.js",
@@ -37,7 +38,8 @@
   "scripts": {
     "test": "nyc --reporter=lcov --reporter=text mocha --throw-deprecation test/*.test.js",
     "integration": "mocha --throw-deprecation test/*.integration.js",
-    "lint": "eslint --ignore-path .gitignore . && prettier --check --ignore-path .gitignore \"**/*.{json,md,yaml,yml}\""
+    "lint": "eslint --ignore-path .gitignore . && prettier --check --ignore-path .gitignore \"**/*.{json,md,yaml,yml}\"",
+    "generate-types":"tsc -p tsconfig.json"
   },
   "peerDependencies": {
     "bufferutil": "^4.0.1",
@@ -55,11 +57,13 @@
     "benchmark": "^2.1.4",
     "bufferutil": "^4.0.1",
     "eslint": "^8.0.0",
+    "typescript": "^4.4.3",
     "eslint-config-prettier": "^8.1.0",
     "eslint-plugin-prettier": "^5.0.0",
     "mocha": "^8.4.0",
     "nyc": "^15.0.0",
     "prettier": "^3.0.0",
-    "utf-8-validate": "^6.0.0"
+    "utf-8-validate": "^6.0.0",
+    "@types/node": "^16.7.13"
   }
 }
