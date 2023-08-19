@@ -4109,18 +4109,18 @@ describe('WebSocket', () => {
             const messages = [];
             const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
-            ws.on('open', () => {
-              ws._socket.on('end', () => {
-                assert.strictEqual(ws._receiver._state, 5);
-              });
-            });
-
             ws.on('message', (message, isBinary) => {
               assert.ok(!isBinary);
 
               if (messages.push(message.toString()) > 1) return;
 
-              ws.close(1000);
+              // `queueMicrotask()` is not available in Node.js < 11.
+              Promise.resolve().then(() => {
+                process.nextTick(() => {
+                  assert.strictEqual(ws._receiver._state, 5);
+                  ws.close(1000);
+                });
+              });
             });
 
             ws.on('close', (code, reason) => {
@@ -4365,9 +4365,12 @@ describe('WebSocket', () => {
 
               if (messages.push(message.toString()) > 1) return;
 
-              process.nextTick(() => {
-                assert.strictEqual(ws._receiver._state, 5);
-                ws.terminate();
+              // `queueMicrotask()` is not available in Node.js < 11.
+              Promise.resolve().then(() => {
+                process.nextTick(() => {
+                  assert.strictEqual(ws._receiver._state, 5);
+                  ws.terminate();
+                });
               });
             });
 
