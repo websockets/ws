@@ -61,7 +61,7 @@ describe('WebSocket', () => {
     });
 
     it('accepts `url.URL` objects as url', (done) => {
-      const agent = new CustomAgent();
+      const agent = new http.Agent();
 
       agent.addRequest = (req, opts) => {
         assert.strictEqual(opts.host, '::1');
@@ -74,7 +74,7 @@ describe('WebSocket', () => {
 
     describe('options', () => {
       it('accepts the `options` object as 3rd argument', () => {
-        const agent = new CustomAgent();
+        const agent = new http.Agent();
         let count = 0;
         let ws;
 
@@ -122,10 +122,8 @@ describe('WebSocket', () => {
       });
 
       it('throws an error when using an invalid `protocolVersion`', () => {
-        const options = { agent: new CustomAgent(), protocolVersion: 1000 };
-
         assert.throws(
-          () => new WebSocket('ws://localhost', options),
+          () => new WebSocket('ws://localhost', { protocolVersion: 1000 }),
           /^RangeError: Unsupported protocol version: 1000 \(supported versions: 8, 13\)$/
         );
       });
@@ -3709,7 +3707,7 @@ describe('WebSocket', () => {
 
   describe('Request headers', () => {
     it('adds the authorization header if the url has userinfo', (done) => {
-      const agent = new CustomAgent();
+      const agent = new http.Agent();
       const userinfo = 'test:testpass';
 
       agent.addRequest = (req) => {
@@ -3724,7 +3722,7 @@ describe('WebSocket', () => {
     });
 
     it('honors the `auth` option', (done) => {
-      const agent = new CustomAgent();
+      const agent = new http.Agent();
       const auth = 'user:pass';
 
       agent.addRequest = (req) => {
@@ -3739,7 +3737,7 @@ describe('WebSocket', () => {
     });
 
     it('favors the url userinfo over the `auth` option', (done) => {
-      const agent = new CustomAgent();
+      const agent = new http.Agent();
       const auth = 'foo:bar';
       const userinfo = 'baz:qux';
 
@@ -3755,7 +3753,7 @@ describe('WebSocket', () => {
     });
 
     it('adds custom headers', (done) => {
-      const agent = new CustomAgent();
+      const agent = new http.Agent();
 
       agent.addRequest = (req) => {
         assert.strictEqual(req.getHeader('cookie'), 'foo=bar');
@@ -3784,7 +3782,7 @@ describe('WebSocket', () => {
     });
 
     it("doesn't add the origin header by default", (done) => {
-      const agent = new CustomAgent();
+      const agent = new http.Agent();
 
       agent.addRequest = (req) => {
         assert.strictEqual(req.getHeader('origin'), undefined);
@@ -3795,7 +3793,7 @@ describe('WebSocket', () => {
     });
 
     it('honors the `origin` option (1/2)', (done) => {
-      const agent = new CustomAgent();
+      const agent = new http.Agent();
 
       agent.addRequest = (req) => {
         assert.strictEqual(req.getHeader('origin'), 'https://example.com:8000');
@@ -3809,7 +3807,7 @@ describe('WebSocket', () => {
     });
 
     it('honors the `origin` option (2/2)', (done) => {
-      const agent = new CustomAgent();
+      const agent = new http.Agent();
 
       agent.addRequest = (req) => {
         assert.strictEqual(
@@ -3860,7 +3858,7 @@ describe('WebSocket', () => {
 
   describe('permessage-deflate', () => {
     it('is enabled by default', (done) => {
-      const agent = new CustomAgent();
+      const agent = new http.Agent();
 
       agent.addRequest = (req) => {
         assert.strictEqual(
@@ -3874,7 +3872,7 @@ describe('WebSocket', () => {
     });
 
     it('can be disabled', (done) => {
-      const agent = new CustomAgent();
+      const agent = new http.Agent();
 
       agent.addRequest = (req) => {
         assert.strictEqual(
@@ -3891,7 +3889,7 @@ describe('WebSocket', () => {
     });
 
     it('can send extension parameters', (done) => {
-      const agent = new CustomAgent();
+      const agent = new http.Agent();
 
       const value =
         'permessage-deflate; server_no_context_takeover;' +
