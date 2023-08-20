@@ -36,7 +36,7 @@ describe('WebSocket', () => {
       );
 
       assert.throws(
-        () => new WebSocket('https://websocket-echo.com'),
+        () => new WebSocket('http+ws://websocket-echo.com'),
         /^SyntaxError: The URL's protocol must be one of "ws:", "wss:", or "ws\+unix:"$/
       );
 
@@ -70,6 +70,30 @@ describe('WebSocket', () => {
       };
 
       const ws = new WebSocket(new URL('ws://[::1]'), { agent });
+    });
+
+    it('allows the http scheme', (done) => {
+      const agent = new CustomAgent();
+
+      agent.addRequest = (req, opts) => {
+        assert.strictEqual(opts.host, 'localhost');
+        assert.strictEqual(opts.port, 80);
+        done();
+      };
+
+      const ws = new WebSocket('http://localhost', { agent });
+    });
+
+    it('allows the https scheme', (done) => {
+      const agent = new https.Agent();
+
+      agent.addRequest = (req, opts) => {
+        assert.strictEqual(opts.host, 'localhost');
+        assert.strictEqual(opts.port, 443);
+        done();
+      };
+
+      const ws = new WebSocket('https://localhost', { agent });
     });
 
     describe('options', () => {
@@ -539,10 +563,18 @@ describe('WebSocket', () => {
       });
 
       it('exposes the server url', () => {
-        const url = 'ws://localhost';
-        const ws = new WebSocket(url, { agent: new CustomAgent() });
+        const schemes = new Map([
+          ['ws', 'ws'],
+          ['wss', 'wss'],
+          ['http', 'ws'],
+          ['https', 'wss']
+        ]);
 
-        assert.strictEqual(ws.url, url);
+        for (const [key, value] of schemes) {
+          const ws = new WebSocket(`${key}://localhost/`, { lookup() {} });
+
+          assert.strictEqual(ws.url, `${value}://localhost/`);
+        }
       });
     });
   });
@@ -1174,7 +1206,9 @@ describe('WebSocket', () => {
 
     it('emits an error if the redirect URL is invalid (2/2)', (done) => {
       server.once('upgrade', (req, socket) => {
-        socket.end('HTTP/1.1 302 Found\r\nLocation: http://localhost\r\n\r\n');
+        socket.end(
+          'HTTP/1.1 302 Found\r\nLocation: http+ws://localhost\r\n\r\n'
+        );
       });
 
       const ws = new WebSocket(`ws://localhost:${server.address().port}`, {
