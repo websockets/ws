@@ -1213,7 +1213,9 @@ describe('WebSocketServer', () => {
 
     it("emits the 'headers' event", (done) => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
-        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+        const ws = new WebSocket(
+          `ws://localhost:${wss.address().port}?foo=bar`
+        );
 
         ws.on('open', ws.close);
       });
@@ -1225,7 +1227,7 @@ describe('WebSocketServer', () => {
           'Connection: Upgrade'
         ]);
         assert.ok(request instanceof http.IncomingMessage);
-        assert.strictEqual(request.url, '/');
+        assert.strictEqual(request.url, '/?foo=bar');
 
         wss.on('connection', () => wss.close(done));
       });

@@ -1901,38 +1901,6 @@ describe('WebSocket', () => {
     });
   });
 
-  describe('Connection with query string', () => {
-    it('connects when pathname is not null', (done) => {
-      const wss = new WebSocket.Server({ port: 0 }, () => {
-        const port = wss.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}/?token=qwerty`);
-
-        ws.on('open', () => {
-          wss.close(done);
-        });
-      });
-
-      wss.on('connection', (ws) => {
-        ws.close();
-      });
-    });
-
-    it('connects when pathname is null', (done) => {
-      const wss = new WebSocket.Server({ port: 0 }, () => {
-        const port = wss.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}?token=qwerty`);
-
-        ws.on('open', () => {
-          wss.close(done);
-        });
-      });
-
-      wss.on('connection', (ws) => {
-        ws.close();
-      });
-    });
-  });
-
   describe('#pause', () => {
     it('does nothing if `readyState` is `CONNECTING` or `CLOSED`', (done) => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
