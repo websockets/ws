@@ -4035,7 +4035,7 @@ describe('WebSocket', () => {
             ];
 
             for (let i = 0; i < 399; i++) {
-              list.push(list[list.length - 2], list[list.length - 1]);
+              list.push(list[list.length - 1]);
             }
 
             // This hack is used because there is no guarantee that more than
