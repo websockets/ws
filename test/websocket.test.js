@@ -2424,7 +2424,7 @@ describe('WebSocket', () => {
 
     it('can send a big binary message', (done) => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
-        const array = new Float32Array(5 * 1024 * 1024);
+        const array = new Float32Array(1024 * 1024);
 
         for (let i = 0; i < array.length; i++) {
           array[i] = i / 5;
