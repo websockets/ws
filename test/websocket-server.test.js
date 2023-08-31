@@ -10,6 +10,7 @@ const path = require('path');
 const net = require('net');
 const fs = require('fs');
 const os = require('os');
+const DuplexPair = require('native-duplexpair');
 
 const Sender = require('../lib/sender');
 const WebSocket = require('..');
@@ -511,6 +512,35 @@ describe('WebSocketServer', () => {
             );
             wss.close(done);
           });
+        });
+      });
+    });
+
+    it('can complete a WebSocket upgrade over any duplex stream', (done) => {
+      const server = http.createServer();
+
+      server.listen(0, () => {
+        const wss = new WebSocket.Server({ noServer: true });
+
+        server.on('upgrade', (req, socket, head) => {
+          // Put a stream between the raw socket and our websocket processing:
+          const { socket1: stream1, socket2: stream2 } = new DuplexPair();
+          socket.pipe(stream1);
+          stream1.pipe(socket);
+
+          // Pass the other side of the stream as the socket to upgrade:
+          wss.handleUpgrade(req, stream2, head, (ws) => {
+            ws.send('hello');
+            ws.close();
+          });
+        });
+
+        const ws = new WebSocket(`ws://localhost:${server.address().port}`);
+
+        ws.on('message', (message, isBinary) => {
+          assert.deepStrictEqual(message, Buffer.from('hello'));
+          assert.ok(!isBinary);
+          server.close(done);
         });
       });
     });
