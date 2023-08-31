@@ -516,19 +516,24 @@ describe('WebSocketServer', () => {
       });
     });
 
-    it('can complete a WebSocket upgrade over any duplex stream', (done) => {
+    it('completes a WebSocket upgrade over any duplex stream', (done) => {
       const server = http.createServer();
 
       server.listen(0, () => {
         const wss = new WebSocket.Server({ noServer: true });
 
         server.on('upgrade', (req, socket, head) => {
-          // Put a stream between the raw socket and our websocket processing:
+          //
+          // Put a stream between the raw socket and our websocket processing.
+          //
           const { socket1: stream1, socket2: stream2 } = new DuplexPair();
+
           socket.pipe(stream1);
           stream1.pipe(socket);
 
-          // Pass the other side of the stream as the socket to upgrade:
+          //
+          // Pass the other side of the stream as the socket to upgrade.
+          //
           wss.handleUpgrade(req, stream2, head, (ws) => {
             ws.send('hello');
             ws.close();
