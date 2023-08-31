@@ -58,6 +58,7 @@
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-prettier": "^5.0.0",
     "mocha": "^8.4.0",
+    "native-duplexpair": "^1.0.0",
     "nyc": "^15.0.0",
     "prettier": "^3.0.0",
     "utf-8-validate": "^6.0.0"
