@@ -10,8 +10,8 @@ const path = require('path');
 const net = require('net');
 const fs = require('fs');
 const os = require('os');
-const DuplexPair = require('native-duplexpair');
 
+const makeDuplexPair = require('./duplex-pair');
 const Sender = require('../lib/sender');
 const WebSocket = require('..');
 const { NOOP } = require('../lib/constants');
@@ -526,15 +526,15 @@ describe('WebSocketServer', () => {
           //
           // Put a stream between the raw socket and our websocket processing.
           //
-          const { socket1: stream1, socket2: stream2 } = new DuplexPair();
+          const { clientSide, serverSide } = makeDuplexPair();
 
-          socket.pipe(stream1);
-          stream1.pipe(socket);
+          socket.pipe(clientSide);
+          clientSide.pipe(socket);
 
           //
           // Pass the other side of the stream as the socket to upgrade.
           //
-          wss.handleUpgrade(req, stream2, head, (ws) => {
+          wss.handleUpgrade(req, serverSide, head, (ws) => {
             ws.send('hello');
             ws.close();
           });
