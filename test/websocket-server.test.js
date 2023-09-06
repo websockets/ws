@@ -281,11 +281,15 @@ describe('WebSocketServer', () => {
 
     it('cleans event handlers on precreated server', (done) => {
       const server = http.createServer();
+      const listeningListenerCount = server.listenerCount('listening');
       const wss = new WebSocket.Server({ server });
 
       server.listen(0, () => {
         wss.close(() => {
-          assert.strictEqual(server.listenerCount('listening'), 0);
+          assert.strictEqual(
+            server.listenerCount('listening'),
+            listeningListenerCount
+          );
           assert.strictEqual(server.listenerCount('upgrade'), 0);
           assert.strictEqual(server.listenerCount('error'), 0);
 
