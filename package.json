@@ -12,7 +12,10 @@
   ],
   "homepage": "https://github.com/websockets/ws",
   "bugs": "https://github.com/websockets/ws/issues",
-  "repository": "websockets/ws",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/websockets/ws.git"
+  },
   "author": "Einar Otto Stangvik <einaros@gmail.com> (http://2x.io)",
   "license": "MIT",
   "main": "index.js",
