@@ -39,6 +39,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           architecture: ${{ matrix.arch }}
+          cache: 'npm'
       - run: npm install
       - run: npm run lint
         if:
