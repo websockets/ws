@@ -2813,16 +2813,28 @@ describe('WebSocket', () => {
     });
 
     it('can be called from an error listener while connecting', (done) => {
-      const ws = new WebSocket('ws://localhost:1337');
+      const server = net.createServer();
 
-      ws.on('open', () => done(new Error("Unexpected 'open' event")));
-      ws.on('error', (err) => {
-        assert.ok(err instanceof Error);
-        assert.strictEqual(err.code, 'ECONNREFUSED');
-        ws.close();
-        ws.on('close', () => done());
+      server.on('connection', (socket) => {
+        socket.on('end', socket.end);
+        socket.resume();
+        socket.write(Buffer.from('foo\r\n'));
       });
-    }).timeout(4000);
+
+      server.listen(0, () => {
+        const ws = new WebSocket(`ws://localhost:${server.address().port}`);
+
+        ws.on('open', () => done(new Error("Unexpected 'open' event")));
+        ws.on('error', (err) => {
+          assert.ok(err instanceof Error);
+          assert.strictEqual(err.code, 'HPE_INVALID_CONSTANT');
+          ws.close();
+          ws.on('close', () => {
+            server.close(done);
+          });
+        });
+      });
+    });
 
     it("can be called from a listener of the 'redirect' event", (done) => {
       const server = http.createServer();
@@ -3087,16 +3099,28 @@ describe('WebSocket', () => {
     });
 
     it('can be called from an error listener while connecting', (done) => {
-      const ws = new WebSocket('ws://localhost:1337');
+      const server = net.createServer();
 
-      ws.on('open', () => done(new Error("Unexpected 'open' event")));
-      ws.on('error', (err) => {
-        assert.ok(err instanceof Error);
-        assert.strictEqual(err.code, 'ECONNREFUSED');
-        ws.terminate();
-        ws.on('close', () => done());
+      server.on('connection', (socket) => {
+        socket.on('end', socket.end);
+        socket.resume();
+        socket.write(Buffer.from('foo\r\n'));
       });
-    }).timeout(4000);
+
+      server.listen(0, function () {
+        const ws = new WebSocket(`ws://localhost:${server.address().port}`);
+
+        ws.on('open', () => done(new Error("Unexpected 'open' event")));
+        ws.on('error', (err) => {
+          assert.ok(err instanceof Error);
+          assert.strictEqual(err.code, 'HPE_INVALID_CONSTANT');
+          ws.terminate();
+          ws.on('close', () => {
+            server.close(done);
+          });
+        });
+      });
+    });
 
     it("can be called from a listener of the 'redirect' event", (done) => {
       const server = http.createServer();
