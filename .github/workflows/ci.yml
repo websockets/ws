@@ -39,6 +39,8 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           architecture: ${{ matrix.arch }}
+          cache: 'npm'
+          cache-dependency-path: ./package.json
       - run: npm install
       - run: npm run lint
         if:
