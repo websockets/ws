@@ -2,6 +2,7 @@
 
 const assert = require('assert');
 const crypto = require('crypto');
+const EventEmitter = require('events');
 
 const PerMessageDeflate = require('../lib/permessage-deflate');
 const Receiver = require('../lib/receiver');
@@ -1174,5 +1175,34 @@ describe('Receiver', () => {
     });
 
     receiver.write(Buffer.from('8A01318A01328A0133', 'hex'));
+  });
+
+  it('does not swallow errors thrown from event handlers', (done) => {
+    const receiver = new Receiver();
+    let count = 0;
+
+    receiver.on('message', function () {
+      if (++count === 2) {
+        throw new Error('Oops');
+      }
+    });
+
+    assert.strictEqual(
+      process.listenerCount('uncaughtException'),
+      EventEmitter.usingDomains ? 2 : 1
+    );
+
+    const listener = process.listeners('uncaughtException').pop();
+
+    process.removeListener('uncaughtException', listener);
+    process.once('uncaughtException', (err) => {
+      assert.ok(err instanceof Error);
+      assert.strictEqual(err.message, 'Oops');
+
+      process.on('uncaughtException', listener);
+      done();
+    });
+
+    receiver.write(Buffer.from('82008200', 'hex'));
   });
 });
