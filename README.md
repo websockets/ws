@@ -31,6 +31,7 @@ can use one of the many wrappers available on npm, like
   - [Simple server](#simple-server)
   - [External HTTP/S server](#external-https-server)
   - [Multiple servers sharing a single HTTP/S server](#multiple-servers-sharing-a-single-https-server)
+  - [Modifying upgrade headers if needed](#modifying-upgrade-headers-if-needed)
   - [Client authentication](#client-authentication)
   - [Server broadcast](#server-broadcast)
   - [Round-trip time](#round-trip-time)
