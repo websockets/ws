@@ -13,7 +13,7 @@
   - [server.address()](#serveraddress)
   - [server.clients](#serverclients)
   - [server.close([callback])](#serverclosecallback)
-  - [server.handleUpgrade(request, socket, head, callback)](#serverhandleupgraderequest-socket-head-callback)
+  - [server.handleUpgrade(request, socket, head, callback[, customHeaders])](#serverhandleupgraderequest-socket-head-callback)
   - [server.shouldHandle(request)](#servershouldhandlerequest)
 - [Class: WebSocket](#class-websocket)
   - [Ready state constants](#ready-state-constants)
@@ -252,6 +252,7 @@ receives an `Error` if the server is already closed.
 - `socket` {stream.Duplex} The network socket between the server and client.
 - `head` {Buffer} The first packet of the upgraded stream.
 - `callback` {Function}.
+- `customHeaders` {http.OutgoingHttpHeaders} Custom headers to append to the upgrade frame response. Optional.
 
 Handle a HTTP upgrade request. When the HTTP server is created internally or
 when the HTTP server is passed via the `server` option, this method is called
