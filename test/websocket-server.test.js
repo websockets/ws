@@ -1225,6 +1225,44 @@ describe('WebSocketServer', () => {
       });
     });
 
+    it('handles custom headers appended to upgrade frame response on serverside', (done) => {
+      const server = http.createServer();
+
+      server.listen(0, () => {
+        const wss = new WebSocket.Server({ noServer: true });
+
+        server.on('upgrade', (req, socket, head) => {
+          wss.handleUpgrade(
+            req,
+            socket,
+            head,
+            (ws) => {
+              ws.close();
+            },
+            {
+              'My-Header': 'MyHeaderValue'
+            }
+          );
+        });
+
+        const ws = new WebSocket(`ws://localhost:${server.address().port}`);
+
+        ws.on('upgrade', (req) => {
+          assert.strictEqual(
+            req.headers['my-header'],
+            'MyHeaderValue',
+            'Custom headers are working'
+          );
+        });
+
+        ws.on('open', () => {
+          ws.on('close', () => {
+            server.close(() => done());
+          });
+        });
+      });
+    });
+
     describe('`handleProtocols`', () => {
       it('allows to select a subprotocol', (done) => {
         const handleProtocols = (protocols, request) => {

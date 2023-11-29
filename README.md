@@ -272,6 +272,39 @@ server.on('upgrade', function upgrade(request, socket, head) {
 server.listen(8080);
 ```
 
+### Modifying upgrade headers if needed
+
+```js
+import { WebSocketServer } from 'ws';
+import { createServer } from 'http';
+import crypto from 'crypto';
+
+const server = createServer((req, res) => {
+  //Checks if there is already a cookie called 'myCookie' in the clients browser. If there's not, sets the 'Set-Cookie' header with a new randomly generated one.
+  const customHeaders = !(
+    req.headers.cookie && req.headers.cookie.includes('myCookie')
+  )
+    ? {
+        'Set-Cookie': `myCookie=${crypto.randomUUID()};expires=${new Date(
+          Date.now() + 1000 * 60 * 60 * 24 * 60
+        ).toUTCString()};SameSite=None;`
+      }
+    : {};
+
+  wss.handleUpgrade(
+    req,
+    req.socket,
+    '',
+    (client, req) => {
+      wss.emit('connection', client, req);
+    },
+    customHeaders
+  );
+}).listen(6678);
+
+const wss = new WebSocketServer({ noServer: true });
+```
+
 ### Client authentication
 
 ```js
