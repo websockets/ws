@@ -21,6 +21,7 @@ jobs:
           - 16
           - 18
           - 20
+          - 21
         os:
           - macOS-latest
           - ubuntu-latest
