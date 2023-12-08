@@ -626,15 +626,19 @@ describe('WebSocket', () => {
       });
     });
 
-    it('does not re-emit `net.Socket` errors', (done) => {
-      const codes = ['EPIPE', 'ECONNABORTED', 'ECANCELED', 'ECONNRESET'];
+    it('does not re-emit `net.Socket` errors', function (done) {
+      //
+      // `socket.resetAndDestroy()` is not available in Node.js < 16.17.0.
+      //
+      if (process.versions.modules < 93) return this.skip();
+
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         ws.on('open', () => {
           ws._socket.on('error', (err) => {
             assert.ok(err instanceof Error);
-            assert.ok(codes.includes(err.code), `Unexpected code: ${err.code}`);
+            assert.strictEqual(err.code, 'ECONNRESET');
             ws.on('close', (code, message) => {
               assert.strictEqual(code, 1006);
               assert.strictEqual(message, EMPTY_BUFFER);
@@ -642,9 +646,7 @@ describe('WebSocket', () => {
             });
           });
 
-          for (const client of wss.clients) client.terminate();
-          ws.send('foo');
-          ws.send('bar');
+          wss.clients.values().next().value._socket.resetAndDestroy();
         });
       });
     });
