@@ -1085,43 +1085,20 @@ describe('Receiver', () => {
     receiver.write(Buffer.from([0x88, 0x03, 0x03, 0xe8, 0xf8]));
   });
 
-  it("waits a microtask after each 'message' event", (done) => {
-    const messages = [];
-    const receiver = new Receiver();
-
-    receiver.on('message', (data, isBinary) => {
-      assert.ok(!isBinary);
-
-      const message = data.toString();
-      messages.push(message);
-
-      // `queueMicrotask()` is not available in Node.js < 11.
-      Promise.resolve().then(() => {
-        messages.push(`microtask ${message}`);
-
-        if (messages.length === 6) {
-          assert.deepStrictEqual(messages, [
-            '1',
-            'microtask 1',
-            '2',
-            'microtask 2',
-            '3',
-            'microtask 3'
-          ]);
-
-          done();
-        }
-      });
-    });
-
-    receiver.write(Buffer.from('810131810132810133', 'hex'));
-  });
-
-  it("waits a microtask after each 'ping' event", (done) => {
+  it("waits a microtask after the 'message', and 'p{i,o}ng' events", (done) => {
     const actual = [];
-    const receiver = new Receiver();
+    const expected = [
+      '1',
+      'microtask 1',
+      '2',
+      'microtask 2',
+      '3',
+      'microtask 3',
+      '4',
+      'microtask 4'
+    ];
 
-    receiver.on('ping', (data) => {
+    function listener(data) {
       const message = data.toString();
       actual.push(message);
 
@@ -1129,52 +1106,20 @@ describe('Receiver', () => {
       Promise.resolve().then(() => {
         actual.push(`microtask ${message}`);
 
-        if (actual.length === 6) {
-          assert.deepStrictEqual(actual, [
-            '1',
-            'microtask 1',
-            '2',
-            'microtask 2',
-            '3',
-            'microtask 3'
-          ]);
-
+        if (actual.length === 8) {
+          assert.deepStrictEqual(actual, expected);
           done();
         }
       });
-    });
+    }
 
-    receiver.write(Buffer.from('890131890132890133', 'hex'));
-  });
-
-  it("waits a microtask after each 'pong' event", (done) => {
-    const actual = [];
     const receiver = new Receiver();
 
-    receiver.on('pong', (data) => {
-      const message = data.toString();
-      actual.push(message);
+    receiver.on('message', listener);
+    receiver.on('ping', listener);
+    receiver.on('pong', listener);
 
-      // `queueMicrotask()` is not available in Node.js < 11.
-      Promise.resolve().then(() => {
-        actual.push(`microtask ${message}`);
-
-        if (actual.length === 6) {
-          assert.deepStrictEqual(actual, [
-            '1',
-            'microtask 1',
-            '2',
-            'microtask 2',
-            '3',
-            'microtask 3'
-          ]);
-
-          done();
-        }
-      });
-    });
-
-    receiver.write(Buffer.from('8A01318A01328A0133', 'hex'));
+    receiver.write(Buffer.from('8101318901328a0133810134', 'hex'));
   });
 
   it('does not swallow errors thrown from event handlers', (done) => {
