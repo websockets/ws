@@ -72,6 +72,10 @@ This class represents a WebSocket server. It extends the `EventEmitter`.
 ### new WebSocketServer(options[, callback])
 
 - `options` {Object}
+  - `allowMultipleEventsPerMicrotask` {Boolean} Specifies whether or not to
+    process more than one of the `'message'`, `'ping'`, and `'pong'` events per
+    microtask. To improve compatibility with the WHATWG standard, the default
+    value is `false`. Setting it to `true` improves performance slightly.
   - `backlog` {Number} The maximum length of the queue of pending connections.
   - `clientTracking` {Boolean} Specifies whether or not to track clients.
   - `handleProtocols` {Function} A function which can be used to handle the
@@ -292,6 +296,10 @@ This class represents a WebSocket. It extends the `EventEmitter`.
 - `address` {String|url.URL} The URL to which to connect.
 - `protocols` {String|Array} The list of subprotocols.
 - `options` {Object}
+  - `allowMultipleEventsPerMicrotask` {Boolean} Specifies whether or not to
+    process more than one of the `'message'`, `'ping'`, and `'pong'` events per
+    microtask. To improve compatibility with the WHATWG standard, the default
+    value is `false`. Setting it to `true` improves performance slightly.
   - `finishRequest` {Function} A function which can be used to customize the
     headers of each http request before it is sent. See description below.
   - `followRedirects` {Boolean} Whether or not to follow redirects. Defaults to

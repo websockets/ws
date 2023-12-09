@@ -1150,4 +1150,41 @@ describe('Receiver', () => {
 
     receiver.write(Buffer.from('82008200', 'hex'));
   });
+
+  it('honors the `allowMultipleEventsPerMicrotask` option', (done) => {
+    const actual = [];
+    const expected = [
+      '1',
+      '2',
+      '3',
+      '4',
+      'microtask 1',
+      'microtask 2',
+      'microtask 3',
+      'microtask 4'
+    ];
+
+    function listener(data) {
+      const message = data.toString();
+      actual.push(message);
+
+      // `queueMicrotask()` is not available in Node.js < 11.
+      Promise.resolve().then(() => {
+        actual.push(`microtask ${message}`);
+
+        if (actual.length === 8) {
+          assert.deepStrictEqual(actual, expected);
+          done();
+        }
+      });
+    }
+
+    const receiver = new Receiver({ allowMultipleEventsPerMicrotask: true });
+
+    receiver.on('message', listener);
+    receiver.on('ping', listener);
+    receiver.on('pong', listener);
+
+    receiver.write(Buffer.from('8101318901328a0133810134', 'hex'));
+  });
 });
