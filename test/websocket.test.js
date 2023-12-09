@@ -3109,7 +3109,7 @@ describe('WebSocket', () => {
         socket.write(Buffer.from('foo\r\n'));
       });
 
-      server.listen(0, function () {
+      server.listen(0, () => {
         const ws = new WebSocket(`ws://localhost:${server.address().port}`);
 
         ws.on('open', () => done(new Error("Unexpected 'open' event")));

@@ -1126,7 +1126,7 @@ describe('Receiver', () => {
     const receiver = new Receiver();
     let count = 0;
 
-    receiver.on('message', function () {
+    receiver.on('message', () => {
       if (++count === 2) {
         throw new Error('Oops');
       }
