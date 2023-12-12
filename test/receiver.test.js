@@ -1085,7 +1085,7 @@ describe('Receiver', () => {
     receiver.write(Buffer.from([0x88, 0x03, 0x03, 0xe8, 0xf8]));
   });
 
-  it("waits a microtask after the 'message', and 'p{i,o}ng' events", (done) => {
+  it('emits at most one event per microtask', (done) => {
     const actual = [];
     const expected = [
       '1',
