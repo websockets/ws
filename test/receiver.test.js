@@ -443,7 +443,7 @@ describe('Receiver', () => {
       buf[i + 1] = 0x00;
     }
 
-    const receiver = new Receiver();
+    const receiver = new Receiver({ allowSynchronousEvents: true });
     let counter = 0;
 
     receiver.on('message', (data, isBinary) => {
@@ -1151,7 +1151,7 @@ describe('Receiver', () => {
     receiver.write(Buffer.from('82008200', 'hex'));
   });
 
-  it('honors the `allowMultipleEventsPerMicrotask` option', (done) => {
+  it('honors the `allowSynchronousEvents` option', (done) => {
     const actual = [];
     const expected = [
       '1',
@@ -1179,7 +1179,7 @@ describe('Receiver', () => {
       });
     }
 
-    const receiver = new Receiver({ allowMultipleEventsPerMicrotask: true });
+    const receiver = new Receiver({ allowSynchronousEvents: true });
 
     receiver.on('message', listener);
     receiver.on('ping', listener);
