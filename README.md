@@ -57,27 +57,22 @@ npm install ws
 
 ### Opt-in for performance
 
-There are 2 optional modules that can be installed along side with the ws
-module. These modules are binary addons that improve the performance of certain
-operations. Prebuilt binaries are available for the most popular platforms so
-you don't necessarily need to have a C++ compiler installed on your machine.
+`bufferutil` is an optional module that can be installed alongside the `ws` module:
 
-- `npm install --save-optional bufferutil`: Allows to efficiently perform
-  operations such as masking and unmasking the data payload of the WebSocket
-  frames.
-- `npm install --save-optional utf-8-validate`: Allows to efficiently check if a
-  message contains valid UTF-8.
+```
+npm install --save-optional bufferutil
+```
 
-To not even try to require and use these modules, use the
-[`WS_NO_BUFFER_UTIL`](./doc/ws.md#ws_no_buffer_util) and
-[`WS_NO_UTF_8_VALIDATE`](./doc/ws.md#ws_no_utf_8_validate) environment
-variables. These might be useful to enhance security in systems where a user can
-put a package in the package search path of an application of another user, due
-to how the Node.js resolver algorithm works.
+This is a binary addon that improves the performance of certain operations such
+as masking and unmasking the data payload of the WebSocket frames. Prebuilt
+binaries are available for the most popular platforms, so you don't necessarily
+need to have a C++ compiler installed on your machine.
 
-The `utf-8-validate` module is not needed and is not required, even if it is
-already installed, regardless of the value of the `WS_NO_UTF_8_VALIDATE`
-environment variable, if [`buffer.isUtf8()`][] is available.
+To force `ws` to not use `bufferutil`, use the
+[`WS_NO_BUFFER_UTIL`](./doc/ws.md#ws_no_buffer_util) environment variable. This
+can be useful to enhance security in systems where a user can put a package in
+the package search path of an application of another user, due to how the Node.js
+resolver algorithm works.
 
 ## API docs
 
