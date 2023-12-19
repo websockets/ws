@@ -83,7 +83,7 @@ supports the `utf-8-validate` module:
 npm install --save-optional utf-8-validate
 ```
 
-This contains a binary polyfill for [`buffer.isUtf8()`](https://nodejs.org/api/buffer.html#bufferisutf8input).
+This contains a binary polyfill for [`buffer.isUtf8()`][].
 
 To force `ws` to not use `bufferutil`, use the
 [`WS_NO_UTF_8_VALIDATE`]((./doc/ws.md#ws_no_utf_8_validate) environment variable.
