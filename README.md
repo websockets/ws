@@ -69,10 +69,11 @@ binaries are available for the most popular platforms, so you don't necessarily
 need to have a C++ compiler installed on your machine.
 
 To force `ws` to not use `bufferutil`, use the
-[`WS_NO_BUFFER_UTIL`](./doc/ws.md#ws_no_buffer_util) environment variable. This
-can be useful to enhance security in systems where a user can put a package in
-the package search path of an application of another user, due to how the Node.js
-resolver algorithm works.
+[`WS_NO_BUFFER_UTIL`](./doc/ws.md#ws_no_buffer_util) environment variable. If
+this is set, `require()` will not be called. This can be useful to enhance
+security in systems where a user can put a package in the package search path
+of an application of another user, due to how the Node.js resolver algorithm
+works.
 
 #### Legacy opt-in for performance
 
@@ -86,7 +87,8 @@ npm install --save-optional utf-8-validate
 This contains a binary polyfill for [`buffer.isUtf8()`][].
 
 To force `ws` to not use `bufferutil`, use the
-[`WS_NO_UTF_8_VALIDATE`]((./doc/ws.md#ws_no_utf_8_validate) environment variable.
+[`WS_NO_UTF_8_VALIDATE`]((./doc/ws.md#ws_no_utf_8_validate) environment variable. If
+this is set, `require()` will not be called.
 
 ## API docs
 
