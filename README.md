@@ -74,6 +74,20 @@ can be useful to enhance security in systems where a user can put a package in
 the package search path of an application of another user, due to how the Node.js
 resolver algorithm works.
 
+#### Legacy Opt-in for performance
+
+If you are running on am old version of Node.js (prior to v18.14.0), `ws` also
+supports the `utf-8-validate` module:
+
+```
+npm install --save-optional utf-8-validate
+```
+
+This contains a binary polyfill for [`buffer.isUtf8()`](https://nodejs.org/api/buffer.html#bufferisutf8input).
+
+To force `ws` to not use `bufferutil`, use the
+[`WS_NO_UTF_8_VALIDATE`]((./doc/ws.md#ws_no_utf_8_validate) environment variable.
+
 ## API docs
 
 See [`/doc/ws.md`](./doc/ws.md) for Node.js-like documentation of ws classes and
