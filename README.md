@@ -74,7 +74,7 @@ can be useful to enhance security in systems where a user can put a package in
 the package search path of an application of another user, due to how the Node.js
 resolver algorithm works.
 
-#### Legacy Opt-in for performance
+#### Legacy opt-in for performance
 
 If you are running on am old version of Node.js (prior to v18.14.0), `ws` also
 supports the `utf-8-validate` module:
