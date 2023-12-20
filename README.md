@@ -77,7 +77,7 @@ works.
 
 #### Legacy opt-in for performance
 
-If you are running on am old version of Node.js (prior to v18.14.0), `ws` also
+If you are running on an old version of Node.js (prior to v18.14.0), `ws` also
 supports the `utf-8-validate` module:
 
 ```
