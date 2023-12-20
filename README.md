@@ -23,6 +23,7 @@ can use one of the many wrappers available on npm, like
 - [Protocol support](#protocol-support)
 - [Installing](#installing)
   - [Opt-in for performance](#opt-in-for-performance)
+    - [Legacy opt-in for performance](#legacy-opt-in-for-performance)
 - [API docs](#api-docs)
 - [WebSocket compression](#websocket-compression)
 - [Usage examples](#usage-examples)
