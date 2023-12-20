@@ -57,7 +57,8 @@ npm install ws
 
 ### Opt-in for performance
 
-`bufferutil` is an optional module that can be installed alongside the `ws` module:
+`bufferutil` is an optional module that can be installed alongside the `ws`
+module:
 
 ```
 npm install --save-optional bufferutil
