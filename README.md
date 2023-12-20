@@ -86,7 +86,7 @@ npm install --save-optional utf-8-validate
 
 This contains a binary polyfill for [`buffer.isUtf8()`][].
 
-To force `ws` to not use `bufferutil`, use the
+To force `ws` to not use `utf-8-validate`, use the
 [`WS_NO_UTF_8_VALIDATE`]((./doc/ws.md#ws_no_utf_8_validate) environment variable. If
 this is set, `require()` will not be called.
 
