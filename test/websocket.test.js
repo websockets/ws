@@ -197,6 +197,30 @@ describe('WebSocket', () => {
           });
         });
       });
+
+      it('honors the `autoPong` option', (done) => {
+        const wss = new WebSocket.Server({ port: 0 }, () => {
+          const ws = new WebSocket(`ws://localhost:${wss.address().port}`, {
+            autoPong: false
+          });
+
+          ws.on('ping', () => {
+            ws.close();
+          });
+
+          ws.on('close', () => {
+            wss.close(done);
+          });
+        });
+
+        wss.on('connection', (ws) => {
+          ws.on('pong', () => {
+            done(new Error("Unexpected 'pong' event"));
+          });
+
+          ws.ping();
+        });
+      });
     });
   });
 
@@ -2323,6 +2347,29 @@ describe('WebSocket', () => {
 
       wss.on('connection', (ws) => {
         ws.close();
+      });
+    });
+
+    it('is called automatically when a ping is received', (done) => {
+      const buf = Buffer.from('hi');
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+
+        ws.on('open', () => {
+          ws.ping(buf);
+        });
+
+        ws.on('pong', (data) => {
+          assert.deepStrictEqual(data, buf);
+          wss.close(done);
+        });
+      });
+
+      wss.on('connection', (ws) => {
+        ws.on('ping', (data) => {
+          assert.deepStrictEqual(data, buf);
+          ws.close();
+        });
       });
     });
   });

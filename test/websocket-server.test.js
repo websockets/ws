@@ -116,6 +116,30 @@ describe('WebSocketServer', () => {
           wss.close(done);
         });
       });
+
+      it('honors the `autoPong` option', (done) => {
+        const wss = new WebSocket.Server({ autoPong: false, port: 0 }, () => {
+          const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+
+          ws.on('open', () => {
+            ws.ping();
+          });
+
+          ws.on('pong', () => {
+            done(new Error("Unexpected 'pong' event"));
+          });
+        });
+
+        wss.on('connection', (ws) => {
+          ws.on('ping', () => {
+            ws.close();
+          });
+
+          ws.on('close', () => {
+            wss.close(done);
+          });
+        });
+      });
     });
 
     it('emits an error if http server bind fails', (done) => {

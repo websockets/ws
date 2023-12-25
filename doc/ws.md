@@ -72,6 +72,8 @@ This class represents a WebSocket server. It extends the `EventEmitter`.
 ### new WebSocketServer(options[, callback])
 
 - `options` {Object}
+  - `autoPong` {Boolean} Specifies whether or not to automatically send a pong
+    in response to a ping. Defaults to `true`.
   - `allowSynchronousEvents` {Boolean} Specifies whether any of the `'message'`,
     `'ping'`, and `'pong'` events can be emitted multiple times in the same
     tick. To improve compatibility with the WHATWG standard, the default value
@@ -296,6 +298,8 @@ This class represents a WebSocket. It extends the `EventEmitter`.
 - `address` {String|url.URL} The URL to which to connect.
 - `protocols` {String|Array} The list of subprotocols.
 - `options` {Object}
+  - `autoPong` {Boolean} Specifies whether or not to automatically send a pong
+    in response to a ping. Defaults to `true`.
   - `allowSynchronousEvents` {Boolean} Specifies whether any of the `'message'`,
     `'ping'`, and `'pong'` events can be emitted multiple times in the same
     tick. To improve compatibility with the WHATWG standard, the default value
