@@ -11,6 +11,7 @@ const net = require('net');
 const tls = require('tls');
 const os = require('os');
 const fs = require('fs');
+const { getDefaultHighWaterMark } = require('stream');
 const { URL } = require('url');
 
 const Sender = require('../lib/sender');
@@ -22,6 +23,10 @@ const {
   MessageEvent
 } = require('../lib/event-target');
 const { EMPTY_BUFFER, GUID, kListener, NOOP } = require('../lib/constants');
+
+const highWaterMark = getDefaultHighWaterMark
+  ? getDefaultHighWaterMark(false)
+  : 16 * 1024;
 
 class CustomAgent extends http.Agent {
   addRequest() {}
@@ -4092,7 +4097,7 @@ describe('WebSocket', () => {
               ws.terminate();
             };
 
-            const payload1 = Buffer.alloc(15 * 1024);
+            const payload1 = Buffer.alloc(highWaterMark - 1024);
             const payload2 = Buffer.alloc(1);
 
             const opts = {
@@ -4107,13 +4112,17 @@ describe('WebSocket', () => {
               ...Sender.frame(payload2, { rsv1: true, ...opts })
             ];
 
-            for (let i = 0; i < 399; i++) {
+            for (let i = 0; i < 340; i++) {
               list.push(list[list.length - 2], list[list.length - 1]);
             }
 
+            const data = Buffer.concat(list);
+
+            assert.ok(data.length > highWaterMark);
+
             // This hack is used because there is no guarantee that more than
-            // 16 KiB will be sent as a single TCP packet.
-            push.call(ws._socket, Buffer.concat(list));
+            // `highWaterMark` bytes will be sent as a single TCP packet.
+            push.call(ws._socket, data);
 
             wss.clients
               .values()
@@ -4128,8 +4137,8 @@ describe('WebSocket', () => {
 
           ws.on('close', (code) => {
             assert.strictEqual(code, 1006);
-            assert.strictEqual(messageLengths.length, 402);
-            assert.strictEqual(messageLengths[0], 15360);
+            assert.strictEqual(messageLengths.length, 343);
+            assert.strictEqual(messageLengths[0], highWaterMark - 1024);
             assert.strictEqual(messageLengths[messageLengths.length - 1], 1);
             wss.close(done);
           });

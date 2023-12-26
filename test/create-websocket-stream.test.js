@@ -3,13 +3,17 @@
 const assert = require('assert');
 const EventEmitter = require('events');
 const { createServer } = require('http');
-const { Duplex } = require('stream');
+const { Duplex, getDefaultHighWaterMark } = require('stream');
 const { randomBytes } = require('crypto');
 
 const createWebSocketStream = require('../lib/stream');
 const Sender = require('../lib/sender');
 const WebSocket = require('..');
 const { EMPTY_BUFFER } = require('../lib/constants');
+
+const highWaterMark = getDefaultHighWaterMark
+  ? getDefaultHighWaterMark(false)
+  : 16 * 1024;
 
 describe('createWebSocketStream', () => {
   it('is exposed as a property of the `WebSocket` class', () => {
@@ -445,12 +449,15 @@ describe('createWebSocketStream', () => {
             };
 
             const list = [
-              ...Sender.frame(randomBytes(16 * 1024), { rsv1: false, ...opts }),
+              ...Sender.frame(randomBytes(highWaterMark), {
+                rsv1: false,
+                ...opts
+              }),
               ...Sender.frame(Buffer.alloc(1), { rsv1: true, ...opts })
             ];
 
             // This hack is used because there is no guarantee that more than
-            // 16 KiB will be sent as a single TCP packet.
+            // `highWaterMark` bytes will be sent as a single TCP packet.
             ws._socket.push(Buffer.concat(list));
           });
 
@@ -494,7 +501,10 @@ describe('createWebSocketStream', () => {
             };
 
             const list = [
-              ...Sender.frame(randomBytes(16 * 1024), { rsv1: false, ...opts }),
+              ...Sender.frame(randomBytes(highWaterMark), {
+                rsv1: false,
+                ...opts
+              }),
               ...Sender.frame(Buffer.alloc(1), { rsv1: true, ...opts })
             ];
 
