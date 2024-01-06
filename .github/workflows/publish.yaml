@@ -19,63 +19,65 @@ jobs:
 
     strategy:
       matrix:
-        #node-version: [8.x, 10.x, 12.x]
-        node-version: [13.x]
+        node-version: [16.x]
 
     steps:
     - name: Input
       run: |
         echo label: ${{ github.event.inputs.label }}
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         ref: dev
+    - name: Node Dependencies for CLI
+      run: |
+        npm install -g @thzero/library_cli
     - name: Node Dependencies
       run: |
         npm install --no-package-lock
-    - name: Package Info
+    - name: Package Output
       run: |
         cat package.json
     - name: Initialize Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
         registry-url: 'https://registry.npmjs.org'
     - name: Update Package Version
       run: |
-        npm run cli-update -- --silent
-    - name: Git Check
+        # npm run cli-update -- --silent
+        library-cli --updateversion --pi --silent
+    - name: Check for uncommitted changes
       id: git-changes
       if: success()
-      uses: UnicornGlobal/has-changes-action@v1.0.11
+      uses: thzero/check-uncommitted-changes-action@v1.0.4
     - name: Git Check Output
       run: |
         echo changed? ${{ steps.git-changes.outputs.changed }}
+        echo changes? ${{ steps.git-changes.outputs.changes }}
     - name: Git Commit Version
+      if: steps.git-changes.outputs.changed == 1 && success()
       run: |
         git config --global user.name '${{ github.repository_owner }}'
         git config --global user.email '${{ github.repository_owner }}@users.noreply.github.com'
         git add .
         git commit -m '${{ github.event.inputs.label }}'
         git push
-    - name: Requires Pull Request?
-      run: |
-        echo changed? ${{ steps.git-changes.outputs.changed }}
     - name: Pull Request
       id: pull-request
-      if: steps.git-changes.outputs.changed == true && success()
-      uses: repo-sync/pull-request@v2
+      if: steps.git-changes.outputs.changed == 1 && success()
+      uses: repo-sync/pull-request@v2.9
       with:
         source_branch: dev
         destination_branch: master
         github_token: ${{ secrets.GITHUB_TOKEN }}
     - name: Pull Request Output
-      if: steps.git-changes.outputs.changed == true && success()
+      if: steps.git-changes.outputs.changed == 1 && success()
       run: |
         echo ${{ steps.pull-request.outputs.pr_url }}
         echo ${{ steps.pull-request.outputs.pr_number }}
     - name: Merge pull request
-      if: steps.git-changes.outputs.changed == true && steps.pull-request.outputs.pr_number > 0 && success()
-      uses: sudo-bot/action-pull-request-merge@v1.1.1
+      if: steps.git-changes.outputs.changed == 1 && steps.pull-request.outputs.pr_number > 0 && success()
+      uses: sudo-bot/action-pull-request-merge@v1.2.0
       with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           number: ${{ steps.pull-request.outputs.pr_number }}
