@@ -1,7 +1,7 @@
 # ws: a Node.js WebSocket library
 
 [![Version npm](https://img.shields.io/npm/v/ws.svg?logo=npm)](https://www.npmjs.com/package/ws)
-[![CI](https://img.shields.io/github/workflow/status/websockets/ws/CI/master?label=CI&logo=github)](https://github.com/websockets/ws/actions?query=workflow%3ACI+branch%3Amaster)
+[![CI](https://img.shields.io/github/actions/workflow/status/websockets/ws/ci.yml?branch=master&label=CI&logo=github)](https://github.com/websockets/ws/actions?query=workflow%3ACI+branch%3Amaster)
 [![Coverage Status](https://img.shields.io/coveralls/websockets/ws/master.svg?logo=coveralls)](https://coveralls.io/github/websockets/ws)
 
 ws is a simple to use, blazing fast, and thoroughly tested WebSocket client and
@@ -23,6 +23,7 @@ can use one of the many wrappers available on npm, like
 - [Protocol support](#protocol-support)
 - [Installing](#installing)
   - [Opt-in for performance](#opt-in-for-performance)
+    - [Legacy opt-in for performance](#legacy-opt-in-for-performance)
 - [API docs](#api-docs)
 - [WebSocket compression](#websocket-compression)
 - [Usage examples](#usage-examples)
@@ -33,7 +34,7 @@ can use one of the many wrappers available on npm, like
   - [Multiple servers sharing a single HTTP/S server](#multiple-servers-sharing-a-single-https-server)
   - [Client authentication](#client-authentication)
   - [Server broadcast](#server-broadcast)
-  - [echo.websocket.org demo](#echowebsocketorg-demo)
+  - [Round-trip time](#round-trip-time)
   - [Use the Node.js streams API](#use-the-nodejs-streams-api)
   - [Other examples](#other-examples)
 - [FAQ](#faq)
@@ -57,16 +58,37 @@ npm install ws
 
 ### Opt-in for performance
 
-There are 2 optional modules that can be installed along side with the ws
-module. These modules are binary addons which improve certain operations.
-Prebuilt binaries are available for the most popular platforms so you don't
-necessarily need to have a C++ compiler installed on your machine.
+[bufferutil][] is an optional module that can be installed alongside the ws
+module:
 
-- `npm install --save-optional bufferutil`: Allows to efficiently perform
-  operations such as masking and unmasking the data payload of the WebSocket
-  frames.
-- `npm install --save-optional utf-8-validate`: Allows to efficiently check if a
-  message contains valid UTF-8.
+```
+npm install --save-optional bufferutil
+```
+
+This is a binary addon that improves the performance of certain operations such
+as masking and unmasking the data payload of the WebSocket frames. Prebuilt
+binaries are available for the most popular platforms, so you don't necessarily
+need to have a C++ compiler installed on your machine.
+
+To force ws to not use bufferutil, use the
+[`WS_NO_BUFFER_UTIL`](./doc/ws.md#ws_no_buffer_util) environment variable. This
+can be useful to enhance security in systems where a user can put a package in
+the package search path of an application of another user, due to how the
+Node.js resolver algorithm works.
+
+#### Legacy opt-in for performance
+
+If you are running on an old version of Node.js (prior to v18.14.0), ws also
+supports the [utf-8-validate][] module:
+
+```
+npm install --save-optional utf-8-validate
+```
+
+This contains a binary polyfill for [`buffer.isUtf8()`][].
+
+To force ws to not use utf-8-validate, use the
+[`WS_NO_UTF_8_VALIDATE`](./doc/ws.md#ws_no_utf_8_validate) environment variable.
 
 ## API docs
 
@@ -144,12 +166,14 @@ import WebSocket from 'ws';
 
 const ws = new WebSocket('ws://www.host.com/path');
 
+ws.on('error', console.error);
+
 ws.on('open', function open() {
   ws.send('something');
 });
 
-ws.on('message', function incoming(message) {
-  console.log('received: %s', message);
+ws.on('message', function message(data) {
+  console.log('received: %s', data);
 });
 ```
 
@@ -159,6 +183,8 @@ ws.on('message', function incoming(message) {
 import WebSocket from 'ws';
 
 const ws = new WebSocket('ws://www.host.com/path');
+
+ws.on('error', console.error);
 
 ws.on('open', function open() {
   const array = new Float32Array(5);
@@ -179,8 +205,10 @@ import { WebSocketServer } from 'ws';
 const wss = new WebSocketServer({ port: 8080 });
 
 wss.on('connection', function connection(ws) {
-  ws.on('message', function incoming(message) {
-    console.log('received: %s', message);
+  ws.on('error', console.error);
+
+  ws.on('message', function message(data) {
+    console.log('received: %s', data);
   });
 
   ws.send('something');
@@ -201,8 +229,10 @@ const server = createServer({
 const wss = new WebSocketServer({ server });
 
 wss.on('connection', function connection(ws) {
-  ws.on('message', function incoming(message) {
-    console.log('received: %s', message);
+  ws.on('error', console.error);
+
+  ws.on('message', function message(data) {
+    console.log('received: %s', data);
   });
 
   ws.send('something');
@@ -223,10 +253,14 @@ const wss1 = new WebSocketServer({ noServer: true });
 const wss2 = new WebSocketServer({ noServer: true });
 
 wss1.on('connection', function connection(ws) {
+  ws.on('error', console.error);
+
   // ...
 });
 
 wss2.on('connection', function connection(ws) {
+  ws.on('error', console.error);
+
   // ...
 });
 
@@ -252,26 +286,36 @@ server.listen(8080);
 ### Client authentication
 
 ```js
-import WebSocket from 'ws';
 import { createServer } from 'http';
+import { WebSocketServer } from 'ws';
+
+function onSocketError(err) {
+  console.error(err);
+}
 
 const server = createServer();
 const wss = new WebSocketServer({ noServer: true });
 
 wss.on('connection', function connection(ws, request, client) {
-  ws.on('message', function message(msg) {
-    console.log(`Received message ${msg} from user ${client}`);
+  ws.on('error', console.error);
+
+  ws.on('message', function message(data) {
+    console.log(`Received message ${data} from user ${client}`);
   });
 });
 
 server.on('upgrade', function upgrade(request, socket, head) {
+  socket.on('error', onSocketError);
+
   // This function is not defined on purpose. Implement it with your own logic.
-  authenticate(request, (err, client) => {
+  authenticate(request, function next(err, client) {
     if (err || !client) {
       socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
       socket.destroy();
       return;
     }
+
+    socket.removeListener('error', onSocketError);
 
     wss.handleUpgrade(request, socket, head, function done(ws) {
       wss.emit('connection', ws, request, client);
@@ -295,7 +339,9 @@ import WebSocket, { WebSocketServer } from 'ws';
 const wss = new WebSocketServer({ port: 8080 });
 
 wss.on('connection', function connection(ws) {
-  ws.on('message', function incoming(data, isBinary) {
+  ws.on('error', console.error);
+
+  ws.on('message', function message(data, isBinary) {
     wss.clients.forEach(function each(client) {
       if (client.readyState === WebSocket.OPEN) {
         client.send(data, { binary: isBinary });
@@ -314,7 +360,9 @@ import WebSocket, { WebSocketServer } from 'ws';
 const wss = new WebSocketServer({ port: 8080 });
 
 wss.on('connection', function connection(ws) {
-  ws.on('message', function incoming(data, isBinary) {
+  ws.on('error', console.error);
+
+  ws.on('message', function message(data, isBinary) {
     wss.clients.forEach(function each(client) {
       if (client !== ws && client.readyState === WebSocket.OPEN) {
         client.send(data, { binary: isBinary });
@@ -324,14 +372,14 @@ wss.on('connection', function connection(ws) {
 });
 ```
 
-### echo.websocket.org demo
+### Round-trip time
 
 ```js
 import WebSocket from 'ws';
 
-const ws = new WebSocket('wss://echo.websocket.org/', {
-  origin: 'https://websocket.org'
-});
+const ws = new WebSocket('wss://websocket-echo.com/');
+
+ws.on('error', console.error);
 
 ws.on('open', function open() {
   console.log('connected');
@@ -342,8 +390,8 @@ ws.on('close', function close() {
   console.log('disconnected');
 });
 
-ws.on('message', function incoming(data) {
-  console.log(`Roundtrip time: ${Date.now() - data} ms`);
+ws.on('message', function message(data) {
+  console.log(`Round-trip time: ${Date.now() - data} ms`);
 
   setTimeout(function timeout() {
     ws.send(Date.now());
@@ -356,11 +404,11 @@ ws.on('message', function incoming(data) {
 ```js
 import WebSocket, { createWebSocketStream } from 'ws';
 
-const ws = new WebSocket('wss://echo.websocket.org/', {
-  origin: 'https://websocket.org'
-});
+const ws = new WebSocket('wss://websocket-echo.com/');
 
 const duplex = createWebSocketStream(ws, { encoding: 'utf8' });
+
+duplex.on('error', console.error);
 
 duplex.pipe(process.stdout);
 process.stdin.pipe(duplex);
@@ -386,6 +434,8 @@ const wss = new WebSocketServer({ port: 8080 });
 
 wss.on('connection', function connection(ws, req) {
   const ip = req.socket.remoteAddress;
+
+  ws.on('error', console.error);
 });
 ```
 
@@ -395,6 +445,8 @@ the `X-Forwarded-For` header.
 ```js
 wss.on('connection', function connection(ws, req) {
   const ip = req.headers['x-forwarded-for'].split(',')[0].trim();
+
+  ws.on('error', console.error);
 });
 ```
 
@@ -418,6 +470,7 @@ const wss = new WebSocketServer({ port: 8080 });
 
 wss.on('connection', function connection(ws) {
   ws.isAlive = true;
+  ws.on('error', console.error);
   ws.on('pong', heartbeat);
 });
 
@@ -457,8 +510,9 @@ function heartbeat() {
   }, 30000 + 1000);
 }
 
-const client = new WebSocket('wss://echo.websocket.org/');
+const client = new WebSocket('wss://websocket-echo.com/');
 
+client.on('error', console.error);
 client.on('open', heartbeat);
 client.on('ping', heartbeat);
 client.on('close', function clear() {
@@ -479,6 +533,8 @@ We're using the GitHub [releases][changelog] for changelog entries.
 
 [MIT](LICENSE)
 
+[`buffer.isutf8()`]: https://nodejs.org/api/buffer.html#bufferisutf8input
+[bufferutil]: https://github.com/websockets/bufferutil
 [changelog]: https://github.com/websockets/ws/releases
 [client-report]: http://websockets.github.io/ws/autobahn/clients/
 [https-proxy-agent]: https://github.com/TooTallNate/node-https-proxy-agent
@@ -489,5 +545,5 @@ We're using the GitHub [releases][changelog] for changelog entries.
 [server-report]: http://websockets.github.io/ws/autobahn/servers/
 [session-parse-example]: ./examples/express-session-parse
 [socks-proxy-agent]: https://github.com/TooTallNate/node-socks-proxy-agent
-[ws-server-options]:
-  https://github.com/websockets/ws/blob/master/doc/ws.md#new-websocketserveroptions-callback
+[utf-8-validate]: https://github.com/websockets/utf-8-validate
+[ws-server-options]: ./doc/ws.md#new-websocketserveroptions-callback

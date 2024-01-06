@@ -9,6 +9,7 @@
   - [Event: 'error'](#event-error)
   - [Event: 'headers'](#event-headers)
   - [Event: 'listening'](#event-listening)
+  - [Event: 'wsClientError'](#event-wsclienterror)
   - [server.address()](#serveraddress)
   - [server.clients](#serverclients)
   - [server.close([callback])](#serverclosecallback)
@@ -17,13 +18,14 @@
 - [Class: WebSocket](#class-websocket)
   - [Ready state constants](#ready-state-constants)
   - [new WebSocket(address[, protocols][, options])](#new-websocketaddress-protocols-options)
-    - [UNIX Domain Sockets](#unix-domain-sockets)
+    - [IPC connections](#ipc-connections)
   - [Event: 'close'](#event-close-1)
   - [Event: 'error'](#event-error-1)
   - [Event: 'message'](#event-message)
   - [Event: 'open'](#event-open)
   - [Event: 'ping'](#event-ping)
   - [Event: 'pong'](#event-pong)
+  - [Event: 'redirect'](#event-redirect)
   - [Event: 'unexpected-response'](#event-unexpected-response)
   - [Event: 'upgrade'](#event-upgrade)
   - [websocket.addEventListener(type, listener[, options])](#websocketaddeventlistenertype-listener-options)
@@ -31,20 +33,26 @@
   - [websocket.bufferedAmount](#websocketbufferedamount)
   - [websocket.close([code[, reason]])](#websocketclosecode-reason)
   - [websocket.extensions](#websocketextensions)
+  - [websocket.isPaused](#websocketispaused)
   - [websocket.onclose](#websocketonclose)
   - [websocket.onerror](#websocketonerror)
   - [websocket.onmessage](#websocketonmessage)
   - [websocket.onopen](#websocketonopen)
+  - [websocket.pause()](#websocketpause)
   - [websocket.ping([data[, mask]][, callback])](#websocketpingdata-mask-callback)
   - [websocket.pong([data[, mask]][, callback])](#websocketpongdata-mask-callback)
   - [websocket.protocol](#websocketprotocol)
   - [websocket.readyState](#websocketreadystate)
   - [websocket.removeEventListener(type, listener)](#websocketremoveeventlistenertype-listener)
+  - [websocket.resume()](#websocketresume)
   - [websocket.send(data[, options][, callback])](#websocketsenddata-options-callback)
   - [websocket.terminate()](#websocketterminate)
   - [websocket.url](#websocketurl)
 - [createWebSocketStream(websocket[, options])](#createwebsocketstreamwebsocket-options)
-- [WS Error Codes](#ws-error-codes)
+- [Environment variables](#environment-variables)
+  - [WS_NO_BUFFER_UTIL](#ws_no_buffer_util)
+  - [WS_NO_UTF_8_VALIDATE](#ws_no_utf_8_validate)
+- [Error codes](#error-codes)
   - [WS_ERR_EXPECTED_FIN](#ws_err_expected_fin)
   - [WS_ERR_EXPECTED_MASK](#ws_err_expected_mask)
   - [WS_ERR_INVALID_CLOSE_CODE](#ws_err_invalid_close_code)
@@ -64,12 +72,19 @@ This class represents a WebSocket server. It extends the `EventEmitter`.
 ### new WebSocketServer(options[, callback])
 
 - `options` {Object}
+  - `autoPong` {Boolean} Specifies whether or not to automatically send a pong
+    in response to a ping. Defaults to `true`.
+  - `allowSynchronousEvents` {Boolean} Specifies whether any of the `'message'`,
+    `'ping'`, and `'pong'` events can be emitted multiple times in the same
+    tick. To improve compatibility with the WHATWG standard, the default value
+    is `false`. Setting it to `true` improves performance slightly.
   - `backlog` {Number} The maximum length of the queue of pending connections.
   - `clientTracking` {Boolean} Specifies whether or not to track clients.
   - `handleProtocols` {Function} A function which can be used to handle the
     WebSocket subprotocols. See description below.
   - `host` {String} The hostname where to bind the server.
-  - `maxPayload` {Number} The maximum allowed message size in bytes.
+  - `maxPayload` {Number} The maximum allowed message size in bytes. Defaults to
+    100 MiB (104857600 bytes).
   - `noServer` {Boolean} Enable no server mode.
   - `path` {String} Accept only connections matching this path.
   - `perMessageDeflate` {Boolean|Object} Enable/disable permessage-deflate.
@@ -81,6 +96,8 @@ This class represents a WebSocket server. It extends the `EventEmitter`.
   - `verifyClient` {Function} A function which can be used to validate incoming
     connections. See description below. (Usage is discouraged: see
     [Issue #337](https://github.com/websockets/ws/issues/377#issuecomment-462152231))
+  - `WebSocket` {Function} Specifies the `WebSocket` class to be used. It must
+    be extended from the original `WebSocket`. Defaults to `WebSocket`.
 - `callback` {Function}
 
 Create a new server instance. One and only one of `port`, `server` or `noServer`
@@ -88,15 +105,15 @@ must be provided or an error is thrown. An HTTP server is automatically created,
 started, and used if `port` is set. To use an external HTTP/S server instead,
 specify only `server` or `noServer`. In this case the HTTP/S server must be
 started manually. The "noServer" mode allows the WebSocket server to be
-completly detached from the HTTP/S server. This makes it possible, for example,
+completely detached from the HTTP/S server. This makes it possible, for example,
 to share a single HTTP/S server between multiple WebSocket servers.
 
 > **NOTE:** Use of `verifyClient` is discouraged. Rather handle client
-> authentication in the `upgrade` event of the HTTP server. See examples for
+> authentication in the `'upgrade'` event of the HTTP server. See examples for
 > more details.
 
 If `verifyClient` is not set then the handshake is automatically accepted. If it
-is provided with a single argument then that is:
+has a single parameter then `ws` will invoke it with the following argument:
 
 - `info` {Object}
   - `origin` {String} The value in the Origin header indicated by the client.
@@ -107,7 +124,8 @@ is provided with a single argument then that is:
 The return value (`Boolean`) of the function determines whether or not to accept
 the handshake.
 
-if `verifyClient` is provided with two arguments then those are:
+If `verifyClient` has two parameters then `ws` will invoke it with the following
+arguments:
 
 - `info` {Object} Same as above.
 - `cb` {Function} A callback that must be called by the user upon inspection of
@@ -158,8 +176,8 @@ is used. When sending a fragmented message the length of the first fragment is
 compared to the threshold. This determines if compression is used for the entire
 message.
 
-`callback` will be added as a listener for the `listening` event on the HTTP
-server when not operating in "noServer" mode.
+`callback` will be added as a listener for the `'listening'` event on the HTTP
+server when the `port` option is set.
 
 ### Event: 'close'
 
@@ -194,6 +212,21 @@ handshake. This allows you to inspect/modify the headers before they are sent.
 
 Emitted when the underlying server has been bound.
 
+### Event: 'wsClientError'
+
+- `error` {Error}
+- `socket` {net.Socket|tls.Socket}
+- `request` {http.IncomingMessage}
+
+Emitted when an error occurs before the WebSocket connection is established.
+`socket` and `request` are respectively the socket and the HTTP request from
+which the error originated. The listener of this event is responsible for
+closing the socket. When the `'wsClientError'` event is emitted there is no
+`http.ServerResponse` object, so any HTTP response, including the response
+headers and body, must be written directly to the `socket`. If there is no
+listener for this event, the socket is closed with a default 4xx response
+containing a descriptive error message.
+
 ### server.address()
 
 Returns an object with `port`, `family`, and `address` properties specifying the
@@ -205,8 +238,8 @@ a pipe or UNIX domain socket, the name is returned as a string.
 
 - {Set}
 
-A set that stores all connected clients. Please note that this property is only
-added when the `clientTracking` is truthy.
+A set that stores all connected clients. This property is only added when the
+`clientTracking` is truthy.
 
 ### server.close([callback])
 
@@ -222,7 +255,7 @@ receives an `Error` if the server is already closed.
 ### server.handleUpgrade(request, socket, head, callback)
 
 - `request` {http.IncomingMessage} The client HTTP GET request.
-- `socket` {net.Socket} The network socket between the server and client.
+- `socket` {stream.Duplex} The network socket between the server and client.
 - `head` {Buffer} The first packet of the upgraded stream.
 - `callback` {Function}.
 
@@ -265,11 +298,24 @@ This class represents a WebSocket. It extends the `EventEmitter`.
 - `address` {String|url.URL} The URL to which to connect.
 - `protocols` {String|Array} The list of subprotocols.
 - `options` {Object}
+  - `autoPong` {Boolean} Specifies whether or not to automatically send a pong
+    in response to a ping. Defaults to `true`.
+  - `allowSynchronousEvents` {Boolean} Specifies whether any of the `'message'`,
+    `'ping'`, and `'pong'` events can be emitted multiple times in the same
+    tick. To improve compatibility with the WHATWG standard, the default value
+    is `false`. Setting it to `true` improves performance slightly.
+  - `finishRequest` {Function} A function which can be used to customize the
+    headers of each http request before it is sent. See description below.
   - `followRedirects` {Boolean} Whether or not to follow redirects. Defaults to
     `false`.
+  - `generateMask` {Function} The function used to generate the masking key. It
+    takes a `Buffer` that must be filled synchronously and is called before a
+    message is sent, for each message. By default the buffer is filled with
+    cryptographically strong random bytes.
   - `handshakeTimeout` {Number} Timeout in milliseconds for the handshake
     request. This is reset after every redirection.
-  - `maxPayload` {Number} The maximum allowed message size in bytes.
+  - `maxPayload` {Number} The maximum allowed message size in bytes. Defaults to
+    100 MiB (104857600 bytes).
   - `maxRedirects` {Number} The maximum number of redirects allowed. Defaults
     to 10.
   - `origin` {String} Value of the `Origin` or `Sec-WebSocket-Origin` header
@@ -279,31 +325,53 @@ This class represents a WebSocket. It extends the `EventEmitter`.
   - `skipUTF8Validation` {Boolean} Specifies whether or not to skip UTF-8
     validation for text and close messages. Defaults to `false`. Set to `true`
     only if the server is trusted.
-  - Any other option allowed in [http.request()][] or [https.request()][].
+  - Any other option allowed in [`http.request()`][] or [`https.request()`][].
     Options given do not have any effect if parsed from the URL given with the
     `address` parameter.
+
+Create a new WebSocket instance.
 
 `perMessageDeflate` default value is `true`. When using an object, parameters
 are the same of the server. The only difference is the direction of requests.
 For example, `serverNoContextTakeover` can be used to ask the server to disable
 context takeover.
 
-Create a new WebSocket instance.
+`finishRequest` is called with arguments
 
-#### UNIX Domain Sockets
+- `request` {http.ClientRequest}
+- `websocket` {WebSocket}
 
-`ws` supports making requests to UNIX domain sockets. To make one, use the
-following URL scheme:
+for each HTTP GET request (the initial one and any caused by redirects) when it
+is ready to be sent, to allow for last minute customization of the headers. If
+`finishRequest` is set then it has the responsibility to call `request.end()`
+once it is done setting request headers. This is intended for niche use-cases
+where some headers can't be provided in advance e.g. because they depend on the
+underlying socket.
+
+#### IPC connections
+
+`ws` supports IPC connections. To connect to an IPC endpoint, use the following
+URL form:
+
+- On Unices
+
+  ```
+  ws+unix:/absolute/path/to/uds_socket:/pathname?search_params
+  ```
+
+- On Windows
+
+  ```
+  ws+unix:\\.\pipe\pipe_name:/pathname?search_params
+  ```
+
+The character `:` is the separator between the IPC path (the Unix domain socket
+path or the Windows named pipe) and the URL path. The IPC path must not include
+the characters `:` and `?`, otherwise the URL is incorrectly parsed. If the URL
+path is omitted
 
 ```
-ws+unix:///absolute/path/to/uds_socket:/pathname?search_params
-```
-
-Note that `:` is the separator between the socket path and the URL path. If the
-URL path is omitted
-
-```
-ws+unix:///absolute/path/to/uds_socket
+ws+unix:/absolute/path/to/uds_socket
 ```
 
 it defaults to `/`.
@@ -323,7 +391,7 @@ been closed.
 - `error` {Error}
 
 Emitted when an error occurs. Errors may have a `.code` property, matching one
-of the string values defined below under [WS Error Codes](#ws-error-codes).
+of the string values defined below under [Error codes](#error-codes).
 
 ### Event: 'message'
 
@@ -341,13 +409,26 @@ Emitted when the connection is established.
 
 - `data` {Buffer}
 
-Emitted when a ping is received from the server.
+Emitted when a ping is received.
 
 ### Event: 'pong'
 
 - `data` {Buffer}
 
-Emitted when a pong is received from the server.
+Emitted when a pong is received.
+
+### Event: 'redirect'
+
+- `url` {String}
+- `request` {http.ClientRequest}
+
+Emitted before a redirect is followed. `url` is the redirect URL. `request` is
+the HTTP GET request with the headers queued. This event gives the ability to
+inspect confidential headers and remove them on a per-redirect basis using the
+[`request.getHeader()`][] and [`request.removeHeader()`][] API. The `request`
+object should be used only for this purpose. When there is at least one listener
+for this event, no header is removed by default, even if the redirect is to a
+different domain.
 
 ### Event: 'unexpected-response'
 
@@ -370,7 +451,7 @@ handshake. This allows you to read headers from the server, for example
 ### websocket.addEventListener(type, listener[, options])
 
 - `type` {String} A string representing the event type to listen for.
-- `listener` {Function} The listener to add.
+- `listener` {Function|Object} The listener to add.
 - `options` {Object}
   - `once` {Boolean} A `Boolean` indicating that the listener should be invoked
     at most once after being added. If `true`, the listener would be
@@ -409,6 +490,12 @@ following ways:
 
 Initiate a closing handshake.
 
+### websocket.isPaused
+
+- {Boolean}
+
+Indicates whether the websocket is paused.
+
 ### websocket.extensions
 
 - {Object}
@@ -433,8 +520,8 @@ An event listener to be called when an error occurs. The listener receives an
 
 - {Function}
 
-An event listener to be called when a message is received from the server. The
-listener receives a `MessageEvent` named "message".
+An event listener to be called when a message is received. The listener receives
+a `MessageEvent` named "message".
 
 ### websocket.onopen
 
@@ -442,6 +529,12 @@ listener receives a `MessageEvent` named "message".
 
 An event listener to be called when the connection is established. The listener
 receives an `OpenEvent` named "open".
+
+### websocket.pause()
+
+Pause the websocket causing it to stop emitting events. Some events can still be
+emitted after this is called, until all buffered data is consumed. This method
+is a noop if the ready state is `CONNECTING` or `CLOSED`.
 
 ### websocket.ping([data[, mask]][, callback])
 
@@ -473,6 +566,11 @@ Send a pong. This method throws an error if the ready state is `CONNECTING`.
 
 The subprotocol selected by the server.
 
+### websocket.resume()
+
+Make a paused socket resume emitting events. This method is a noop if the ready
+state is `CONNECTING` or `CLOSED`.
+
 ### websocket.readyState
 
 - {Number}
@@ -482,7 +580,7 @@ The current state of the connection. This is one of the ready state constants.
 ### websocket.removeEventListener(type, listener)
 
 - `type` {String} A string representing the event type to remove.
-- `listener` {Function} The listener to remove.
+- `listener` {Function|Object} The listener to remove.
 
 Removes an event listener emulating the `EventTarget` interface. This method
 only removes listeners added with
@@ -491,7 +589,9 @@ only removes listeners added with
 ### websocket.send(data[, options][, callback])
 
 - `data` {Array|Number|Object|String|ArrayBuffer|Buffer|DataView|TypedArray} The
-  data to send.
+  data to send. `Object` values are only supported if they conform to the
+  requirements of [`Buffer.from()`][]. If those constraints are not met, a
+  `TypeError` is thrown.
 - `options` {Object}
   - `binary` {Boolean} Specifies whether `data` should be sent as a binary or
     not. Default is autodetected.
@@ -510,7 +610,7 @@ state is `CONNECTING`.
 
 ### websocket.terminate()
 
-Forcibly close the connection. Internally this calls [socket.destroy()][].
+Forcibly close the connection. Internally this calls [`socket.destroy()`][].
 
 ### websocket.url
 
@@ -527,7 +627,19 @@ The URL of the WebSocket server. Server clients don't have this attribute.
 Returns a `Duplex` stream that allows to use the Node.js streams API on top of a
 given `WebSocket`.
 
-## WS Error Codes
+## Environment variables
+
+### WS_NO_BUFFER_UTIL
+
+When set to a non empty value, prevents the optional `bufferutil` dependency
+from being required.
+
+### WS_NO_UTF_8_VALIDATE
+
+When set to a non empty value, prevents the optional `utf-8-validate` dependency
+from being required.
+
+## Error codes
 
 Errors emitted by the websocket may have a `.code` property, describing the
 specific type of error that has occurred:
@@ -581,11 +693,16 @@ as configured by the `maxPayload` option.
 [concurrency-limit]: https://github.com/websockets/ws/issues/1202
 [duplex-options]:
   https://nodejs.org/api/stream.html#stream_new_stream_duplex_options
-[http.request()]:
+[`buffer.from()`]:
+  https://nodejs.org/api/buffer.html#static-method-bufferfromobject-offsetorencoding-length
+[`http.request()`]:
   https://nodejs.org/api/http.html#http_http_request_options_callback
-[https.request()]:
+[`https.request()`]:
   https://nodejs.org/api/https.html#https_https_request_options_callback
 [permessage-deflate]:
   https://tools.ietf.org/html/draft-ietf-hybi-permessage-compression-19
-[socket.destroy()]: https://nodejs.org/api/net.html#net_socket_destroy_error
+[`request.getheader()`]: https://nodejs.org/api/http.html#requestgetheadername
+[`request.removeheader()`]:
+  https://nodejs.org/api/http.html#requestremoveheadername
+[`socket.destroy()`]: https://nodejs.org/api/net.html#net_socket_destroy_error
 [zlib-options]: https://nodejs.org/api/zlib.html#zlib_class_options

@@ -2,9 +2,10 @@
 
 const assert = require('assert');
 
-const PerMessageDeflate = require('../lib/permessage-deflate');
 const extension = require('../lib/extension');
+const PerMessageDeflate = require('../lib/permessage-deflate');
 const Sender = require('../lib/sender');
+const { EMPTY_BUFFER } = require('../lib/constants');
 
 class MockSocket {
   constructor({ write } = {}) {
@@ -35,8 +36,8 @@ describe('Sender', () => {
       assert.ok(buf.equals(Buffer.from([1, 2, 3, 4, 5])));
     });
 
-    it('sets RSV1 bit if compressed', () => {
-      const list = Sender.frame(Buffer.from('hi'), {
+    it('honors the `rsv1` option', () => {
+      const list = Sender.frame(EMPTY_BUFFER, {
         readOnly: false,
         mask: false,
         rsv1: true,
@@ -46,16 +47,39 @@ describe('Sender', () => {
 
       assert.strictEqual(list[0][0] & 0x40, 0x40);
     });
+
+    it('accepts a string as first argument', () => {
+      const list = Sender.frame('€', {
+        readOnly: false,
+        rsv1: false,
+        mask: false,
+        opcode: 1,
+        fin: true
+      });
+
+      assert.deepStrictEqual(list[0], Buffer.from('8103', 'hex'));
+      assert.deepStrictEqual(list[1], Buffer.from('e282ac', 'hex'));
+    });
   });
 
   describe('#send', () => {
     it('compresses data if compress option is enabled', (done) => {
+      const chunks = [];
       const perMessageDeflate = new PerMessageDeflate();
-      let count = 0;
       const mockSocket = new MockSocket({
-        write: (data) => {
-          assert.strictEqual(data[0] & 0x40, 0x40);
-          if (++count === 3) done();
+        write: (chunk) => {
+          chunks.push(chunk);
+          if (chunks.length !== 6) return;
+
+          assert.strictEqual(chunks[0].length, 2);
+          assert.strictEqual(chunks[0][0] & 0x40, 0x40);
+
+          assert.strictEqual(chunks[2].length, 2);
+          assert.strictEqual(chunks[2][0] & 0x40, 0x40);
+
+          assert.strictEqual(chunks[4].length, 2);
+          assert.strictEqual(chunks[4][0] & 0x40, 0x40);
+          done();
         }
       });
       const sender = new Sender(mockSocket, {
@@ -74,10 +98,16 @@ describe('Sender', () => {
 
     describe('when context takeover is disabled', () => {
       it('honors the compression threshold', (done) => {
+        const chunks = [];
         const perMessageDeflate = new PerMessageDeflate();
         const mockSocket = new MockSocket({
-          write: (data) => {
-            assert.notStrictEqual(data[0] & 0x40, 0x40);
+          write: (chunk) => {
+            chunks.push(chunk);
+            if (chunks.length !== 2) return;
+
+            assert.strictEqual(chunks[0].length, 2);
+            assert.notStrictEqual(chunk[0][0] & 0x40, 0x40);
+            assert.strictEqual(chunks[1], 'hi');
             done();
           }
         });
@@ -229,11 +259,12 @@ describe('Sender', () => {
 
           if (count % 2) {
             assert.ok(data.equals(Buffer.from([0x89, 0x02])));
-          } else {
+          } else if (count < 8) {
             assert.ok(data.equals(Buffer.from([0x68, 0x69])));
+          } else {
+            assert.strictEqual(data, 'hi');
+            done();
           }
-
-          if (count === 8) done();
         }
       });
       const sender = new Sender(mockSocket, {
@@ -261,11 +292,12 @@ describe('Sender', () => {
 
           if (count % 2) {
             assert.ok(data.equals(Buffer.from([0x8a, 0x02])));
-          } else {
+          } else if (count < 8) {
             assert.ok(data.equals(Buffer.from([0x68, 0x69])));
+          } else {
+            assert.strictEqual(data, 'hi');
+            done();
           }
-
-          if (count === 8) done();
         }
       });
       const sender = new Sender(mockSocket, {
