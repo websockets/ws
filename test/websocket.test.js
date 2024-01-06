@@ -6,8 +6,12 @@ const assert = require('assert');
 const crypto = require('crypto');
 const https = require('https');
 const http = require('http');
+const path = require('path');
+const net = require('net');
 const tls = require('tls');
+const os = require('os');
 const fs = require('fs');
+const { getDefaultHighWaterMark } = require('stream');
 const { URL } = require('url');
 
 const Sender = require('../lib/sender');
@@ -19,6 +23,10 @@ const {
   MessageEvent
 } = require('../lib/event-target');
 const { EMPTY_BUFFER, GUID, kListener, NOOP } = require('../lib/constants');
+
+const highWaterMark = getDefaultHighWaterMark
+  ? getDefaultHighWaterMark(false)
+  : 16 * 1024;
 
 class CustomAgent extends http.Agent {
   addRequest() {}
@@ -33,8 +41,16 @@ describe('WebSocket', () => {
       );
 
       assert.throws(
-        () => new WebSocket('https://echo.websocket.org'),
-        /^SyntaxError: The URL's protocol must be one of "ws:", "wss:", or "ws\+unix:"$/
+        () => new WebSocket('bad-scheme://websocket-echo.com'),
+        (err) => {
+          assert.strictEqual(
+            err.message,
+            'The URL\'s protocol must be one of "ws:", "wss:", ' +
+              '"http:", "https", or "ws+unix:"'
+          );
+
+          return true;
+        }
       );
 
       assert.throws(
@@ -43,7 +59,7 @@ describe('WebSocket', () => {
       );
 
       assert.throws(
-        () => new WebSocket('wss://echo.websocket.org#foo'),
+        () => new WebSocket('wss://websocket-echo.com#foo'),
         /^SyntaxError: The URL contains a fragment identifier$/
       );
     });
@@ -58,7 +74,7 @@ describe('WebSocket', () => {
     });
 
     it('accepts `url.URL` objects as url', (done) => {
-      const agent = new CustomAgent();
+      const agent = new http.Agent();
 
       agent.addRequest = (req, opts) => {
         assert.strictEqual(opts.host, '::1');
@@ -69,9 +85,33 @@ describe('WebSocket', () => {
       const ws = new WebSocket(new URL('ws://[::1]'), { agent });
     });
 
+    it('allows the http scheme', (done) => {
+      const agent = new CustomAgent();
+
+      agent.addRequest = (req, opts) => {
+        assert.strictEqual(opts.host, 'localhost');
+        assert.strictEqual(opts.port, 80);
+        done();
+      };
+
+      const ws = new WebSocket('http://localhost', { agent });
+    });
+
+    it('allows the https scheme', (done) => {
+      const agent = new https.Agent();
+
+      agent.addRequest = (req, opts) => {
+        assert.strictEqual(opts.host, 'localhost');
+        assert.strictEqual(opts.port, 443);
+        done();
+      };
+
+      const ws = new WebSocket('https://localhost', { agent });
+    });
+
     describe('options', () => {
       it('accepts the `options` object as 3rd argument', () => {
-        const agent = new CustomAgent();
+        const agent = new http.Agent();
         let count = 0;
         let ws;
 
@@ -119,12 +159,72 @@ describe('WebSocket', () => {
       });
 
       it('throws an error when using an invalid `protocolVersion`', () => {
-        const options = { agent: new CustomAgent(), protocolVersion: 1000 };
-
         assert.throws(
-          () => new WebSocket('ws://localhost', options),
+          () => new WebSocket('ws://localhost', { protocolVersion: 1000 }),
           /^RangeError: Unsupported protocol version: 1000 \(supported versions: 8, 13\)$/
         );
+      });
+
+      it('honors the `generateMask` option', (done) => {
+        const data = Buffer.from('foo');
+        const wss = new WebSocket.Server({ port: 0 }, () => {
+          const ws = new WebSocket(`ws://localhost:${wss.address().port}`, {
+            generateMask() {}
+          });
+
+          ws.on('open', () => {
+            ws.send(data);
+          });
+
+          ws.on('close', (code, reason) => {
+            assert.strictEqual(code, 1005);
+            assert.deepStrictEqual(reason, EMPTY_BUFFER);
+
+            wss.close(done);
+          });
+        });
+
+        wss.on('connection', (ws) => {
+          const chunks = [];
+
+          ws._socket.prependListener('data', (chunk) => {
+            chunks.push(chunk);
+          });
+
+          ws.on('message', (message) => {
+            assert.deepStrictEqual(message, data);
+            assert.deepStrictEqual(
+              Buffer.concat(chunks).slice(2, 6),
+              Buffer.alloc(4)
+            );
+
+            ws.close();
+          });
+        });
+      });
+
+      it('honors the `autoPong` option', (done) => {
+        const wss = new WebSocket.Server({ port: 0 }, () => {
+          const ws = new WebSocket(`ws://localhost:${wss.address().port}`, {
+            autoPong: false
+          });
+
+          ws.on('ping', () => {
+            ws.close();
+          });
+
+          ws.on('close', () => {
+            wss.close(done);
+          });
+        });
+
+        wss.on('connection', (ws) => {
+          ws.on('pong', () => {
+            done(new Error("Unexpected 'pong' event"));
+          });
+
+          ws.ping();
+        });
       });
     });
   });
@@ -359,6 +459,39 @@ describe('WebSocket', () => {
       });
     });
 
+    describe('`isPaused`', () => {
+      it('is enumerable and configurable', () => {
+        const descriptor = Object.getOwnPropertyDescriptor(
+          WebSocket.prototype,
+          'isPaused'
+        );
+
+        assert.strictEqual(descriptor.configurable, true);
+        assert.strictEqual(descriptor.enumerable, true);
+        assert.ok(descriptor.get !== undefined);
+        assert.ok(descriptor.set === undefined);
+      });
+
+      it('indicates whether the websocket is paused', (done) => {
+        const wss = new WebSocket.Server({ port: 0 }, () => {
+          const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+
+          ws.on('open', () => {
+            ws.pause();
+            assert.ok(ws.isPaused);
+
+            ws.resume();
+            assert.ok(!ws.isPaused);
+
+            ws.close();
+            wss.close(done);
+          });
+
+          assert.ok(!ws.isPaused);
+        });
+      });
+    });
+
     describe('`protocol`', () => {
       it('is enumerable and configurable', () => {
         const descriptor = Object.getOwnPropertyDescriptor(
@@ -467,10 +600,18 @@ describe('WebSocket', () => {
       });
 
       it('exposes the server url', () => {
-        const url = 'ws://localhost';
-        const ws = new WebSocket(url, { agent: new CustomAgent() });
+        const schemes = new Map([
+          ['ws', 'ws'],
+          ['wss', 'wss'],
+          ['http', 'ws'],
+          ['https', 'wss']
+        ]);
 
-        assert.strictEqual(ws.url, url);
+        for (const [key, value] of schemes) {
+          const ws = new WebSocket(`${key}://localhost/`, { lookup() {} });
+
+          assert.strictEqual(ws.url, `${value}://localhost/`);
+        }
       });
     });
   });
@@ -514,15 +655,19 @@ describe('WebSocket', () => {
       });
     });
 
-    it('does not re-emit `net.Socket` errors', (done) => {
-      const codes = ['EPIPE', 'ECONNABORTED', 'ECANCELED', 'ECONNRESET'];
+    it('does not re-emit `net.Socket` errors', function (done) {
+      //
+      // `socket.resetAndDestroy()` is not available in Node.js < 16.17.0.
+      //
+      if (process.versions.modules < 93) return this.skip();
+
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         ws.on('open', () => {
           ws._socket.on('error', (err) => {
             assert.ok(err instanceof Error);
-            assert.ok(codes.includes(err.code), `Unexpected code: ${err.code}`);
+            assert.strictEqual(err.code, 'ECONNRESET');
             ws.on('close', (code, message) => {
               assert.strictEqual(code, 1006);
               assert.strictEqual(message, EMPTY_BUFFER);
@@ -530,9 +675,7 @@ describe('WebSocket', () => {
             });
           });
 
-          for (const client of wss.clients) client.terminate();
-          ws.send('foo');
-          ws.send('bar');
+          wss.clients.values().next().value._socket.resetAndDestroy();
         });
       });
     });
@@ -574,6 +717,38 @@ describe('WebSocket', () => {
         ws.close();
       });
     });
+
+    it("emits a 'redirect' event", (done) => {
+      const server = http.createServer();
+      const wss = new WebSocket.Server({ noServer: true, path: '/foo' });
+
+      server.once('upgrade', (req, socket) => {
+        socket.end('HTTP/1.1 302 Found\r\nLocation: /foo\r\n\r\n');
+        server.once('upgrade', (req, socket, head) => {
+          wss.handleUpgrade(req, socket, head, (ws) => {
+            ws.close();
+          });
+        });
+      });
+
+      server.listen(() => {
+        const port = server.address().port;
+        const ws = new WebSocket(`ws://localhost:${port}`, {
+          followRedirects: true
+        });
+
+        ws.on('redirect', (url, req) => {
+          assert.strictEqual(ws._redirects, 1);
+          assert.strictEqual(url, `ws://localhost:${port}/foo`);
+          assert.ok(req instanceof http.ClientRequest);
+
+          ws.on('close', (code) => {
+            assert.strictEqual(code, 1005);
+            server.close(done);
+          });
+        });
+      });
+    });
   });
 
   describe('Connection establishing', () => {
@@ -581,6 +756,26 @@ describe('WebSocket', () => {
 
     beforeEach((done) => server.listen(0, done));
     afterEach((done) => server.close(done));
+
+    it('fails if the Upgrade header field value is not "websocket"', (done) => {
+      server.once('upgrade', (req, socket) => {
+        socket.on('end', socket.end);
+        socket.write(
+          'HTTP/1.1 101 Switching Protocols\r\n' +
+            'Connection: Upgrade\r\n' +
+            'Upgrade: foo\r\n' +
+            '\r\n'
+        );
+      });
+
+      const ws = new WebSocket(`ws://localhost:${server.address().port}`);
+
+      ws.on('error', (err) => {
+        assert.ok(err instanceof Error);
+        assert.strictEqual(err.message, 'Invalid Upgrade header');
+        done();
+      });
+    });
 
     it('fails if the Sec-WebSocket-Accept header is invalid', (done) => {
       server.once('upgrade', (req, socket) => {
@@ -1028,36 +1223,797 @@ describe('WebSocket', () => {
         ws.on('close', () => done());
       });
     });
-  });
 
-  describe('Connection with query string', () => {
-    it('connects when pathname is not null', (done) => {
-      const wss = new WebSocket.Server({ port: 0 }, () => {
-        const port = wss.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}/?token=qwerty`);
-
-        ws.on('open', () => {
-          wss.close(done);
-        });
+    it('emits an error if the redirect URL is invalid (1/2)', (done) => {
+      server.once('upgrade', (req, socket) => {
+        socket.end('HTTP/1.1 302 Found\r\nLocation: ws://\r\n\r\n');
       });
 
-      wss.on('connection', (ws) => {
-        ws.close();
+      const ws = new WebSocket(`ws://localhost:${server.address().port}`, {
+        followRedirects: true
+      });
+
+      ws.on('open', () => done(new Error("Unexpected 'open' event")));
+      ws.on('error', (err) => {
+        assert.ok(err instanceof SyntaxError);
+        assert.strictEqual(err.message, 'Invalid URL: ws://');
+        assert.strictEqual(ws._redirects, 1);
+
+        ws.on('close', () => done());
       });
     });
 
-    it('connects when pathname is null', (done) => {
-      const wss = new WebSocket.Server({ port: 0 }, () => {
-        const port = wss.address().port;
-        const ws = new WebSocket(`ws://localhost:${port}?token=qwerty`);
+    it('emits an error if the redirect URL is invalid (2/2)', (done) => {
+      server.once('upgrade', (req, socket) => {
+        socket.end(
+          'HTTP/1.1 302 Found\r\nLocation: bad-scheme://localhost\r\n\r\n'
+        );
+      });
 
-        ws.on('open', () => {
-          wss.close(done);
+      const ws = new WebSocket(`ws://localhost:${server.address().port}`, {
+        followRedirects: true
+      });
+
+      ws.on('open', () => done(new Error("Unexpected 'open' event")));
+      ws.on('error', (err) => {
+        assert.ok(err instanceof SyntaxError);
+        assert.strictEqual(
+          err.message,
+          'The URL\'s protocol must be one of "ws:", "wss:", ' +
+            '"http:", "https", or "ws+unix:"'
+        );
+        assert.strictEqual(ws._redirects, 1);
+
+        ws.on('close', () => done());
+      });
+    });
+
+    it('uses the first url userinfo when following redirects', (done) => {
+      const wss = new WebSocket.Server({ noServer: true, path: '/foo' });
+      const authorization = 'Basic Zm9vOmJhcg==';
+
+      server.once('upgrade', (req, socket) => {
+        socket.end(
+          'HTTP/1.1 302 Found\r\n' +
+            `Location: ws://baz:qux@localhost:${port}/foo\r\n\r\n`
+        );
+        server.once('upgrade', (req, socket, head) => {
+          wss.handleUpgrade(req, socket, head, (ws, req) => {
+            assert.strictEqual(req.headers.authorization, authorization);
+            ws.close();
+          });
         });
       });
 
+      const port = server.address().port;
+      const ws = new WebSocket(`ws://foo:bar@localhost:${port}`, {
+        followRedirects: true
+      });
+
+      assert.strictEqual(ws._req.getHeader('Authorization'), authorization);
+
+      ws.on('close', (code) => {
+        assert.strictEqual(code, 1005);
+        assert.strictEqual(ws.url, `ws://baz:qux@localhost:${port}/foo`);
+        assert.strictEqual(ws._redirects, 1);
+
+        wss.close(done);
+      });
+    });
+
+    describe('When moving away from a secure context', () => {
+      function proxy(httpServer, httpsServer) {
+        const server = net.createServer({ allowHalfOpen: true });
+
+        server.on('connection', (socket) => {
+          socket.on('readable', function read() {
+            socket.removeListener('readable', read);
+
+            const buf = socket.read(1);
+            const target = buf[0] === 22 ? httpsServer : httpServer;
+
+            socket.unshift(buf);
+            target.emit('connection', socket);
+          });
+        });
+
+        return server;
+      }
+
+      describe("If there is no 'redirect' event listener", () => {
+        it('drops the `auth` option', (done) => {
+          const httpServer = http.createServer();
+          const httpsServer = https.createServer({
+            cert: fs.readFileSync('test/fixtures/certificate.pem'),
+            key: fs.readFileSync('test/fixtures/key.pem')
+          });
+          const server = proxy(httpServer, httpsServer);
+
+          server.listen(() => {
+            const port = server.address().port;
+
+            httpsServer.on('upgrade', (req, socket) => {
+              socket.on('error', NOOP);
+              socket.end(
+                'HTTP/1.1 302 Found\r\n' +
+                  `Location: ws://localhost:${port}/\r\n\r\n`
+              );
+            });
+
+            const wss = new WebSocket.Server({ server: httpServer });
+
+            wss.on('connection', (ws, req) => {
+              assert.strictEqual(req.headers.authorization, undefined);
+              ws.close();
+            });
+
+            const ws = new WebSocket(`wss://localhost:${port}`, {
+              auth: 'foo:bar',
+              followRedirects: true,
+              rejectUnauthorized: false
+            });
+
+            assert.strictEqual(
+              ws._req.getHeader('Authorization'),
+              'Basic Zm9vOmJhcg=='
+            );
+
+            ws.on('close', (code) => {
+              assert.strictEqual(code, 1005);
+              assert.strictEqual(ws.url, `ws://localhost:${port}/`);
+              assert.strictEqual(ws._redirects, 1);
+
+              server.close(done);
+            });
+          });
+        });
+
+        it('drops the Authorization and Cookie headers', (done) => {
+          const httpServer = http.createServer();
+          const httpsServer = https.createServer({
+            cert: fs.readFileSync('test/fixtures/certificate.pem'),
+            key: fs.readFileSync('test/fixtures/key.pem')
+          });
+          const server = proxy(httpServer, httpsServer);
+
+          server.listen(() => {
+            const port = server.address().port;
+
+            httpsServer.on('upgrade', (req, socket) => {
+              socket.on('error', NOOP);
+              socket.end(
+                'HTTP/1.1 302 Found\r\n' +
+                  `Location: ws://localhost:${port}/\r\n\r\n`
+              );
+            });
+
+            const headers = {
+              authorization: 'Basic Zm9vOmJhcg==',
+              cookie: 'foo=bar',
+              host: 'foo'
+            };
+
+            const wss = new WebSocket.Server({ server: httpServer });
+
+            wss.on('connection', (ws, req) => {
+              assert.strictEqual(req.headers.authorization, undefined);
+              assert.strictEqual(req.headers.cookie, undefined);
+              assert.strictEqual(req.headers.host, headers.host);
+
+              ws.close();
+            });
+
+            const ws = new WebSocket(`wss://localhost:${port}`, {
+              followRedirects: true,
+              headers,
+              rejectUnauthorized: false
+            });
+
+            const firstRequest = ws._req;
+
+            assert.strictEqual(
+              firstRequest.getHeader('Authorization'),
+              headers.authorization
+            );
+            assert.strictEqual(
+              firstRequest.getHeader('Cookie'),
+              headers.cookie
+            );
+            assert.strictEqual(firstRequest.getHeader('Host'), headers.host);
+
+            ws.on('close', (code) => {
+              assert.strictEqual(code, 1005);
+              assert.strictEqual(ws.url, `ws://localhost:${port}/`);
+              assert.strictEqual(ws._redirects, 1);
+
+              server.close(done);
+            });
+          });
+        });
+      });
+
+      describe("If there is at least one 'redirect' event listener", () => {
+        it('does not drop any headers by default', (done) => {
+          const httpServer = http.createServer();
+          const httpsServer = https.createServer({
+            cert: fs.readFileSync('test/fixtures/certificate.pem'),
+            key: fs.readFileSync('test/fixtures/key.pem')
+          });
+          const server = proxy(httpServer, httpsServer);
+
+          server.listen(() => {
+            const port = server.address().port;
+
+            httpsServer.on('upgrade', (req, socket) => {
+              socket.on('error', NOOP);
+              socket.end(
+                'HTTP/1.1 302 Found\r\n' +
+                  `Location: ws://localhost:${port}/\r\n\r\n`
+              );
+            });
+
+            const headers = {
+              authorization: 'Basic Zm9vOmJhcg==',
+              cookie: 'foo=bar',
+              host: 'foo'
+            };
+
+            const wss = new WebSocket.Server({ server: httpServer });
+
+            wss.on('connection', (ws, req) => {
+              assert.strictEqual(
+                req.headers.authorization,
+                headers.authorization
+              );
+              assert.strictEqual(req.headers.cookie, headers.cookie);
+              assert.strictEqual(req.headers.host, headers.host);
+
+              ws.close();
+            });
+
+            const ws = new WebSocket(`wss://localhost:${port}`, {
+              followRedirects: true,
+              headers,
+              rejectUnauthorized: false
+            });
+
+            const firstRequest = ws._req;
+
+            assert.strictEqual(
+              firstRequest.getHeader('Authorization'),
+              headers.authorization
+            );
+            assert.strictEqual(
+              firstRequest.getHeader('Cookie'),
+              headers.cookie
+            );
+            assert.strictEqual(firstRequest.getHeader('Host'), headers.host);
+
+            ws.on('redirect', (url, req) => {
+              assert.strictEqual(ws._redirects, 1);
+              assert.strictEqual(url, `ws://localhost:${port}/`);
+              assert.notStrictEqual(firstRequest, req);
+              assert.strictEqual(
+                req.getHeader('Authorization'),
+                headers.authorization
+              );
+              assert.strictEqual(req.getHeader('Cookie'), headers.cookie);
+              assert.strictEqual(req.getHeader('Host'), headers.host);
+
+              ws.on('close', (code) => {
+                assert.strictEqual(code, 1005);
+                server.close(done);
+              });
+            });
+          });
+        });
+      });
+    });
+
+    describe('When the redirect host is different', () => {
+      describe("If there is no 'redirect' event listener", () => {
+        it('drops the `auth` option', (done) => {
+          const wss = new WebSocket.Server({ port: 0 }, () => {
+            const port = wss.address().port;
+
+            server.once('upgrade', (req, socket) => {
+              socket.end(
+                'HTTP/1.1 302 Found\r\n' +
+                  `Location: ws://localhost:${port}/\r\n\r\n`
+              );
+            });
+
+            const ws = new WebSocket(
+              `ws://localhost:${server.address().port}`,
+              {
+                auth: 'foo:bar',
+                followRedirects: true
+              }
+            );
+
+            assert.strictEqual(
+              ws._req.getHeader('Authorization'),
+              'Basic Zm9vOmJhcg=='
+            );
+
+            ws.on('close', (code) => {
+              assert.strictEqual(code, 1005);
+              assert.strictEqual(ws.url, `ws://localhost:${port}/`);
+              assert.strictEqual(ws._redirects, 1);
+
+              wss.close(done);
+            });
+          });
+
+          wss.on('connection', (ws, req) => {
+            assert.strictEqual(req.headers.authorization, undefined);
+            ws.close();
+          });
+        });
+
+        it('drops the Authorization, Cookie and Host headers (1/4)', (done) => {
+          // Test the `ws:` to `ws:` case.
+
+          const wss = new WebSocket.Server({ port: 0 }, () => {
+            const port = wss.address().port;
+
+            server.once('upgrade', (req, socket) => {
+              socket.end(
+                'HTTP/1.1 302 Found\r\n' +
+                  `Location: ws://localhost:${port}/\r\n\r\n`
+              );
+            });
+
+            const headers = {
+              authorization: 'Basic Zm9vOmJhcg==',
+              cookie: 'foo=bar',
+              host: 'foo'
+            };
+
+            const ws = new WebSocket(
+              `ws://localhost:${server.address().port}`,
+              { followRedirects: true, headers }
+            );
+
+            const firstRequest = ws._req;
+
+            assert.strictEqual(
+              firstRequest.getHeader('Authorization'),
+              headers.authorization
+            );
+            assert.strictEqual(
+              firstRequest.getHeader('Cookie'),
+              headers.cookie
+            );
+            assert.strictEqual(firstRequest.getHeader('Host'), headers.host);
+
+            ws.on('close', (code) => {
+              assert.strictEqual(code, 1005);
+              assert.strictEqual(ws.url, `ws://localhost:${port}/`);
+              assert.strictEqual(ws._redirects, 1);
+
+              wss.close(done);
+            });
+          });
+
+          wss.on('connection', (ws, req) => {
+            assert.strictEqual(req.headers.authorization, undefined);
+            assert.strictEqual(req.headers.cookie, undefined);
+            assert.strictEqual(
+              req.headers.host,
+              `localhost:${wss.address().port}`
+            );
+
+            ws.close();
+          });
+        });
+
+        it('drops the Authorization, Cookie and Host headers (2/4)', (done) => {
+          // Test the `ws:` to `ws+unix:` case.
+
+          const randomString = crypto.randomBytes(16).toString('hex');
+          const ipcPath =
+            process.platform === 'win32'
+              ? `\\\\.\\pipe\\ws-pipe-${randomString}`
+              : path.join(os.tmpdir(), `ws-${randomString}.sock`);
+
+          server.once('upgrade', (req, socket) => {
+            socket.end(
+              `HTTP/1.1 302 Found\r\nLocation: ws+unix:${ipcPath}\r\n\r\n`
+            );
+          });
+
+          const redirectedServer = http.createServer();
+          const wss = new WebSocket.Server({ server: redirectedServer });
+
+          wss.on('connection', (ws, req) => {
+            assert.strictEqual(req.headers.authorization, undefined);
+            assert.strictEqual(req.headers.cookie, undefined);
+            assert.strictEqual(req.headers.host, 'localhost');
+
+            ws.close();
+          });
+
+          redirectedServer.listen(ipcPath, () => {
+            const headers = {
+              authorization: 'Basic Zm9vOmJhcg==',
+              cookie: 'foo=bar',
+              host: 'foo'
+            };
+
+            const ws = new WebSocket(
+              `ws://localhost:${server.address().port}`,
+              { followRedirects: true, headers }
+            );
+
+            const firstRequest = ws._req;
+
+            assert.strictEqual(
+              firstRequest.getHeader('Authorization'),
+              headers.authorization
+            );
+            assert.strictEqual(
+              firstRequest.getHeader('Cookie'),
+              headers.cookie
+            );
+            assert.strictEqual(firstRequest.getHeader('Host'), headers.host);
+
+            ws.on('close', (code) => {
+              assert.strictEqual(code, 1005);
+              assert.strictEqual(ws.url, `ws+unix:${ipcPath}`);
+              assert.strictEqual(ws._redirects, 1);
+
+              redirectedServer.close(done);
+            });
+          });
+        });
+
+        it('drops the Authorization, Cookie and Host headers (3/4)', (done) => {
+          // Test the `ws+unix:` to `ws+unix:` case.
+
+          const randomString1 = crypto.randomBytes(16).toString('hex');
+          const randomString2 = crypto.randomBytes(16).toString('hex');
+          let redirectingServerIpcPath;
+          let redirectedServerIpcPath;
+
+          if (process.platform === 'win32') {
+            redirectingServerIpcPath = `\\\\.\\pipe\\ws-pipe-${randomString1}`;
+            redirectedServerIpcPath = `\\\\.\\pipe\\ws-pipe-${randomString2}`;
+          } else {
+            redirectingServerIpcPath = path.join(
+              os.tmpdir(),
+              `ws-${randomString1}.sock`
+            );
+            redirectedServerIpcPath = path.join(
+              os.tmpdir(),
+              `ws-${randomString2}.sock`
+            );
+          }
+
+          const redirectingServer = http.createServer();
+
+          redirectingServer.on('upgrade', (req, socket) => {
+            socket.end(
+              'HTTP/1.1 302 Found\r\n' +
+                `Location: ws+unix:${redirectedServerIpcPath}\r\n\r\n`
+            );
+          });
+
+          const redirectedServer = http.createServer();
+          const wss = new WebSocket.Server({ server: redirectedServer });
+
+          wss.on('connection', (ws, req) => {
+            assert.strictEqual(req.headers.authorization, undefined);
+            assert.strictEqual(req.headers.cookie, undefined);
+            assert.strictEqual(req.headers.host, 'localhost');
+
+            ws.close();
+          });
+
+          redirectingServer.listen(redirectingServerIpcPath, listening);
+          redirectedServer.listen(redirectedServerIpcPath, listening);
+
+          let callCount = 0;
+
+          function listening() {
+            if (++callCount !== 2) return;
+
+            const headers = {
+              authorization: 'Basic Zm9vOmJhcg==',
+              cookie: 'foo=bar',
+              host: 'foo'
+            };
+
+            const ws = new WebSocket(`ws+unix:${redirectingServerIpcPath}`, {
+              followRedirects: true,
+              headers
+            });
+
+            const firstRequest = ws._req;
+
+            assert.strictEqual(
+              firstRequest.getHeader('Authorization'),
+              headers.authorization
+            );
+            assert.strictEqual(
+              firstRequest.getHeader('Cookie'),
+              headers.cookie
+            );
+            assert.strictEqual(firstRequest.getHeader('Host'), headers.host);
+
+            ws.on('close', (code) => {
+              assert.strictEqual(code, 1005);
+              assert.strictEqual(ws.url, `ws+unix:${redirectedServerIpcPath}`);
+              assert.strictEqual(ws._redirects, 1);
+
+              redirectingServer.close();
+              redirectedServer.close(done);
+            });
+          }
+        });
+
+        it('drops the Authorization, Cookie and Host headers (4/4)', (done) => {
+          // Test the `ws+unix:` to `ws:` case.
+
+          const redirectingServer = http.createServer();
+          const redirectedServer = http.createServer();
+          const wss = new WebSocket.Server({ server: redirectedServer });
+
+          wss.on('connection', (ws, req) => {
+            assert.strictEqual(req.headers.authorization, undefined);
+            assert.strictEqual(req.headers.cookie, undefined);
+            assert.strictEqual(
+              req.headers.host,
+              `localhost:${redirectedServer.address().port}`
+            );
+
+            ws.close();
+          });
+
+          const randomString = crypto.randomBytes(16).toString('hex');
+          const ipcPath =
+            process.platform === 'win32'
+              ? `\\\\.\\pipe\\ws-pipe-${randomString}`
+              : path.join(os.tmpdir(), `ws-${randomString}.sock`);
+
+          redirectingServer.listen(ipcPath, listening);
+          redirectedServer.listen(0, listening);
+
+          let callCount = 0;
+
+          function listening() {
+            if (++callCount !== 2) return;
+
+            const port = redirectedServer.address().port;
+
+            redirectingServer.on('upgrade', (req, socket) => {
+              socket.end(
+                `HTTP/1.1 302 Found\r\nLocation: ws://localhost:${port}\r\n\r\n`
+              );
+            });
+
+            const headers = {
+              authorization: 'Basic Zm9vOmJhcg==',
+              cookie: 'foo=bar',
+              host: 'foo'
+            };
+
+            const ws = new WebSocket(`ws+unix:${ipcPath}`, {
+              followRedirects: true,
+              headers
+            });
+
+            const firstRequest = ws._req;
+
+            assert.strictEqual(
+              firstRequest.getHeader('Authorization'),
+              headers.authorization
+            );
+            assert.strictEqual(
+              firstRequest.getHeader('Cookie'),
+              headers.cookie
+            );
+            assert.strictEqual(firstRequest.getHeader('Host'), headers.host);
+
+            ws.on('close', (code) => {
+              assert.strictEqual(code, 1005);
+              assert.strictEqual(ws.url, `ws://localhost:${port}/`);
+              assert.strictEqual(ws._redirects, 1);
+
+              redirectingServer.close();
+              redirectedServer.close(done);
+            });
+          }
+        });
+      });
+
+      describe("If there is at least one 'redirect' event listener", () => {
+        it('does not drop any headers by default', (done) => {
+          const headers = {
+            authorization: 'Basic Zm9vOmJhcg==',
+            cookie: 'foo=bar',
+            host: 'foo'
+          };
+
+          const wss = new WebSocket.Server({ port: 0 }, () => {
+            const port = wss.address().port;
+
+            server.once('upgrade', (req, socket) => {
+              socket.end(
+                'HTTP/1.1 302 Found\r\n' +
+                  `Location: ws://localhost:${port}/\r\n\r\n`
+              );
+            });
+
+            const ws = new WebSocket(
+              `ws://localhost:${server.address().port}`,
+              { followRedirects: true, headers }
+            );
+
+            const firstRequest = ws._req;
+
+            assert.strictEqual(
+              firstRequest.getHeader('Authorization'),
+              headers.authorization
+            );
+            assert.strictEqual(
+              firstRequest.getHeader('Cookie'),
+              headers.cookie
+            );
+            assert.strictEqual(firstRequest.getHeader('Host'), headers.host);
+
+            ws.on('redirect', (url, req) => {
+              assert.strictEqual(ws._redirects, 1);
+              assert.strictEqual(url, `ws://localhost:${port}/`);
+              assert.notStrictEqual(firstRequest, req);
+              assert.strictEqual(
+                req.getHeader('Authorization'),
+                headers.authorization
+              );
+              assert.strictEqual(req.getHeader('Cookie'), headers.cookie);
+              assert.strictEqual(req.getHeader('Host'), headers.host);
+
+              ws.on('close', (code) => {
+                assert.strictEqual(code, 1005);
+                wss.close(done);
+              });
+            });
+          });
+
+          wss.on('connection', (ws, req) => {
+            assert.strictEqual(
+              req.headers.authorization,
+              headers.authorization
+            );
+            assert.strictEqual(req.headers.cookie, headers.cookie);
+            assert.strictEqual(req.headers.host, headers.host);
+            ws.close();
+          });
+        });
+      });
+    });
+
+    describe("In a listener of the 'redirect' event", () => {
+      it('allows to abort the request without swallowing errors', (done) => {
+        server.once('upgrade', (req, socket) => {
+          socket.end('HTTP/1.1 302 Found\r\nLocation: /foo\r\n\r\n');
+        });
+
+        const port = server.address().port;
+        const ws = new WebSocket(`ws://localhost:${port}`, {
+          followRedirects: true
+        });
+
+        ws.on('redirect', (url, req) => {
+          assert.strictEqual(ws._redirects, 1);
+          assert.strictEqual(url, `ws://localhost:${port}/foo`);
+
+          req.on('socket', () => {
+            req.abort();
+          });
+
+          ws.on('error', (err) => {
+            assert.ok(err instanceof Error);
+            assert.strictEqual(err.message, 'socket hang up');
+
+            ws.on('close', (code) => {
+              assert.strictEqual(code, 1006);
+              done();
+            });
+          });
+        });
+      });
+
+      it('allows to remove headers', (done) => {
+        const wss = new WebSocket.Server({ port: 0 }, () => {
+          const port = wss.address().port;
+
+          server.once('upgrade', (req, socket) => {
+            socket.end(
+              'HTTP/1.1 302 Found\r\n' +
+                `Location: ws://localhost:${port}/\r\n\r\n`
+            );
+          });
+
+          const headers = {
+            authorization: 'Basic Zm9vOmJhcg==',
+            cookie: 'foo=bar'
+          };
+
+          const ws = new WebSocket(`ws://localhost:${server.address().port}`, {
+            followRedirects: true,
+            headers
+          });
+
+          ws.on('redirect', (url, req) => {
+            assert.strictEqual(ws._redirects, 1);
+            assert.strictEqual(url, `ws://localhost:${port}/`);
+            assert.strictEqual(
+              req.getHeader('Authorization'),
+              headers.authorization
+            );
+            assert.strictEqual(req.getHeader('Cookie'), headers.cookie);
+
+            req.removeHeader('authorization');
+            req.removeHeader('cookie');
+
+            ws.on('close', (code) => {
+              assert.strictEqual(code, 1005);
+              wss.close(done);
+            });
+          });
+        });
+
+        wss.on('connection', (ws, req) => {
+          assert.strictEqual(req.headers.authorization, undefined);
+          assert.strictEqual(req.headers.cookie, undefined);
+          ws.close();
+        });
+      });
+    });
+  });
+
+  describe('#pause', () => {
+    it('does nothing if `readyState` is `CONNECTING` or `CLOSED`', (done) => {
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+
+        assert.strictEqual(ws.readyState, WebSocket.CONNECTING);
+        assert.ok(!ws.isPaused);
+
+        ws.pause();
+        assert.ok(!ws.isPaused);
+
+        ws.on('open', () => {
+          ws.on('close', () => {
+            assert.strictEqual(ws.readyState, WebSocket.CLOSED);
+
+            ws.pause();
+            assert.ok(!ws.isPaused);
+
+            wss.close(done);
+          });
+
+          ws.close();
+        });
+      });
+    });
+
+    it('pauses the socket', (done) => {
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+      });
+
       wss.on('connection', (ws) => {
-        ws.close();
+        assert.ok(!ws.isPaused);
+        assert.ok(!ws._socket.isPaused());
+
+        ws.pause();
+        assert.ok(ws.isPaused);
+        assert.ok(ws._socket.isPaused());
+
+        ws.terminate();
+        wss.close(done);
       });
     });
   });
@@ -1398,6 +2354,81 @@ describe('WebSocket', () => {
         ws.close();
       });
     });
+
+    it('is called automatically when a ping is received', (done) => {
+      const buf = Buffer.from('hi');
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+
+        ws.on('open', () => {
+          ws.ping(buf);
+        });
+
+        ws.on('pong', (data) => {
+          assert.deepStrictEqual(data, buf);
+          wss.close(done);
+        });
+      });
+
+      wss.on('connection', (ws) => {
+        ws.on('ping', (data) => {
+          assert.deepStrictEqual(data, buf);
+          ws.close();
+        });
+      });
+    });
+  });
+
+  describe('#resume', () => {
+    it('does nothing if `readyState` is `CONNECTING` or `CLOSED`', (done) => {
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+
+        assert.strictEqual(ws.readyState, WebSocket.CONNECTING);
+        assert.ok(!ws.isPaused);
+
+        // Verify that no exception is thrown.
+        ws.resume();
+
+        ws.on('open', () => {
+          ws.pause();
+          assert.ok(ws.isPaused);
+
+          ws.on('close', () => {
+            assert.strictEqual(ws.readyState, WebSocket.CLOSED);
+
+            ws.resume();
+            assert.ok(ws.isPaused);
+
+            wss.close(done);
+          });
+
+          ws.terminate();
+        });
+      });
+    });
+
+    it('resumes the socket', (done) => {
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+      });
+
+      wss.on('connection', (ws) => {
+        assert.ok(!ws.isPaused);
+        assert.ok(!ws._socket.isPaused());
+
+        ws.pause();
+        assert.ok(ws.isPaused);
+        assert.ok(ws._socket.isPaused());
+
+        ws.resume();
+        assert.ok(!ws.isPaused);
+        assert.ok(!ws._socket.isPaused());
+
+        ws.close();
+        wss.close(done);
+      });
+    });
   });
 
   describe('#send', () => {
@@ -1490,7 +2521,7 @@ describe('WebSocket', () => {
 
     it('can send a big binary message', (done) => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
-        const array = new Float32Array(5 * 1024 * 1024);
+        const array = new Float32Array(1024 * 1024);
 
         for (let i = 0; i < array.length; i++) {
           array[i] = i / 5;
@@ -1836,16 +2867,64 @@ describe('WebSocket', () => {
     });
 
     it('can be called from an error listener while connecting', (done) => {
-      const ws = new WebSocket('ws://localhost:1337');
+      const server = net.createServer();
 
-      ws.on('open', () => done(new Error("Unexpected 'open' event")));
-      ws.on('error', (err) => {
-        assert.ok(err instanceof Error);
-        assert.strictEqual(err.code, 'ECONNREFUSED');
-        ws.close();
-        ws.on('close', () => done());
+      server.on('connection', (socket) => {
+        socket.on('end', socket.end);
+        socket.resume();
+        socket.write(Buffer.from('foo\r\n'));
       });
-    }).timeout(4000);
+
+      server.listen(0, () => {
+        const ws = new WebSocket(`ws://localhost:${server.address().port}`);
+
+        ws.on('open', () => done(new Error("Unexpected 'open' event")));
+        ws.on('error', (err) => {
+          assert.ok(err instanceof Error);
+          assert.strictEqual(err.code, 'HPE_INVALID_CONSTANT');
+          ws.close();
+          ws.on('close', () => {
+            server.close(done);
+          });
+        });
+      });
+    });
+
+    it("can be called from a listener of the 'redirect' event", (done) => {
+      const server = http.createServer();
+
+      server.once('upgrade', (req, socket) => {
+        socket.end('HTTP/1.1 302 Found\r\nLocation: /foo\r\n\r\n');
+      });
+
+      server.listen(() => {
+        const port = server.address().port;
+        const ws = new WebSocket(`ws://localhost:${port}`, {
+          followRedirects: true
+        });
+
+        ws.on('open', () => {
+          done(new Error("Unexpected 'open' event"));
+        });
+
+        ws.on('error', (err) => {
+          assert.ok(err instanceof Error);
+          assert.strictEqual(
+            err.message,
+            'WebSocket was closed before the connection was established'
+          );
+
+          ws.on('close', (code) => {
+            assert.strictEqual(code, 1006);
+            server.close(done);
+          });
+        });
+
+        ws.on('redirect', () => {
+          ws.close();
+        });
+      });
+    });
 
     it("can be called from a listener of the 'upgrade' event", (done) => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
@@ -2074,16 +3153,64 @@ describe('WebSocket', () => {
     });
 
     it('can be called from an error listener while connecting', (done) => {
-      const ws = new WebSocket('ws://localhost:1337');
+      const server = net.createServer();
 
-      ws.on('open', () => done(new Error("Unexpected 'open' event")));
-      ws.on('error', (err) => {
-        assert.ok(err instanceof Error);
-        assert.strictEqual(err.code, 'ECONNREFUSED');
-        ws.terminate();
-        ws.on('close', () => done());
+      server.on('connection', (socket) => {
+        socket.on('end', socket.end);
+        socket.resume();
+        socket.write(Buffer.from('foo\r\n'));
       });
-    }).timeout(4000);
+
+      server.listen(0, () => {
+        const ws = new WebSocket(`ws://localhost:${server.address().port}`);
+
+        ws.on('open', () => done(new Error("Unexpected 'open' event")));
+        ws.on('error', (err) => {
+          assert.ok(err instanceof Error);
+          assert.strictEqual(err.code, 'HPE_INVALID_CONSTANT');
+          ws.terminate();
+          ws.on('close', () => {
+            server.close(done);
+          });
+        });
+      });
+    });
+
+    it("can be called from a listener of the 'redirect' event", (done) => {
+      const server = http.createServer();
+
+      server.once('upgrade', (req, socket) => {
+        socket.end('HTTP/1.1 302 Found\r\nLocation: /foo\r\n\r\n');
+      });
+
+      server.listen(() => {
+        const port = server.address().port;
+        const ws = new WebSocket(`ws://localhost:${port}`, {
+          followRedirects: true
+        });
+
+        ws.on('open', () => {
+          done(new Error("Unexpected 'open' event"));
+        });
+
+        ws.on('error', (err) => {
+          assert.ok(err instanceof Error);
+          assert.strictEqual(
+            err.message,
+            'WebSocket was closed before the connection was established'
+          );
+
+          ws.on('close', (code) => {
+            assert.strictEqual(code, 1006);
+            server.close(done);
+          });
+        });
+
+        ws.on('redirect', () => {
+          ws.terminate();
+        });
+      });
+    });
 
     it("can be called from a listener of the 'upgrade' event", (done) => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
@@ -2152,7 +3279,7 @@ describe('WebSocket', () => {
       ws.onmessage = 'foo';
 
       assert.strictEqual(ws.onmessage, null);
-      assert.strictEqual(ws.listenerCount('onmessage'), 0);
+      assert.strictEqual(ws.listenerCount('message'), 0);
     });
 
     it('works like the `EventEmitter` interface', (done) => {
@@ -2217,23 +3344,46 @@ describe('WebSocket', () => {
       ws.addEventListener('foo', () => {});
       assert.strictEqual(ws.listenerCount('foo'), 0);
 
-      ws.addEventListener('open', () => {
+      function onOpen() {
         events.push('open');
         assert.strictEqual(ws.listenerCount('open'), 1);
-      });
+      }
+
+      ws.addEventListener('open', onOpen);
+      ws.addEventListener('open', onOpen);
 
       assert.strictEqual(ws.listenerCount('open'), 1);
 
-      ws.addEventListener(
-        'message',
-        () => {
+      const listener = {
+        handleEvent() {
           events.push('message');
+          assert.strictEqual(this, listener);
           assert.strictEqual(ws.listenerCount('message'), 0);
-        },
-        { once: true }
-      );
+        }
+      };
+
+      ws.addEventListener('message', listener, { once: true });
+      ws.addEventListener('message', listener);
 
       assert.strictEqual(ws.listenerCount('message'), 1);
+
+      ws.addEventListener('close', NOOP);
+      ws.onclose = NOOP;
+
+      let listeners = ws.listeners('close');
+
+      assert.strictEqual(listeners.length, 2);
+      assert.strictEqual(listeners[0][kListener], NOOP);
+      assert.strictEqual(listeners[1][kListener], NOOP);
+
+      ws.onerror = NOOP;
+      ws.addEventListener('error', NOOP);
+
+      listeners = ws.listeners('error');
+
+      assert.strictEqual(listeners.length, 2);
+      assert.strictEqual(listeners[0][kListener], NOOP);
+      assert.strictEqual(listeners[1][kListener], NOOP);
 
       ws.emit('open');
       ws.emit('message', EMPTY_BUFFER, false);
@@ -2278,17 +3428,19 @@ describe('WebSocket', () => {
     it('supports the `removeEventListener` method', () => {
       const ws = new WebSocket('ws://localhost', { agent: new CustomAgent() });
 
-      ws.addEventListener('message', NOOP);
+      const listener = { handleEvent() {} };
+
+      ws.addEventListener('message', listener);
       ws.addEventListener('open', NOOP);
 
-      assert.strictEqual(ws.listeners('message')[0][kListener], NOOP);
+      assert.strictEqual(ws.listeners('message')[0][kListener], listener);
       assert.strictEqual(ws.listeners('open')[0][kListener], NOOP);
 
       ws.removeEventListener('message', () => {});
 
-      assert.strictEqual(ws.listeners('message')[0][kListener], NOOP);
+      assert.strictEqual(ws.listeners('message')[0][kListener], listener);
 
-      ws.removeEventListener('message', NOOP);
+      ws.removeEventListener('message', listener);
       ws.removeEventListener('open', NOOP);
 
       assert.strictEqual(ws.listenerCount('message'), 0);
@@ -2309,21 +3461,6 @@ describe('WebSocket', () => {
 
       assert.strictEqual(ws.listenerCount('message'), 0);
       assert.strictEqual(ws.listenerCount('open'), 0);
-
-      // Multiple listeners.
-      ws.addEventListener('message', NOOP);
-      ws.addEventListener('message', NOOP);
-
-      assert.strictEqual(ws.listeners('message')[0][kListener], NOOP);
-      assert.strictEqual(ws.listeners('message')[1][kListener], NOOP);
-
-      ws.removeEventListener('message', NOOP);
-
-      assert.strictEqual(ws.listeners('message')[0][kListener], NOOP);
-
-      ws.removeEventListener('message', NOOP);
-
-      assert.strictEqual(ws.listenerCount('message'), 0);
 
       // Listeners not added with `websocket.addEventListener()`.
       ws.on('message', NOOP);
@@ -2542,18 +3679,17 @@ describe('WebSocket', () => {
         requestCert: true
       });
 
-      let success = false;
-      const wss = new WebSocket.Server({
-        verifyClient: (info) => {
-          success = !!info.req.client.authorized;
-          return true;
-        },
-        server
-      });
+      const wss = new WebSocket.Server({ noServer: true });
 
-      wss.on('connection', () => {
-        assert.ok(success);
-        server.close(done);
+      server.on('upgrade', (request, socket, head) => {
+        assert.ok(socket.authorized);
+
+        wss.handleUpgrade(request, socket, head, (ws) => {
+          ws.on('close', (code) => {
+            assert.strictEqual(code, 1005);
+            server.close(done);
+          });
+        });
       });
 
       server.listen(0, () => {
@@ -2692,7 +3828,7 @@ describe('WebSocket', () => {
 
   describe('Request headers', () => {
     it('adds the authorization header if the url has userinfo', (done) => {
-      const agent = new CustomAgent();
+      const agent = new http.Agent();
       const userinfo = 'test:testpass';
 
       agent.addRequest = (req) => {
@@ -2707,7 +3843,7 @@ describe('WebSocket', () => {
     });
 
     it('honors the `auth` option', (done) => {
-      const agent = new CustomAgent();
+      const agent = new http.Agent();
       const auth = 'user:pass';
 
       agent.addRequest = (req) => {
@@ -2722,7 +3858,7 @@ describe('WebSocket', () => {
     });
 
     it('favors the url userinfo over the `auth` option', (done) => {
-      const agent = new CustomAgent();
+      const agent = new http.Agent();
       const auth = 'foo:bar';
       const userinfo = 'baz:qux';
 
@@ -2738,7 +3874,7 @@ describe('WebSocket', () => {
     });
 
     it('adds custom headers', (done) => {
-      const agent = new CustomAgent();
+      const agent = new http.Agent();
 
       agent.addRequest = (req) => {
         assert.strictEqual(req.getHeader('cookie'), 'foo=bar');
@@ -2767,7 +3903,7 @@ describe('WebSocket', () => {
     });
 
     it("doesn't add the origin header by default", (done) => {
-      const agent = new CustomAgent();
+      const agent = new http.Agent();
 
       agent.addRequest = (req) => {
         assert.strictEqual(req.getHeader('origin'), undefined);
@@ -2778,7 +3914,7 @@ describe('WebSocket', () => {
     });
 
     it('honors the `origin` option (1/2)', (done) => {
-      const agent = new CustomAgent();
+      const agent = new http.Agent();
 
       agent.addRequest = (req) => {
         assert.strictEqual(req.getHeader('origin'), 'https://example.com:8000');
@@ -2792,7 +3928,7 @@ describe('WebSocket', () => {
     });
 
     it('honors the `origin` option (2/2)', (done) => {
-      const agent = new CustomAgent();
+      const agent = new http.Agent();
 
       agent.addRequest = (req) => {
         assert.strictEqual(
@@ -2808,11 +3944,42 @@ describe('WebSocket', () => {
         agent
       });
     });
+
+    it('honors the `finishRequest` option', (done) => {
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const host = `localhost:${wss.address().port}`;
+        const ws = new WebSocket(`ws://${host}`, {
+          finishRequest(req, ws) {
+            assert.ok(req instanceof http.ClientRequest);
+            assert.strictEqual(req.getHeader('host'), host);
+            assert.ok(ws instanceof WebSocket);
+            assert.strictEqual(req, ws._req);
+
+            req.on('socket', (socket) => {
+              socket.on('connect', () => {
+                req.setHeader('Cookie', 'foo=bar');
+                req.end();
+              });
+            });
+          }
+        });
+
+        ws.on('close', (code) => {
+          assert.strictEqual(code, 1005);
+          wss.close(done);
+        });
+      });
+
+      wss.on('connection', (ws, req) => {
+        assert.strictEqual(req.headers.cookie, 'foo=bar');
+        ws.close();
+      });
+    });
   });
 
   describe('permessage-deflate', () => {
     it('is enabled by default', (done) => {
-      const agent = new CustomAgent();
+      const agent = new http.Agent();
 
       agent.addRequest = (req) => {
         assert.strictEqual(
@@ -2826,7 +3993,7 @@ describe('WebSocket', () => {
     });
 
     it('can be disabled', (done) => {
-      const agent = new CustomAgent();
+      const agent = new http.Agent();
 
       agent.addRequest = (req) => {
         assert.strictEqual(
@@ -2843,7 +4010,7 @@ describe('WebSocket', () => {
     });
 
     it('can send extension parameters', (done) => {
-      const agent = new CustomAgent();
+      const agent = new http.Agent();
 
       const value =
         'permessage-deflate; server_no_context_takeover;' +
@@ -2930,7 +4097,7 @@ describe('WebSocket', () => {
               ws.terminate();
             };
 
-            const payload1 = Buffer.alloc(15 * 1024);
+            const payload1 = Buffer.alloc(highWaterMark - 1024);
             const payload2 = Buffer.alloc(1);
 
             const opts = {
@@ -2945,13 +4112,17 @@ describe('WebSocket', () => {
               ...Sender.frame(payload2, { rsv1: true, ...opts })
             ];
 
-            for (let i = 0; i < 399; i++) {
+            for (let i = 0; i < 340; i++) {
               list.push(list[list.length - 2], list[list.length - 1]);
             }
 
+            const data = Buffer.concat(list);
+
+            assert.ok(data.length > highWaterMark);
+
             // This hack is used because there is no guarantee that more than
-            // 16 KiB will be sent as a single TCP packet.
-            push.call(ws._socket, Buffer.concat(list));
+            // `highWaterMark` bytes will be sent as a single TCP packet.
+            push.call(ws._socket, data);
 
             wss.clients
               .values()
@@ -2966,8 +4137,8 @@ describe('WebSocket', () => {
 
           ws.on('close', (code) => {
             assert.strictEqual(code, 1006);
-            assert.strictEqual(messageLengths.length, 402);
-            assert.strictEqual(messageLengths[0], 15360);
+            assert.strictEqual(messageLengths.length, 343);
+            assert.strictEqual(messageLengths[0], highWaterMark - 1024);
             assert.strictEqual(messageLengths[messageLengths.length - 1], 1);
             wss.close(done);
           });
@@ -3029,18 +4200,18 @@ describe('WebSocket', () => {
             const messages = [];
             const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
-            ws.on('open', () => {
-              ws._socket.on('end', () => {
-                assert.strictEqual(ws._receiver._state, 5);
-              });
-            });
-
             ws.on('message', (message, isBinary) => {
               assert.ok(!isBinary);
 
               if (messages.push(message.toString()) > 1) return;
 
-              ws.close(1000);
+              // `queueMicrotask()` is not available in Node.js < 11.
+              Promise.resolve().then(() => {
+                process.nextTick(() => {
+                  assert.strictEqual(ws._receiver._state, 5);
+                  ws.close(1000);
+                });
+              });
             });
 
             ws.on('close', (code, reason) => {
@@ -3285,9 +4456,12 @@ describe('WebSocket', () => {
 
               if (messages.push(message.toString()) > 1) return;
 
-              process.nextTick(() => {
-                assert.strictEqual(ws._receiver._state, 5);
-                ws.terminate();
+              // `queueMicrotask()` is not available in Node.js < 11.
+              Promise.resolve().then(() => {
+                process.nextTick(() => {
+                  assert.strictEqual(ws._receiver._state, 5);
+                  ws.terminate();
+                });
               });
             });
 

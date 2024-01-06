@@ -2,6 +2,7 @@
 
 const assert = require('assert');
 const crypto = require('crypto');
+const EventEmitter = require('events');
 
 const PerMessageDeflate = require('../lib/permessage-deflate');
 const Receiver = require('../lib/receiver');
@@ -442,7 +443,7 @@ describe('Receiver', () => {
       buf[i + 1] = 0x00;
     }
 
-    const receiver = new Receiver();
+    const receiver = new Receiver({ allowSynchronousEvents: true });
     let counter = 0;
 
     receiver.on('message', (data, isBinary) => {
@@ -856,7 +857,7 @@ describe('Receiver', () => {
       done();
     });
 
-    receiver.write(Buffer.from([0x88, 0x01, 0x00]));
+    receiver.write(Buffer.from([0x88, 0x01]));
   });
 
   it('emits an error if a close frame contains an invalid close code', (done) => {
@@ -1082,5 +1083,108 @@ describe('Receiver', () => {
     });
 
     receiver.write(Buffer.from([0x88, 0x03, 0x03, 0xe8, 0xf8]));
+  });
+
+  it('emits at most one event per microtask', (done) => {
+    const actual = [];
+    const expected = [
+      '1',
+      'microtask 1',
+      '2',
+      'microtask 2',
+      '3',
+      'microtask 3',
+      '4',
+      'microtask 4'
+    ];
+
+    function listener(data) {
+      const message = data.toString();
+      actual.push(message);
+
+      // `queueMicrotask()` is not available in Node.js < 11.
+      Promise.resolve().then(() => {
+        actual.push(`microtask ${message}`);
+
+        if (actual.length === 8) {
+          assert.deepStrictEqual(actual, expected);
+          done();
+        }
+      });
+    }
+
+    const receiver = new Receiver();
+
+    receiver.on('message', listener);
+    receiver.on('ping', listener);
+    receiver.on('pong', listener);
+
+    receiver.write(Buffer.from('8101318901328a0133810134', 'hex'));
+  });
+
+  it('does not swallow errors thrown from event handlers', (done) => {
+    const receiver = new Receiver();
+    let count = 0;
+
+    receiver.on('message', () => {
+      if (++count === 2) {
+        throw new Error('Oops');
+      }
+    });
+
+    assert.strictEqual(
+      process.listenerCount('uncaughtException'),
+      EventEmitter.usingDomains ? 2 : 1
+    );
+
+    const listener = process.listeners('uncaughtException').pop();
+
+    process.removeListener('uncaughtException', listener);
+    process.once('uncaughtException', (err) => {
+      assert.ok(err instanceof Error);
+      assert.strictEqual(err.message, 'Oops');
+
+      process.on('uncaughtException', listener);
+      done();
+    });
+
+    receiver.write(Buffer.from('82008200', 'hex'));
+  });
+
+  it('honors the `allowSynchronousEvents` option', (done) => {
+    const actual = [];
+    const expected = [
+      '1',
+      '2',
+      '3',
+      '4',
+      'microtask 1',
+      'microtask 2',
+      'microtask 3',
+      'microtask 4'
+    ];
+
+    function listener(data) {
+      const message = data.toString();
+      actual.push(message);
+
+      // `queueMicrotask()` is not available in Node.js < 11.
+      Promise.resolve().then(() => {
+        actual.push(`microtask ${message}`);
+
+        if (actual.length === 8) {
+          assert.deepStrictEqual(actual, expected);
+          done();
+        }
+      });
+    }
+
+    const receiver = new Receiver({ allowSynchronousEvents: true });
+
+    receiver.on('message', listener);
+    receiver.on('ping', listener);
+    receiver.on('pong', listener);
+
+    receiver.write(Buffer.from('8101318901328a0133810134', 'hex'));
   });
 });

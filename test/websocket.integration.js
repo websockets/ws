@@ -6,43 +6,49 @@ const WebSocket = require('..');
 
 describe('WebSocket', () => {
   it('communicates successfully with echo service (ws)', (done) => {
-    const ws = new WebSocket('ws://echo.websocket.org/', {
-      origin: 'http://www.websocket.org',
+    const ws = new WebSocket('ws://websocket-echo.com/', {
       protocolVersion: 13
     });
-    const str = Date.now().toString();
 
     let dataReceived = false;
 
-    ws.on('open', () => ws.send(str));
+    ws.on('open', () => {
+      ws.send('hello');
+    });
+
     ws.on('close', () => {
       assert.ok(dataReceived);
       done();
     });
-    ws.on('message', (data) => {
+
+    ws.on('message', (message, isBinary) => {
       dataReceived = true;
-      assert.strictEqual(data, str);
+      assert.ok(!isBinary);
+      assert.strictEqual(message.toString(), 'hello');
       ws.close();
     });
   });
 
   it('communicates successfully with echo service (wss)', (done) => {
-    const ws = new WebSocket('wss://echo.websocket.org/', {
-      origin: 'https://www.websocket.org',
+    const ws = new WebSocket('wss://websocket-echo.com/', {
       protocolVersion: 13
     });
-    const str = Date.now().toString();
 
     let dataReceived = false;
 
-    ws.on('open', () => ws.send(str));
+    ws.on('open', () => {
+      ws.send('hello');
+    });
+
     ws.on('close', () => {
       assert.ok(dataReceived);
       done();
     });
-    ws.on('message', (data) => {
+
+    ws.on('message', (message, isBinary) => {
       dataReceived = true;
-      assert.strictEqual(data, str);
+      assert.ok(!isBinary);
+      assert.strictEqual(message.toString(), 'hello');
       ws.close();
     });
   });

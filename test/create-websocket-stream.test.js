@@ -3,13 +3,17 @@
 const assert = require('assert');
 const EventEmitter = require('events');
 const { createServer } = require('http');
-const { Duplex } = require('stream');
+const { Duplex, getDefaultHighWaterMark } = require('stream');
 const { randomBytes } = require('crypto');
 
 const createWebSocketStream = require('../lib/stream');
 const Sender = require('../lib/sender');
 const WebSocket = require('..');
 const { EMPTY_BUFFER } = require('../lib/constants');
+
+const highWaterMark = getDefaultHighWaterMark
+  ? getDefaultHighWaterMark(false)
+  : 16 * 1024;
 
 describe('createWebSocketStream', () => {
   it('is exposed as a property of the `WebSocket` class', () => {
@@ -295,11 +299,14 @@ describe('createWebSocketStream', () => {
         ws._socket.write(Buffer.from([0x85, 0x00]));
       });
 
-      assert.strictEqual(process.listenerCount('uncaughtException'), 1);
+      assert.strictEqual(
+        process.listenerCount('uncaughtException'),
+        EventEmitter.usingDomains ? 2 : 1
+      );
 
-      const [listener] = process.listeners('uncaughtException');
+      const listener = process.listeners('uncaughtException').pop();
 
-      process.removeAllListeners('uncaughtException');
+      process.removeListener('uncaughtException', listener);
       process.once('uncaughtException', (err) => {
         assert.ok(err instanceof Error);
         assert.strictEqual(
@@ -442,12 +449,15 @@ describe('createWebSocketStream', () => {
             };
 
             const list = [
-              ...Sender.frame(randomBytes(16 * 1024), { rsv1: false, ...opts }),
+              ...Sender.frame(randomBytes(highWaterMark), {
+                rsv1: false,
+                ...opts
+              }),
               ...Sender.frame(Buffer.alloc(1), { rsv1: true, ...opts })
             ];
 
             // This hack is used because there is no guarantee that more than
-            // 16 KiB will be sent as a single TCP packet.
+            // `highWaterMark` bytes will be sent as a single TCP packet.
             ws._socket.push(Buffer.concat(list));
           });
 
@@ -491,7 +501,10 @@ describe('createWebSocketStream', () => {
             };
 
             const list = [
-              ...Sender.frame(randomBytes(16 * 1024), { rsv1: false, ...opts }),
+              ...Sender.frame(randomBytes(highWaterMark), {
+                rsv1: false,
+                ...opts
+              }),
               ...Sender.frame(Buffer.alloc(1), { rsv1: true, ...opts })
             ];
 
@@ -566,6 +579,32 @@ describe('createWebSocketStream', () => {
       wss.on('connection', (ws) => {
         ws.send('foo');
         ws.close();
+      });
+    });
+
+    it('resumes the socket if `readyState` is `CLOSING`', (done) => {
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+        const duplex = createWebSocketStream(ws);
+
+        ws.on('message', () => {
+          assert.ok(ws._socket.isPaused());
+
+          duplex.on('close', () => {
+            wss.close(done);
+          });
+
+          duplex.end();
+
+          process.nextTick(() => {
+            assert.strictEqual(ws.readyState, WebSocket.CLOSING);
+            duplex.resume();
+          });
+        });
+      });
+
+      wss.on('connection', (ws) => {
+        ws.send(randomBytes(16 * 1024));
       });
     });
   });

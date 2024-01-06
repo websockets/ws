@@ -12,13 +12,20 @@
   ],
   "homepage": "https://github.com/websockets/ws",
   "bugs": "https://github.com/websockets/ws/issues",
-  "repository": "websockets/ws",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/websockets/ws.git"
+  },
   "author": "Einar Otto Stangvik <einaros@gmail.com> (http://2x.io)",
   "license": "MIT",
   "main": "index.js",
   "exports": {
-    "import": "./wrapper.mjs",
-    "require": "./index.js"
+    ".": {
+      "browser": "./browser.js",
+      "import": "./wrapper.mjs",
+      "require": "./index.js"
+    },
+    "./package.json": "./package.json"
   },
   "browser": "browser.js",
   "engines": {
@@ -36,7 +43,7 @@
   },
   "peerDependencies": {
     "bufferutil": "^4.0.1",
-    "utf-8-validate": "^5.0.2"
+    "utf-8-validate": ">=5.0.2"
   },
   "peerDependenciesMeta": {
     "bufferutil": {
@@ -50,13 +57,12 @@
     "benchmark": "^2.1.4",
     "bufferutil": "^4.0.1",
     "eslint": "^8.0.0",
-    "eslint-config-prettier": "^8.1.0",
-    "eslint-plugin-prettier": "^4.0.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-prettier": "^5.0.0",
     "mocha": "^8.4.0",
     "nyc": "^15.0.0",
-    "prettier": "^2.0.5",
-    "utf-8-validate": "^5.0.2",
-    "@thzero/library_cli": "^0.13.21"
+    "prettier": "^3.0.0",
+    "utf-8-validate": "^6.0.0"
   },
   "version_major": 0,
   "version_minor": 0,
