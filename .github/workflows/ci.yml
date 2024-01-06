@@ -4,6 +4,8 @@ on:
   - push
   - pull_request
 
+permissions: {}
+
 jobs:
   test:
     runs-on: ${{ matrix.os }}
@@ -17,6 +19,9 @@ jobs:
           - 12
           - 14
           - 16
+          - 18
+          - 20
+          - 21
         os:
           - macOS-latest
           - ubuntu-latest
@@ -26,24 +31,30 @@ jobs:
             os: macOS-latest
           - arch: x86
             os: ubuntu-latest
+          - arch: x86
+            node: 18
+            os: windows-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
           architecture: ${{ matrix.arch }}
+          cache: 'npm'
+          cache-dependency-path: ./package.json
       - run: npm install
       - run: npm run lint
         if:
-          matrix.os == 'ubuntu-latest' && matrix.node == 16 && matrix.arch ==
+          matrix.os == 'ubuntu-latest' && matrix.node == 20 && matrix.arch ==
           'x64'
       - run: npm test
-      - run:
-          echo ::set-output name=job_id::$(node -e
-          "console.log(crypto.randomBytes(16).toString('hex'))")
+      - run: |
+          id=$(node -e "console.log(crypto.randomBytes(16).toString('hex'))")
+
+          echo "job_id=$id" >> $GITHUB_OUTPUT
         id: get_job_id
         shell: bash
-      - uses: coverallsapp/github-action@1.1.3
+      - uses: coverallsapp/github-action@v2
         with:
           flag-name:
             ${{ steps.get_job_id.outputs.job_id }} (Node.js ${{ matrix.node }}
@@ -54,7 +65,7 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     steps:
-      - uses: coverallsapp/github-action@1.1.3
+      - uses: coverallsapp/github-action@v2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           parallel-finished: true

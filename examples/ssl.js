@@ -3,16 +3,18 @@
 const https = require('https');
 const fs = require('fs');
 
-const WebSocket = require('..');
+const { WebSocket, WebSocketServer } = require('..');
 
 const server = https.createServer({
   cert: fs.readFileSync('../test/fixtures/certificate.pem'),
   key: fs.readFileSync('../test/fixtures/key.pem')
 });
 
-const wss = new WebSocket.Server({ server });
+const wss = new WebSocketServer({ server });
 
 wss.on('connection', function connection(ws) {
+  ws.on('error', console.error);
+
   ws.on('message', function message(msg) {
     console.log(msg.toString());
   });
@@ -30,6 +32,8 @@ server.listen(function listening() {
   const ws = new WebSocket(`wss://localhost:${server.address().port}`, {
     rejectUnauthorized: false
   });
+
+  ws.on('error', console.error);
 
   ws.on('open', function open() {
     ws.send('All glory to WebSockets!');
