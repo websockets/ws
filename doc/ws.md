@@ -534,7 +534,7 @@ receives an `OpenEvent` named "open".
 
 Pause the websocket causing it to stop emitting events. Some events can still be
 emitted after this is called, until all buffered data is consumed. This method
-is a noop if the ready state is `CONNECTING` or `CLOSED`.
+is a loop if the ready state is `CONNECTING` or `CLOSED`.
 
 ### websocket.ping([data[, mask]][, callback])
 
