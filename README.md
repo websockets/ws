@@ -245,7 +245,6 @@ server.listen(8080);
 
 ```js
 import { createServer } from 'http';
-import { parse } from 'url';
 import { WebSocketServer } from 'ws';
 
 const server = createServer();
@@ -265,7 +264,7 @@ wss2.on('connection', function connection(ws) {
 });
 
 server.on('upgrade', function upgrade(request, socket, head) {
-  const { pathname } = parse(request.url);
+  const { pathname } = new URL(request.url, 'wss://base.url');
 
   if (pathname === '/foo') {
     wss1.handleUpgrade(request, socket, head, function done(ws) {
