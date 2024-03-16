@@ -264,8 +264,7 @@ wss2.on('connection', function connection(ws) {
 });
 
 server.on('upgrade', function upgrade(request, socket, head) {
-  const baseURL = request.protocol + '://' + request.headers.host + '/';
-  const { pathname } = new URL(request.url, baseURL);
+  const { pathname } = new URL(request.url, 'wss://base.url');
 
   if (pathname === '/foo') {
     wss1.handleUpgrade(request, socket, head, function done(ws) {
