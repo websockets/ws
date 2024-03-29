@@ -23,10 +23,10 @@ following methods:
   SHA1 of their latest commit in the project.
 - Create a GitHub issue stating contact details and the severity of the issue.
 
-Once we have acknowledged receipt of your report and confirmed the bug ourselves,
-we will work with you to fix the vulnerability and publicly acknowledge your
-responsible disclosure, if you wish. In addition to that, we will create and
-publish a security advisory to
+Once we have acknowledged receipt of your report and confirmed the bug
+ourselves, we will work with you to fix the vulnerability and publicly
+acknowledge your responsible disclosure, if you wish. In addition to that, we
+will create and publish a security advisory to
 [GitHub Security Advisories](https://github.com/websockets/ws/security/advisories?state=published).
 
 ## History

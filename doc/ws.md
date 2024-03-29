@@ -112,8 +112,8 @@ to share a single HTTP/S server between multiple WebSocket servers.
 > authentication in the `'upgrade'` event of the HTTP server. See examples for
 > more details.
 
-If `verifyClient` is not set, then the handshake is automatically accepted. If it
-has a single parameter, then `ws` will invoke it with the following argument:
+If `verifyClient` is not set, then the handshake is automatically accepted. If
+it has a single parameter, then `ws` will invoke it with the following argument:
 
 - `info` {Object}
   - `origin` {String} The value in the Origin header indicated by the client.
@@ -124,8 +124,8 @@ has a single parameter, then `ws` will invoke it with the following argument:
 The return value (`Boolean`) of the function determines whether or not to accept
 the handshake.
 
-If `verifyClient` has two parameters, then `ws` will invoke it with the following
-arguments:
+If `verifyClient` has two parameters, then `ws` will invoke it with the
+following arguments:
 
 - `info` {Object} Same as above.
 - `cb` {Function} A callback that must be called by the user upon inspection of
@@ -135,8 +135,8 @@ arguments:
     error status code to be sent to the client.
   - `name` {String} When `result` is `false`, this field determines the HTTP
     reason phrase.
-  - `headers` {Object} When `result` is `false`, this field determines additional
-    HTTP headers to be sent to the client. For example,
+  - `headers` {Object} When `result` is `false`, this field determines
+    additional HTTP headers to be sent to the client. For example,
     `{ 'Retry-After': 120 }`.
 
 `handleProtocols` takes two arguments:

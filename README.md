@@ -11,8 +11,8 @@ Passes the quite extensive Autobahn test suite: [server][server-report],
 [client][client-report].
 
 **Note**: This module does not work in the browser. The client in the docs is a
-reference to a backend with the role of a client in the WebSocket
-communication. Browser clients must use the native
+reference to a backend with the role of a client in the WebSocket communication.
+Browser clients must use the native
 [`WebSocket`](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket)
 object. To make the same code work seamlessly on Node.js and the browser, you
 can use one of the many wrappers available on npm, like
@@ -451,8 +451,8 @@ wss.on('connection', function connection(ws, req) {
 
 ### How to detect and close broken connections?
 
-Sometimes, the link between the server and the client can be interrupted in a way
-that keeps both the server and the client unaware of the broken state of the
+Sometimes, the link between the server and the client can be interrupted in a
+way that keeps both the server and the client unaware of the broken state of the
 connection (e.g. when pulling the cord).
 
 In these cases, ping messages can be used as a means to verify that the remote
