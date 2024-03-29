@@ -103,7 +103,7 @@ This class represents a WebSocket server. It extends the `EventEmitter`.
 Create a new server instance. One and only one of `port`, `server` or `noServer`
 must be provided or an error is thrown. An HTTP server is automatically created,
 started, and used if `port` is set. To use an external HTTP/S server instead,
-specify only `server` or `noServer`. In this case the HTTP/S server must be
+specify only `server` or `noServer`. In this case, the HTTP/S server must be
 started manually. The "noServer" mode allows the WebSocket server to be
 completely detached from the HTTP/S server. This makes it possible, for example,
 to share a single HTTP/S server between multiple WebSocket servers.
@@ -112,8 +112,8 @@ to share a single HTTP/S server between multiple WebSocket servers.
 > authentication in the `'upgrade'` event of the HTTP server. See examples for
 > more details.
 
-If `verifyClient` is not set then the handshake is automatically accepted. If it
-has a single parameter then `ws` will invoke it with the following argument:
+If `verifyClient` is not set, then the handshake is automatically accepted. If
+it has a single parameter, then `ws` will invoke it with the following argument:
 
 - `info` {Object}
   - `origin` {String} The value in the Origin header indicated by the client.
@@ -124,19 +124,19 @@ has a single parameter then `ws` will invoke it with the following argument:
 The return value (`Boolean`) of the function determines whether or not to accept
 the handshake.
 
-If `verifyClient` has two parameters then `ws` will invoke it with the following
-arguments:
+If `verifyClient` has two parameters, then `ws` will invoke it with the
+following arguments:
 
 - `info` {Object} Same as above.
 - `cb` {Function} A callback that must be called by the user upon inspection of
   the `info` fields. Arguments in this callback are:
   - `result` {Boolean} Whether or not to accept the handshake.
-  - `code` {Number} When `result` is `false` this field determines the HTTP
+  - `code` {Number} When `result` is `false`, this field determines the HTTP
     error status code to be sent to the client.
-  - `name` {String} When `result` is `false` this field determines the HTTP
+  - `name` {String} When `result` is `false`, this field determines the HTTP
     reason phrase.
-  - `headers` {Object} When `result` is `false` this field determines additional
-    HTTP headers to be sent to the client. For example,
+  - `headers` {Object} When `result` is `false`, this field determines
+    additional HTTP headers to be sent to the client. For example,
     `{ 'Retry-After': 120 }`.
 
 `handleProtocols` takes two arguments:
@@ -146,15 +146,15 @@ arguments:
 - `request` {http.IncomingMessage} The client HTTP GET request.
 
 The returned value sets the value of the `Sec-WebSocket-Protocol` header in the
-HTTP 101 response. If returned value is `false` the header is not added in the
+HTTP 101 response. If returned value is `false`, the header is not added in the
 response.
 
-If `handleProtocols` is not set then the first of the client's requested
+If `handleProtocols` is not set, then the first of the client's requested
 subprotocols is used.
 
 `perMessageDeflate` can be used to control the behavior of [permessage-deflate
 extension][permessage-deflate]. The extension is disabled when `false` (default
-value). If an object is provided then that is extension parameters:
+value). If an object is provided, then that is extension parameters:
 
 - `serverNoContextTakeover` {Boolean} Whether to use context takeover or not.
 - `clientNoContextTakeover` {Boolean} Acknowledge disabling of client context
@@ -171,8 +171,8 @@ value). If an object is provided then that is extension parameters:
   above this limit will be queued. Default 10. You usually won't need to touch
   this option. See [this issue][concurrency-limit] for more details.
 
-If a property is empty then either an offered configuration or a default value
-is used. When sending a fragmented message the length of the first fragment is
+If a property is empty, then either an offered configuration or a default value
+is used. When sending a fragmented message, the length of the first fragment is
 compared to the threshold. This determines if compression is used for the entire
 message.
 
@@ -248,7 +248,7 @@ created internally. If an external HTTP server is used via the `server` or
 `noServer` constructor options, it must be closed manually. Existing connections
 are not closed automatically. The server emits a `'close'` event when all
 connections are closed unless an external HTTP server is used and client
-tracking is disabled. In this case the `'close'` event is emitted in the next
+tracking is disabled. In this case, the `'close'` event is emitted in the next
 tick. The optional callback is called when the `'close'` event occurs and
 receives an `Error` if the server is already closed.
 
@@ -273,7 +273,7 @@ If the upgrade is successful, the `callback` is called with two arguments:
 
 - `request` {http.IncomingMessage} The client HTTP GET request.
 
-See if a given request should be handled by this server. By default this method
+See if a given request should be handled by this server. By default, this method
 validates the pathname of the request, matching it against the `path` option if
 provided. The return value, `true` or `false`, determines whether or not to
 accept the handshake.
@@ -305,12 +305,12 @@ This class represents a WebSocket. It extends the `EventEmitter`.
     tick. To improve compatibility with the WHATWG standard, the default value
     is `false`. Setting it to `true` improves performance slightly.
   - `finishRequest` {Function} A function which can be used to customize the
-    headers of each http request before it is sent. See description below.
+    headers of each HTTP request before it is sent. See description below.
   - `followRedirects` {Boolean} Whether or not to follow redirects. Defaults to
     `false`.
   - `generateMask` {Function} The function used to generate the masking key. It
     takes a `Buffer` that must be filled synchronously and is called before a
-    message is sent, for each message. By default the buffer is filled with
+    message is sent, for each message. By default, the buffer is filled with
     cryptographically strong random bytes.
   - `handshakeTimeout` {Number} Timeout in milliseconds for the handshake
     request. This is reset after every redirection.
@@ -343,7 +343,7 @@ context takeover.
 
 for each HTTP GET request (the initial one and any caused by redirects) when it
 is ready to be sent, to allow for last minute customization of the headers. If
-`finishRequest` is set then it has the responsibility to call `request.end()`
+`finishRequest` is set, then it has the responsibility to call `request.end()`
 once it is done setting request headers. This is intended for niche use-cases
 where some headers can't be provided in advance e.g. because they depend on the
 underlying socket.
@@ -479,7 +479,7 @@ The number of bytes of data that have been queued using calls to `send()` but
 not yet transmitted to the network. This deviates from the HTML standard in the
 following ways:
 
-1. If the data is immediately sent the value is `0`.
+1. If the data is immediately sent, the value is `0`.
 1. All framing bytes are included.
 
 ### websocket.close([code[, reason]])
@@ -610,7 +610,7 @@ state is `CONNECTING`.
 
 ### websocket.terminate()
 
-Forcibly close the connection. Internally this calls [`socket.destroy()`][].
+Forcibly close the connection. Internally, this calls [`socket.destroy()`][].
 
 ### websocket.url
 
@@ -631,12 +631,12 @@ given `WebSocket`.
 
 ### WS_NO_BUFFER_UTIL
 
-When set to a non empty value, prevents the optional `bufferutil` dependency
+When set to a non-empty value, prevents the optional `bufferutil` dependency
 from being required.
 
 ### WS_NO_UTF_8_VALIDATE
 
-When set to a non empty value, prevents the optional `utf-8-validate` dependency
+When set to a non-empty value, prevents the optional `utf-8-validate` dependency
 from being required.
 
 ## Error codes

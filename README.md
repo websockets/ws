@@ -11,8 +11,8 @@ Passes the quite extensive Autobahn test suite: [server][server-report],
 [client][client-report].
 
 **Note**: This module does not work in the browser. The client in the docs is a
-reference to a back end with the role of a client in the WebSocket
-communication. Browser clients must use the native
+reference to a backend with the role of a client in the WebSocket communication.
+Browser clients must use the native
 [`WebSocket`](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket)
 object. To make the same code work seamlessly on Node.js and the browser, you
 can use one of the many wrappers available on npm, like
@@ -87,7 +87,7 @@ npm install --save-optional utf-8-validate
 
 This contains a binary polyfill for [`buffer.isUtf8()`][].
 
-To force ws to not use utf-8-validate, use the
+To force ws not to use utf-8-validate, use the
 [`WS_NO_UTF_8_VALIDATE`](./doc/ws.md#ws_no_utf_8_validate) environment variable.
 
 ## API docs
@@ -146,7 +146,7 @@ const wss = new WebSocketServer({
 ```
 
 The client will only use the extension if it is supported and enabled on the
-server. To always disable the extension on the client set the
+server. To always disable the extension on the client, set the
 `perMessageDeflate` option to `false`.
 
 ```js
@@ -451,11 +451,11 @@ wss.on('connection', function connection(ws, req) {
 
 ### How to detect and close broken connections?
 
-Sometimes the link between the server and the client can be interrupted in a way
-that keeps both the server and the client unaware of the broken state of the
+Sometimes, the link between the server and the client can be interrupted in a
+way that keeps both the server and the client unaware of the broken state of the
 connection (e.g. when pulling the cord).
 
-In these cases ping messages can be used as a means to verify that the remote
+In these cases, ping messages can be used as a means to verify that the remote
 endpoint is still responsive.
 
 ```js
@@ -490,7 +490,7 @@ wss.on('close', function close() {
 Pong messages are automatically sent in response to ping messages as required by
 the spec.
 
-Just like the server example above your clients might as well lose connection
+Just like the server example above, your clients might as well lose connection
 without knowing it. You might want to add a ping listener on your clients to
 prevent that. A simple implementation would be:
 
