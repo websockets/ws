@@ -40,7 +40,7 @@
   "scripts": {
     "test": "nyc --reporter=lcov --reporter=text mocha --throw-deprecation test/*.test.js",
     "integration": "mocha --throw-deprecation test/*.integration.js",
-    "lint": "eslint --ignore-path .gitignore . && prettier --check --ignore-path .gitignore \"**/*.{json,md,yaml,yml}\""
+    "lint": "eslint . && prettier --check --ignore-path .gitignore \"**/*.{json,md,yaml,yml}\""
   },
   "peerDependencies": {
     "bufferutil": "^4.0.1",
@@ -57,9 +57,10 @@
   "devDependencies": {
     "benchmark": "^2.1.4",
     "bufferutil": "^4.0.1",
-    "eslint": "^8.0.0",
+    "eslint": "^9.0.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-prettier": "^5.0.0",
+    "globals": "^15.0.0",
     "mocha": "^8.4.0",
     "nyc": "^15.0.0",
     "prettier": "^3.0.0",
