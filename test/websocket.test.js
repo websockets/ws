@@ -1224,6 +1224,34 @@ describe('WebSocket', () => {
       });
     });
 
+    it('honors the `createConnection` option', (done) => {
+      const wss = new WebSocket.Server({ noServer: true, path: '/foo' });
+
+      server.once('upgrade', (req, socket, head) => {
+        assert.strictEqual(req.headers.host, 'google.com:22');
+        wss.handleUpgrade(req, socket, head, NOOP);
+      });
+
+      const ws = new WebSocket('ws://google.com:22/foo', {
+        createConnection: (options) => {
+          assert.strictEqual(options.host, 'google.com');
+          assert.strictEqual(options.port, '22');
+
+          // Ignore the invalid host address, and connect to the server manually:
+          return net.createConnection({
+            host: 'localhost',
+            port: server.address().port
+          });
+        }
+      });
+
+      ws.on('open', () => {
+        assert.strictEqual(ws.url, 'ws://google.com:22/foo');
+        ws.on('close', () => done());
+        ws.close();
+      });
+    });
+
     it('emits an error if the redirect URL is invalid (1/2)', (done) => {
       server.once('upgrade', (req, socket) => {
         socket.end('HTTP/1.1 302 Found\r\nLocation: ws://\r\n\r\n');
