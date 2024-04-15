@@ -1158,6 +1158,35 @@ describe('WebSocket', () => {
       });
     });
 
+    it('honors the `createConnection` option', (done) => {
+      const wss = new WebSocket.Server({ noServer: true, path: '/foo' });
+
+      server.once('upgrade', (req, socket, head) => {
+        assert.strictEqual(req.headers.host, 'google.com:22');
+        wss.handleUpgrade(req, socket, head, NOOP);
+      });
+
+      const ws = new WebSocket('ws://google.com:22/foo', {
+        createConnection: (options) => {
+          assert.strictEqual(options.host, 'google.com');
+          assert.strictEqual(options.port, '22');
+
+          // Ignore the `options` argument, and use the correct hostname and
+          // port to connect to the server.
+          return net.createConnection({
+            host: 'localhost',
+            port: server.address().port
+          });
+        }
+      });
+
+      ws.on('open', () => {
+        assert.strictEqual(ws.url, 'ws://google.com:22/foo');
+        ws.on('close', () => done());
+        ws.close();
+      });
+    });
+
     it('does not follow redirects by default', (done) => {
       server.once('upgrade', (req, socket) => {
         socket.end(
@@ -1221,34 +1250,6 @@ describe('WebSocket', () => {
 
         server.removeListener('upgrade', onUpgrade);
         ws.on('close', () => done());
-      });
-    });
-
-    it('honors the `createConnection` option', (done) => {
-      const wss = new WebSocket.Server({ noServer: true, path: '/foo' });
-
-      server.once('upgrade', (req, socket, head) => {
-        assert.strictEqual(req.headers.host, 'google.com:22');
-        wss.handleUpgrade(req, socket, head, NOOP);
-      });
-
-      const ws = new WebSocket('ws://google.com:22/foo', {
-        createConnection: (options) => {
-          assert.strictEqual(options.host, 'google.com');
-          assert.strictEqual(options.port, '22');
-
-          // Ignore the invalid host address, and connect to the server manually:
-          return net.createConnection({
-            host: 'localhost',
-            port: server.address().port
-          });
-        }
-      });
-
-      ws.on('open', () => {
-        assert.strictEqual(ws.url, 'ws://google.com:22/foo');
-        ws.on('close', () => done());
-        ws.close();
       });
     });
 

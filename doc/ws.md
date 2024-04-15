@@ -304,10 +304,6 @@ This class represents a WebSocket. It extends the `EventEmitter`.
     `'ping'`, and `'pong'` events can be emitted multiple times in the same
     tick. To improve compatibility with the WHATWG standard, the default value
     is `false`. Setting it to `true` improves performance slightly.
-  - `createConnection` {Function} An alternative function to use in place of
-    `tls.createConnection` or `net.createConnection`. This can be used to
-    manually control exactly how the connection to the server is made, or to
-    make a connection over an existing Duplex stream obtained elsewhere.
   - `finishRequest` {Function} A function which can be used to customize the
     headers of each HTTP request before it is sent. See description below.
   - `followRedirects` {Boolean} Whether or not to follow redirects. Defaults to
