@@ -76,8 +76,8 @@ This class represents a WebSocket server. It extends the `EventEmitter`.
     in response to a ping. Defaults to `true`.
   - `allowSynchronousEvents` {Boolean} Specifies whether any of the `'message'`,
     `'ping'`, and `'pong'` events can be emitted multiple times in the same
-    tick. To improve compatibility with the WHATWG standard, the default value
-    is `false`. Setting it to `true` improves performance slightly.
+    tick. Defaults to `true`. Setting it to `false` improves compatibility with
+    the WHATWG standardbut may negatively impact performance.
   - `backlog` {Number} The maximum length of the queue of pending connections.
   - `clientTracking` {Boolean} Specifies whether or not to track clients.
   - `handleProtocols` {Function} A function which can be used to handle the
@@ -302,8 +302,8 @@ This class represents a WebSocket. It extends the `EventEmitter`.
     in response to a ping. Defaults to `true`.
   - `allowSynchronousEvents` {Boolean} Specifies whether any of the `'message'`,
     `'ping'`, and `'pong'` events can be emitted multiple times in the same
-    tick. To improve compatibility with the WHATWG standard, the default value
-    is `false`. Setting it to `true` improves performance slightly.
+    tick. Defaults to `true`. Setting it to `false` improves compatibility with
+    the WHATWG standardbut may negatively impact performance.
   - `finishRequest` {Function} A function which can be used to customize the
     headers of each HTTP request before it is sent. See description below.
   - `followRedirects` {Boolean} Whether or not to follow redirects. Defaults to
