@@ -4234,8 +4234,7 @@ describe('WebSocket', () => {
 
               if (messages.push(message.toString()) > 1) return;
 
-              // `queueMicrotask()` is not available in Node.js < 11.
-              Promise.resolve().then(() => {
+              setImmediate(() => {
                 process.nextTick(() => {
                   assert.strictEqual(ws._receiver._state, 5);
                   ws.close(1000);
@@ -4485,8 +4484,7 @@ describe('WebSocket', () => {
 
               if (messages.push(message.toString()) > 1) return;
 
-              // `queueMicrotask()` is not available in Node.js < 11.
-              Promise.resolve().then(() => {
+              setImmediate(() => {
                 process.nextTick(() => {
                   assert.strictEqual(ws._receiver._state, 5);
                   ws.terminate();

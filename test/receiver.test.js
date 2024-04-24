@@ -1085,17 +1085,21 @@ describe('Receiver', () => {
     receiver.write(Buffer.from([0x88, 0x03, 0x03, 0xe8, 0xf8]));
   });
 
-  it('emits at most one event per microtask', (done) => {
+  it('emits at most one event per event loop iteration', (done) => {
     const actual = [];
     const expected = [
       '1',
-      'microtask 1',
+      '- 1',
+      '-- 1',
       '2',
-      'microtask 2',
+      '- 2',
+      '-- 2',
       '3',
-      'microtask 3',
+      '- 3',
+      '-- 3',
       '4',
-      'microtask 4'
+      '- 4',
+      '-- 4'
     ];
 
     function listener(data) {
@@ -1104,12 +1108,16 @@ describe('Receiver', () => {
 
       // `queueMicrotask()` is not available in Node.js < 11.
       Promise.resolve().then(() => {
-        actual.push(`microtask ${message}`);
+        actual.push(`- ${message}`);
 
-        if (actual.length === 8) {
-          assert.deepStrictEqual(actual, expected);
-          done();
-        }
+        Promise.resolve().then(() => {
+          actual.push(`-- ${message}`);
+
+          if (actual.length === 12) {
+            assert.deepStrictEqual(actual, expected);
+            done();
+          }
+        });
       });
     }
 
