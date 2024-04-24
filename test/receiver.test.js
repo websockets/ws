@@ -443,7 +443,7 @@ describe('Receiver', () => {
       buf[i + 1] = 0x00;
     }
 
-    const receiver = new Receiver({ allowSynchronousEvents: true });
+    const receiver = new Receiver();
     let counter = 0;
 
     receiver.on('message', (data, isBinary) => {
@@ -1085,7 +1085,7 @@ describe('Receiver', () => {
     receiver.write(Buffer.from([0x88, 0x03, 0x03, 0xe8, 0xf8]));
   });
 
-  it('emits at most one event per event loop iteration', (done) => {
+  it('honors the `allowSynchronousEvents` option', (done) => {
     const actual = [];
     const expected = [
       '1',
@@ -1121,7 +1121,7 @@ describe('Receiver', () => {
       });
     }
 
-    const receiver = new Receiver();
+    const receiver = new Receiver({ allowSynchronousEvents: false });
 
     receiver.on('message', listener);
     receiver.on('ping', listener);
@@ -1156,43 +1156,8 @@ describe('Receiver', () => {
       done();
     });
 
-    receiver.write(Buffer.from('82008200', 'hex'));
-  });
-
-  it('honors the `allowSynchronousEvents` option', (done) => {
-    const actual = [];
-    const expected = [
-      '1',
-      '2',
-      '3',
-      '4',
-      'microtask 1',
-      'microtask 2',
-      'microtask 3',
-      'microtask 4'
-    ];
-
-    function listener(data) {
-      const message = data.toString();
-      actual.push(message);
-
-      // `queueMicrotask()` is not available in Node.js < 11.
-      Promise.resolve().then(() => {
-        actual.push(`microtask ${message}`);
-
-        if (actual.length === 8) {
-          assert.deepStrictEqual(actual, expected);
-          done();
-        }
-      });
-    }
-
-    const receiver = new Receiver({ allowSynchronousEvents: true });
-
-    receiver.on('message', listener);
-    receiver.on('ping', listener);
-    receiver.on('pong', listener);
-
-    receiver.write(Buffer.from('8101318901328a0133810134', 'hex'));
+    setImmediate(() => {
+      receiver.write(Buffer.from('82008200', 'hex'));
+    });
   });
 });
