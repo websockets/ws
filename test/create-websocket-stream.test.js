@@ -604,7 +604,7 @@ describe('createWebSocketStream', () => {
       });
 
       wss.on('connection', (ws) => {
-        ws.send(randomBytes(16 * 1024));
+        ws.send(randomBytes(highWaterMark));
       });
     });
   });
