@@ -1,0 +1,271 @@
+{
+   "agent": "ws@8.17.0",
+   "behavior": "INFORMATIONAL",
+   "behaviorClose": "INFORMATIONAL",
+   "case": 215,
+   "closedByMe": true,
+   "createStats": true,
+   "createWirelog": true,
+   "description": "Send 256K message followed by close then a ping",
+   "droppedByMe": true,
+   "duration": 10,
+   "expectation": "Case outcome depends on implementation defined close behavior. Message and close frame are sent back to back. If the close frame is processed before the text message write is complete (as can happen in asynchronous processing models) the close frame is processed first and the text message may not be received or may only be partially recieved.",
+   "expected": {
+      "NON-STRICT": [],
+      "OK": [
+         [
+            "message",
+            "Hello World!",
+            false
+         ]
+      ]
+   },
+   "expectedClose": {
+      "closeCode": [
+         1000
+      ],
+      "closedByMe": true,
+      "requireClean": true
+   },
+   "failedByMe": false,
+   "httpRequest": "GET /runCase?case=215&agent=ws@8.17.0 HTTP/1.1\r\nSec-WebSocket-Version: 13\r\nSec-WebSocket-Key: 1uBSXA1oqbhjuZtZxnwNUQ==\r\nConnection: Upgrade\r\nUpgrade: websocket\r\nSec-WebSocket-Extensions: permessage-deflate; client_max_window_bits\r\nHost: localhost:9001\r\n\r\n",
+   "httpResponse": "HTTP/1.1 101 Switching Protocols\r\nServer: AutobahnTestSuite/0.8.2-0.10.9\r\nX-Powered-By: AutobahnPython/0.10.9\r\nUpgrade: WebSocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: jVm24pkblmx6Vb7ir5Sx+LoVHYQ=\r\n\r\n",
+   "id": "7.1.6",
+   "isServer": true,
+   "localCloseCode": 1000,
+   "localCloseReason": null,
+   "received": [
+      [
+         "message",
+         "BAsd7&jh23BAsd7&jh23BAsd7&jh23BAsd7&jh23BAsd7&jh23BAsd7&jh23BAsd ...",
+         false
+      ],
+      [
+         "message",
+         "Hello World!",
+         false
+      ]
+   ],
+   "remoteCloseCode": 1000,
+   "remoteCloseReason": null,
+   "reportCompressionRatio": false,
+   "reportTime": false,
+   "result": "Actual events differ from any expected.",
+   "resultClose": "Connection was properly closed",
+   "rxFrameStats": {
+      "1": 2,
+      "8": 1
+   },
+   "rxOctetStats": {
+      "255": 1,
+      "32768": 3,
+      "32808": 1,
+      "65536": 2
+   },
+   "started": "2024-05-17T17:43:00.014Z",
+   "trafficStats": null,
+   "txFrameStats": {
+      "1": 2,
+      "8": 1,
+      "9": 1
+   },
+   "txOctetStats": {
+      "2": 1,
+      "4": 1,
+      "14": 1,
+      "206": 1,
+      "262154": 1
+   },
+   "wasClean": true,
+   "wasCloseHandshakeTimeout": false,
+   "wasNotCleanReason": null,
+   "wasOpenHandshakeTimeout": false,
+   "wasServerConnectionDropTimeout": false,
+   "wirelog": [
+      [
+         "RO",
+         [
+            255,
+            "474554202f72756e436173653f636173653d323135266167656e743d777340382e31372e3020485454502f312e310d0a5365632d576562536f636b65742d5665 ..."
+         ]
+      ],
+      [
+         "TO",
+         [
+            206,
+            "485454502f312e312031303120537769746368696e672050726f746f636f6c730d0a5365727665723a204175746f6261686e5465737453756974652f302e382e ..."
+         ],
+         false
+      ],
+      [
+         "TF",
+         [
+            10,
+            "BAsd7&jh23"
+         ],
+         1,
+         true,
+         0,
+         null,
+         262144,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            262154,
+            "817f00000000000400004241736437266a6832334241736437266a6832334241736437266a6832334241736437266a6832334241736437266a68323342417364 ..."
+         ],
+         false
+      ],
+      [
+         "TF",
+         [
+            12,
+            "Hello World!"
+         ],
+         1,
+         true,
+         0,
+         null,
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            14,
+            "810c48656c6c6f20576f726c6421"
+         ],
+         false
+      ],
+      [
+         "TF",
+         [
+            2,
+            "0x03e8"
+         ],
+         8,
+         true,
+         0,
+         null,
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            4,
+            "880203e8"
+         ],
+         false
+      ],
+      [
+         "TF",
+         [
+            0,
+            ""
+         ],
+         9,
+         true,
+         0,
+         null,
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            2,
+            "8900"
+         ],
+         false
+      ],
+      [
+         "KL",
+         1
+      ],
+      [
+         "RO",
+         [
+            32768,
+            "81ff0000000000040000ccf93c2e8eb84f4afbdf5646feca7e6fbf9d0b08a6910e1d8eb84f4afbdf5646feca7e6fbf9d0b08a6910e1d8eb84f4afbdf5646feca ..."
+         ]
+      ],
+      [
+         "RO",
+         [
+            32768,
+            "0b08a6910e1d8eb84f4afbdf5646feca7e6fbf9d0b08a6910e1d8eb84f4afbdf5646feca7e6fbf9d0b08a6910e1d8eb84f4afbdf5646feca7e6fbf9d0b08a691 ..."
+         ]
+      ],
+      [
+         "RO",
+         [
+            32768,
+            "4f4afbdf5646feca7e6fbf9d0b08a6910e1d8eb84f4afbdf5646feca7e6fbf9d0b08a6910e1d8eb84f4afbdf5646feca7e6fbf9d0b08a6910e1d8eb84f4afbdf ..."
+         ]
+      ],
+      [
+         "RO",
+         [
+            65536,
+            "7e6fbf9d0b08a6910e1d8eb84f4afbdf5646feca7e6fbf9d0b08a6910e1d8eb84f4afbdf5646feca7e6fbf9d0b08a6910e1d8eb84f4afbdf5646feca7e6fbf9d ..."
+         ]
+      ],
+      [
+         "RO",
+         [
+            65536,
+            "5646feca7e6fbf9d0b08a6910e1d8eb84f4afbdf5646feca7e6fbf9d0b08a6910e1d8eb84f4afbdf5646feca7e6fbf9d0b08a6910e1d8eb84f4afbdf5646feca ..."
+         ]
+      ],
+      [
+         "RO",
+         [
+            32808,
+            "4f4afbdf5646feca7e6fbf9d0b08a6910e1d8eb84f4afbdf5646feca7e6fbf9d0b08a6910e1d8eb84f4afbdf5646feca7e6fbf9d0b08a6910e1d8eb84f4afbdf ..."
+         ]
+      ],
+      [
+         "RF",
+         [
+            262144,
+            "BAsd7&jh23BAsd7&jh23BAsd7&jh23BAsd7&jh23BAsd7&jh23BAsd7&jh23BAsd ..."
+         ],
+         1,
+         true,
+         0,
+         true,
+         "ccf93c2e"
+      ],
+      [
+         "RF",
+         [
+            12,
+            "Hello World!"
+         ],
+         1,
+         true,
+         0,
+         true,
+         "93ce1c0e"
+      ],
+      [
+         "RF",
+         [
+            2,
+            "0x03e8"
+         ],
+         8,
+         true,
+         0,
+         true,
+         "2beefc70"
+      ]
+   ]
+}

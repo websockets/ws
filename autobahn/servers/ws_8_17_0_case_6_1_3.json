@@ -1,0 +1,223 @@
+{
+   "agent": "ws@8.17.0",
+   "behavior": "OK",
+   "behaviorClose": "OK",
+   "case": 67,
+   "closedByMe": true,
+   "createStats": true,
+   "createWirelog": true,
+   "description": "Send fragmented text message, 3 fragments, first and last of length 0, middle non-empty.",
+   "droppedByMe": false,
+   "duration": 3,
+   "expectation": "A message is echo'ed back to us (with payload = payload of middle fragment).",
+   "expected": {
+      "OK": [
+         [
+            "message",
+            "middle frame payload",
+            false
+         ]
+      ]
+   },
+   "expectedClose": {
+      "closeCode": [
+         1000
+      ],
+      "closedByMe": true,
+      "requireClean": true
+   },
+   "failedByMe": false,
+   "httpRequest": "GET / HTTP/1.1\r\nUser-Agent: AutobahnTestSuite/0.8.2-0.10.9\r\nHost: 192.168.0.103:9002\r\nUpgrade: WebSocket\r\nConnection: Upgrade\r\nPragma: no-cache\r\nCache-Control: no-cache\r\nSec-WebSocket-Key: tNeFwiokHfk9C2LmniovBA==\r\nSec-WebSocket-Version: 13\r\n\r\n",
+   "httpResponse": "HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: ztZTsNT2JC23Ckq5C0DRBd49rZE=\r\n\r\n",
+   "id": "6.1.3",
+   "isServer": false,
+   "localCloseCode": 1000,
+   "localCloseReason": null,
+   "received": [
+      [
+         "message",
+         "middle frame payload",
+         false
+      ]
+   ],
+   "remoteCloseCode": 1000,
+   "remoteCloseReason": null,
+   "reportCompressionRatio": false,
+   "reportTime": false,
+   "result": "Actual events match at least one expected.",
+   "resultClose": "Connection was properly closed",
+   "rxFrameStats": {
+      "1": 1,
+      "8": 1
+   },
+   "rxOctetStats": {
+      "4": 1,
+      "22": 1,
+      "129": 1
+   },
+   "started": "2024-05-17T18:00:14.675Z",
+   "trafficStats": null,
+   "txFrameStats": {
+      "0": 2,
+      "1": 1,
+      "8": 1
+   },
+   "txOctetStats": {
+      "6": 2,
+      "8": 1,
+      "26": 1,
+      "244": 1
+   },
+   "wasClean": true,
+   "wasCloseHandshakeTimeout": false,
+   "wasNotCleanReason": null,
+   "wasOpenHandshakeTimeout": false,
+   "wasServerConnectionDropTimeout": false,
+   "wirelog": [
+      [
+         "TO",
+         [
+            244,
+            "474554202f20485454502f312e310d0a557365722d4167656e743a204175746f6261686e5465737453756974652f302e382e322d302e31302e390d0a486f7374 ..."
+         ],
+         false
+      ],
+      [
+         "RO",
+         [
+            129,
+            "485454502f312e312031303120537769746368696e672050726f746f636f6c730d0a557067726164653a20776562736f636b65740d0a436f6e6e656374696f6e ..."
+         ]
+      ],
+      [
+         "TF",
+         [
+            0,
+            ""
+         ],
+         1,
+         false,
+         0,
+         "2659317f",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            6,
+            "01802659317f"
+         ],
+         false
+      ],
+      [
+         "TF",
+         [
+            20,
+            "middle frame payload"
+         ],
+         0,
+         false,
+         0,
+         "0c4f8219",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            26,
+            "00940c4f82196126e67d602aa27f7e2eef7c2c3fe3606020e37d"
+         ],
+         false
+      ],
+      [
+         "TF",
+         [
+            0,
+            ""
+         ],
+         0,
+         true,
+         0,
+         "cf1575e4",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            6,
+            "8080cf1575e4"
+         ],
+         false
+      ],
+      [
+         "TI",
+         1
+      ],
+      [
+         "RO",
+         [
+            22,
+            "81146d6964646c65206672616d65207061796c6f6164"
+         ]
+      ],
+      [
+         "RF",
+         [
+            20,
+            "middle frame payload"
+         ],
+         1,
+         true,
+         0,
+         false,
+         null
+      ],
+      [
+         "TF",
+         [
+            2,
+            "0x03e8"
+         ],
+         8,
+         true,
+         0,
+         "6861aa9d",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            8,
+            "88826861aa9d6b89"
+         ],
+         false
+      ],
+      [
+         "RO",
+         [
+            4,
+            "880203e8"
+         ]
+      ],
+      [
+         "RF",
+         [
+            2,
+            "0x03e8"
+         ],
+         8,
+         true,
+         0,
+         false,
+         null
+      ]
+   ]
+}

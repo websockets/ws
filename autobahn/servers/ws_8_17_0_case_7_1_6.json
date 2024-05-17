@@ -1,0 +1,271 @@
+{
+   "agent": "ws@8.17.0",
+   "behavior": "INFORMATIONAL",
+   "behaviorClose": "INFORMATIONAL",
+   "case": 215,
+   "closedByMe": true,
+   "createStats": true,
+   "createWirelog": true,
+   "description": "Send 256K message followed by close then a ping",
+   "droppedByMe": false,
+   "duration": 11,
+   "expectation": "Case outcome depends on implementation defined close behavior. Message and close frame are sent back to back. If the close frame is processed before the text message write is complete (as can happen in asynchronous processing models) the close frame is processed first and the text message may not be received or may only be partially recieved.",
+   "expected": {
+      "NON-STRICT": [],
+      "OK": [
+         [
+            "message",
+            "Hello World!",
+            false
+         ]
+      ]
+   },
+   "expectedClose": {
+      "closeCode": [
+         1000
+      ],
+      "closedByMe": true,
+      "requireClean": true
+   },
+   "failedByMe": false,
+   "httpRequest": "GET / HTTP/1.1\r\nUser-Agent: AutobahnTestSuite/0.8.2-0.10.9\r\nHost: 192.168.0.103:9002\r\nUpgrade: WebSocket\r\nConnection: Upgrade\r\nPragma: no-cache\r\nCache-Control: no-cache\r\nSec-WebSocket-Key: gya/FqM4oNLcBoANxHoN4g==\r\nSec-WebSocket-Version: 13\r\n\r\n",
+   "httpResponse": "HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: UiwgGQTgGiJwrK1qQFjhOgQkax8=\r\n\r\n",
+   "id": "7.1.6",
+   "isServer": false,
+   "localCloseCode": 1000,
+   "localCloseReason": null,
+   "received": [
+      [
+         "message",
+         "BAsd7&jh23BAsd7&jh23BAsd7&jh23BAsd7&jh23BAsd7&jh23BAsd7&jh23BAsd ...",
+         false
+      ],
+      [
+         "message",
+         "Hello World!",
+         false
+      ]
+   ],
+   "remoteCloseCode": 1000,
+   "remoteCloseReason": null,
+   "reportCompressionRatio": false,
+   "reportTime": false,
+   "result": "Actual events differ from any expected.",
+   "resultClose": "Connection was properly closed",
+   "rxFrameStats": {
+      "1": 2,
+      "8": 1
+   },
+   "rxOctetStats": {
+      "129": 1,
+      "32768": 3,
+      "32796": 1,
+      "65536": 2
+   },
+   "started": "2024-05-17T18:00:23.385Z",
+   "trafficStats": null,
+   "txFrameStats": {
+      "1": 2,
+      "8": 1,
+      "9": 1
+   },
+   "txOctetStats": {
+      "6": 1,
+      "8": 1,
+      "18": 1,
+      "244": 1,
+      "262158": 1
+   },
+   "wasClean": true,
+   "wasCloseHandshakeTimeout": false,
+   "wasNotCleanReason": null,
+   "wasOpenHandshakeTimeout": false,
+   "wasServerConnectionDropTimeout": false,
+   "wirelog": [
+      [
+         "TO",
+         [
+            244,
+            "474554202f20485454502f312e310d0a557365722d4167656e743a204175746f6261686e5465737453756974652f302e382e322d302e31302e390d0a486f7374 ..."
+         ],
+         false
+      ],
+      [
+         "RO",
+         [
+            129,
+            "485454502f312e312031303120537769746368696e672050726f746f636f6c730d0a557067726164653a20776562736f636b65740d0a436f6e6e656374696f6e ..."
+         ]
+      ],
+      [
+         "TF",
+         [
+            10,
+            "BAsd7&jh23"
+         ],
+         1,
+         true,
+         0,
+         "0bf9f7de",
+         262144,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            262158,
+            "81ff00000000000400000bf9f7de49b884ba3cdf9db639cab59f789dc0f86191c5ed49b884ba3cdf9db639cab59f789dc0f86191c5ed49b884ba3cdf9db639ca ..."
+         ],
+         false
+      ],
+      [
+         "TF",
+         [
+            12,
+            "Hello World!"
+         ],
+         1,
+         true,
+         0,
+         "aaa1f26d",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            18,
+            "818caaa1f26de2c49e01c581a502d8cd964c"
+         ],
+         false
+      ],
+      [
+         "TF",
+         [
+            2,
+            "0x03e8"
+         ],
+         8,
+         true,
+         0,
+         "a2b4b02c",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            8,
+            "8882a2b4b02ca15c"
+         ],
+         false
+      ],
+      [
+         "TF",
+         [
+            0,
+            ""
+         ],
+         9,
+         true,
+         0,
+         "d60ec123",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            6,
+            "8980d60ec123"
+         ],
+         false
+      ],
+      [
+         "KL",
+         1
+      ],
+      [
+         "RO",
+         [
+            32768,
+            "817f00000000000400004241736437266a6832334241736437266a6832334241736437266a6832334241736437266a6832334241736437266a68323342417364 ..."
+         ]
+      ],
+      [
+         "RO",
+         [
+            32768,
+            "32334241736437266a6832334241736437266a6832334241736437266a6832334241736437266a6832334241736437266a6832334241736437266a6832334241 ..."
+         ]
+      ],
+      [
+         "RO",
+         [
+            32768,
+            "6a6832334241736437266a6832334241736437266a6832334241736437266a6832334241736437266a6832334241736437266a6832334241736437266a683233 ..."
+         ]
+      ],
+      [
+         "RO",
+         [
+            65536,
+            "37266a6832334241736437266a6832334241736437266a6832334241736437266a6832334241736437266a6832334241736437266a6832334241736437266a68 ..."
+         ]
+      ],
+      [
+         "RO",
+         [
+            65536,
+            "4241736437266a6832334241736437266a6832334241736437266a6832334241736437266a6832334241736437266a6832334241736437266a68323342417364 ..."
+         ]
+      ],
+      [
+         "RO",
+         [
+            32796,
+            "6a6832334241736437266a6832334241736437266a6832334241736437266a6832334241736437266a6832334241736437266a6832334241736437266a683233 ..."
+         ]
+      ],
+      [
+         "RF",
+         [
+            262144,
+            "BAsd7&jh23BAsd7&jh23BAsd7&jh23BAsd7&jh23BAsd7&jh23BAsd7&jh23BAsd ..."
+         ],
+         1,
+         true,
+         0,
+         false,
+         null
+      ],
+      [
+         "RF",
+         [
+            12,
+            "Hello World!"
+         ],
+         1,
+         true,
+         0,
+         false,
+         null
+      ],
+      [
+         "RF",
+         [
+            2,
+            "0x03e8"
+         ],
+         8,
+         true,
+         0,
+         false,
+         null
+      ]
+   ]
+}

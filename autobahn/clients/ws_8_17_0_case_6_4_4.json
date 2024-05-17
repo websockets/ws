@@ -1,0 +1,222 @@
+{
+   "agent": "ws@8.17.0",
+   "behavior": "NON-STRICT",
+   "behaviorClose": "OK",
+   "case": 77,
+   "closedByMe": false,
+   "createStats": true,
+   "createWirelog": true,
+   "description": "Same as Case 6.4.2, but we send message not in 3 frames, but in 3 chops of the same message frame.\n<br><br>MESSAGE PARTS:<br>\nPART1 = cebae1bdb9cf83cebcceb5f4<br>\nPART2 = 90<br>\nPART3 = <br>\n",
+   "droppedByMe": true,
+   "duration": 2006,
+   "expectation": "The first chop is accepted, we expect to timeout on the first wait. The 2nd chop should be rejected immediately (fail fast on UTF-8). If we timeout, we expect the connection is failed at least then, since the complete message payload is not valid UTF-8.",
+   "expected": {
+      "NON-STRICT": [
+         [
+            "timeout",
+            "A"
+         ],
+         [
+            "timeout",
+            "B"
+         ]
+      ],
+      "OK": [
+         [
+            "timeout",
+            "A"
+         ]
+      ]
+   },
+   "expectedClose": {
+      "closeCode": [
+         1007
+      ],
+      "closedByMe": false,
+      "closedByWrongEndpointIsFatal": true,
+      "requireClean": false
+   },
+   "failedByMe": false,
+   "httpRequest": "GET /runCase?case=77&agent=ws@8.17.0 HTTP/1.1\r\nSec-WebSocket-Version: 13\r\nSec-WebSocket-Key: cD9+Jn5OMk6jeuUNDEO8Dw==\r\nConnection: Upgrade\r\nUpgrade: websocket\r\nSec-WebSocket-Extensions: permessage-deflate; client_max_window_bits\r\nHost: localhost:9001\r\n\r\n",
+   "httpResponse": "HTTP/1.1 101 Switching Protocols\r\nServer: AutobahnTestSuite/0.8.2-0.10.9\r\nX-Powered-By: AutobahnPython/0.10.9\r\nUpgrade: WebSocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: 7lzo6Myc7un/wZsN2zeyn84pySQ=\r\n\r\n",
+   "id": "6.4.4",
+   "isServer": true,
+   "localCloseCode": 1000,
+   "localCloseReason": null,
+   "received": [
+      [
+         "timeout",
+         "A"
+      ],
+      [
+         "timeout",
+         "B"
+      ]
+   ],
+   "remoteCloseCode": 1007,
+   "remoteCloseReason": null,
+   "reportCompressionRatio": false,
+   "reportTime": false,
+   "result": "Actual events match at least one expected.",
+   "resultClose": "Connection was properly closed",
+   "rxFrameStats": {
+      "8": 1
+   },
+   "rxOctetStats": {
+      "8": 1,
+      "254": 1
+   },
+   "started": "2024-05-17T17:42:57.363Z",
+   "trafficStats": null,
+   "txFrameStats": {
+      "0": 1,
+      "8": 1
+   },
+   "txOctetStats": {
+      "1": 1,
+      "2": 2,
+      "4": 1,
+      "8": 1,
+      "12": 1,
+      "206": 1
+   },
+   "wasClean": true,
+   "wasCloseHandshakeTimeout": false,
+   "wasNotCleanReason": null,
+   "wasOpenHandshakeTimeout": false,
+   "wasServerConnectionDropTimeout": false,
+   "wirelog": [
+      [
+         "RO",
+         [
+            254,
+            "474554202f72756e436173653f636173653d3737266167656e743d777340382e31372e3020485454502f312e310d0a5365632d576562536f636b65742d566572 ..."
+         ]
+      ],
+      [
+         "TO",
+         [
+            206,
+            "485454502f312e312031303120537769746368696e672050726f746f636f6c730d0a5365727665723a204175746f6261686e5465737453756974652f302e382e ..."
+         ],
+         false
+      ],
+      [
+         "TO",
+         [
+            2,
+            "0115"
+         ],
+         false
+      ],
+      [
+         "TO",
+         [
+            12,
+            "cebae1bdb9cf83cebcceb5f4"
+         ],
+         false
+      ],
+      [
+         "CT",
+         1,
+         "A"
+      ],
+      [
+         "CTE",
+         "A"
+      ],
+      [
+         "TO",
+         [
+            1,
+            "90"
+         ],
+         false
+      ],
+      [
+         "CT",
+         1,
+         "B"
+      ],
+      [
+         "CTE",
+         "B"
+      ],
+      [
+         "TO",
+         [
+            8,
+            "8080656469746564"
+         ],
+         false
+      ],
+      [
+         "TF",
+         [
+            0,
+            ""
+         ],
+         0,
+         true,
+         0,
+         null,
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            2,
+            "8000"
+         ],
+         false
+      ],
+      [
+         "KL",
+         1
+      ],
+      [
+         "RO",
+         [
+            8,
+            "8882351f5a2136f0"
+         ]
+      ],
+      [
+         "RF",
+         [
+            2,
+            "0x03ef"
+         ],
+         8,
+         true,
+         0,
+         true,
+         "351f5a21"
+      ],
+      [
+         "TF",
+         [
+            2,
+            "0x03e8"
+         ],
+         8,
+         true,
+         0,
+         null,
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            4,
+            "880203e8"
+         ],
+         false
+      ]
+   ]
+}
