@@ -630,6 +630,7 @@ given `WebSocket` which emits the following events:
 - `end`
 - `close`
 - `error`
+- `readable`
 - `data`
 - `drain`
 - `timeout`
