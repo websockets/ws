@@ -5,7 +5,7 @@ const assert = require('assert');
 const extension = require('../lib/extension');
 const PerMessageDeflate = require('../lib/permessage-deflate');
 const Sender = require('../lib/sender');
-const { EMPTY_BUFFER } = require('../lib/constants');
+const { EMPTY_BUFFER, hasBlob } = require('../lib/constants');
 
 class MockSocket {
   constructor({ write } = {}) {
@@ -250,17 +250,15 @@ describe('Sender', () => {
   });
 
   describe('#ping', () => {
-    it('works with multiple types of data', (done) => {
+    it('can send a string as ping payload', (done) => {
       const perMessageDeflate = new PerMessageDeflate();
       let count = 0;
       const mockSocket = new MockSocket({
         write: (data) => {
           if (++count < 3) return;
 
-          if (count % 2) {
-            assert.ok(data.equals(Buffer.from([0x89, 0x02])));
-          } else if (count < 8) {
-            assert.ok(data.equals(Buffer.from([0x68, 0x69])));
+          if (count === 3) {
+            assert.deepStrictEqual(data, Buffer.from([0x89, 0x02]));
           } else {
             assert.strictEqual(data, 'hi');
             done();
@@ -273,27 +271,81 @@ describe('Sender', () => {
 
       perMessageDeflate.accept([{}]);
 
+      sender.send('foo', { compress: true, fin: true });
+      sender.ping('hi', false);
+    });
+
+    it('can send a `TypedArray` as ping payload', (done) => {
+      let count = 0;
+      const mockSocket = new MockSocket({
+        write: (data) => {
+          if (++count === 1) {
+            assert.deepStrictEqual(data, Buffer.from([0x89, 0x02]));
+          } else {
+            assert.deepStrictEqual(data, Buffer.from([0x68, 0x69]));
+            done();
+          }
+        }
+      });
+
+      const sender = new Sender(mockSocket);
       const array = new Uint8Array([0x68, 0x69]);
 
-      sender.send('foo', { compress: true, fin: true });
-      sender.ping(array.buffer, false);
       sender.ping(array, false);
-      sender.ping('hi', false);
+    });
+
+    it('can send an `ArrayBuffer` as ping payload', (done) => {
+      let count = 0;
+      const mockSocket = new MockSocket({
+        write: (data) => {
+          if (++count === 1) {
+            assert.deepStrictEqual(data, Buffer.from([0x89, 0x02]));
+          } else {
+            assert.deepStrictEqual(data, Buffer.from([0x68, 0x69]));
+            done();
+          }
+        }
+      });
+
+      const sender = new Sender(mockSocket);
+      const array = new Uint8Array([0x68, 0x69]);
+
+      sender.ping(array.buffer, false);
+    });
+
+    it('can send a `Blob` as ping payload', function (done) {
+      if (!hasBlob) return this.skip();
+
+      let count = 0;
+      const mockSocket = new MockSocket({
+        write: (data) => {
+          if (++count % 2) {
+            assert.deepStrictEqual(data, Buffer.from([0x89, 0x02]));
+          } else {
+            assert.deepStrictEqual(data, Buffer.from([0x68, 0x69]));
+            if (count === 4) done();
+          }
+        }
+      });
+
+      const sender = new Sender(mockSocket);
+      const blob = new Blob(['hi']);
+
+      sender.ping(blob, false);
+      sender.ping(blob, false);
     });
   });
 
   describe('#pong', () => {
-    it('works with multiple types of data', (done) => {
+    it('can send a string as ping payload', (done) => {
       const perMessageDeflate = new PerMessageDeflate();
       let count = 0;
       const mockSocket = new MockSocket({
         write: (data) => {
           if (++count < 3) return;
 
-          if (count % 2) {
-            assert.ok(data.equals(Buffer.from([0x8a, 0x02])));
-          } else if (count < 8) {
-            assert.ok(data.equals(Buffer.from([0x68, 0x69])));
+          if (count === 3) {
+            assert.deepStrictEqual(data, Buffer.from([0x8a, 0x02]));
           } else {
             assert.strictEqual(data, 'hi');
             done();
@@ -306,12 +358,68 @@ describe('Sender', () => {
 
       perMessageDeflate.accept([{}]);
 
+      sender.send('foo', { compress: true, fin: true });
+      sender.pong('hi', false);
+    });
+
+    it('can send a `TypedArray` as ping payload', (done) => {
+      let count = 0;
+      const mockSocket = new MockSocket({
+        write: (data) => {
+          if (++count === 1) {
+            assert.deepStrictEqual(data, Buffer.from([0x8a, 0x02]));
+          } else {
+            assert.deepStrictEqual(data, Buffer.from([0x68, 0x69]));
+            done();
+          }
+        }
+      });
+
+      const sender = new Sender(mockSocket);
       const array = new Uint8Array([0x68, 0x69]);
 
-      sender.send('foo', { compress: true, fin: true });
-      sender.pong(array.buffer, false);
       sender.pong(array, false);
-      sender.pong('hi', false);
+    });
+
+    it('can send an `ArrayBuffer` as ping payload', (done) => {
+      let count = 0;
+      const mockSocket = new MockSocket({
+        write: (data) => {
+          if (++count === 1) {
+            assert.deepStrictEqual(data, Buffer.from([0x8a, 0x02]));
+          } else {
+            assert.deepStrictEqual(data, Buffer.from([0x68, 0x69]));
+            done();
+          }
+        }
+      });
+
+      const sender = new Sender(mockSocket);
+      const array = new Uint8Array([0x68, 0x69]);
+
+      sender.pong(array.buffer, false);
+    });
+
+    it('can send a `Blob` as ping payload', function (done) {
+      if (!hasBlob) return this.skip();
+
+      let count = 0;
+      const mockSocket = new MockSocket({
+        write: (data) => {
+          if (++count % 2) {
+            assert.deepStrictEqual(data, Buffer.from([0x8a, 0x02]));
+          } else {
+            assert.deepStrictEqual(data, Buffer.from([0x68, 0x69]));
+            if (count === 4) done();
+          }
+        }
+      });
+
+      const sender = new Sender(mockSocket);
+      const blob = new Blob(['hi']);
+
+      sender.pong(blob, false);
+      sender.pong(blob, false);
     });
   });
 

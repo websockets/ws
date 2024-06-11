@@ -466,10 +466,11 @@ does nothing if `type` is not one of `'close'`, `'error'`, `'message'`, or
 - {String}
 
 A string indicating the type of binary data being transmitted by the connection.
-This should be one of "nodebuffer", "arraybuffer" or "fragments". Defaults to
-"nodebuffer". Type "fragments" will emit the array of fragments as received from
-the sender, without copyfull concatenation, which is useful for the performance
-of binary protocols transferring large messages with multiple fragments.
+This should be one of "nodebuffer", "arraybuffer", "blob", or "fragments".
+Defaults to "nodebuffer". Type "fragments" will emit the array of fragments as
+received from the sender, without copyfull concatenation, which is useful for
+the performance of binary protocols transferring large messages with multiple
+fragments.
 
 ### websocket.bufferedAmount
 
@@ -538,7 +539,8 @@ is a noop if the ready state is `CONNECTING` or `CLOSED`.
 
 ### websocket.ping([data[, mask]][, callback])
 
-- `data` {Array|Number|Object|String|ArrayBuffer|Buffer|DataView|TypedArray} The
+- `data`
+  {Array|Number|Object|String|ArrayBuffer|Buffer|DataView|TypedArray|Blob} The
   data to send in the ping frame.
 - `mask` {Boolean} Specifies whether `data` should be masked or not. Defaults to
   `true` when `websocket` is not a server client.
@@ -550,7 +552,8 @@ Send a ping. This method throws an error if the ready state is `CONNECTING`.
 
 ### websocket.pong([data[, mask]][, callback])
 
-- `data` {Array|Number|Object|String|ArrayBuffer|Buffer|DataView|TypedArray} The
+- `data`
+  {Array|Number|Object|String|ArrayBuffer|Buffer|DataView|TypedArray|Blob} The
   data to send in the pong frame.
 - `mask` {Boolean} Specifies whether `data` should be masked or not. Defaults to
   `true` when `websocket` is not a server client.
@@ -588,7 +591,8 @@ only removes listeners added with
 
 ### websocket.send(data[, options][, callback])
 
-- `data` {Array|Number|Object|String|ArrayBuffer|Buffer|DataView|TypedArray} The
+- `data`
+  {Array|Number|Object|String|ArrayBuffer|Buffer|DataView|TypedArray|Blob} The
   data to send. `Object` values are only supported if they conform to the
   requirements of [`Buffer.from()`][]. If those constraints are not met, a
   `TypeError` is thrown.
