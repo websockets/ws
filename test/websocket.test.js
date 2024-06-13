@@ -4423,6 +4423,7 @@ describe('WebSocket', () => {
                   'The socket was closed while data was being compressed'
                 );
               });
+              ws.close();
             });
           }
         );

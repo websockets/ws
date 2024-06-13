@@ -1127,7 +1127,7 @@ describe('Receiver', () => {
     receiver.on('ping', listener);
     receiver.on('pong', listener);
 
-    receiver.write(Buffer.from('8101318901328a0133810134', 'hex'));
+    receiver.write(Buffer.from('8101318901328a0133820134', 'hex'));
   });
 
   it('does not swallow errors thrown from event handlers', (done) => {
