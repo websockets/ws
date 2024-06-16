@@ -34,7 +34,7 @@ will create and publish a security advisory to
 - 04 Jan 2016:
   [Buffer vulnerability](https://github.com/websockets/ws/releases/tag/1.0.1)
 - 08 Nov 2017:
-  [DoS vulnerability](https://github.com/websockets/ws/releases/tag/3.3.1)
+  [DoS in the `Sec-Websocket-Extensions` header parser](https://github.com/websockets/ws/releases/tag/3.3.1)
 - 25 May 2021:
   [ReDoS in `Sec-Websocket-Protocol` header](https://github.com/websockets/ws/releases/tag/7.4.6)
 - 16 Jun 2024:
