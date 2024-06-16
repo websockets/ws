@@ -37,3 +37,5 @@ will create and publish a security advisory to
   [DoS vulnerability](https://github.com/websockets/ws/releases/tag/3.3.1)
 - 25 May 2021:
   [ReDoS in `Sec-Websocket-Protocol` header](https://github.com/websockets/ws/releases/tag/7.4.6)
+- 16 Jun 2024:
+  [DoS when handling a request with many HTTP headers](https://github.com/websockets/ws/releases/tag/8.17.1)
