@@ -528,6 +528,32 @@ describe('WebSocket', () => {
     beforeEach((done) => server.listen(0, done));
     afterEach((done) => server.close(done));
 
+    it('fails if the Upgrade header field value cannot be read', (done) => {
+      server.once('upgrade', (req, socket) => {
+        socket.on('end', socket.end);
+        socket.write(
+          'HTTP/1.1 101 Switching Protocols\r\n' +
+            'Connection: Upgrade\r\n' +
+            'Upgrade: websocket\r\n' +
+            '\r\n'
+        );
+      });
+
+      const ws = new WebSocket(`ws://localhost:${server.address().port}`);
+
+      ws._req.maxHeadersCount = 1;
+
+      ws.on('upgrade', (res) => {
+        assert.deepStrictEqual(res.headers, { connection: 'Upgrade' });
+
+        ws.on('error', (err) => {
+          assert.ok(err instanceof Error);
+          assert.strictEqual(err.message, 'Invalid Upgrade header');
+          done();
+        });
+      });
+    });
+
     it('fails if the Upgrade header field value is not "websocket"', (done) => {
       server.once('upgrade', (req, socket) => {
         socket.on('end', socket.end);
