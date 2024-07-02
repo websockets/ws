@@ -629,7 +629,15 @@ The URL of the WebSocket server. Server clients don't have this attribute.
   constructor.
 
 Returns a `Duplex` stream that allows to use the Node.js streams API on top of a
-given `WebSocket`.
+given `WebSocket` which emits the following events:
+
+- `end`
+- `close`
+- `error`
+- `readable`
+- `data`
+- `drain`
+- `timeout`
 
 ## Environment variables
 
