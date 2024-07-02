@@ -22,7 +22,13 @@ const {
   Event,
   MessageEvent
 } = require('../lib/event-target');
-const { EMPTY_BUFFER, GUID, kListener, NOOP } = require('../lib/constants');
+const {
+  EMPTY_BUFFER,
+  GUID,
+  hasBlob,
+  kListener,
+  NOOP
+} = require('../lib/constants');
 
 const highWaterMark = getDefaultHighWaterMark
   ? getDefaultHighWaterMark(false)
@@ -617,7 +623,7 @@ describe('WebSocket', () => {
   });
 
   describe('Events', () => {
-    it("emits an 'error' event if an error occurs", (done) => {
+    it("emits an 'error' event if an error occurs (1/2)", (done) => {
       let clientCloseEventEmitted = false;
       let serverClientCloseEventEmitted = false;
 
@@ -653,6 +659,200 @@ describe('WebSocket', () => {
 
         ws._socket.write(Buffer.from([0x85, 0x00]));
       });
+    });
+
+    it("emits an 'error' event if an error occurs (2/2)", function (done) {
+      if (!fs.openAsBlob) return this.skip();
+
+      const randomString = crypto.randomBytes(16).toString('hex');
+      const file = path.join(os.tmpdir(), `ws-${randomString}.txt`);
+
+      fs.writeFileSync(file, 'x'.repeat(64));
+
+      fs.openAsBlob(file)
+        .then((blob) => {
+          fs.writeFileSync(file, 'x'.repeat(32));
+          runTest(blob);
+        })
+        .catch(done);
+
+      function runTest(blob) {
+        const wss = new WebSocket.Server({ port: 0 }, () => {
+          const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+        });
+
+        wss.on('connection', (ws) => {
+          ws.send(blob);
+
+          ws.on('error', (err) => {
+            try {
+              assert.ok(err instanceof DOMException);
+              assert.strictEqual(err.name, 'NotReadableError');
+              assert.strictEqual(err.message, 'The blob could not be read');
+            } finally {
+              fs.unlinkSync(file);
+            }
+
+            ws.on('close', () => {
+              wss.close(done);
+            });
+          });
+        });
+      }
+    });
+
+    it("emits the 'error' event only once (1/2)", function (done) {
+      if (!fs.openAsBlob) return this.skip();
+
+      const randomString = crypto.randomBytes(16).toString('hex');
+      const file = path.join(os.tmpdir(), `ws-${randomString}.txt`);
+
+      fs.writeFileSync(file, 'x'.repeat(64));
+
+      fs.openAsBlob(file)
+        .then((blob) => {
+          fs.writeFileSync(file, 'x'.repeat(32));
+          runTest(blob);
+        })
+        .catch(done);
+
+      function runTest(blob) {
+        const wss = new WebSocket.Server(
+          {
+            perMessageDeflate: true,
+            port: 0
+          },
+          () => {
+            const ws = new WebSocket(`ws://localhost:${wss.address().port}`, {
+              perMessageDeflate: { threshold: 0 }
+            });
+
+            ws.on('open', () => {
+              ws.send('foo');
+              ws.send(blob);
+            });
+
+            ws.on('error', (err) => {
+              try {
+                assert.ok(err instanceof RangeError);
+                assert.strictEqual(err.code, 'WS_ERR_INVALID_OPCODE');
+                assert.strictEqual(
+                  err.message,
+                  'Invalid WebSocket frame: invalid opcode 5'
+                );
+              } finally {
+                fs.unlinkSync(file);
+              }
+
+              ws.on('close', () => {
+                wss.close(done);
+              });
+            });
+          }
+        );
+
+        wss.on('connection', (ws) => {
+          ws._socket.write(Buffer.from([0x85, 0x00]));
+        });
+      }
+    });
+
+    it("emits the 'error' event only once (2/2)", function (done) {
+      if (!fs.openAsBlob) return this.skip();
+
+      const randomString = crypto.randomBytes(16).toString('hex');
+      const file = path.join(os.tmpdir(), `ws-${randomString}.txt`);
+
+      fs.writeFileSync(file, 'x'.repeat(64));
+
+      fs.openAsBlob(file)
+        .then((blob) => {
+          fs.writeFileSync(file, 'x'.repeat(32));
+          runTest(blob);
+        })
+        .catch(done);
+
+      function runTest(blob) {
+        const wss = new WebSocket.Server(
+          {
+            perMessageDeflate: true,
+            port: 0
+          },
+          () => {
+            const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+
+            ws.on('open', () => {
+              ws.send(blob);
+            });
+
+            ws.on('error', (err) => {
+              try {
+                assert.ok(err instanceof DOMException);
+                assert.strictEqual(err.name, 'NotReadableError');
+                assert.strictEqual(err.message, 'The blob could not be read');
+              } finally {
+                fs.unlinkSync(file);
+              }
+
+              ws.on('close', () => {
+                wss.close(done);
+              });
+            });
+          }
+        );
+
+        wss.on('connection', (ws) => {
+          const buf = Buffer.from('c10100'.repeat(5) + '8500', 'hex');
+
+          ws._socket.write(buf);
+        });
+      }
+    });
+
+    it("does not emit 'error' after 'close'", function (done) {
+      if (!fs.openAsBlob) return this.skip();
+
+      const randomString = crypto.randomBytes(16).toString('hex');
+      const file = path.join(os.tmpdir(), `ws-${randomString}.bin`);
+
+      fs.writeFileSync(file, crypto.randomBytes(1024 * 1024));
+      fs.openAsBlob(file).then(runTest).catch(done);
+
+      function runTest(blob) {
+        const wss = new WebSocket.Server({ port: 0 }, () => {
+          const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+
+          ws.on('open', () => {
+            ws.send(blob, (err) => {
+              try {
+                assert.ok(err instanceof DOMException);
+                assert.strictEqual(err.name, 'NotReadableError');
+                assert.strictEqual(err.message, 'The blob could not be read');
+              } catch (e) {
+                ws.removeListener(onClose);
+                throw e;
+              } finally {
+                fs.unlinkSync(file);
+              }
+
+              wss.close(done);
+            });
+          });
+
+          ws.on('error', () => {
+            done(new Error("Unexpected 'error' event"));
+          });
+          ws.on('close', onClose);
+
+          function onClose() {
+            fs.writeFileSync(file, crypto.randomBytes(32));
+          }
+        });
+
+        wss.on('connection', (ws) => {
+          ws._socket.end();
+        });
+      }
     });
 
     it('does not re-emit `net.Socket` errors', function (done) {
@@ -2120,6 +2320,11 @@ describe('WebSocket', () => {
           ws.ping();
           assert.strictEqual(ws.bufferedAmount, 4);
 
+          if (hasBlob) {
+            ws.ping(new Blob(['hi']));
+            assert.strictEqual(ws.bufferedAmount, 6);
+          }
+
           done();
         });
       });
@@ -2288,6 +2493,11 @@ describe('WebSocket', () => {
 
           ws.pong();
           assert.strictEqual(ws.bufferedAmount, 4);
+
+          if (hasBlob) {
+            ws.pong(new Blob(['hi']));
+            assert.strictEqual(ws.bufferedAmount, 6);
+          }
 
           done();
         });
@@ -2533,6 +2743,11 @@ describe('WebSocket', () => {
           ws.send();
           assert.strictEqual(ws.bufferedAmount, 4);
 
+          if (hasBlob) {
+            ws.send(new Blob(['hi']));
+            assert.strictEqual(ws.bufferedAmount, 6);
+          }
+
           done();
         });
       });
@@ -2750,6 +2965,39 @@ describe('WebSocket', () => {
       });
     });
 
+    it('can send a `Blob`', function (done) {
+      if (!hasBlob) return this.skip();
+
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+
+        const messages = [];
+
+        ws.on('open', () => {
+          ws.send(new Blob(['foo']));
+          ws.send(new Blob(['bar']));
+          ws.close();
+        });
+
+        ws.on('message', (message, isBinary) => {
+          assert.ok(isBinary);
+          messages.push(message.toString());
+
+          if (messages.length === 2) {
+            assert.deepStrictEqual(messages, ['foo', 'bar']);
+            wss.close(done);
+          }
+        });
+      });
+
+      wss.on('connection', (ws) => {
+        ws.on('message', (message, isBinary) => {
+          assert.ok(isBinary);
+          ws.send(message);
+        });
+      });
+    });
+
     it('calls the callback when data is written out', (done) => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
@@ -2764,6 +3012,48 @@ describe('WebSocket', () => {
 
       wss.on('connection', (ws) => {
         ws.close();
+      });
+    });
+
+    it('calls the callback if the socket is forcibly closed', function (done) {
+      if (!hasBlob) return this.skip();
+
+      const called = [];
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+
+        ws.on('open', () => {
+          ws.send(new Blob(['foo']), (err) => {
+            called.push(1);
+
+            assert.strictEqual(ws.readyState, WebSocket.CLOSING);
+            assert.ok(err instanceof Error);
+            assert.strictEqual(
+              err.message,
+              'The socket was closed while the blob was being read'
+            );
+          });
+          ws.send('bar');
+          ws.send('baz', (err) => {
+            called.push(2);
+
+            assert.strictEqual(ws.readyState, WebSocket.CLOSING);
+            assert.ok(err instanceof Error);
+            assert.strictEqual(
+              err.message,
+              'The socket was closed while the blob was being read'
+            );
+          });
+
+          ws.terminate();
+        });
+      });
+
+      wss.on('connection', (ws) => {
+        ws.on('close', () => {
+          assert.deepStrictEqual(called, [1, 2]);
+          wss.close(done);
+        });
       });
     });
 
@@ -3671,25 +3961,41 @@ describe('WebSocket', () => {
           ws.onmessage = (evt) => {
             if (binaryType === 'nodebuffer') {
               assert.ok(Buffer.isBuffer(evt.data));
-              assert.ok(evt.data.equals(buf));
+              assert.deepStrictEqual(evt.data, buf);
+              next();
             } else if (binaryType === 'arraybuffer') {
               assert.ok(evt.data instanceof ArrayBuffer);
-              assert.ok(Buffer.from(evt.data).equals(buf));
+              assert.deepStrictEqual(Buffer.from(evt.data), buf);
+              next();
             } else if (binaryType === 'fragments') {
               assert.deepStrictEqual(evt.data, [buf]);
+              next();
+            } else if (binaryType === 'blob') {
+              assert.ok(evt.data instanceof Blob);
+              evt.data
+                .arrayBuffer()
+                .then((arrayBuffer) => {
+                  assert.deepStrictEqual(Buffer.from(arrayBuffer), buf);
+                  next();
+                })
+                .catch(done);
             }
-            next();
           };
 
           ws.send(buf);
+        }
+
+        function close() {
+          ws.close();
+          wss.close(done);
         }
 
         ws.onopen = () => {
           testType('nodebuffer', () => {
             testType('arraybuffer', () => {
               testType('fragments', () => {
-                ws.close();
-                wss.close(done);
+                if (hasBlob) testType('blob', close);
+                else close();
               });
             });
           });
@@ -4214,7 +4520,7 @@ describe('WebSocket', () => {
 
           ws.on('open', () => {
             ws._receiver.on('conclude', () => {
-              assert.ok(ws._sender._deflating);
+              assert.strictEqual(ws._sender._state, 1);
             });
 
             ws.send('foo');
@@ -4388,6 +4694,47 @@ describe('WebSocket', () => {
           ws.on('message', (message, isBinary) => {
             assert.ok(isBinary);
             ws.send(message, { compress: true });
+          });
+        });
+      });
+
+      it('can send a `Blob`', function (done) {
+        if (!hasBlob) return this.skip();
+
+        const wss = new WebSocket.Server(
+          {
+            perMessageDeflate: { threshold: 0 },
+            port: 0
+          },
+          () => {
+            const ws = new WebSocket(`ws://localhost:${wss.address().port}`, {
+              perMessageDeflate: { threshold: 0 }
+            });
+
+            const messages = [];
+
+            ws.on('open', () => {
+              ws.send(new Blob(['foo']));
+              ws.send(new Blob(['bar']));
+              ws.close();
+            });
+
+            ws.on('message', (message, isBinary) => {
+              assert.ok(isBinary);
+              messages.push(message.toString());
+
+              if (messages.length === 2) {
+                assert.deepStrictEqual(messages, ['foo', 'bar']);
+                wss.close(done);
+              }
+            });
+          }
+        );
+
+        wss.on('connection', (ws) => {
+          ws.on('message', (message, isBinary) => {
+            assert.ok(isBinary);
+            ws.send(message);
           });
         });
       });

@@ -7,7 +7,7 @@ const EventEmitter = require('events');
 const PerMessageDeflate = require('../lib/permessage-deflate');
 const Receiver = require('../lib/receiver');
 const Sender = require('../lib/sender');
-const { EMPTY_BUFFER, kStatusCode } = require('../lib/constants');
+const { EMPTY_BUFFER, hasBlob, kStatusCode } = require('../lib/constants');
 
 describe('Receiver', () => {
   it('parses an unmasked text message', (done) => {
@@ -1048,6 +1048,44 @@ describe('Receiver', () => {
       assert.deepStrictEqual(data, frags);
       assert.ok(isBinary);
       done();
+    });
+
+    frags.forEach((frag, i) => {
+      Sender.frame(frag, {
+        fin: i === frags.length - 1,
+        opcode: i === 0 ? 2 : 0,
+        readOnly: true,
+        mask: false,
+        rsv1: false
+      }).forEach((buf) => receiver.write(buf));
+    });
+  });
+
+  it("honors the 'blob' binary type", function (done) {
+    if (!hasBlob) return this.skip();
+
+    const receiver = new Receiver({ binaryType: 'blob' });
+    const frags = [
+      crypto.randomBytes(75688),
+      crypto.randomBytes(2688),
+      crypto.randomBytes(46753)
+    ];
+
+    receiver.on('message', (data, isBinary) => {
+      assert.ok(data instanceof Blob);
+      assert.ok(isBinary);
+
+      data
+        .arrayBuffer()
+        .then((arrayBuffer) => {
+          assert.deepStrictEqual(
+            Buffer.from(arrayBuffer),
+            Buffer.concat(frags)
+          );
+
+          done();
+        })
+        .catch(done);
     });
 
     frags.forEach((frag, i) => {
