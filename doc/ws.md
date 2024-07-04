@@ -395,7 +395,7 @@ of the string values defined below under [Error codes](#error-codes).
 
 ### Event: 'message'
 
-- `data` {Buffer|ArrayBuffer|Buffer[]}
+- `data` {ArrayBuffer|Blob|Buffer|Buffer[]}
 - `isBinary` {Boolean}
 
 Emitted when a message is received. `data` is the message content. `isBinary`
