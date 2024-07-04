@@ -257,7 +257,7 @@ receives an `Error` if the server is already closed.
 - `request` {http.IncomingMessage} The client HTTP GET request.
 - `socket` {stream.Duplex} The network socket between the server and client.
 - `head` {Buffer} The first packet of the upgraded stream.
-- `callback` {Function}.
+- `callback` {Function}
 
 Handle a HTTP upgrade request. When the HTTP server is created internally or
 when the HTTP server is passed via the `server` option, this method is called
