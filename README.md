@@ -173,7 +173,7 @@ ws.on('open', function open() {
 });
 
 ws.on('message', function message(data, isBinary) {
-  console.log('received: %s', isBinary ? data : data.toString());
+  console.log('received: %s', isBinary ? data : Buffer.from(data));
 });
 ```
 
