@@ -2836,6 +2836,31 @@ describe('WebSocket', () => {
       });
     });
 
+    it('delaying establishing connection', (done) => {
+      let isOnMessageCalled = false;
+
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`, [], {
+          connectImmediately: false
+        });
+        ws.on('message', () => {
+          isOnMessageCalled = true;
+        });
+        ws.on('error', () => {});
+        ws.on('close', () => {
+          assert.ok(isOnMessageCalled);
+        });
+        ws.connect();
+      });
+
+      wss.on('connection', (ws) => {
+        ws.send('hi', {}, () => {
+          ws.close(1000);
+          wss.close(done);
+        });
+      });
+    });
+
     it('does not override the `fin` option', (done) => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const ws = new WebSocket(`ws://localhost:${wss.address().port}`);

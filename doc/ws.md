@@ -325,6 +325,9 @@ This class represents a WebSocket. It extends the `EventEmitter`.
   - `skipUTF8Validation` {Boolean} Specifies whether or not to skip UTF-8
     validation for text and close messages. Defaults to `false`. Set to `true`
     only if the server is trusted.
+  - `connectImmediately` {Boolean} If set to `false` prevent connecting to the
+    server in constructor. Later you should use `connect` method to establish
+    the connection. Defaults set to `true`.
   - Any other option allowed in [`http.request()`][] or [`https.request()`][].
     Options given do not have any effect if parsed from the URL given with the
     `address` parameter.
@@ -447,6 +450,12 @@ listener for this event, an error is emitted.
 Emitted when response headers are received from the server as part of the
 handshake. This allows you to read headers from the server, for example
 'set-cookie' headers.
+
+### websocket.connect()
+
+This method used with option `connectImmediately` set to `false`. It is allow
+delay establishing connection after all user's init operation, like subscribe to
+events etc.
 
 ### websocket.addEventListener(type, listener[, options])
 
