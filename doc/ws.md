@@ -77,7 +77,7 @@ This class represents a WebSocket server. It extends the `EventEmitter`.
   - `allowSynchronousEvents` {Boolean} Specifies whether any of the `'message'`,
     `'ping'`, and `'pong'` events can be emitted multiple times in the same
     tick. Defaults to `true`. Setting it to `false` improves compatibility with
-    the WHATWG standardbut may negatively impact performance.
+    the WHATWG standard but may negatively impact performance.
   - `backlog` {Number} The maximum length of the queue of pending connections.
   - `clientTracking` {Boolean} Specifies whether or not to track clients.
   - `handleProtocols` {Function} A function which can be used to handle the
