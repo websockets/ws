@@ -204,7 +204,7 @@ describe('WebSocketServer', () => {
     });
 
     it('uses a precreated http server listening on IPC', (done) => {
-      const randomString = crypto.randomBytes(16).toString('hex');
+      const randomString = crypto.randomBytes(4).toString('hex');
       const ipcPath =
         process.platform === 'win32'
           ? `\\\\.\\pipe\\ws-pipe-${randomString}`
