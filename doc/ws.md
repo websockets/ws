@@ -365,7 +365,7 @@ URL form:
   ws+unix:\\.\pipe\pipe_name:/pathname?search_params
   ```
 
-The character `:` is the separator between the IPC path (the Unix domain socket
+The character `:` is the separator between the IPC path (the UNIX domain socket
 path or the Windows named pipe) and the URL path. The IPC path must not include
 the characters `:` and `?`, otherwise the URL is incorrectly parsed. If the URL
 path is omitted
