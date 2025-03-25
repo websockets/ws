@@ -52,7 +52,7 @@ describe('WebSocket', () => {
           assert.strictEqual(
             err.message,
             'The URL\'s protocol must be one of "ws:", "wss:", ' +
-              '"http:", "https", or "ws+unix:"'
+              '"http:", "https:", or "ws+unix:"'
           );
 
           return true;
@@ -1515,7 +1515,7 @@ describe('WebSocket', () => {
         assert.strictEqual(
           err.message,
           'The URL\'s protocol must be one of "ws:", "wss:", ' +
-            '"http:", "https", or "ws+unix:"'
+            '"http:", "https:", or "ws+unix:"'
         );
         assert.strictEqual(ws._redirects, 1);
 
