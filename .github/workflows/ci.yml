@@ -12,6 +12,7 @@ jobs:
     strategy:
       matrix:
         arch:
+          - arm64
           - x64
         node:
           - 10
@@ -24,8 +25,25 @@ jobs:
           - 23
         os:
           - macOS-latest
+          - ubuntu-24.04-arm
           - ubuntu-latest
           - windows-latest
+        exclude:
+          - arch: arm64
+            node: 10
+            os: macOS-latest
+          - arch: arm64
+            node: 12
+            os: macOS-latest
+          - arch: arm64
+            node: 14
+            os: macOS-latest
+          - arch: arm64
+            os: windows-latest
+          - arch: arm64
+            os: ubuntu-latest
+          - arch: x64
+            os: ubuntu-24.04-arm
         include:
           - arch: x86
             node: 10
@@ -47,6 +65,10 @@ jobs:
             os: windows-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+        if: matrix.os == 'ubuntu-24.04-arm' && matrix.node <= 14
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
