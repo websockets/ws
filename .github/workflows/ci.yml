@@ -65,16 +65,18 @@ jobs:
             os: windows-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-        if: matrix.os == 'ubuntu-24.04-arm' && matrix.node <= 14
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
           architecture: ${{ matrix.arch }}
           cache: npm
           cache-dependency-path: ./package.json
+      - run: npm install --save-dev node-gyp@8
+        if: matrix.os == 'ubuntu-24.04-arm' && matrix.node == 10
+      - run: npm install --save-dev node-gyp@9
+        if:
+          matrix.os == 'ubuntu-24.04-arm' && (matrix.node == 12 || matrix.node
+          == 14)
       - run: npm install
       - run: npm run lint
         if:
