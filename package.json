@@ -60,7 +60,7 @@
     "eslint": "^9.0.0",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-prettier": "^5.0.0",
-    "globals": "^15.0.0",
+    "globals": "^16.0.0",
     "mocha": "^8.4.0",
     "nyc": "^15.0.0",
     "prettier": "^3.0.0",
