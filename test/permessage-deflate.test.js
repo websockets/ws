@@ -592,7 +592,7 @@ describe('PerMessageDeflate', () => {
 
     it("doesn't call the callback twice when `maxPayload` is exceeded", (done) => {
       const perMessageDeflate = new PerMessageDeflate({}, false, 25);
-      const buf = Buffer.from('A'.repeat(50));
+      const buf = Buffer.from('A'.repeat(1024 * 1024));
 
       perMessageDeflate.accept([{}]);
       perMessageDeflate.compress(buf, true, (err, data) => {
