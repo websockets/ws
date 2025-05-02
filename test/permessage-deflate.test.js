@@ -590,9 +590,27 @@ describe('PerMessageDeflate', () => {
       });
     });
 
-    it("doesn't call the callback twice when `maxPayload` is exceeded", (done) => {
+    it('calls the callback when `maxPayload` is exceeded (1/2)', (done) => {
       const perMessageDeflate = new PerMessageDeflate({}, false, 25);
-      const buf = Buffer.from('A'.repeat(1024 * 1024));
+      const buf = Buffer.alloc(50, 'A');
+
+      perMessageDeflate.accept([{}]);
+      perMessageDeflate.compress(buf, true, (err, data) => {
+        if (err) return done(err);
+
+        perMessageDeflate.decompress(data, true, (err) => {
+          assert.ok(err instanceof RangeError);
+          assert.strictEqual(err.message, 'Max payload size exceeded');
+          done();
+        });
+      });
+    });
+
+    it('calls the callback when `maxPayload` is exceeded (2/2)', (done) => {
+      // A copy of the previous test but with a larger input. See
+      // https://github.com/websockets/ws/pull/2285.
+      const perMessageDeflate = new PerMessageDeflate({}, false, 25);
+      const buf = Buffer.alloc(1024 * 1024, 'A');
 
       perMessageDeflate.accept([{}]);
       perMessageDeflate.compress(buf, true, (err, data) => {
