@@ -241,6 +241,32 @@ wss.on('connection', function connection(ws) {
 server.listen(8080);
 ```
 
+### Internal HTTP/S Server
+
+```js
+import { readFileSync } from 'fs';
+import { WebSocketServer } from 'ws';
+
+const wss = new WebSocketServer({
+  ssl: true,
+  cert: readFileSync('/path/to/cert.pem'),
+  key: readFileSync('/path/to/key.pem')
+});
+
+wss.on('connection', function connection(ws) {
+  ws.on('error', console.error);
+
+  ws.on('message', function message(data) {
+    console.log('received: %s', data);
+  });
+
+  ws.send('something');
+});
+
+wss.listen(8080);
+```
+
+
 ### Multiple servers sharing a single HTTP/S server
 
 ```js
