@@ -59,6 +59,15 @@ describe('WebSocketServer', () => {
         }
       });
 
+      it('throws an error if ssl option is specified without key or cert options', () => {
+        assert.throws(
+          () => new WebSocket.Server({ ssl: true }),
+          new RegExp(
+            '^TypeError: "key" and "cert" options must be specified for the "ssl" option$'
+          )
+        );
+      });
+
       it('exposes options passed to constructor', (done) => {
         const wss = new WebSocket.Server({ port: 0 }, () => {
           assert.strictEqual(wss.options.port, 0);
@@ -233,6 +242,155 @@ describe('WebSocketServer', () => {
         ws.on('open', () => new WebSocket(`ws+unix:${ipcPath}`));
       });
     });
+
+    it('uses the httpHandler option', (done) => {
+      const httpHandler = (request, response) => {
+        response.writeHead(200, {
+          'Content-Type': 'text/plain'
+        });
+        response.end('OK');
+      };
+
+      const wss = new WebSocket.Server({ httpHandler });
+
+      wss.listen(0);
+
+      const req = http.get({
+        port: wss.address().port,
+        headers: {}
+      });
+
+      req.on('response', (res) => {
+        assert.strictEqual(res.statusCode, 200);
+
+        const chunks = [];
+
+        res.on('data', (chunk) => {
+          chunks.push(chunk);
+        });
+
+        res.on('end', () => {
+          assert.strictEqual(Buffer.concat(chunks).toString(), 'OK');
+          wss.close(done);
+        });
+      });
+    });
+
+    it('uses the httpHandler option with port', (done) => {
+      const httpHandler = (request, response) => {
+        response.writeHead(200, {
+          'Content-Type': 'text/plain'
+        });
+        response.end('OK');
+      };
+
+      const wss = new WebSocket.Server({ httpHandler, port: 0 });
+
+      const req = http.get({
+        port: wss.address().port,
+        headers: {}
+      });
+
+      req.on('response', (res) => {
+        assert.strictEqual(res.statusCode, 200);
+
+        const chunks = [];
+
+        res.on('data', (chunk) => {
+          chunks.push(chunk);
+        });
+
+        res.on('end', () => {
+          assert.strictEqual(Buffer.concat(chunks).toString(), 'OK');
+          wss.close(done);
+        });
+      });
+    });
+
+    it('uses the ssl option', (done) => {
+      const wss = new WebSocket.Server({
+        ssl: true,
+        cert: fs.readFileSync('test/fixtures/certificate.pem'),
+        key: fs.readFileSync('test/fixtures/key.pem')
+      });
+
+      wss.listen(0);
+
+      const messages = [];
+
+      wss.on('connection', (ws) => {
+        ws.on('message', (message) => {
+          messages.push(message.toString('utf8'));
+          ws.send('pong');
+        });
+
+        ws.on('close', () => {
+          wss.close();
+        });
+      });
+
+      const ws = new WebSocket(`wss://127.0.0.1:${wss.address().port}`, {
+        rejectUnauthorized: false
+      });
+
+      ws.addEventListener('message', (message) => {
+        messages.push(message.data);
+        ws.close();
+      });
+
+      ws.addEventListener('open', () => {
+        ws.send('ping');
+      });
+
+      wss.on('close', () => {
+        assert.strictEqual(messages.length, 2);
+        assert.strictEqual(messages[0], 'ping');
+        assert.strictEqual(messages[1], 'pong');
+        done();
+      });
+    });
+
+    it('uses the ssl option with port', (done) => {
+      const wss = new WebSocket.Server({
+        ssl: true,
+        cert: fs.readFileSync('test/fixtures/certificate.pem'),
+        key: fs.readFileSync('test/fixtures/key.pem'),
+        port: 0
+      });
+
+      const messages = [];
+
+      wss.on('connection', (ws) => {
+        ws.on('message', (message) => {
+          messages.push(message.toString('utf8'));
+          ws.send('pong');
+        });
+
+        ws.on('close', () => {
+          wss.close();
+        });
+      });
+
+      const ws = new WebSocket(`wss://127.0.0.1:${wss.address().port}`, {
+        rejectUnauthorized: false
+      });
+
+      ws.addEventListener('message', (message) => {
+        messages.push(message.data);
+        ws.close();
+      });
+
+      ws.addEventListener('open', () => {
+        ws.send('ping');
+      });
+
+      wss.on('close', () => {
+        assert.strictEqual(messages.length, 2);
+        assert.strictEqual(messages[0], 'ping');
+        assert.strictEqual(messages[1], 'pong');
+        done();
+      });
+    });
   });
 
   describe('#address', () => {
@@ -250,6 +408,10 @@ describe('WebSocketServer', () => {
 
       assert.throws(() => {
         wss.address();
+      }, /^Error: The server is operating in "noServer" mode$/);
+
+      assert.throws(() => {
+        wss.listen();
       }, /^Error: The server is operating in "noServer" mode$/);
     });
 
