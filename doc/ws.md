@@ -100,9 +100,9 @@ This class represents a WebSocket server. It extends the `EventEmitter`.
   - `WebSocket` {Function} Specifies the `WebSocket` class to be used. It must
     be extended from the original `WebSocket`. Defaults to `WebSocket`.
   - `httpHandler` {Function} The HTTP handler that will handle each request. Overrides the default "426 Upgrade Required" HTTP handler.
-  - `ssl` {Boolean} Create an HTTPS server with SSL
-  - `key` {String} The SSL private key
-  - `cert` {String} The SSL certificate
+  - `ssl` {Boolean} Create an HTTPS server with SSL.
+  - `key` {String} The SSL private key.
+  - `cert` {String} The SSL certificate.
   - `callback` {Function}
 
 Create a new server instance. One and only one of `port`, `server` or `noServer`
