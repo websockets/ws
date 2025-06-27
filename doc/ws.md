@@ -11,6 +11,7 @@
   - [Event: 'listening'](#event-listening)
   - [Event: 'wsClientError'](#event-wsclienterror)
   - [server.address()](#serveraddress)
+  - [server.listen()](#serverlisten)
   - [server.clients](#serverclients)
   - [server.close([callback])](#serverclosecallback)
   - [server.handleUpgrade(request, socket, head, callback)](#serverhandleupgraderequest-socket-head-callback)
@@ -237,6 +238,10 @@ Returns an object with `port`, `family`, and `address` properties specifying the
 bound address, the address family name, and port of the server as reported by
 the operating system if listening on an IP socket. If the server is listening on
 a pipe or UNIX domain socket, the name is returned as a string.
+
+### server.listen(port, [host], [backlog], [callback])
+
+Starts the bound HTTP server listening for connections.
 
 ### server.clients
 
