@@ -14,7 +14,7 @@ const os = require('os');
 const makeDuplexPair = require('./duplex-pair');
 const Sender = require('../lib/sender');
 const WebSocket = require('..');
-const { NOOP, WEBSOCKET_SUPPORT_VERSIONS_DESC } = require('../lib/constants');
+const { NOOP } = require('../lib/constants');
 
 describe('WebSocketServer', () => {
   describe('#ctor', () => {
@@ -813,10 +813,7 @@ describe('WebSocketServer', () => {
 
         req.on('response', (res) => {
           assert.strictEqual(res.statusCode, 400);
-          assert.strictEqual(
-            res.headers['sec-websocket-version'],
-            WEBSOCKET_SUPPORT_VERSIONS_DESC.toString()
-          );
+          assert.strictEqual(res.headers['sec-websocket-version'], '13, 8');
 
           const chunks = [];
 
@@ -853,10 +850,7 @@ describe('WebSocketServer', () => {
 
         req.on('response', (res) => {
           assert.strictEqual(res.statusCode, 400);
-          assert.strictEqual(
-            res.headers['sec-websocket-version'],
-            WEBSOCKET_SUPPORT_VERSIONS_DESC.toString()
-          );
+          assert.strictEqual(res.headers['sec-websocket-version'], '13, 8');
 
           const chunks = [];
 
