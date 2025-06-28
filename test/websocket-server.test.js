@@ -813,6 +813,7 @@ describe('WebSocketServer', () => {
 
         req.on('response', (res) => {
           assert.strictEqual(res.statusCode, 400);
+          assert.strictEqual(res.headers['sec-websocket-version'], '13, 8');
 
           const chunks = [];
 
@@ -849,6 +850,7 @@ describe('WebSocketServer', () => {
 
         req.on('response', (res) => {
           assert.strictEqual(res.statusCode, 400);
+          assert.strictEqual(res.headers['sec-websocket-version'], '13, 8');
 
           const chunks = [];
 
