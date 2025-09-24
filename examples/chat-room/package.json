@@ -1,0 +1,9 @@
+{
+  "name": "chat-room-example",
+  "version": "0.0.0",
+  "author": "",
+  "repository": "websockets/ws",
+  "dependencies": {
+    "express": "^4.16.4"
+  }
+}

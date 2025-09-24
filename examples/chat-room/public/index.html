@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Chat Room Example</title>
+    <style>
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+        max-width: 720px;
+        margin: 32px auto;
+        padding: 8px;
+      }
+      #messages {
+        border: 1px solid #ddd;
+        height: 300px;
+        overflow: auto;
+        padding: 8px;
+        margin-bottom: 8px;
+        white-space: pre-wrap;
+      }
+      #inputContainer {
+        display: flex;
+        width: 100%;
+        gap: 8px;
+      }
+      input {
+        padding: 8px;
+        width: 100%;
+      }
+      button {
+        padding: 8px 12px;
+        flex-shrink: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Chat Room</h1>
+    <div id="messages"></div>
+    <div id="inputContainer">
+      <input id="input" placeholder="Type a message…" />
+      <button id="send">Send</button>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
