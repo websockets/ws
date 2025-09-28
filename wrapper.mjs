@@ -8,5 +8,5 @@ import { default as WebSocketServer } from './lib/websocket-server.js';
 export { createWebSocketStream, Receiver, Sender, WebSocket, WebSocketServer };
 // import * as WS from 'ws' => works
 // import { WebSocket } from 'ws'; => works
-export default { createWebSocketStream, Receiver, Sender, WebSocket, WebSocketServer };
-// import WS from 'ws' => Works
+export default WebSocket;
+// import WS,{ Sender} from 'ws' => Works
