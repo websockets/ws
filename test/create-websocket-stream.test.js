@@ -554,6 +554,78 @@ describe('createWebSocketStream', () => {
       });
     });
 
+    it('parses JSON text messages in readable object mode', (done) => {
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+        const duplex = createWebSocketStream(ws, { readableObjectMode: true });
+
+        duplex.on('data', (data) => {
+          assert.deepStrictEqual(data, { foo: 'bar', baz: 123 });
+          duplex.end();
+        });
+
+        duplex.on('close', () => {
+          wss.close(done);
+        });
+      });
+
+      wss.on('connection', (ws) => {
+        ws.send(JSON.stringify({ foo: 'bar', baz: 123 }));
+        ws.close();
+      });
+    });
+
+    it('does not parse binary messages in readable object mode', (done) => {
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+        const duplex = createWebSocketStream(ws, { readableObjectMode: true });
+        const binaryData = Buffer.from([0x01, 0x02, 0x03, 0x04]);
+
+        duplex.on('data', (data) => {
+          assert.ok(Buffer.isBuffer(data));
+          assert.deepStrictEqual(data, binaryData);
+          duplex.end();
+        });
+
+        duplex.on('close', () => {
+          wss.close(done);
+        });
+      });
+
+      wss.on('connection', (ws) => {
+        ws.send(Buffer.from([0x01, 0x02, 0x03, 0x04]));
+        ws.close();
+      });
+    });
+
+    it('emits error for invalid JSON text in readable object mode', (done) => {
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+        const duplex = createWebSocketStream(ws, { readableObjectMode: true });
+        let errorEmitted = false;
+
+        duplex.on('data', () => {
+          done(new Error('Unexpected data event'));
+        });
+
+        duplex.on('error', (err) => {
+          errorEmitted = true;
+          assert.ok(err instanceof SyntaxError);
+          assert.ok(err.message.includes('JSON'));
+        });
+
+        duplex.on('close', () => {
+          assert.ok(errorEmitted, 'Error should have been emitted');
+          wss.close(done);
+        });
+      });
+
+      wss.on('connection', (ws) => {
+        ws.send('{ invalid json }');
+        ws.close();
+      });
+    });
+
     it('converts text messages to strings in readable object mode', (done) => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const events = [];
@@ -577,7 +649,7 @@ describe('createWebSocketStream', () => {
       });
 
       wss.on('connection', (ws) => {
-        ws.send('foo');
+        ws.send('"foo"');
         ws.close();
       });
     });
