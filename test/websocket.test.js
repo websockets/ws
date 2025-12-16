@@ -3454,6 +3454,41 @@ describe('WebSocket', () => {
         });
       });
     });
+
+    it('uses closeTimeout milliseconds for the close timer', (done) => {
+      const timeoutMs = 5 * 1000;
+
+      const wss = new WebSocket.Server({ port: 0, closeTimeout: timeoutMs}, () => {
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`, undefined, {closeTimeout: timeoutMs});
+
+        assert.strictEqual(ws._closeTimeout, timeoutMs);
+
+        ws.on('close', (code, reason) => {
+          assert.strictEqual(code, 1000);
+          assert.deepStrictEqual(reason, Buffer.from('some reason'));
+          wss.close(done);
+        });
+
+        ws.on('open', () => {
+          let callbackCalled = false;
+
+          assert.strictEqual(ws._closeTimer, null);
+
+          ws.send('foo', () => {
+            callbackCalled = true;
+          });
+
+          ws.close(1000, 'some reason');
+
+          //
+          // Check that the close timer is set even if the `Sender.close()`
+          // callback is not called.
+          //
+          assert.strictEqual(callbackCalled, false);
+          assert.strictEqual(ws._closeTimer._idleTimeout, timeoutMs);
+        });
+      });
+    });
   });
 
   describe('#terminate', () => {
