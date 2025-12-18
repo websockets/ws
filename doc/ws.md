@@ -72,12 +72,12 @@ This class represents a WebSocket server. It extends the `EventEmitter`.
 ### new WebSocketServer(options[, callback])
 
 - `options` {Object}
-  - `autoPong` {Boolean} Specifies whether or not to automatically send a pong
-    in response to a ping. Defaults to `true`.
   - `allowSynchronousEvents` {Boolean} Specifies whether any of the `'message'`,
     `'ping'`, and `'pong'` events can be emitted multiple times in the same
     tick. Defaults to `true`. Setting it to `false` improves compatibility with
     the WHATWG standard but may negatively impact performance.
+  - `autoPong` {Boolean} Specifies whether or not to automatically send a pong
+    in response to a ping. Defaults to `true`.
   - `backlog` {Number} The maximum length of the queue of pending connections.
   - `clientTracking` {Boolean} Specifies whether or not to track clients.
   - `handleProtocols` {Function} A function which can be used to handle the
@@ -298,12 +298,12 @@ This class represents a WebSocket. It extends the `EventEmitter`.
 - `address` {String|url.URL} The URL to which to connect.
 - `protocols` {String|Array} The list of subprotocols.
 - `options` {Object}
-  - `autoPong` {Boolean} Specifies whether or not to automatically send a pong
-    in response to a ping. Defaults to `true`.
   - `allowSynchronousEvents` {Boolean} Specifies whether any of the `'message'`,
     `'ping'`, and `'pong'` events can be emitted multiple times in the same
     tick. Defaults to `true`. Setting it to `false` improves compatibility with
     the WHATWG standardbut may negatively impact performance.
+  - `autoPong` {Boolean} Specifies whether or not to automatically send a pong
+    in response to a ping. Defaults to `true`.
   - `finishRequest` {Function} A function which can be used to customize the
     headers of each HTTP request before it is sent. See description below.
   - `followRedirects` {Boolean} Whether or not to follow redirects. Defaults to
