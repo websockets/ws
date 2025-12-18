@@ -80,7 +80,8 @@ This class represents a WebSocket server. It extends the `EventEmitter`.
     in response to a ping. Defaults to `true`.
   - `backlog` {Number} The maximum length of the queue of pending connections.
   - `clientTracking` {Boolean} Specifies whether or not to track clients.
-  - `closeTimeout` {Number} Timeout in milliseconds for graceful close.
+  - `closeTimeout` {Number} Timeout in milliseconds for graceful close. Defaults
+    to 30000.
   - `handleProtocols` {Function} A function which can be used to handle the
     WebSocket subprotocols. See description below.
   - `host` {String} The hostname where to bind the server.
@@ -305,7 +306,8 @@ This class represents a WebSocket. It extends the `EventEmitter`.
     the WHATWG standardbut may negatively impact performance.
   - `autoPong` {Boolean} Specifies whether or not to automatically send a pong
     in response to a ping. Defaults to `true`.
-  - `closeTimeout` {Number} Timeout in milliseconds for graceful close.
+  - `closeTimeout` {Number} Timeout in milliseconds for graceful close. Defaults
+    to 30000.
   - `finishRequest` {Function} A function which can be used to customize the
     headers of each HTTP request before it is sent. See description below.
   - `followRedirects` {Boolean} Whether or not to follow redirects. Defaults to
