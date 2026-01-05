@@ -140,6 +140,22 @@ describe('WebSocketServer', () => {
           });
         });
       });
+
+      it('honors the `closeTimeout` option', (done) => {
+        const closeTimeout = 1000;
+        const wss = new WebSocket.Server({ closeTimeout, port: 0 }, () => {
+          const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+        });
+
+        wss.on('connection', (ws) => {
+          ws.on('close', () => {
+            wss.close(done);
+          });
+
+          ws.close();
+          assert.strictEqual(ws._closeTimer._idleTimeout, closeTimeout);
+        });
+      });
     });
 
     it('emits an error if http server bind fails', (done) => {

@@ -232,6 +232,24 @@ describe('WebSocket', () => {
           ws.ping();
         });
       });
+
+      it('honors the `closeTimeout` option', (done) => {
+        const wss = new WebSocket.Server({ port: 0 }, () => {
+          const closeTimeout = 1000;
+          const ws = new WebSocket(`ws://localhost:${wss.address().port}`, {
+            closeTimeout
+          });
+
+          ws.on('open', () => {
+            ws.close();
+            assert.strictEqual(ws._closeTimer._idleTimeout, closeTimeout);
+          });
+
+          ws.on('close', () => {
+            wss.close(done);
+          });
+        });
+      });
     });
   });
 

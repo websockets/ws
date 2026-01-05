@@ -80,6 +80,9 @@ This class represents a WebSocket server. It extends the `EventEmitter`.
     in response to a ping. Defaults to `true`.
   - `backlog` {Number} The maximum length of the queue of pending connections.
   - `clientTracking` {Boolean} Specifies whether or not to track clients.
+  - `closeTimeout` {Number} Duration in milliseconds to wait for a graceful
+    close after [`websocket.close()`][] is called. If the limit is reached, the
+    connection is forcibly terminated. Defaults to 30000.
   - `handleProtocols` {Function} A function which can be used to handle the
     WebSocket subprotocols. See description below.
   - `host` {String} The hostname where to bind the server.
@@ -304,6 +307,9 @@ This class represents a WebSocket. It extends the `EventEmitter`.
     the WHATWG standardbut may negatively impact performance.
   - `autoPong` {Boolean} Specifies whether or not to automatically send a pong
     in response to a ping. Defaults to `true`.
+  - `closeTimeout` {Number} Duration in milliseconds to wait for a graceful
+    close after [`websocket.close()`][] is called. If the limit is reached, the
+    connection is forcibly terminated. Defaults to 30000.
   - `finishRequest` {Function} A function which can be used to customize the
     headers of each HTTP request before it is sent. See description below.
   - `followRedirects` {Boolean} Whether or not to follow redirects. Defaults to
@@ -709,4 +715,5 @@ as configured by the `maxPayload` option.
 [`request.removeheader()`]:
   https://nodejs.org/api/http.html#requestremoveheadername
 [`socket.destroy()`]: https://nodejs.org/api/net.html#net_socket_destroy_error
+[`websocket.close()`]: #websocketclosecode-reason
 [zlib-options]: https://nodejs.org/api/zlib.html#zlib_class_options
