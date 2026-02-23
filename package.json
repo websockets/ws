@@ -55,9 +55,10 @@
     }
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "benchmark": "^2.1.4",
     "bufferutil": "^4.0.1",
-    "eslint": "^9.0.0",
+    "eslint": "^10.0.1",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-prettier": "^5.0.0",
     "globals": "^17.0.0",
