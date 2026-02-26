@@ -48,6 +48,8 @@
   - [websocket.send(data[, options][, callback])](#websocketsenddata-options-callback)
   - [websocket.terminate()](#websocketterminate)
   - [websocket.url](#websocketurl)
+- [Class: HandshakeRequest](#class-handshakerequest)
+- [Class: HandshakeValidator](#class-handshakevalidator)
 - [createWebSocketStream(websocket[, options])](#createwebsocketstreamwebsocket-options)
 - [Environment variables](#environment-variables)
   - [WS_NO_BUFFER_UTIL](#ws_no_buffer_util)
@@ -318,6 +320,12 @@ This class represents a WebSocket. It extends the `EventEmitter`.
     takes a `Buffer` that must be filled synchronously and is called before a
     message is sent, for each message. By default, the buffer is filled with
     cryptographically strong random bytes.
+  - `handshakeRequest` {HandshakeRequest} A
+    [`HandshakeRequest`](#class-handshakerequest) instance used to build the
+    HTTP upgrade request.
+  - `handshakeValidator` {HandshakeValidator} A
+    [`HandshakeValidator`](#class-handshakevalidator) instance used to validate
+    the server's upgrade response.
   - `handshakeTimeout` {Number} Timeout in milliseconds for the handshake
     request. This is reset after every redirection.
   - `maxPayload` {Number} The maximum allowed message size in bytes. Defaults to
@@ -627,6 +635,37 @@ Forcibly close the connection. Internally, this calls [`socket.destroy()`][].
 - {String}
 
 The URL of the WebSocket server. Server clients don't have this attribute.
+
+## Class: HandshakeRequest
+
+This class builds the HTTP upgrade request for a WebSocket client handshake.
+
+### handshakeRequest.build(address, protocols, opts[, extensionOfferHeader])
+
+- `address` {String|url.URL} The URL to connect to.
+- `protocols` {Array} The subprotocols.
+- `opts` {Object} Connection options (as passed to the `WebSocket` constructor).
+- `extensionOfferHeader` {String} The `Sec-WebSocket-Extensions` header value.
+
+Build the handshake request. Returns an object containing `parsedUrl` {url.URL},
+`key` {String}, `protocolSet` {Set}, and request options suitable for
+`http.request()` / `https.request()` (`host`, `port`, `path`, `headers`, etc.).
+
+## Class: HandshakeValidator
+
+This class validates a WebSocket server's upgrade response.
+
+### handshakeValidator.validate(res, key, protocolSet[, perMessageDeflate])
+
+- `res` {http.IncomingMessage} The HTTP upgrade response.
+- `key` {String} The `Sec-WebSocket-Key` that was sent.
+- `protocolSet` {Set} The subprotocols that were offered.
+- `perMessageDeflate` {Object} The `PerMessageDeflate` instance, or `null`.
+- Returns: {Object} An object with `protocol` {String} and `extensions` {Object}
+  properties.
+
+Validate the server's upgrade response and return the negotiated protocol and
+extensions. Throws an `Error` if validation fails.
 
 ## createWebSocketStream(websocket[, options])
 
