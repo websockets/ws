@@ -328,6 +328,9 @@ This class represents a WebSocket. It extends the `EventEmitter`.
     depending on the `protocolVersion`.
   - `perMessageDeflate` {Boolean|Object} Enable/disable permessage-deflate.
   - `protocolVersion` {Number} Value of the `Sec-WebSocket-Version` header.
+  - `requireProtocolSelection` {Boolean} Specifies whether to treat a missing
+    `Sec-WebSocket-Protocol` header in the server response as an error when
+    subprotocols are requested. Defaults to `true`.
   - `skipUTF8Validation` {Boolean} Specifies whether or not to skip UTF-8
     validation for text and close messages. Defaults to `false`. Set to `true`
     only if the server is trusted.
