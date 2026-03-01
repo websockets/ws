@@ -1402,6 +1402,29 @@ describe('WebSocket', () => {
       });
     });
 
+    it('honors the `requireProtocolSelection` option', (done) => {
+      const wss = new WebSocket.Server({
+        handleProtocols() {},
+        server
+      });
+
+      wss.on('connection', (ws) => {
+        assert.strictEqual(ws.protocol, '');
+        ws.on('close', () => wss.close(done));
+      });
+
+      const ws = new WebSocket(
+        `ws://localhost:${server.address().port}`,
+        'foo',
+        { requireProtocolSelection: false }
+      );
+
+      ws.on('open', () => {
+        assert.strictEqual(ws.protocol, '');
+        ws.close();
+      });
+    });
+
     it('honors the `createConnection` option', (done) => {
       const wss = new WebSocket.Server({ noServer: true, path: '/foo' });
 
