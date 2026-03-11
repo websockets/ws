@@ -101,13 +101,13 @@ describe('PerMessageDeflate', () => {
 
     describe('As server', () => {
       it('accepts an offer with no parameters', () => {
-        const perMessageDeflate = new PerMessageDeflate({}, true);
+        const perMessageDeflate = new PerMessageDeflate({ isServer: true });
 
         assert.deepStrictEqual(perMessageDeflate.accept([{}]), {});
       });
 
       it('accepts an offer with parameters', () => {
-        const perMessageDeflate = new PerMessageDeflate({}, true);
+        const perMessageDeflate = new PerMessageDeflate({ isServer: true });
         const extensions = extension.parse(
           'permessage-deflate; server_no_context_takeover; ' +
             'client_no_context_takeover; server_max_window_bits=10; ' +
@@ -127,15 +127,13 @@ describe('PerMessageDeflate', () => {
       });
 
       it('prefers the configuration options', () => {
-        const perMessageDeflate = new PerMessageDeflate(
-          {
-            serverNoContextTakeover: true,
-            clientNoContextTakeover: true,
-            serverMaxWindowBits: 12,
-            clientMaxWindowBits: 11
-          },
-          true
-        );
+        const perMessageDeflate = new PerMessageDeflate({
+          serverNoContextTakeover: true,
+          clientNoContextTakeover: true,
+          serverMaxWindowBits: 12,
+          clientMaxWindowBits: 11,
+          isServer: true
+        });
         const extensions = extension.parse(
           'permessage-deflate; server_max_window_bits=14; client_max_window_bits=13'
         );
@@ -153,10 +151,10 @@ describe('PerMessageDeflate', () => {
       });
 
       it('accepts the first supported offer', () => {
-        const perMessageDeflate = new PerMessageDeflate(
-          { serverMaxWindowBits: 11 },
-          true
-        );
+        const perMessageDeflate = new PerMessageDeflate({
+          isServer: true,
+          serverMaxWindowBits: 11
+        });
         const extensions = extension.parse(
           'permessage-deflate; server_max_window_bits=10, permessage-deflate'
         );
@@ -171,10 +169,10 @@ describe('PerMessageDeflate', () => {
       });
 
       it('throws an error if server_no_context_takeover is unsupported', () => {
-        const perMessageDeflate = new PerMessageDeflate(
-          { serverNoContextTakeover: false },
-          true
-        );
+        const perMessageDeflate = new PerMessageDeflate({
+          isServer: true,
+          serverNoContextTakeover: false
+        });
         const extensions = extension.parse(
           'permessage-deflate; server_no_context_takeover'
         );
@@ -186,10 +184,10 @@ describe('PerMessageDeflate', () => {
       });
 
       it('throws an error if server_max_window_bits is unsupported', () => {
-        const perMessageDeflate = new PerMessageDeflate(
-          { serverMaxWindowBits: false },
-          true
-        );
+        const perMessageDeflate = new PerMessageDeflate({
+          isServer: true,
+          serverMaxWindowBits: false
+        });
         const extensions = extension.parse(
           'permessage-deflate; server_max_window_bits=10'
         );
@@ -201,10 +199,10 @@ describe('PerMessageDeflate', () => {
       });
 
       it('throws an error if server_max_window_bits is less than configuration', () => {
-        const perMessageDeflate = new PerMessageDeflate(
-          { serverMaxWindowBits: 11 },
-          true
-        );
+        const perMessageDeflate = new PerMessageDeflate({
+          isServer: true,
+          serverMaxWindowBits: 11
+        });
         const extensions = extension.parse(
           'permessage-deflate; server_max_window_bits=10'
         );
@@ -216,10 +214,10 @@ describe('PerMessageDeflate', () => {
       });
 
       it('throws an error if client_max_window_bits is unsupported on client', () => {
-        const perMessageDeflate = new PerMessageDeflate(
-          { clientMaxWindowBits: 10 },
-          true
-        );
+        const perMessageDeflate = new PerMessageDeflate({
+          isServer: true,
+          clientMaxWindowBits: 10
+        });
         const extensions = extension.parse('permessage-deflate');
 
         assert.throws(
@@ -229,7 +227,7 @@ describe('PerMessageDeflate', () => {
       });
 
       it('throws an error if client_max_window_bits has an invalid value', () => {
-        const perMessageDeflate = new PerMessageDeflate({}, true);
+        const perMessageDeflate = new PerMessageDeflate({ isServer: true });
 
         const extensions = extension.parse(
           'permessage-deflate; client_max_window_bits=16'
@@ -388,8 +386,10 @@ describe('PerMessageDeflate', () => {
 
     it('works with the negotiated parameters', (done) => {
       const perMessageDeflate = new PerMessageDeflate({
-        memLevel: 5,
-        level: 9
+        zlibDeflateOptions: {
+          memLevel: 5,
+          level: 9
+        }
       });
       const extensions = extension.parse(
         'permessage-deflate; server_no_context_takeover; ' +
@@ -518,7 +518,7 @@ describe('PerMessageDeflate', () => {
     });
 
     it("doesn't use contex takeover if not allowed", (done) => {
-      const perMessageDeflate = new PerMessageDeflate({}, true);
+      const perMessageDeflate = new PerMessageDeflate({ isServer: true });
       const extensions = extension.parse(
         'permessage-deflate;server_no_context_takeover'
       );
@@ -549,7 +549,7 @@ describe('PerMessageDeflate', () => {
     });
 
     it('uses contex takeover if allowed', (done) => {
-      const perMessageDeflate = new PerMessageDeflate({}, true);
+      const perMessageDeflate = new PerMessageDeflate({ isServer: true });
       const extensions = extension.parse('permessage-deflate');
       const buf = Buffer.from('foofoo');
 
@@ -591,7 +591,10 @@ describe('PerMessageDeflate', () => {
     });
 
     it('calls the callback when `maxPayload` is exceeded (1/2)', (done) => {
-      const perMessageDeflate = new PerMessageDeflate({}, false, 25);
+      const perMessageDeflate = new PerMessageDeflate({
+        isServer: false,
+        maxPayload: 25
+      });
       const buf = Buffer.alloc(50, 'A');
 
       perMessageDeflate.accept([{}]);
@@ -609,7 +612,10 @@ describe('PerMessageDeflate', () => {
     it('calls the callback when `maxPayload` is exceeded (2/2)', (done) => {
       // A copy of the previous test but with a larger input. See
       // https://github.com/websockets/ws/pull/2285.
-      const perMessageDeflate = new PerMessageDeflate({}, false, 25);
+      const perMessageDeflate = new PerMessageDeflate({
+        isServer: false,
+        maxPayload: 25
+      });
       const buf = Buffer.alloc(1024 * 1024, 'A');
 
       perMessageDeflate.accept([{}]);
