@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "skipLibCheck": true,
+    "strictNullChecks": true,
+
+    "noImplicitReturns": true,
+    "noImplicitAny": true,
+
+    "target": "es2022",
+    "module": "es2022",
+    "moduleResolution": "bundler",
+
+    "esModuleInterop": true,
+
+    "types": ["node"]
+  },
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.build.json" },
+    { "path": "./tsconfig.lib.json" }
+  ]
+}
