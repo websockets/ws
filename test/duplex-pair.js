@@ -22,10 +22,9 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 //
-'use strict';
 
-const assert = require('assert');
-const { Duplex } = require('stream');
+import assert from 'node:assert';
+import { Duplex } from 'node:stream';
 
 const kCallback = Symbol('Callback');
 const kOtherSide = Symbol('Other');
@@ -62,12 +61,10 @@ class DuplexSocket extends Duplex {
   }
 }
 
-function makeDuplexPair() {
+export function makeDuplexPair() {
   const clientSide = new DuplexSocket();
   const serverSide = new DuplexSocket();
   clientSide[kOtherSide] = serverSide;
   serverSide[kOtherSide] = clientSide;
   return { clientSide, serverSide };
 }
-
-module.exports = makeDuplexPair;

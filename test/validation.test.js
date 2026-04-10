@@ -1,8 +1,6 @@
-'use strict';
+import assert from 'node:assert';
 
-const assert = require('assert');
-
-const { isValidUTF8 } = require('../lib/validation');
+import { isValidUTF8 } from '../lib/validation.js';
 
 describe('extension', () => {
   describe('isValidUTF8', () => {

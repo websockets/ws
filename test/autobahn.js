@@ -1,6 +1,4 @@
-'use strict';
-
-const WebSocket = require('../');
+import WebSocket from '../index.js';
 
 let currentTest = 1;
 let testCount;

@@ -1,8 +1,6 @@
-'use strict';
+import assert from 'node:assert';
 
-const assert = require('assert');
-
-const Limiter = require('../lib/limiter');
+import Limiter from '../lib/limiter.js';
 
 describe('Limiter', () => {
   describe('#ctor', () => {

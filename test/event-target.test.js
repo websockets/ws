@@ -1,13 +1,11 @@
-'use strict';
+import assert from 'assert';
 
-const assert = require('assert');
-
-const {
+import {
   CloseEvent,
   ErrorEvent,
   Event,
   MessageEvent
-} = require('../lib/event-target');
+} from '../lib/event-target.js';
 
 describe('Event', () => {
   describe('#ctor', () => {

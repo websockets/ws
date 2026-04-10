@@ -1,8 +1,6 @@
-'use strict';
+import assert from 'node:assert';
 
-const assert = require('assert');
-
-const { parse } = require('../lib/subprotocol');
+import { parse } from '../lib/subprotocol.js';
 
 describe('subprotocol', () => {
   describe('parse', () => {

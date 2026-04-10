@@ -1,13 +1,13 @@
 'use strict';
 
-const assert = require('assert');
-const crypto = require('crypto');
-const EventEmitter = require('events');
+import assert from 'node:assert';
+import crypto from 'node:crypto';
+import { EventEmitter } from 'node:events';
 
-const PerMessageDeflate = require('../lib/permessage-deflate');
-const Receiver = require('../lib/receiver');
-const Sender = require('../lib/sender');
-const { EMPTY_BUFFER, hasBlob, kStatusCode } = require('../lib/constants');
+import { PerMessageDeflate } from '../lib/permessage-deflate.js';
+import { Receiver } from '../lib/receiver.js';
+import { Sender } from '../lib/sender.js';
+import { EMPTY_BUFFER, hasBlob, kStatusCode } from '../lib/constants.js';
 
 describe('Receiver', () => {
   it('parses an unmasked text message', (done) => {

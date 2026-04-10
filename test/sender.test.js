@@ -1,11 +1,9 @@
-'use strict';
+import assert from 'node:assert';
 
-const assert = require('assert');
-
-const extension = require('../lib/extension');
-const PerMessageDeflate = require('../lib/permessage-deflate');
-const Sender = require('../lib/sender');
-const { EMPTY_BUFFER, hasBlob } = require('../lib/constants');
+import extension from '../lib/extension.js';
+import { PerMessageDeflate } from '../lib/permessage-deflate.js';
+import { Sender } from '../lib/sender.js';
+import { EMPTY_BUFFER, hasBlob } from '../lib/constants.js';
 
 class MockSocket {
   constructor({ write } = {}) {

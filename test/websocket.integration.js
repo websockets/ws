@@ -1,8 +1,6 @@
-'use strict';
+import assert from 'node:assert';
 
-const assert = require('assert');
-
-const WebSocket = require('..');
+import WebSocket from '../index.js';
 
 describe('WebSocket', () => {
   it('communicates successfully with echo service (ws)', (done) => {

@@ -7,14 +7,15 @@ import subprotocol from './lib/subprotocol.js';
 import { WebSocket } from './lib/websocket.js';
 import { WebSocketServer } from './lib/websocket-server.js';
 
-WebSocket.createWebSocketStream = createWebSocketStream;
-WebSocket.extension = extension;
-WebSocket.PerMessageDeflate = PerMessageDeflate;
-WebSocket.Receiver = Receiver;
-WebSocket.Sender = Sender;
-WebSocket.Server = WebSocketServer;
-WebSocket.subprotocol = subprotocol;
-WebSocket.WebSocket = WebSocket;
-WebSocket.WebSocketServer = WebSocketServer;
+export {
+  createWebSocketStream,
+  extension,
+  PerMessageDeflate,
+  Receiver,
+  Sender,
+  subprotocol,
+  WebSocket,
+  WebSocketServer
+};
 
 export default WebSocket;

@@ -1,8 +1,6 @@
-'use strict';
+import assert from 'node:assert';
 
-const assert = require('assert');
-
-const { format, parse } = require('../lib/extension');
+import { format, parse } from '../lib/extension.js';
 
 describe('extension', () => {
   describe('parse', () => {

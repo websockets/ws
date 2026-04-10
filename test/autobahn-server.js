@@ -1,6 +1,4 @@
-'use strict';
-
-const WebSocket = require('../');
+import WebSocket from '../index.js';
 
 const port = process.argv.length > 2 ? parseInt(process.argv[2]) : 9001;
 const wss = new WebSocket.Server({ port }, () => {

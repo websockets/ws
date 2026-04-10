@@ -1,8 +1,6 @@
-'use strict';
+import assert from 'node:assert';
 
-const assert = require('assert');
-
-const { concat } = require('../lib/buffer-util');
+import { concat } from '../lib/buffer-util.js';
 
 describe('bufferUtil', () => {
   describe('concat', () => {

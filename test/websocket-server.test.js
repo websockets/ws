@@ -1,20 +1,16 @@
-/* eslint no-unused-vars: ["error", { "varsIgnorePattern": "^ws$" }] */
+import assert from 'node:assert';
+import crypto from 'node:crypto';
+import https from 'node:https';
+import http from 'node:http';
+import path from 'node:path';
+import net from 'node:net';
+import fs from 'node:fs';
+import os from 'node:os';
 
-'use strict';
-
-const assert = require('assert');
-const crypto = require('crypto');
-const https = require('https');
-const http = require('http');
-const path = require('path');
-const net = require('net');
-const fs = require('fs');
-const os = require('os');
-
-const makeDuplexPair = require('./duplex-pair');
-const Sender = require('../lib/sender');
-const WebSocket = require('..');
-const { NOOP } = require('../lib/constants');
+import { makeDuplexPair } from './duplex-pair.js';
+import { Sender } from '../lib/sender.js';
+import WebSocket from '../index.js';
+import { NOOP } from '../lib/constants.js';
 
 describe('WebSocketServer', () => {
   describe('#ctor', () => {

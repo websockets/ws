@@ -1,15 +1,13 @@
-'use strict';
+import assert from 'node:assert';
+import { EventEmitter } from 'node:events';
+import { createServer } from 'node:http';
+import { Duplex, getDefaultHighWaterMark } from 'node:stream';
+import { randomBytes } from 'node:crypto';
 
-const assert = require('assert');
-const EventEmitter = require('events');
-const { createServer } = require('http');
-const { Duplex, getDefaultHighWaterMark } = require('stream');
-const { randomBytes } = require('crypto');
-
-const createWebSocketStream = require('../lib/stream');
-const Sender = require('../lib/sender');
-const WebSocket = require('..');
-const { EMPTY_BUFFER } = require('../lib/constants');
+import { createWebSocketStream } from '../lib/stream.js';
+import { Sender } from '../lib/sender.js';
+import WebSocket from '../index.js';
+import { EMPTY_BUFFER } from '../lib/constants.js';
 
 const highWaterMark = getDefaultHighWaterMark
   ? getDefaultHighWaterMark(false)

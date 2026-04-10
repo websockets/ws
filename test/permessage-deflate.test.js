@@ -1,9 +1,7 @@
-'use strict';
+import assert from 'node:assert';
 
-const assert = require('assert');
-
-const PerMessageDeflate = require('../lib/permessage-deflate');
-const extension = require('../lib/extension');
+import { PerMessageDeflate } from '../lib/permessage-deflate.js';
+import extension from '../lib/extension.js';
 
 describe('PerMessageDeflate', () => {
   describe('#offer', () => {
