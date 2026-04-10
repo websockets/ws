@@ -1,4 +1,11 @@
 node_modules/
 .nyc_output/
 coverage/
+dist/
 .vscode/
+
+.DS_Store
+
+.eslintcache
+
+tsconfig.tsbuildinfo
