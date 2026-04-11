@@ -922,7 +922,10 @@ describe('Receiver', () => {
   });
 
   it('emits an error if the message length exceeds `maxPayload`', (done) => {
-    const perMessageDeflate = new PerMessageDeflate({}, false, 25);
+    const perMessageDeflate = new PerMessageDeflate({
+      isServer: false,
+      maxPayload: 25
+    });
     perMessageDeflate.accept([{}]);
 
     const receiver = new Receiver({
@@ -949,7 +952,10 @@ describe('Receiver', () => {
   });
 
   it('emits an error if the sum of fragment lengths exceeds `maxPayload`', (done) => {
-    const perMessageDeflate = new PerMessageDeflate({}, false, 25);
+    const perMessageDeflate = new PerMessageDeflate({
+      isServer: false,
+      maxPayload: 25
+    });
     perMessageDeflate.accept([{}]);
 
     const receiver = new Receiver({

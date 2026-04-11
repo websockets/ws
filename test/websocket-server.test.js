@@ -140,6 +140,22 @@ describe('WebSocketServer', () => {
           });
         });
       });
+
+      it('honors the `closeTimeout` option', (done) => {
+        const closeTimeout = 1000;
+        const wss = new WebSocket.Server({ closeTimeout, port: 0 }, () => {
+          const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+        });
+
+        wss.on('connection', (ws) => {
+          ws.on('close', () => {
+            wss.close(done);
+          });
+
+          ws.close();
+          assert.strictEqual(ws._closeTimer._idleTimeout, closeTimeout);
+        });
+      });
     });
 
     it('emits an error if http server bind fails', (done) => {
@@ -204,7 +220,7 @@ describe('WebSocketServer', () => {
     });
 
     it('uses a precreated http server listening on IPC', (done) => {
-      const randomString = crypto.randomBytes(16).toString('hex');
+      const randomString = crypto.randomBytes(4).toString('hex');
       const ipcPath =
         process.platform === 'win32'
           ? `\\\\.\\pipe\\ws-pipe-${randomString}`
@@ -813,6 +829,7 @@ describe('WebSocketServer', () => {
 
         req.on('response', (res) => {
           assert.strictEqual(res.statusCode, 400);
+          assert.strictEqual(res.headers['sec-websocket-version'], '13, 8');
 
           const chunks = [];
 
@@ -849,6 +866,7 @@ describe('WebSocketServer', () => {
 
         req.on('response', (res) => {
           assert.strictEqual(res.statusCode, 400);
+          assert.strictEqual(res.headers['sec-websocket-version'], '13, 8');
 
           const chunks = [];
 

@@ -72,14 +72,17 @@ This class represents a WebSocket server. It extends the `EventEmitter`.
 ### new WebSocketServer(options[, callback])
 
 - `options` {Object}
-  - `autoPong` {Boolean} Specifies whether or not to automatically send a pong
-    in response to a ping. Defaults to `true`.
   - `allowSynchronousEvents` {Boolean} Specifies whether any of the `'message'`,
     `'ping'`, and `'pong'` events can be emitted multiple times in the same
     tick. Defaults to `true`. Setting it to `false` improves compatibility with
     the WHATWG standard but may negatively impact performance.
+  - `autoPong` {Boolean} Specifies whether or not to automatically send a pong
+    in response to a ping. Defaults to `true`.
   - `backlog` {Number} The maximum length of the queue of pending connections.
   - `clientTracking` {Boolean} Specifies whether or not to track clients.
+  - `closeTimeout` {Number} Duration in milliseconds to wait for a graceful
+    close after [`websocket.close()`][] is called. If the limit is reached, the
+    connection is forcibly terminated. Defaults to 30000.
   - `handleProtocols` {Function} A function which can be used to handle the
     WebSocket subprotocols. See description below.
   - `host` {String} The hostname where to bind the server.
@@ -298,12 +301,15 @@ This class represents a WebSocket. It extends the `EventEmitter`.
 - `address` {String|url.URL} The URL to which to connect.
 - `protocols` {String|Array} The list of subprotocols.
 - `options` {Object}
-  - `autoPong` {Boolean} Specifies whether or not to automatically send a pong
-    in response to a ping. Defaults to `true`.
   - `allowSynchronousEvents` {Boolean} Specifies whether any of the `'message'`,
     `'ping'`, and `'pong'` events can be emitted multiple times in the same
     tick. Defaults to `true`. Setting it to `false` improves compatibility with
-    the WHATWG standardbut may negatively impact performance.
+    the WHATWG standard but may negatively impact performance.
+  - `autoPong` {Boolean} Specifies whether or not to automatically send a pong
+    in response to a ping. Defaults to `true`.
+  - `closeTimeout` {Number} Duration in milliseconds to wait for a graceful
+    close after [`websocket.close()`][] is called. If the limit is reached, the
+    connection is forcibly terminated. Defaults to 30000.
   - `finishRequest` {Function} A function which can be used to customize the
     headers of each HTTP request before it is sent. See description below.
   - `followRedirects` {Boolean} Whether or not to follow redirects. Defaults to
@@ -365,7 +371,7 @@ URL form:
   ws+unix:\\.\pipe\pipe_name:/pathname?search_params
   ```
 
-The character `:` is the separator between the IPC path (the Unix domain socket
+The character `:` is the separator between the IPC path (the UNIX domain socket
 path or the Windows named pipe) and the URL path. The IPC path must not include
 the characters `:` and `?`, otherwise the URL is incorrectly parsed. If the URL
 path is omitted
@@ -709,4 +715,5 @@ as configured by the `maxPayload` option.
 [`request.removeheader()`]:
   https://nodejs.org/api/http.html#requestremoveheadername
 [`socket.destroy()`]: https://nodejs.org/api/net.html#net_socket_destroy_error
+[`websocket.close()`]: #websocketclosecode-reason
 [zlib-options]: https://nodejs.org/api/zlib.html#zlib_class_options

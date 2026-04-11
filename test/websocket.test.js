@@ -52,7 +52,7 @@ describe('WebSocket', () => {
           assert.strictEqual(
             err.message,
             'The URL\'s protocol must be one of "ws:", "wss:", ' +
-              '"http:", "https", or "ws+unix:"'
+              '"http:", "https:", or "ws+unix:"'
           );
 
           return true;
@@ -230,6 +230,24 @@ describe('WebSocket', () => {
           });
 
           ws.ping();
+        });
+      });
+
+      it('honors the `closeTimeout` option', (done) => {
+        const wss = new WebSocket.Server({ port: 0 }, () => {
+          const closeTimeout = 1000;
+          const ws = new WebSocket(`ws://localhost:${wss.address().port}`, {
+            closeTimeout
+          });
+
+          ws.on('open', () => {
+            ws.close();
+            assert.strictEqual(ws._closeTimer._idleTimeout, closeTimeout);
+          });
+
+          ws.on('close', () => {
+            wss.close(done);
+          });
         });
       });
     });
@@ -664,7 +682,7 @@ describe('WebSocket', () => {
     it("emits an 'error' event if an error occurs (2/2)", function (done) {
       if (!fs.openAsBlob) return this.skip();
 
-      const randomString = crypto.randomBytes(16).toString('hex');
+      const randomString = crypto.randomBytes(4).toString('hex');
       const file = path.join(os.tmpdir(), `ws-${randomString}.txt`);
 
       fs.writeFileSync(file, 'x'.repeat(64));
@@ -704,7 +722,7 @@ describe('WebSocket', () => {
     it("emits the 'error' event only once (1/2)", function (done) {
       if (!fs.openAsBlob) return this.skip();
 
-      const randomString = crypto.randomBytes(16).toString('hex');
+      const randomString = crypto.randomBytes(4).toString('hex');
       const file = path.join(os.tmpdir(), `ws-${randomString}.txt`);
 
       fs.writeFileSync(file, 'x'.repeat(64));
@@ -760,7 +778,7 @@ describe('WebSocket', () => {
     it("emits the 'error' event only once (2/2)", function (done) {
       if (!fs.openAsBlob) return this.skip();
 
-      const randomString = crypto.randomBytes(16).toString('hex');
+      const randomString = crypto.randomBytes(4).toString('hex');
       const file = path.join(os.tmpdir(), `ws-${randomString}.txt`);
 
       fs.writeFileSync(file, 'x'.repeat(64));
@@ -812,7 +830,7 @@ describe('WebSocket', () => {
     it("does not emit 'error' after 'close'", function (done) {
       if (!fs.openAsBlob) return this.skip();
 
-      const randomString = crypto.randomBytes(16).toString('hex');
+      const randomString = crypto.randomBytes(4).toString('hex');
       const file = path.join(os.tmpdir(), `ws-${randomString}.bin`);
 
       fs.writeFileSync(file, crypto.randomBytes(1024 * 1024));
@@ -1515,7 +1533,7 @@ describe('WebSocket', () => {
         assert.strictEqual(
           err.message,
           'The URL\'s protocol must be one of "ws:", "wss:", ' +
-            '"http:", "https", or "ws+unix:"'
+            '"http:", "https:", or "ws+unix:"'
         );
         assert.strictEqual(ws._redirects, 1);
 
@@ -1866,7 +1884,7 @@ describe('WebSocket', () => {
         it('drops the Authorization, Cookie and Host headers (2/4)', (done) => {
           // Test the `ws:` to `ws+unix:` case.
 
-          const randomString = crypto.randomBytes(16).toString('hex');
+          const randomString = crypto.randomBytes(4).toString('hex');
           const ipcPath =
             process.platform === 'win32'
               ? `\\\\.\\pipe\\ws-pipe-${randomString}`
@@ -1926,8 +1944,8 @@ describe('WebSocket', () => {
         it('drops the Authorization, Cookie and Host headers (3/4)', (done) => {
           // Test the `ws+unix:` to `ws+unix:` case.
 
-          const randomString1 = crypto.randomBytes(16).toString('hex');
-          const randomString2 = crypto.randomBytes(16).toString('hex');
+          const randomString1 = crypto.randomBytes(4).toString('hex');
+          const randomString2 = crypto.randomBytes(4).toString('hex');
           let redirectingServerIpcPath;
           let redirectedServerIpcPath;
 
@@ -2025,7 +2043,7 @@ describe('WebSocket', () => {
             ws.close();
           });
 
-          const randomString = crypto.randomBytes(16).toString('hex');
+          const randomString = crypto.randomBytes(4).toString('hex');
           const ipcPath =
             process.platform === 'win32'
               ? `\\\\.\\pipe\\ws-pipe-${randomString}`
