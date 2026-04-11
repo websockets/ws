@@ -18,24 +18,24 @@
   },
   "author": "Einar Otto Stangvik <einaros@gmail.com> (http://2x.io)",
   "license": "MIT",
-  "main": "index.js",
+  "main": "src/index.js",
   "exports": {
     ".": {
-      "browser": "./browser.js",
-      "import": "./wrapper.mjs",
-      "require": "./index.js"
+      "browser": "./src/browser.js",
+      "import": "./src/wrapper.js",
+      "require": "./src/index.js"
     },
     "./package.json": "./package.json"
   },
-  "browser": "browser.js",
+  "browser": "./src/browser.js",
   "engines": {
     "node": ">=10.0.0"
   },
   "files": [
-    "browser.js",
-    "index.js",
+    "src/browser.js",
+    "src/index.js",
     "lib/*.js",
-    "wrapper.mjs"
+    "src/wrapper.js"
   ],
   "type": "module",
   "scripts": {
