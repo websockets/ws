@@ -1,4 +1,4 @@
-import WebSocket from '../index.js';
+import WebSocket from '../src/index.js';
 
 const port = process.argv.length > 2 ? parseInt(process.argv[2]) : 9001;
 const wss = new WebSocket.Server({ port }, () => {

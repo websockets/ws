@@ -1,4 +1,4 @@
-import WebSocket from '../index.js';
+import WebSocket from '../src/index.js';
 
 let currentTest = 1;
 let testCount;

@@ -9,7 +9,7 @@ import os from 'node:os';
 
 import { makeDuplexPair } from './duplex-pair.js';
 import { Sender } from '../lib/sender.js';
-import WebSocket from '../index.js';
+import WebSocket from '../src/index.js';
 import { NOOP } from '../lib/constants.js';
 
 describe('WebSocketServer', () => {

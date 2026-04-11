@@ -6,7 +6,7 @@ import { randomBytes } from 'node:crypto';
 
 import { createWebSocketStream } from '../lib/stream.js';
 import { Sender } from '../lib/sender.js';
-import WebSocket from '../index.js';
+import WebSocket from '../src/index.js';
 import { EMPTY_BUFFER } from '../lib/constants.js';
 
 const highWaterMark = getDefaultHighWaterMark

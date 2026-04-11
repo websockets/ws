@@ -11,7 +11,7 @@ import { getDefaultHighWaterMark } from 'node:stream';
 import { URL } from 'node:url';
 
 import { Sender } from '../lib/sender.js';
-import WebSocket from '../index.js';
+import WebSocket from '../src/index.js';
 import {
   CloseEvent,
   ErrorEvent,
