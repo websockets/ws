@@ -55,6 +55,39 @@ describe('Event', () => {
   });
 });
 
+describe('Native `Event` interoperability', () => {
+  it('extends the native `Event` class if available', function () {
+    if (typeof globalThis.Event !== 'function') return this.skip();
+
+    assert.ok(new Event('foo') instanceof globalThis.Event);
+    assert.ok(new CloseEvent('close') instanceof globalThis.Event);
+    assert.ok(new ErrorEvent('error') instanceof globalThis.Event);
+    assert.ok(new MessageEvent('message') instanceof globalThis.Event);
+  });
+
+  it('can be dispatched on a native `EventTarget`', function () {
+    if (
+      typeof globalThis.Event !== 'function' ||
+      typeof globalThis.EventTarget !== 'function'
+    ) {
+      return this.skip();
+    }
+
+    const target = new globalThis.EventTarget();
+    const events = [];
+
+    target.addEventListener('message', (event) => {
+      events.push(event);
+    });
+
+    const event = new MessageEvent('message', { data: 'foo' });
+
+    assert.doesNotThrow(() => target.dispatchEvent(event));
+    assert.deepStrictEqual(events, [event]);
+    assert.strictEqual(events[0].data, 'foo');
+  });
+});
+
 describe('CloseEvent', () => {
   it('inherits from `Event`', () => {
     assert.ok(CloseEvent.prototype instanceof Event);
