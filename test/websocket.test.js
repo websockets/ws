@@ -65,6 +65,33 @@ describe('WebSocket', function () {
         assert.strictEqual(count, 3);
       });
 
+      it('accepts the receiver limit options', (done) => {
+        const maxBufferedChunks = 1024;
+        const maxFragments = 512;
+        const wss = new WebSocket.Server(
+          {
+            perMessageDeflate: true,
+            port: 0
+          },
+          () => {
+            const ws = new WebSocket(`ws://localhost:${wss.address().port}`, {
+              perMessageDeflate: true,
+              maxBufferedChunks,
+              maxFragments
+            });
+
+            ws.on('open', () => {
+              assert.strictEqual(
+                ws._receiver._maxBufferedChunks,
+                maxBufferedChunks
+              );
+              assert.strictEqual(ws._receiver._maxFragments, maxFragments);
+              wss.close(done);
+            });
+          }
+        );
+      });
+
       it('throws an error when using an invalid `protocolVersion`', function () {
         const options = { agent: new CustomAgent(), protocolVersion: 1000 };
 

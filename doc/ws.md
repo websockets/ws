@@ -19,6 +19,10 @@ This class represents a WebSocket server. It extends the `EventEmitter`.
   - `noServer` {Boolean} Enable no server mode.
   - `clientTracking` {Boolean} Specifies whether or not to track clients.
   - `perMessageDeflate` {Boolean|Object} Enable/disable permessage-deflate.
+  - `maxBufferedChunks` {Number} The maximum number of buffered data chunks.
+    Defaults to 1048576. Set to 0 to disable the limit.
+  - `maxFragments` {Number} The maximum number of fragments in a message.
+    Defaults to 131072. Set to 0 to disable the limit.
   - `maxPayload` {Number} The maximum allowed message size in bytes.
 - `callback` {Function}
 
@@ -199,6 +203,10 @@ This class represents a WebSocket. It extends the `EventEmitter`.
   - `protocolVersion` {Number} Value of the `Sec-WebSocket-Version` header.
   - `origin` {String} Value of the `Origin` or `Sec-WebSocket-Origin` header
     depending on the `protocolVersion`.
+  - `maxBufferedChunks` {Number} The maximum number of buffered data chunks.
+    Defaults to 1048576. Set to 0 to disable the limit.
+  - `maxFragments` {Number} The maximum number of fragments in a message.
+    Defaults to 131072. Set to 0 to disable the limit.
   - Any other option allowed in [http.request()][] or [https.request()][].
 
 `perMessageDeflate` default value is `true`. When using an object, parameters
