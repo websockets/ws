@@ -988,6 +988,85 @@ describe('Receiver', () => {
     });
   });
 
+  it('emits an error if there are too many message fragments (1/2)', (done) => {
+    const receiver = new Receiver({ maxFragments: 2 });
+
+    receiver.on('error', (err) => {
+      assert.ok(err instanceof RangeError);
+      assert.strictEqual(err.code, 'WS_ERR_TOO_MANY_BUFFERED_PARTS');
+      assert.strictEqual(err.message, 'Too many message fragments');
+      assert.strictEqual(err[kStatusCode], 1008);
+      done();
+    });
+
+    receiver.write(
+      Buffer.from([
+        0x02,
+        0x01,
+        0x61, // First non-final binary fragment.
+        0x00,
+        0x01,
+        0x62, // Continuation fragment.
+        0x00,
+        0x01,
+        0x63 // Continuation fragment that exceeds the limit.
+      ])
+    );
+  });
+
+  it('emits an error if there are too many message fragments (2/2)', (done) => {
+    const perMessageDeflate = new PerMessageDeflate();
+    perMessageDeflate.accept([{}]);
+
+    const receiver = new Receiver({
+      extensions: {
+        'permessage-deflate': perMessageDeflate
+      },
+      maxFragments: 1
+    });
+    const fragment1 = Buffer.from('foo');
+    const fragment2 = Buffer.from('bar');
+
+    receiver.on('error', (err) => {
+      assert.ok(err instanceof RangeError);
+      assert.strictEqual(err.code, 'WS_ERR_TOO_MANY_BUFFERED_PARTS');
+      assert.strictEqual(err.message, 'Too many message fragments');
+      assert.strictEqual(err[kStatusCode], 1008);
+      done();
+    });
+
+    perMessageDeflate.compress(fragment1, false, (err, data) => {
+      if (err) return done(err);
+
+      receiver.write(Buffer.from([0x41, data.length]));
+      receiver.write(data);
+
+      perMessageDeflate.compress(fragment2, true, (err, data) => {
+        if (err) return done(err);
+
+        receiver.write(Buffer.from([0x80, data.length]));
+        receiver.write(data);
+      });
+    });
+  });
+
+  it('emits an error if there are too many buffered chunks', (done) => {
+    const receiver = new Receiver({ maxBufferedChunks: 2 });
+
+    receiver.on('error', (err) => {
+      assert.ok(err instanceof RangeError);
+      assert.strictEqual(err.code, 'WS_ERR_TOO_MANY_BUFFERED_PARTS');
+      assert.strictEqual(err.message, 'Too many buffered chunks');
+      assert.strictEqual(err[kStatusCode], 1008);
+      done();
+    });
+
+    receiver.write(Buffer.from([0x82, 0x05]));
+    receiver.write(Buffer.from([0x61]));
+    receiver.write(Buffer.from([0x62]));
+    receiver.write(Buffer.from([0x63]));
+  });
+
   it("honors the 'nodebuffer' binary type", (done) => {
     const receiver = new Receiver();
     const frags = [
