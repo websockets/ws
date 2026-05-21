@@ -57,7 +57,9 @@ describe('WebSocket', () => {
         assert.strictEqual(count, 3);
       });
 
-      it('accepts the `maxPayload` option', (done) => {
+      it('accepts the receiver limit options', (done) => {
+        const maxBufferedChunks = 1024;
+        const maxFragments = 512;
         const maxPayload = 20480;
         const wss = new WebSocket.Server(
           {
@@ -67,10 +69,17 @@ describe('WebSocket', () => {
           () => {
             const ws = new WebSocket(`ws://localhost:${wss.address().port}`, {
               perMessageDeflate: true,
+              maxBufferedChunks,
+              maxFragments,
               maxPayload
             });
 
             ws.on('open', () => {
+              assert.strictEqual(
+                ws._receiver._maxBufferedChunks,
+                maxBufferedChunks
+              );
+              assert.strictEqual(ws._receiver._maxFragments, maxFragments);
               assert.strictEqual(ws._receiver._maxPayload, maxPayload);
               assert.strictEqual(
                 ws._receiver._extensions['permessage-deflate']._maxPayload,
