@@ -41,3 +41,5 @@ will create and publish a security advisory to
   [DoS when handling a request with many HTTP headers](https://github.com/websockets/ws/releases/tag/8.17.1)
 - 12 May 2026:
   [Uninitialized memory disclosure in `websocket.close()`](https://github.com/websockets/ws/releases/tag/8.20.1)
+- 22 May 2026:
+  [Memory exhaustion DoS from tiny fragments and data chunks](https://github.com/websockets/ws/releases/tag/8.21.0)
