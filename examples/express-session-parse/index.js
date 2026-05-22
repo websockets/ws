@@ -2,8 +2,8 @@
 
 const session = require('express-session');
 const express = require('express');
+const crypto = require('crypto');
 const http = require('http');
-const uuid = require('uuid');
 
 const { WebSocketServer } = require('../..');
 
@@ -34,7 +34,7 @@ app.post('/login', function (req, res) {
   //
   // "Log in" user and set userId to session.
   //
-  const id = uuid.v4();
+  const id = crypto.randomUUID();
 
   console.log(`Updating session for user ${id}`);
   req.session.userId = id;
