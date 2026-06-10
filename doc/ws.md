@@ -87,12 +87,15 @@ This class represents a WebSocket server. It extends the `EventEmitter`.
   - `handleProtocols` {Function} A function which can be used to handle the
     WebSocket subprotocols. See description below.
   - `host` {String} The hostname where to bind the server.
-  - `maxBufferedChunks` {Number} The maximum number of buffered data chunks.
-    Defaults to 1048576. Set to 0 to disable the limit.
-  - `maxFragments` {Number} The maximum number of fragments in a message.
-    Defaults to 131072. Set to 0 to disable the limit.
-  - `maxPayload` {Number} The maximum allowed message size in bytes. Defaults to
-    100 MiB (104857600 bytes).
+  - `maxBufferedChunks` {Number} The maximum number of buffered data chunks. The
+    value is coerced to a 32-bit signed integer. Defaults to 1048576. Set to 0
+    to disable the limit.
+  - `maxFragments` {Number} The maximum number of fragments in a message. The
+    value is coerced to a 32-bit signed integer. Defaults to 131072. Set to 0 to
+    disable the limit.
+  - `maxPayload` {Number} The maximum allowed message size in bytes. The value
+    is coerced to a 32-bit signed integer. Defaults to 104857600 (100 MiB). Set
+    to 0 to disable the limit.
   - `noServer` {Boolean} Enable no server mode.
   - `path` {String} Accept only connections matching this path.
   - `perMessageDeflate` {Boolean|Object} Enable/disable permessage-deflate.
@@ -325,12 +328,15 @@ This class represents a WebSocket. It extends the `EventEmitter`.
     cryptographically strong random bytes.
   - `handshakeTimeout` {Number} Timeout in milliseconds for the handshake
     request. This is reset after every redirection.
-  - `maxBufferedChunks` {Number} The maximum number of buffered data chunks.
-    Defaults to 1048576. Set to 0 to disable the limit.
-  - `maxFragments` {Number} The maximum number of fragments in a message.
-    Defaults to 131072. Set to 0 to disable the limit.
-  - `maxPayload` {Number} The maximum allowed message size in bytes. Defaults to
-    100 MiB (104857600 bytes).
+  - `maxBufferedChunks` {Number} The maximum number of buffered data chunks. The
+    value is coerced to a 32-bit signed integer. Defaults to 1048576. Set to 0
+    to disable the limit.
+  - `maxFragments` {Number} The maximum number of fragments in a message. The
+    value is coerced to a 32-bit signed integer. Defaults to 131072. Set to 0 to
+    disable the limit.
+  - `maxPayload` {Number} The maximum allowed message size in bytes. The value
+    is coerced to a 32-bit signed integer. Defaults to 104857600 (100 MiB). Set
+    to 0 to disable the limit.
   - `maxRedirects` {Number} The maximum number of redirects allowed. Defaults
     to 10.
   - `origin` {String} Value of the `Origin` or `Sec-WebSocket-Origin` header
