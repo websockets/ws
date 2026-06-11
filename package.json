@@ -66,5 +66,9 @@
     "nyc": "^15.0.0",
     "prettier": "^3.0.0",
     "utf-8-validate": "^6.0.0"
+  },
+  "allowScripts": {
+    "bufferutil": true,
+    "utf-8-validate": true
   }
 }
