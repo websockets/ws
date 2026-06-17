@@ -213,6 +213,21 @@ describe('PerMessageDeflate', () => {
         );
       });
 
+      it('throws an error if client_max_window_bits is less than configuration', () => {
+        const perMessageDeflate = new PerMessageDeflate({
+          isServer: true,
+          clientMaxWindowBits: 11
+        });
+        const extensions = extension.parse(
+          'permessage-deflate; client_max_window_bits=10'
+        );
+
+        assert.throws(
+          () => perMessageDeflate.accept(extensions['permessage-deflate']),
+          /^Error: None of the extension offers can be accepted$/
+        );
+      });
+
       it('throws an error if client_max_window_bits is unsupported on client', () => {
         const perMessageDeflate = new PerMessageDeflate({
           isServer: true,
