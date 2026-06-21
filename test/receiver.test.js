@@ -1014,6 +1014,28 @@ describe('Receiver', () => {
     );
   });
 
+  it('emits an error if there are too many message fragments (empty frames)', (done) => {
+    const receiver = new Receiver({ maxFragments: 2 });
+
+    receiver.on('error', (err) => {
+      assert.ok(err instanceof RangeError);
+      assert.strictEqual(err.code, 'WS_ERR_TOO_MANY_BUFFERED_PARTS');
+      assert.strictEqual(err.message, 'Too many message fragments');
+      assert.strictEqual(err[kStatusCode], 1008);
+      done();
+    });
+
+    // First non-final binary fragment (non-empty).
+    // Then two zero-byte continuation frames; the second must trigger the limit.
+    receiver.write(
+      Buffer.from([
+        0x02, 0x01, 0x61, // opcode=2, FIN=0, payload='a'
+        0x00, 0x00,       // opcode=0 (continuation), FIN=0, payload length=0
+        0x00, 0x00        // opcode=0 (continuation), FIN=0, payload length=0
+      ])
+    );
+  });
+
   it('emits an error if there are too many message fragments (2/2)', (done) => {
     const perMessageDeflate = new PerMessageDeflate();
     perMessageDeflate.accept([{}]);
