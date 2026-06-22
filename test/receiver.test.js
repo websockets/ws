@@ -1025,8 +1025,6 @@ describe('Receiver', () => {
       done();
     });
 
-    // First non-final binary fragment (non-empty).
-    // Then two zero-byte continuation frames; the second must trigger the limit.
     receiver.write(
       Buffer.from([
         0x02, 0x01, 0x61, // opcode=2, FIN=0, payload='a'
