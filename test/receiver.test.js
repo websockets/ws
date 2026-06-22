@@ -1027,9 +1027,9 @@ describe('Receiver', () => {
 
     receiver.write(
       Buffer.from([
-        0x02, 0x01, 0x61, // opcode=2, FIN=0, payload='a'
-        0x00, 0x00,       // opcode=0 (continuation), FIN=0, payload length=0
-        0x00, 0x00        // opcode=0 (continuation), FIN=0, payload length=0
+        0x02, 0x01,
+        0x00, 0x00,
+        0x00, 0x00
       ])
     );
   });
