@@ -87,11 +87,17 @@ This class represents a WebSocket server. It extends the `EventEmitter`.
   - `handleProtocols` {Function} A function which can be used to handle the
     WebSocket subprotocols. See description below.
   - `host` {String} The hostname where to bind the server.
+  - `maxBufferedBytes` {Number} The maximum estimated amount of memory, in
+    bytes, that may be pinned by buffered data chunks or the fragments of an
+    in-progress message. It is measured as the sum of the payload bytes plus a
+    fixed per-part overhead, so it bounds the memory actually retained rather
+    than only the payload size. The value is coerced to a 32-bit signed integer.
+    Defaults to 134217728 (128 MiB). Set to 0 to disable the limit.
   - `maxBufferedChunks` {Number} The maximum number of buffered data chunks. The
-    value is coerced to a 32-bit signed integer. Defaults to 1048576. Set to 0
-    to disable the limit.
+    value is coerced to a 32-bit signed integer. Defaults to 65536. Set to 0 to
+    disable the limit.
   - `maxFragments` {Number} The maximum number of fragments in a message. The
-    value is coerced to a 32-bit signed integer. Defaults to 131072. Set to 0 to
+    value is coerced to a 32-bit signed integer. Defaults to 16384. Set to 0 to
     disable the limit.
   - `maxPayload` {Number} The maximum allowed message size in bytes. The value
     is coerced to a 32-bit signed integer. Defaults to 104857600 (100 MiB). Set
@@ -328,11 +334,17 @@ This class represents a WebSocket. It extends the `EventEmitter`.
     cryptographically strong random bytes.
   - `handshakeTimeout` {Number} Timeout in milliseconds for the handshake
     request. This is reset after every redirection.
+  - `maxBufferedBytes` {Number} The maximum estimated amount of memory, in
+    bytes, that may be pinned by buffered data chunks or the fragments of an
+    in-progress message. It is measured as the sum of the payload bytes plus a
+    fixed per-part overhead, so it bounds the memory actually retained rather
+    than only the payload size. The value is coerced to a 32-bit signed integer.
+    Defaults to 134217728 (128 MiB). Set to 0 to disable the limit.
   - `maxBufferedChunks` {Number} The maximum number of buffered data chunks. The
-    value is coerced to a 32-bit signed integer. Defaults to 1048576. Set to 0
-    to disable the limit.
+    value is coerced to a 32-bit signed integer. Defaults to 65536. Set to 0 to
+    disable the limit.
   - `maxFragments` {Number} The maximum number of fragments in a message. The
-    value is coerced to a 32-bit signed integer. Defaults to 131072. Set to 0 to
+    value is coerced to a 32-bit signed integer. Defaults to 16384. Set to 0 to
     disable the limit.
   - `maxPayload` {Number} The maximum allowed message size in bytes. The value
     is coerced to a 32-bit signed integer. Defaults to 104857600 (100 MiB). Set
@@ -708,7 +720,8 @@ A WebSocket frame was received with the RSV2 or RSV3 bit set unexpectedly.
 ### WS_ERR_TOO_MANY_BUFFERED_PARTS
 
 The configured maximum number of buffered data chunks or message fragments was
-exceeded.
+exceeded, or the estimated memory pinned by them exceeded the configured
+`maxBufferedBytes` limit.
 
 ### WS_ERR_UNSUPPORTED_DATA_PAYLOAD_LENGTH
 

@@ -1083,6 +1083,85 @@ describe('Receiver', () => {
     receiver.write(Buffer.from([0x63]));
   });
 
+  it('emits an error if buffered chunks pin too much memory', (done) => {
+    const receiver = new Receiver({ maxBufferedBytes: 200 });
+
+    receiver.on('error', (err) => {
+      assert.ok(err instanceof RangeError);
+      assert.strictEqual(err.code, 'WS_ERR_TOO_MANY_BUFFERED_PARTS');
+      assert.strictEqual(err.message, 'Too much buffered data');
+      assert.strictEqual(err[kStatusCode], 1008);
+      done();
+    });
+
+    receiver.write(Buffer.from([0x82, 0x05]));
+    receiver.write(Buffer.from([0x61]));
+    receiver.write(Buffer.from([0x62]));
+  });
+
+  it('emits an error if message fragments pin too much memory', (done) => {
+    const receiver = new Receiver({ maxBufferedBytes: 200 });
+
+    receiver.on('error', (err) => {
+      assert.ok(err instanceof RangeError);
+      assert.strictEqual(err.code, 'WS_ERR_TOO_MANY_BUFFERED_PARTS');
+      assert.strictEqual(err.message, 'Too much buffered data');
+      assert.strictEqual(err[kStatusCode], 1008);
+      done();
+    });
+
+    //
+    // Tiny fragments keep the summed payload length far below `maxPayload` but
+    // the retained `Buffer` views pin much more memory than the payload bytes.
+    //
+    receiver.write(
+      Buffer.from([
+        0x01,
+        0x01,
+        0x61, // First non-final text fragment.
+        0x00,
+        0x01,
+        0x62 // Continuation fragment that crosses the memory limit.
+      ])
+    );
+  });
+
+  it('emits an error if compressed message fragments pin too much memory', (done) => {
+    const perMessageDeflate = new PerMessageDeflate();
+    perMessageDeflate.accept([{}]);
+
+    const receiver = new Receiver({
+      extensions: {
+        'permessage-deflate': perMessageDeflate
+      },
+      maxBufferedBytes: 200
+    });
+    const fragment1 = Buffer.from('foo');
+    const fragment2 = Buffer.from('bar');
+
+    receiver.on('error', (err) => {
+      assert.ok(err instanceof RangeError);
+      assert.strictEqual(err.code, 'WS_ERR_TOO_MANY_BUFFERED_PARTS');
+      assert.strictEqual(err.message, 'Too much buffered data');
+      assert.strictEqual(err[kStatusCode], 1008);
+      done();
+    });
+
+    perMessageDeflate.compress(fragment1, false, (err, data) => {
+      if (err) return done(err);
+
+      receiver.write(Buffer.from([0x41, data.length]));
+      receiver.write(data);
+
+      perMessageDeflate.compress(fragment2, true, (err, data) => {
+        if (err) return done(err);
+
+        receiver.write(Buffer.from([0x80, data.length]));
+        receiver.write(data);
+      });
+    });
+  });
+
   it("honors the 'nodebuffer' binary type", (done) => {
     const receiver = new Receiver();
     const frags = [

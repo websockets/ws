@@ -67,12 +67,14 @@ describe('WebSocketServer', () => {
       });
 
       it('accepts the receiver limit options', (done) => {
+        const maxBufferedBytes = 262144;
         const maxBufferedChunks = 1024;
         const maxFragments = 512;
         const maxPayload = 20480;
         const wss = new WebSocket.Server(
           {
             perMessageDeflate: true,
+            maxBufferedBytes,
             maxBufferedChunks,
             maxFragments,
             maxPayload,
@@ -86,6 +88,7 @@ describe('WebSocketServer', () => {
         );
 
         wss.on('connection', (ws) => {
+          assert.strictEqual(ws._receiver._maxBufferedBytes, maxBufferedBytes);
           assert.strictEqual(
             ws._receiver._maxBufferedChunks,
             maxBufferedChunks
