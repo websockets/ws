@@ -4421,6 +4421,35 @@ describe('WebSocket', () => {
       });
     });
 
+    it('negotiates a client window size smaller than the server one', (done) => {
+      const wss = new WebSocket.Server(
+        {
+          perMessageDeflate: { clientMaxWindowBits: 15, threshold: 0 },
+          port: 0
+        },
+        () => {
+          const ws = new WebSocket(`ws://localhost:${wss.address().port}`, {
+            perMessageDeflate: { clientMaxWindowBits: 10, threshold: 0 }
+          });
+
+          ws.on('error', (err) => {
+            wss.close(() => done(err));
+          });
+
+          ws.on('message', (message, isBinary) => {
+            assert.deepStrictEqual(message, Buffer.from('hi'));
+            assert.ok(!isBinary);
+            ws.close();
+            wss.close(done);
+          });
+        }
+      );
+
+      wss.on('connection', (ws) => {
+        ws.send('hi');
+      });
+    });
+
     it('consumes all received data when connection is closed (1/2)', (done) => {
       const wss = new WebSocket.Server(
         {

@@ -150,6 +150,24 @@ describe('PerMessageDeflate', () => {
         );
       });
 
+      it('does not exceed the offered client_max_window_bits value', () => {
+        const perMessageDeflate = new PerMessageDeflate({
+          isServer: true,
+          clientMaxWindowBits: 12
+        });
+        const extensions = extension.parse(
+          'permessage-deflate; client_max_window_bits=10'
+        );
+
+        assert.deepStrictEqual(
+          perMessageDeflate.accept(extensions['permessage-deflate']),
+          {
+            client_max_window_bits: 10,
+            __proto__: null
+          }
+        );
+      });
+
       it('accepts the first supported offer', () => {
         const perMessageDeflate = new PerMessageDeflate({
           isServer: true,
