@@ -3462,8 +3462,8 @@ describe('WebSocket', () => {
           );
 
           //
-          // The rejected `close()` call must not leave the connection wedged in
-          // the `CLOSING` state; a subsequent valid `close()` must still work.
+          // The ready state must not be changed to `CLOSING` and a subsequent
+          // valid `websocket.close()` call must still work.
           //
           assert.strictEqual(ws.readyState, WebSocket.OPEN);
 
