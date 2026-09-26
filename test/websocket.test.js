@@ -4389,6 +4389,22 @@ describe('WebSocket', () => {
         ws.close();
       });
     });
+
+    it('honors the `protocols` option', () => {
+      const url = 'ws://localhost';
+      function lookup() {}
+
+      for (const args of [
+        [url, { lookup, protocols: ['foo'] }],
+        [url, { lookup, protocols: 'foo' }],
+        [url, undefined, { lookup, protocols: ['foo'] }],
+        [url, undefined, { lookup, protocols: 'foo' }],
+        [url, 'foo', { lookup, protocols: ['bar'] }]
+      ]) {
+        const ws = new WebSocket(...args);
+        assert.strictEqual(ws._req.getHeader('sec-websocket-protocol'), 'foo');
+      }
+    });
   });
 
   describe('permessage-deflate', () => {

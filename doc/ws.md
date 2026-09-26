@@ -307,7 +307,8 @@ This class represents a WebSocket. It extends the `EventEmitter`.
 ### new WebSocket(address[, protocols][, options])
 
 - `address` {String|url.URL} The URL to which to connect.
-- `protocols` {String|Array} The list of subprotocols.
+- `protocols` {String|Array} The list of subprotocols. If specified, this
+  overrides the `protocols` option.
 - `options` {Object}
   - `allowSynchronousEvents` {Boolean} Specifies whether any of the `'message'`,
     `'ping'`, and `'pong'` events can be emitted multiple times in the same
@@ -342,6 +343,7 @@ This class represents a WebSocket. It extends the `EventEmitter`.
   - `origin` {String} Value of the `Origin` or `Sec-WebSocket-Origin` header
     depending on the `protocolVersion`.
   - `perMessageDeflate` {Boolean|Object} Enable/disable permessage-deflate.
+  - `protocols` {String|Array} The list of subprotocols.
   - `protocolVersion` {Number} Value of the `Sec-WebSocket-Version` header.
   - `skipUTF8Validation` {Boolean} Specifies whether or not to skip UTF-8
     validation for text and close messages. Defaults to `false`. Set to `true`
