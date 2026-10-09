@@ -1,6 +1,7 @@
 'use strict';
 
 const assert = require('assert');
+const zlib = require('zlib');
 
 const PerMessageDeflate = require('../lib/permessage-deflate');
 const extension = require('../lib/extension');
@@ -680,6 +681,257 @@ describe('PerMessageDeflate', () => {
           assert.ok(data.equals(expected));
           done();
         });
+      });
+    });
+
+    describe('Without context takeover', () => {
+      const offer =
+        'permessage-deflate; server_no_context_takeover; ' +
+        'client_no_context_takeover';
+
+      //
+      // Like `WebSocketServer`, create one instance per connection from a copy
+      // of the same options.
+      //
+      function create(options) {
+        const perMessageDeflate = new PerMessageDeflate({
+          ...options,
+          isServer: true
+        });
+
+        perMessageDeflate.accept(extension.parse(offer)['permessage-deflate']);
+        return perMessageDeflate;
+      }
+
+      it('shares the zlib streams between instances', (done) => {
+        const options = { zlibDeflateOptions: {}, zlibInflateOptions: {} };
+        const a = create(options);
+        const b = create(options);
+        const buf = Buffer.from("Some compressible data, it's compressible.");
+
+        a.compress(buf, true, (err, compressed) => {
+          if (err) return done(err);
+
+          assert.strictEqual(a._deflate, null);
+
+          b.compress(buf, true, (err, data) => {
+            if (err) return done(err);
+
+            assert.ok(data.equals(compressed));
+            assert.strictEqual(b._deflate, null);
+
+            a.decompress(compressed, true, (err, data) => {
+              if (err) return done(err);
+
+              assert.ok(data.equals(buf));
+              assert.strictEqual(a._inflate, null);
+
+              b.decompress(compressed, true, (err, data) => {
+                if (err) return done(err);
+
+                assert.ok(data.equals(buf));
+                assert.strictEqual(b._inflate, null);
+                done();
+              });
+
+              assert.strictEqual(b._inflate, inflate);
+            });
+
+            const inflate = a._inflate;
+
+            assert.ok(inflate instanceof zlib.InflateRaw);
+          });
+
+          assert.strictEqual(b._deflate, deflate);
+        });
+
+        const deflate = a._deflate;
+
+        assert.ok(deflate instanceof zlib.DeflateRaw);
+      });
+
+      it('compresses as a new zlib stream does', (done) => {
+        const options = { zlibDeflateOptions: { level: 1, memLevel: 8 } };
+        const a = create(options);
+        const b = create(options);
+        const messages = [
+          Buffer.alloc(2048, 'Some compressible data. '),
+          Buffer.from('abcdefghijklmnopqrstuvwxyz'.repeat(3000)),
+          Buffer.alloc(512, 'More data. ')
+        ];
+        let i = 0;
+
+        (function next() {
+          if (i === messages.length) return done();
+
+          const buf = messages[i++];
+          const expected = zlib
+            .deflateRawSync(buf, {
+              level: 1,
+              memLevel: 8,
+              finishFlush: zlib.constants.Z_SYNC_FLUSH
+            })
+            .slice(0, -4);
+
+          (i % 2 ? a : b).compress(buf, true, (err, data) => {
+            if (err) return done(err);
+
+            assert.ok(data.equals(expected));
+            next();
+          });
+        })();
+      });
+
+      it('does not share the zlib streams if the options differ', (done) => {
+        const a = create({ zlibDeflateOptions: { level: 1 } });
+        const b = create({ zlibDeflateOptions: { level: 1 } });
+        const buf = Buffer.from('foofoo');
+
+        a.compress(buf, true, (err) => {
+          if (err) return done(err);
+
+          b.compress(buf, true, (err) => {
+            if (err) return done(err);
+
+            done();
+          });
+
+          assert.notStrictEqual(b._deflate, deflate);
+        });
+
+        const deflate = a._deflate;
+      });
+
+      it('keeps the zlib stream until the last fragment', (done) => {
+        const options = { zlibDeflateOptions: {} };
+        const a = create(options);
+        const b = create(options);
+        const buf = Buffer.from('abcdefgh');
+
+        a.compress(buf.slice(0, 4), false, (err, compressed1) => {
+          if (err) return done(err);
+
+          assert.strictEqual(a._deflate, deflate);
+
+          b.compress(buf, true, (err) => {
+            if (err) return done(err);
+
+            a.compress(buf.slice(4), true, (err, compressed2) => {
+              if (err) return done(err);
+
+              assert.strictEqual(a._deflate, null);
+
+              a.decompress(compressed1, false, (err, data1) => {
+                if (err) return done(err);
+
+                a.decompress(compressed2, true, (err, data2) => {
+                  if (err) return done(err);
+
+                  assert.ok(Buffer.concat([data1, data2]).equals(buf));
+                  done();
+                });
+              });
+            });
+          });
+
+          assert.notStrictEqual(b._deflate, deflate);
+        });
+
+        const deflate = a._deflate;
+      });
+
+      it('does not reuse a zlib stream that failed', (done) => {
+        const options = { zlibInflateOptions: {} };
+        const a = create({ ...options, maxPayload: 25 });
+        const b = create(options);
+        const buf = Buffer.alloc(50, 'A');
+        const compressed = zlib
+          .deflateRawSync(buf, { finishFlush: zlib.constants.Z_SYNC_FLUSH })
+          .slice(0, -4);
+
+        a.decompress(compressed, true, (err) => {
+          assert.ok(err instanceof RangeError);
+
+          b.decompress(compressed, true, (err, data) => {
+            if (err) return done(err);
+
+            assert.ok(data.equals(buf));
+            done();
+          });
+
+          assert.notStrictEqual(b._inflate, inflate);
+        });
+
+        const inflate = a._inflate;
+      });
+
+      it('closes a zlib stream if its pool is full', (done) => {
+        const options = { zlibDeflateOptions: {}, concurrencyLimit: 1 };
+        const a = create(options);
+        const b = create(options);
+        const buf = Buffer.from('foofoo');
+
+        a.compress(buf, false, (err) => {
+          if (err) return done(err);
+
+          b.compress(buf, false, (err) => {
+            if (err) return done(err);
+
+            a.compress(buf, true, (err) => {
+              if (err) return done(err);
+
+              b.compress(buf, true, (err) => {
+                if (err) return done(err);
+
+                assert.strictEqual(deflateA.destroyed, false);
+                assert.strictEqual(deflateB.destroyed, true);
+                done();
+              });
+            });
+          });
+
+          const deflateB = b._deflate;
+
+          assert.notStrictEqual(deflateB, deflateA);
+        });
+
+        const deflateA = a._deflate;
+      });
+
+      it("does not let a message refer to the previous message's data", (done) => {
+        const options = { zlibInflateOptions: {} };
+        const a = create(options);
+        const b = create(options);
+        const secret = Buffer.from('The previous connection sent this.');
+        const compressed = zlib
+          .deflateRawSync(secret, { finishFlush: zlib.constants.Z_SYNC_FLUSH })
+          .slice(0, -4);
+
+        //
+        // Back-references into `secret`, as if it were still in the window.
+        //
+        const crafted = zlib
+          .deflateRawSync(secret, {
+            dictionary: secret,
+            finishFlush: zlib.constants.Z_SYNC_FLUSH
+          })
+          .slice(0, -4);
+
+        a.decompress(compressed, true, (err, data) => {
+          if (err) return done(err);
+
+          assert.ok(data.equals(secret));
+
+          b.decompress(crafted, true, (err) => {
+            assert.ok(err instanceof Error);
+            assert.strictEqual(err.code, 'Z_DATA_ERROR');
+            done();
+          });
+
+          assert.strictEqual(b._inflate, inflate);
+        });
+
+        const inflate = a._inflate;
       });
     });
   });
