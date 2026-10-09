@@ -423,6 +423,43 @@ describe('Sender', () => {
     });
   });
 
+  describe('#sendFrame', () => {
+    it('skips the payload write when the unmasked payload is empty', (done) => {
+      const writes = [];
+      const mockSocket = new MockSocket({
+        write: (data, cb) => {
+          writes.push(data);
+          if (typeof cb === 'function') cb();
+        }
+      });
+      const sender = new Sender(mockSocket);
+
+      sender.ping(EMPTY_BUFFER, false, () => {
+        assert.strictEqual(writes.length, 1);
+        assert.deepStrictEqual(writes[0], Buffer.from([0x89, 0x00]));
+        done();
+      });
+    });
+
+    it('still writes a non-empty unmasked payload as a second chunk', (done) => {
+      const writes = [];
+      const mockSocket = new MockSocket({
+        write: (data, cb) => {
+          writes.push(data);
+          if (typeof cb === 'function') cb();
+        }
+      });
+      const sender = new Sender(mockSocket);
+
+      sender.ping('hi', false, () => {
+        assert.strictEqual(writes.length, 2);
+        assert.deepStrictEqual(writes[0], Buffer.from([0x89, 0x02]));
+        assert.strictEqual(writes[1], 'hi');
+        done();
+      });
+    });
+  });
+
   describe('#close', () => {
     it('throws an error if the first argument is invalid', () => {
       const mockSocket = new MockSocket();
