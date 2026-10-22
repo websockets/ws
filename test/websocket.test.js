@@ -91,6 +91,20 @@ describe('WebSocket', () => {
       const ws = new WebSocket(new URL('ws://[::1]'), { agent });
     });
 
+    it('does not truncate the URL path of IPC URLs at `:`', (done) => {
+      const agent = new http.Agent();
+
+      agent.addRequest = (req, opts) => {
+        assert.strictEqual(opts.socketPath, '/tmp/ws.sock');
+        assert.strictEqual(req.path, '/foo:bar?baz=qux:quux');
+        done();
+      };
+
+      const ws = new WebSocket('ws+unix:/tmp/ws.sock:/foo:bar?baz=qux:quux', {
+        agent
+      });
+    });
+
     it('allows the http scheme', (done) => {
       const agent = new CustomAgent();
 
