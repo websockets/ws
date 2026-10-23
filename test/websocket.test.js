@@ -998,7 +998,14 @@ describe('WebSocket', () => {
     beforeEach((done) => server.listen(0, done));
     afterEach((done) => server.close(done));
 
-    it('fails if the Upgrade header field value cannot be read', (done) => {
+    it('fails if the Upgrade header cannot be read', function (done) {
+      //
+      // In Node.js versions >= 27.0.0-alpha.0.0.0 the HTTP client rejects the
+      // response before emitting the `'upgrade'` event. See
+      // https://github.com/nodejs/node/commit/e5778f78.
+      //
+      if (process.versions.modules >= 152) return this.skip();
+
       server.once('upgrade', (req, socket) => {
         socket.on('end', socket.end);
         socket.write(
