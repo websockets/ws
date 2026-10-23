@@ -105,6 +105,32 @@ describe('WebSocket', () => {
       });
     });
 
+    it('percent-decodes the IPC path of IPC URLs', (done) => {
+      const agent = new http.Agent();
+
+      agent.addRequest = (req, opts) => {
+        assert.strictEqual(opts.socketPath, '/tmp/ws dir/café.sock');
+        assert.strictEqual(req.path, '/foo%20bar');
+        done();
+      };
+
+      const ws = new WebSocket('ws+unix:/tmp/ws dir/café.sock:/foo bar', {
+        agent
+      });
+    });
+
+    it('uses the IPC path as is if it cannot be percent-decoded', (done) => {
+      const agent = new http.Agent();
+
+      agent.addRequest = (req, opts) => {
+        assert.strictEqual(opts.socketPath, '/tmp/100%.sock');
+        assert.strictEqual(req.path, '/');
+        done();
+      };
+
+      const ws = new WebSocket('ws+unix:/tmp/100%.sock', { agent });
+    });
+
     it('allows the http scheme', (done) => {
       const agent = new CustomAgent();
 
