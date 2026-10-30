@@ -56,39 +56,27 @@ can use one of the many wrappers available on npm, like
 npm install ws
 ```
 
-### Opt-in for performance
+### Legacy opt-in for performance
 
-[bufferutil][] is an optional module that can be installed alongside the ws
-module:
+On older Node.js versions, ws can leverage optional binary modules to optimize
+performance.
 
-```
-npm install --save-optional bufferutil
-```
+- `npm install --save-optional bufferutil`: Provides binary polyfills for
+  [`http.websocketMask()`][] and [`http.websocketUnmask()`][].
+- `npm install --save-optional utf-8-validate`: Provides a binary polyfill for
+  [`buffer.isUtf8()`][].
 
-This is a binary addon that improves the performance of certain operations such
-as masking and unmasking the data payload of the WebSocket frames. Prebuilt
-binaries are available for the most popular platforms, so you don't necessarily
-need to have a C++ compiler installed on your machine.
+On newer Node.js versions (v27.0.0-alpha.0.0.0 or later for bufferutil, and
+v18.14.0 or later for utf-8-validate) that feature built-in alternatives, these
+modules are not loaded even if installed.
 
-To force ws to not use bufferutil, use the
-[`WS_NO_BUFFER_UTIL`](./doc/ws.md#ws_no_buffer_util) environment variable. This
-can be useful to enhance security in systems where a user can put a package in
-the package search path of an application of another user, due to how the
-Node.js resolver algorithm works.
-
-#### Legacy opt-in for performance
-
-If you are running on an old version of Node.js (prior to v18.14.0), ws also
-supports the [utf-8-validate][] module:
-
-```
-npm install --save-optional utf-8-validate
-```
-
-This contains a binary polyfill for [`buffer.isUtf8()`][].
-
-To force ws not to use utf-8-validate, use the
-[`WS_NO_UTF_8_VALIDATE`](./doc/ws.md#ws_no_utf_8_validate) environment variable.
+To force ws not to use [bufferutil][] or [utf-8-validate][] on the older Node.js
+versions where they would otherwise be loaded, set the
+[`WS_NO_BUFFER_UTIL`](./doc/ws.md#ws_no_buffer_util) and
+[`WS_NO_UTF_8_VALIDATE`](./doc/ws.md#ws_no_utf_8_validate) environment
+variables. This can be useful to enhance security in systems where a user can
+put a package in the package search path of an application of another user, due
+to how the Node.js resolver algorithm works.
 
 ## API docs
 
@@ -533,6 +521,10 @@ We're using the GitHub [releases][changelog] for changelog entries.
 [MIT](LICENSE)
 
 [`buffer.isutf8()`]: https://nodejs.org/api/buffer.html#bufferisutf8input
+[`http.websocketMask()`]:
+  https://nodejs.org/api/http.html#httpwebsocketmasksource-mask-output-offset-length
+[`http.websocketUnmask()`]:
+  https://nodejs.org/api/http.html#httpwebsocketunmaskbuffer-mask
 [bufferutil]: https://github.com/websockets/bufferutil
 [changelog]: https://github.com/websockets/ws/releases
 [client-report]: http://websockets.github.io/ws/autobahn/clients/
