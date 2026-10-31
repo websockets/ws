@@ -22,8 +22,7 @@ can use one of the many wrappers available on npm, like
 
 - [Protocol support](#protocol-support)
 - [Installing](#installing)
-  - [Opt-in for performance](#opt-in-for-performance)
-    - [Legacy opt-in for performance](#legacy-opt-in-for-performance)
+  - [Legacy opt-in for performance](#legacy-opt-in-for-performance)
 - [API docs](#api-docs)
 - [WebSocket compression](#websocket-compression)
 - [Usage examples](#usage-examples)
@@ -66,7 +65,7 @@ performance.
 - `npm install --save-optional utf-8-validate`: Provides a binary polyfill for
   [`buffer.isUtf8()`][].
 
-On newer Node.js versions (v27.0.0-alpha.0.0.0 or later for bufferutil, and
+On newer Node.js versions (v26.12.0 or later for bufferutil, and
 v18.14.0 or later for utf-8-validate) that feature built-in alternatives, these
 modules are not loaded even if installed.
 
