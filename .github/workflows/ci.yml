@@ -11,8 +11,6 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        arch:
-          - x64
         node:
           - 10
           - 12
@@ -23,6 +21,7 @@ jobs:
           - 22
           - 24
           - 26
+          - 27
         os:
           - macOS-latest
           - ubuntu-latest
@@ -48,16 +47,30 @@ jobs:
             os: windows-latest
     steps:
       - uses: actions/checkout@v7
+      - run: |
+          if [ "${{ matrix.arch }}" = "x86" ]; then
+            echo "arch=x86" >> $GITHUB_OUTPUT
+          elif [ "${{ matrix.os }}" = "macOS-latest" ] && \
+               [ "${{ matrix.node }}" -ge 27 ]; then
+            echo "arch=arm64" >> $GITHUB_OUTPUT
+          else
+            echo "arch=x64" >> $GITHUB_OUTPUT
+          fi
+        id: set-arch
+        shell: bash
       - uses: actions/setup-node@v7
         with:
-          node-version: ${{ matrix.node }}
-          architecture: ${{ matrix.arch }}
+          # Remove the version override once
+          # https://github.com/actions/setup-node/issues/1657 is fixed
+          node-version:
+            ${{ matrix.node == 27 && '27.0.0-alpha.0.0.0' || matrix.node }}
+          architecture: ${{ steps.set-arch.outputs.arch }}
           cache: npm
           cache-dependency-path: ./package.json
       - run: npm install
       - run: npm run lint
         if:
-          matrix.os == 'ubuntu-latest' && matrix.node == 24 && matrix.arch ==
+          matrix.os == 'ubuntu-latest' && matrix.node == 26 && matrix.arch ==
           'x64'
       - run: npm test
       - run: |
@@ -70,7 +83,7 @@ jobs:
         with:
           flag-name:
             ${{ steps.get_job_id.outputs.job_id }} (Node.js ${{ matrix.node }}
-            ${{ matrix.arch }} on ${{ matrix.os }})
+            ${{ steps.set-arch.outputs.arch }} on ${{ matrix.os }})
           github-token: ${{ secrets.GITHUB_TOKEN }}
           parallel: true
   coverage:
