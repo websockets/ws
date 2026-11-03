@@ -61,6 +61,20 @@ describe('Receiver', () => {
     );
   });
 
+  it('does not retain the read buffer via the frame mask', (done) => {
+    const receiver = new Receiver({ isServer: true });
+
+    receiver.on('message', (data) => {
+      assert.deepStrictEqual(data, Buffer.from('5:::{"name":"echo"}'));
+      assert.strictEqual(receiver._mask, undefined);
+      done();
+    });
+
+    receiver.write(
+      Buffer.from('81933483a86801b992524fa1c60959e68a5216e6cb005ba1d5', 'hex')
+    );
+  });
+
   it('parses a masked text message longer than 125 B', (done) => {
     const receiver = new Receiver({ isServer: true });
     const msg = Buffer.from('A'.repeat(200));
