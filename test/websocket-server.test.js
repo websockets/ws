@@ -1212,6 +1212,43 @@ describe('WebSocketServer', () => {
         });
       });
 
+      it('can reject client asynchronously w/ unknown status code', (done) => {
+        const wss = new WebSocket.Server(
+          {
+            verifyClient: (info, cb) => process.nextTick(cb, false, 499),
+            port: 0
+          },
+          () => {
+            const req = http.get({
+              port: wss.address().port,
+              headers: {
+                Connection: 'Upgrade',
+                Upgrade: 'websocket',
+                'Sec-WebSocket-Key': 'dGhlIHNhbXBsZSBub25jZQ==',
+                'Sec-WebSocket-Version': 13
+              }
+            });
+
+            req.on('response', (res) => {
+              assert.strictEqual(res.statusCode, 499);
+              assert.strictEqual(res.statusMessage, 'Unknown');
+
+              const chunks = [];
+
+              res.on('data', (chunk) => chunks.push(chunk));
+              res.on('end', () => {
+                assert.strictEqual(Buffer.concat(chunks).toString(), 'Unknown');
+                wss.close(done);
+              });
+            });
+          }
+        );
+
+        wss.on('connection', () => {
+          done(new Error("Unexpected 'connection' event"));
+        });
+      });
+
       it('can reject client asynchronously w/ custom headers', (done) => {
         const wss = new WebSocket.Server(
           {
