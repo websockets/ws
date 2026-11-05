@@ -4277,6 +4277,65 @@ describe('WebSocket', () => {
       const ws = new WebSocket(`ws://${userinfo}@localhost`, { agent });
     });
 
+    it('decodes the percent-encoded userinfo of the url', (done) => {
+      const agent = new http.Agent();
+      const userinfo = 'us@r:p@ss:w/rd#?';
+
+      agent.addRequest = (req) => {
+        assert.strictEqual(
+          req.getHeader('authorization'),
+          `Basic ${Buffer.from(userinfo).toString('base64')}`
+        );
+        done();
+      };
+
+      const ws = new WebSocket('ws://us%40r:p%40ss%3Aw%2Frd%23%3F@localhost', {
+        agent
+      });
+    });
+
+    it('decodes the userinfo that the url parser percent-encodes', (done) => {
+      const agent = new http.Agent();
+
+      agent.addRequest = (req) => {
+        assert.strictEqual(
+          req.getHeader('authorization'),
+          `Basic ${Buffer.from('user:p@ss').toString('base64')}`
+        );
+        done();
+      };
+
+      const ws = new WebSocket('ws://user:p@ss@localhost', { agent });
+    });
+
+    it('decodes multi-byte characters in the userinfo of the url', (done) => {
+      const agent = new http.Agent();
+
+      agent.addRequest = (req) => {
+        assert.strictEqual(
+          req.getHeader('authorization'),
+          `Basic ${Buffer.from('usér:päss').toString('base64')}`
+        );
+        done();
+      };
+
+      const ws = new WebSocket('ws://us%C3%A9r:p%C3%A4ss@localhost', { agent });
+    });
+
+    it('leaves malformed percent-encoded sequences as they are', (done) => {
+      const agent = new http.Agent();
+
+      agent.addRequest = (req) => {
+        assert.strictEqual(
+          req.getHeader('authorization'),
+          `Basic ${Buffer.from('us%er:100%25%zz%').toString('base64')}`
+        );
+        done();
+      };
+
+      const ws = new WebSocket('ws://us%er:100%2525%zz%@localhost', { agent });
+    });
+
     it('honors the `auth` option', (done) => {
       const agent = new http.Agent();
       const auth = 'user:pass';
