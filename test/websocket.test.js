@@ -92,12 +92,8 @@ describe('WebSocket', () => {
     });
 
     it('does not modify the `url.URL` object passed as url', () => {
-      const agent = new http.Agent();
       const url = new URL('http://localhost/foo?bar=baz');
-
-      agent.addRequest = () => {};
-
-      const ws = new WebSocket(url, { agent });
+      const ws = new WebSocket(url, { lookup() {} });
 
       assert.strictEqual(url.href, 'http://localhost/foo?bar=baz');
       assert.strictEqual(ws.url, 'ws://localhost/foo?bar=baz');
