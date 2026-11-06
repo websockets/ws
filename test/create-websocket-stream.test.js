@@ -3,7 +3,12 @@
 const assert = require('assert');
 const EventEmitter = require('events');
 const { createServer } = require('http');
-const { Duplex, getDefaultHighWaterMark } = require('stream');
+const {
+  Duplex,
+  Readable,
+  getDefaultHighWaterMark,
+  pipeline
+} = require('stream');
 const { randomBytes } = require('crypto');
 
 const createWebSocketStream = require('../lib/stream');
@@ -382,6 +387,148 @@ describe('createWebSocketStream', () => {
 
       wss.on('connection', (ws) => {
         ws.close();
+      });
+    });
+
+    it('calls the `_final()` callback if the socket is destroyed before it is finished (1/2)', (done) => {
+      let serverWs;
+
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const events = [];
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`, {
+          closeTimeout: 100
+        });
+        const duplex = createWebSocketStream(ws);
+
+        ws.on('open', () => {
+          duplex.end();
+        });
+
+        ws.on('close', (code) => {
+          assert.strictEqual(code, 1006);
+        });
+
+        duplex.on('finish', () => {
+          events.push('finish');
+          assert.ok(ws._socket.destroyed);
+        });
+
+        duplex.on('end', () => {
+          events.push('end');
+          assert.ok(duplex.destroyed);
+        });
+
+        duplex.on('close', () => {
+          assert.deepStrictEqual(events, ['finish', 'end']);
+          serverWs.terminate();
+          wss.close(done);
+        });
+
+        duplex.resume();
+      });
+
+      wss.on('connection', (ws) => {
+        serverWs = ws;
+
+        //
+        // Stop reading from the socket so that the close frame is never
+        // answered and the closing handshake times out.
+        //
+        ws.pause();
+      });
+    });
+
+    it('calls the `_final()` callback if the socket is destroyed before it is finished (2/2)', (done) => {
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const events = [];
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`, {
+          closeTimeout: 100
+        });
+        const duplex = createWebSocketStream(ws);
+
+        ws.on('open', () => {
+          //
+          // Prevent the close frame from being written, as if the send buffer
+          // of the socket were full, so that the closing handshake times out
+          // after the close frame from the server is received.
+          //
+          ws._socket.cork();
+          duplex.end();
+        });
+
+        ws.on('close', (code) => {
+          assert.strictEqual(code, 1005);
+          assert.ok(ws._closeFrameReceived);
+          assert.ok(!ws._closeFrameSent);
+        });
+
+        duplex.on('finish', () => {
+          events.push('finish');
+          assert.ok(ws._socket.destroyed);
+        });
+
+        duplex.on('end', () => {
+          events.push('end');
+          assert.ok(duplex.destroyed);
+        });
+
+        duplex.on('close', () => {
+          assert.deepStrictEqual(events, ['finish', 'end']);
+          wss.close(done);
+        });
+
+        duplex.resume();
+      });
+
+      wss.on('connection', (ws) => {
+        ws.close();
+      });
+    });
+
+    it('does not swallow the error if destroyed while `_final()` is pending', (done) => {
+      let serverWs;
+
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+        const duplex = createWebSocketStream(ws);
+        const final = duplex._final;
+        const readable = new Readable({
+          read() {
+            this.push('foo');
+            this.push(null);
+          }
+        });
+
+        duplex._final = (callback) => {
+          final(callback);
+          assert.strictEqual(ws.readyState, WebSocket.CLOSING);
+
+          process.nextTick(() => {
+            duplex.destroy(new Error('Oops'));
+          });
+        };
+
+        duplex.on('finish', () => {
+          done(new Error("Unexpected 'finish' event"));
+        });
+
+        pipeline(readable, duplex, (err) => {
+          assert.ok(err instanceof Error);
+          assert.strictEqual(err.message, 'Oops');
+
+          serverWs.terminate();
+          wss.close(done);
+        });
+      });
+
+      wss.on('connection', (ws) => {
+        serverWs = ws;
+
+        //
+        // Stop reading from the socket so that the close frame is never
+        // answered.
+        //
+        ws.pause();
       });
     });
 
