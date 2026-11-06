@@ -91,6 +91,14 @@ describe('WebSocket', () => {
       const ws = new WebSocket(new URL('ws://[::1]'), { agent });
     });
 
+    it('does not modify the `url.URL` object passed as url', () => {
+      const url = new URL('http://localhost/foo?bar=baz');
+      const ws = new WebSocket(url, { lookup() {} });
+
+      assert.strictEqual(url.href, 'http://localhost/foo?bar=baz');
+      assert.strictEqual(ws.url, 'ws://localhost/foo?bar=baz');
+    });
+
     it('does not truncate the URL path of IPC URLs at `:`', (done) => {
       const agent = new http.Agent();
 
