@@ -50,6 +50,173 @@ describe('createWebSocketStream', () => {
   });
 
   describe('The returned stream', () => {
+    describe('after the underlying socket is terminated', () => {
+      let client;
+      let server;
+      let wss;
+      let duplex;
+      let events;
+
+      beforeEach((done) => {
+        events = [];
+        wss = new WebSocket.Server({ port: 0 }, () => {
+          client = new WebSocket(`ws://127.0.0.1:${wss.address().port}`);
+          client.once('open', done);
+        });
+        wss.once('connection', (ws) => {
+          server = ws;
+        });
+      });
+
+      afterEach((done) => {
+        if (duplex) duplex.destroy();
+        client.terminate();
+        server.terminate();
+        wss.close(done);
+      });
+
+      function wrap(ws, options) {
+        duplex = createWebSocketStream(ws, options);
+        duplex.on('finish', () => events.push('finish'));
+        duplex.on('end', () => events.push('end'));
+        duplex.on('close', () => events.push('close'));
+        duplex.on('error', (err) => events.push(err));
+        return duplex;
+      }
+
+      function assertCompleted() {
+        assert.strictEqual(duplex._writableState.finished, true);
+        assert.strictEqual(duplex._readableState.endEmitted, true);
+        assert.strictEqual(duplex.destroyed, true);
+        assert.strictEqual(events.length, 3);
+        assert.strictEqual(
+          events.filter((event) => event === 'finish').length,
+          1
+        );
+        assert.strictEqual(events.filter((event) => event === 'end').length, 1);
+        assert.strictEqual(
+          events.filter((event) => event === 'close').length,
+          1
+        );
+      }
+
+      it('finishes a client stream after the WebSocket is closed', (done) => {
+        const stream = wrap(client);
+        let callbacks = 0;
+        stream.resume();
+        client.once('close', (code) => {
+          assert.strictEqual(code, 1006);
+          assert.strictEqual(client._socket._writableState.finished, false);
+          stream.end((err) => {
+            assert.ifError(err);
+            callbacks++;
+          });
+          setImmediate(() => {
+            assertCompleted();
+            assert.strictEqual(callbacks, 1);
+            done();
+          });
+        });
+        client.terminate();
+      });
+
+      it('finishes while the terminated WebSocket is still closing', (done) => {
+        const stream = wrap(client);
+        let callbacks = 0;
+        stream.resume();
+        client.once('close', () => {
+          setImmediate(() => {
+            assertCompleted();
+            assert.strictEqual(callbacks, 1);
+            done();
+          });
+        });
+        client.terminate();
+        assert.strictEqual(client.readyState, WebSocket.CLOSING);
+        assert.strictEqual(client._socket.destroyed, true);
+        stream.end((err) => {
+          assert.ifError(err);
+          callbacks++;
+        });
+      });
+
+      it('finishes a server stream after the WebSocket is closed', (done) => {
+        const stream = wrap(server);
+        let callbacks = 0;
+        stream.resume();
+        server.once('close', (code) => {
+          assert.strictEqual(code, 1006);
+          assert.strictEqual(server._socket._writableState.finished, false);
+          stream.end((err) => {
+            assert.ifError(err);
+            callbacks++;
+          });
+          setImmediate(() => {
+            assertCompleted();
+            assert.strictEqual(callbacks, 1);
+            done();
+          });
+        });
+        server.terminate();
+      });
+
+      it('finishes after the readable end has been emitted', (done) => {
+        const stream = wrap(client);
+        let callbacks = 0;
+        stream.once('end', () => {
+          assert.strictEqual(client.readyState, WebSocket.CLOSED);
+          assert.strictEqual(stream._writableState.finished, false);
+          stream.end((err) => {
+            assert.ifError(err);
+            callbacks++;
+          });
+          setImmediate(() => {
+            assertCompleted();
+            assert.strictEqual(callbacks, 1);
+            done();
+          });
+        });
+        stream.resume();
+        client.terminate();
+      });
+
+      it('preserves buffered data until the readable side is consumed', (done) => {
+        const stream = wrap(client);
+        const payload = Buffer.from('buffered message');
+        client.once('message', () => client.terminate());
+        client.once('close', () => {
+          stream.end();
+          setImmediate(() => {
+            assert.strictEqual(stream._writableState.finished, true);
+            assert.strictEqual(stream.destroyed, false);
+            assert.strictEqual(stream._readableState.endEmitted, false);
+            assert.deepStrictEqual(events, ['finish']);
+            assert.deepStrictEqual(stream.read(), payload);
+            stream.resume();
+            setImmediate(() => {
+              assertCompleted();
+              assert.deepStrictEqual(events, ['finish', 'end', 'close']);
+              done();
+            });
+          });
+        });
+        server.send(payload);
+      });
+
+      it('finishes automatically when half-open streams are disabled', (done) => {
+        const stream = wrap(client, { allowHalfOpen: false });
+        stream.resume();
+        client.once('close', () => {
+          setImmediate(() => {
+            assertCompleted();
+            assert.deepStrictEqual(events, ['end', 'finish', 'close']);
+            done();
+          });
+        });
+        client.terminate();
+      });
+    });
+
     it('buffers writes if `readyState` is `CONNECTING`', (done) => {
       const chunk = randomBytes(1024);
       const wss = new WebSocket.Server({ port: 0 }, () => {
