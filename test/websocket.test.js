@@ -5206,5 +5206,22 @@ describe('WebSocket', () => {
         ws._socket.push(Buffer.concat(list));
       });
     });
+
+    it('does not retain the read buffer via the close reason', (done) => {
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+
+        ws.on('close', (code, reason) => {
+          assert.strictEqual(code, 1000);
+          assert.deepStrictEqual(reason, Buffer.from('bye'));
+          assert.strictEqual(reason.buffer.byteLength, reason.length);
+          wss.close(done);
+        });
+      });
+
+      wss.on('connection', (ws) => {
+        ws.close(1000, 'bye');
+      });
+    });
   });
 });
