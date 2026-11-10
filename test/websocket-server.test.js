@@ -96,6 +96,54 @@ describe('WebSocketServer', () => {
           wss.close(done);
         });
       });
+
+      it('honors the `maxPendingAutoPongs` option', (done) => {
+        const maxPendingAutoPongs = 30;
+        let serverClientTerminateCalled = false;
+
+        const wss = new WebSocket.Server(
+          { port: 0, maxPendingAutoPongs },
+          () => {
+            const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+
+            ws.on('open', () => {
+              ws._socket.pause();
+
+              const data = Buffer.alloc(125);
+
+              function ping(err) {
+                if (err) {
+                  ws._socket.resume();
+                  return;
+                }
+
+                ws.ping(data, ping);
+              }
+
+              ping();
+            });
+
+            ws.on('close', (code) => {
+              assert.ok(serverClientTerminateCalled);
+              assert.strictEqual(code, 1006);
+              wss.close(done);
+            });
+          }
+        );
+
+        wss.on('connection', (ws) => {
+          assert.strictEqual(ws._maxPendingAutoPongs, maxPendingAutoPongs);
+
+          const original = ws.terminate;
+
+          ws.terminate = () => {
+            assert.strictEqual(ws._pendingAutoPongs, maxPendingAutoPongs);
+            serverClientTerminateCalled = true;
+            ws.terminate = original;
+            ws.terminate();
+          };
+        });
+      });
     });
 
     it('emits an error if http server bind fails', (done) => {
