@@ -96,6 +96,10 @@ This class represents a WebSocket server. It extends the `EventEmitter`.
   - `maxPayload` {Number} The maximum allowed message size in bytes. The value
     is coerced to a 32-bit signed integer. Defaults to 104857600 (100 MiB). Set
     to 0 to disable the limit.
+  - `maxPendingAutoPongs` {Number} The maximum number of pending automatic
+    pongs. The value is coerced to a 32-bit signed integer. If the limit is
+    exceeded, the connection is forcibly terminated. Defaults to 60. Set to 0 to
+    disable the limit.
   - `noServer` {Boolean} Enable no server mode.
   - `path` {String} Accept only connections matching this path.
   - `perMessageDeflate` {Boolean|Object} Enable/disable permessage-deflate.
@@ -338,6 +342,10 @@ This class represents a WebSocket. It extends the `EventEmitter`.
   - `maxPayload` {Number} The maximum allowed message size in bytes. The value
     is coerced to a 32-bit signed integer. Defaults to 104857600 (100 MiB). Set
     to 0 to disable the limit.
+  - `maxPendingAutoPongs` {Number} The maximum number of pending automatic
+    pongs. The value is coerced to a 32-bit signed integer. If the limit is
+    exceeded, the connection is forcibly terminated. Defaults to 60. Set to 0 to
+    disable the limit.
   - `maxRedirects` {Number} The maximum number of redirects allowed. Defaults
     to 10.
   - `origin` {String} Value of the `Origin` or `Sec-WebSocket-Origin` header

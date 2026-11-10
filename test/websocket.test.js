@@ -264,6 +264,51 @@ describe('WebSocket', () => {
         });
       });
 
+      it('honors the `maxPendingAutoPongs` option', (done) => {
+        const maxPendingAutoPongs = 30;
+        let clientTerminateCalled = false;
+
+        const wss = new WebSocket.Server({ port: 0 }, () => {
+          const ws = new WebSocket(`ws://localhost:${wss.address().port}`, {
+            maxPendingAutoPongs
+          });
+
+          assert.strictEqual(ws._maxPendingAutoPongs, maxPendingAutoPongs);
+
+          const original = ws.terminate;
+
+          ws.terminate = () => {
+            assert.strictEqual(ws._pendingAutoPongs, maxPendingAutoPongs);
+            clientTerminateCalled = true;
+            ws.terminate = original;
+            ws.terminate();
+          };
+        });
+
+        wss.on('connection', (ws) => {
+          ws.pause();
+
+          const data = Buffer.alloc(125);
+
+          function ping(err) {
+            if (err) {
+              ws.resume();
+              return;
+            }
+
+            ws.ping(data, ping);
+          }
+
+          ping();
+
+          ws.on('close', (code) => {
+            assert.ok(clientTerminateCalled);
+            assert.strictEqual(code, 1006);
+            wss.close(done);
+          });
+        });
+      });
+
       it('honors the `closeTimeout` option', (done) => {
         const wss = new WebSocket.Server({ port: 0 }, () => {
           const closeTimeout = 1000;

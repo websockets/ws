@@ -150,6 +150,54 @@ describe('WebSocketServer', () => {
         });
       });
 
+      it('honors the `maxPendingAutoPongs` option', (done) => {
+        const maxPendingAutoPongs = 30;
+        let serverClientTerminateCalled = false;
+
+        const wss = new WebSocket.Server(
+          { port: 0, maxPendingAutoPongs },
+          () => {
+            const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+
+            ws.on('open', () => {
+              ws.pause();
+
+              const data = Buffer.alloc(125);
+
+              function ping(err) {
+                if (err) {
+                  ws.resume();
+                  return;
+                }
+
+                ws.ping(data, ping);
+              }
+
+              ping();
+            });
+
+            ws.on('close', (code) => {
+              assert.ok(serverClientTerminateCalled);
+              assert.strictEqual(code, 1006);
+              wss.close(done);
+            });
+          }
+        );
+
+        wss.on('connection', (ws) => {
+          assert.strictEqual(ws._maxPendingAutoPongs, maxPendingAutoPongs);
+
+          const original = ws.terminate;
+
+          ws.terminate = () => {
+            assert.strictEqual(ws._pendingAutoPongs, maxPendingAutoPongs);
+            serverClientTerminateCalled = true;
+            ws.terminate = original;
+            ws.terminate();
+          };
+        });
+      });
+
       it('honors the `closeTimeout` option', (done) => {
         const closeTimeout = 1000;
         const wss = new WebSocket.Server({ closeTimeout, port: 0 }, () => {
