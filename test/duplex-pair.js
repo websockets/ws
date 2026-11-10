@@ -31,8 +31,8 @@ const kCallback = Symbol('Callback');
 const kOtherSide = Symbol('Other');
 
 class DuplexSocket extends Duplex {
-  constructor() {
-    super();
+  constructor(options) {
+    super(options);
     this[kCallback] = null;
     this[kOtherSide] = null;
   }
@@ -63,8 +63,9 @@ class DuplexSocket extends Duplex {
 }
 
 function makeDuplexPair() {
-  const clientSide = new DuplexSocket();
-  const serverSide = new DuplexSocket();
+  const options = { autoDestroy: true };
+  const clientSide = new DuplexSocket(options);
+  const serverSide = new DuplexSocket(options);
   clientSide[kOtherSide] = serverSide;
   serverSide[kOtherSide] = clientSide;
   return { clientSide, serverSide };
