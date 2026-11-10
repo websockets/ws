@@ -68,6 +68,10 @@ This class represents a WebSocket server. It extends the `EventEmitter`.
   - `maxFragments` {Number} The maximum number of fragments in a message.
     Defaults to 16384. Set to 0 to disable the limit.
   - `maxPayload` {Number} The maximum allowed message size in bytes.
+  - `maxPendingAutoPongs` {Number} The maximum number of pending automatic
+    pongs. The value is coerced to a 32-bit signed integer. If the limit is
+    exceeded, the connection is forcibly terminated. Defaults to 60. Set to 0 to
+    disable the limit.
 - `callback` {Function}
 
 Create a new server instance. One of `port`, `server` or `noServer` must be
@@ -256,6 +260,10 @@ This class represents a WebSocket. It extends the `EventEmitter`.
   - `maxFragments` {Number} The maximum number of fragments in a message.
     Defaults to 16384. Set to 0 to disable the limit.
   - `maxPayload` {Number} The maximum allowed message size in bytes.
+  - `maxPendingAutoPongs` {Number} The maximum number of pending automatic
+    pongs. The value is coerced to a 32-bit signed integer. If the limit is
+    exceeded, the connection is forcibly terminated. Defaults to 60. Set to 0 to
+    disable the limit.
   - Any other option allowed in [http.request()][] or [https.request()][].
 
 `perMessageDeflate` default value is `true`. When using an object, parameters
