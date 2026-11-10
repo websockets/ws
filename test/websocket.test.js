@@ -100,6 +100,51 @@ describe('WebSocket', function () {
           /^RangeError: Unsupported protocol version: 1000 \(supported versions: 8, 13\)$/
         );
       });
+
+      it('honors the `maxPendingAutoPongs` option', (done) => {
+        const maxPendingAutoPongs = 30;
+        let clientTerminateCalled = false;
+
+        const wss = new WebSocket.Server({ port: 0 }, () => {
+          const ws = new WebSocket(`ws://localhost:${wss.address().port}`, {
+            maxPendingAutoPongs
+          });
+
+          assert.strictEqual(ws._maxPendingAutoPongs, maxPendingAutoPongs);
+
+          const original = ws.terminate;
+
+          ws.terminate = () => {
+            assert.strictEqual(ws._pendingAutoPongs, maxPendingAutoPongs);
+            clientTerminateCalled = true;
+            ws.terminate = original;
+            ws.terminate();
+          };
+        });
+
+        wss.on('connection', (ws) => {
+          ws._socket.pause();
+
+          const data = Buffer.alloc(125);
+
+          function ping (err) {
+            if (err) {
+              ws._socket.resume();
+              return;
+            }
+
+            ws.ping(data, ping);
+          }
+
+          ping();
+
+          ws.on('close', (code) => {
+            assert.ok(clientTerminateCalled);
+            assert.strictEqual(code, 1006);
+            wss.close(done);
+          });
+        });
+      });
     });
   });
 
