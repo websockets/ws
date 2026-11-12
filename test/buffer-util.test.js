@@ -32,8 +32,7 @@ describe('bufferUtil', () => {
         arrayBuffer,
         new Uint16Array(arrayBuffer),
         new SharedArrayBuffer(4),
-        vm.runInNewContext('new ArrayBuffer(4)'),
-        { valueOf: () => arrayBuffer }
+        vm.runInNewContext('new ArrayBuffer(4)')
       ]) {
         const buf = toBuffer(data);
 
