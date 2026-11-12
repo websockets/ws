@@ -34,3 +34,5 @@ published on
   [Uninitialized memory disclosure in `websocket.close()`](https://github.com/websockets/ws/releases/tag/8.20.1)
 - 22 May 2026:
   [Memory exhaustion DoS from tiny fragments and data chunks](https://github.com/websockets/ws/releases/tag/8.21.0)
+- 12 Nov 2026:
+  [Memory exhaustion DoS via unbounded automatic pong responses](https://github.com/websockets/ws/releases/tag/8.23.0)
