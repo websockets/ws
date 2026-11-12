@@ -385,6 +385,33 @@ describe('createWebSocketStream', () => {
       });
     });
 
+    it('completes end() after the TCP connection is reset', (done) => {
+      const server = createServer();
+      const wss = new WebSocket.Server({ noServer: true });
+
+      server.on('upgrade', (req, socket, head) => {
+        wss.handleUpgrade(req, socket, head, () => {
+          socket.resetAndDestroy();
+        });
+      });
+
+      server.listen(0, () => {
+        const ws = new WebSocket(`ws://127.0.0.1:${server.address().port}`);
+        const duplex = createWebSocketStream(ws);
+
+        duplex.on('end', () => {
+          duplex.end(() => {
+            assert.ok(duplex.writableFinished);
+            assert.ok(duplex.destroyed);
+            wss.close();
+            server.close(done);
+          });
+        });
+
+        duplex.resume();
+      });
+    });
+
     it('handles backpressure (1/3)', (done) => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         // eslint-disable-next-line no-unused-vars
