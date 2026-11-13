@@ -3007,13 +3007,19 @@ describe('WebSocket', () => {
         const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
         ws.on('open', () => {
-          ws.send(sharedArrayBuffer);
-          ws.close();
+          ws.send(sharedArrayBuffer, (err) => {
+            assert.ifError(err);
+
+            //
+            // The data must not be masked in place.
+            //
+            assert.deepStrictEqual(Buffer.from(array), Buffer.from('foobar'));
+            ws.close();
+          });
         });
 
         ws.on('message', (message, isBinary) => {
           assert.deepStrictEqual(message, Buffer.from('foobar'));
-          assert.deepStrictEqual(Buffer.from(array), Buffer.from('foobar'));
           assert.ok(isBinary);
           wss.close(done);
         });
