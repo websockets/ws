@@ -1624,6 +1624,37 @@ describe('WebSocket', () => {
       });
     });
 
+    it('emits an error if the redirect request cannot be created', (done) => {
+      server.once('upgrade', (req, socket) => {
+        socket.end('HTTP/1.1 302 Found\r\nLocation: wss://localhost/\r\n\r\n');
+      });
+
+      const ws = new WebSocket(`ws://localhost:${server.address().port}`, {
+        agent: new http.Agent(),
+        followRedirects: true
+      });
+
+      ws.on('open', () => done(new Error("Unexpected 'open' event")));
+      ws.on('error', (err) => {
+        assert.ok(err instanceof TypeError);
+        assert.strictEqual(err.code, 'ERR_INVALID_PROTOCOL');
+        assert.strictEqual(ws._redirects, 1);
+
+        ws.on('close', () => done());
+      });
+    });
+
+    it('throws an error if the first request cannot be created', () => {
+      assert.throws(
+        () =>
+          new WebSocket('ws://localhost', {
+            agent: new https.Agent(),
+            followRedirects: true
+          }),
+        /^TypeError.*: Protocol "http:" not supported\. Expected "https:"$/
+      );
+    });
+
     it('uses the first url userinfo when following redirects', (done) => {
       const wss = new WebSocket.Server({ noServer: true, path: '/foo' });
       const authorization = 'Basic Zm9vOmJhcg==';
