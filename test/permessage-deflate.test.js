@@ -97,6 +97,21 @@ describe('PerMessageDeflate', () => {
         () => perMessageDeflate.accept(extensions['permessage-deflate']),
         /^TypeError: Invalid value for parameter "server_max_window_bits": true$/
       );
+
+      for (const value of ['010', '0xa', '1e1', '10.0', '+10']) {
+        extensions = extension.parse(
+          `permessage-deflate; server_max_window_bits=${value}`
+        );
+        assert.throws(
+          () => perMessageDeflate.accept(extensions['permessage-deflate']),
+          {
+            name: 'TypeError',
+            message:
+              'Invalid value for parameter ' +
+              `"server_max_window_bits": ${value}`
+          }
+        );
+      }
     });
 
     describe('As server', () => {
@@ -244,13 +259,28 @@ describe('PerMessageDeflate', () => {
       it('throws an error if client_max_window_bits has an invalid value', () => {
         const perMessageDeflate = new PerMessageDeflate({ isServer: true });
 
-        const extensions = extension.parse(
+        let extensions = extension.parse(
           'permessage-deflate; client_max_window_bits=16'
         );
         assert.throws(
           () => perMessageDeflate.accept(extensions['permessage-deflate']),
           /^TypeError: Invalid value for parameter "client_max_window_bits": 16$/
         );
+
+        for (const value of ['010', '0xa', '1e1', '10.0', '+10']) {
+          extensions = extension.parse(
+            `permessage-deflate; client_max_window_bits=${value}`
+          );
+          assert.throws(
+            () => perMessageDeflate.accept(extensions['permessage-deflate']),
+            {
+              name: 'TypeError',
+              message:
+                'Invalid value for parameter ' +
+                `"client_max_window_bits": ${value}`
+            }
+          );
+        }
       });
     });
 
