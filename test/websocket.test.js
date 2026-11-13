@@ -3001,8 +3001,9 @@ describe('WebSocket', () => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const sharedArrayBuffer = new SharedArrayBuffer(6);
         const array = new Uint8Array(sharedArrayBuffer);
+        const buf = Buffer.from('foobar');
 
-        array.set(Buffer.from('foobar'));
+        array.set(buf);
 
         const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
 
@@ -3010,16 +3011,14 @@ describe('WebSocket', () => {
           ws.send(sharedArrayBuffer, (err) => {
             assert.ifError(err);
 
-            //
             // The data must not be masked in place.
-            //
-            assert.deepStrictEqual(Buffer.from(array), Buffer.from('foobar'));
+            assert.deepStrictEqual(Buffer.from(array), buf);
             ws.close();
           });
         });
 
-        ws.on('message', (message, isBinary) => {
-          assert.deepStrictEqual(message, Buffer.from('foobar'));
+        ws.on('message', (msg, isBinary) => {
+          assert.deepStrictEqual(msg, buf);
           assert.ok(isBinary);
           wss.close(done);
         });
