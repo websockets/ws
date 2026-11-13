@@ -106,7 +106,9 @@ describe('PerMessageDeflate', () => {
           () => perMessageDeflate.accept(extensions['permessage-deflate']),
           {
             name: 'TypeError',
-            message: `Invalid value for parameter "server_max_window_bits": ${value}`
+            message:
+              'Invalid value for parameter ' +
+              `"server_max_window_bits": ${value}`
           }
         );
       }
