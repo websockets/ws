@@ -3042,6 +3042,41 @@ describe('WebSocket', () => {
       });
     });
 
+    it('can send a `SharedArrayBuffer`', (done) => {
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        const sharedArrayBuffer = new SharedArrayBuffer(6);
+        const array = new Uint8Array(sharedArrayBuffer);
+        const buf = Buffer.from('foobar');
+
+        array.set(buf);
+
+        const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
+
+        ws.on('open', () => {
+          ws.send(sharedArrayBuffer, (err) => {
+            assert.ifError(err);
+
+            // The data must not be masked in place.
+            assert.deepStrictEqual(Buffer.from(array), buf);
+            ws.close();
+          });
+        });
+
+        ws.on('message', (msg, isBinary) => {
+          assert.deepStrictEqual(msg, buf);
+          assert.ok(isBinary);
+          wss.close(done);
+        });
+      });
+
+      wss.on('connection', (ws) => {
+        ws.on('message', (msg, isBinary) => {
+          assert.ok(isBinary);
+          ws.send(msg);
+        });
+      });
+    });
+
     it('can send a `Buffer`', (done) => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const buf = Buffer.from('foobar');
