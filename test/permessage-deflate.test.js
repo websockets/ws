@@ -692,6 +692,23 @@ describe('PerMessageDeflate', () => {
       process.nextTick(() => perMessageDeflate.cleanup());
     });
 
+    it('calls the callback if the inflate stream is closed prematurely', (done) => {
+      const perMessageDeflate = new PerMessageDeflate();
+      const buf = Buffer.from('33343236313533b7000000', 'hex');
+
+      perMessageDeflate.accept([{}]);
+      perMessageDeflate.decompress(buf, true, (err) => {
+        assert.ok(err instanceof Error);
+        assert.strictEqual(
+          err.message,
+          'The inflate stream was closed while data was being processed'
+        );
+        done();
+      });
+
+      process.nextTick(() => perMessageDeflate.cleanup());
+    });
+
     it('recreates the inflate stream if it ends', (done) => {
       const perMessageDeflate = new PerMessageDeflate();
       const extensions = extension.parse(
