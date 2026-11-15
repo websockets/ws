@@ -330,7 +330,11 @@ This class represents a WebSocket. It extends the `EventEmitter`.
   - `generateMask` {Function} The function used to generate the masking key. It
     takes a `Buffer` that must be filled synchronously and is called before a
     message is sent, for each message. By default, the buffer is filled with
-    cryptographically strong random bytes.
+    cryptographically strong random bytes drawn from a pool of 8 KiB that is
+    refilled when it runs out. A process whose memory is cloned without a fork,
+    as when a virtual machine is restored several times from one snapshot, sends
+    the same masking keys in every copy until the pool is used up; such a
+    process should pass its own `generateMask`.
   - `handshakeTimeout` {Number} Timeout in milliseconds for the handshake
     request. This is reset after every redirection.
   - `maxBufferedChunks` {Number} The maximum number of buffered data chunks. The
