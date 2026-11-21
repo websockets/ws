@@ -439,6 +439,18 @@ describe('Sender', () => {
       );
     });
 
+    it('throws an error if the first argument is not an integer', () => {
+      const mockSocket = new MockSocket();
+      const sender = new Sender(mockSocket);
+
+      for (const code of [1000.5, 3000.5, 4999.9]) {
+        assert.throws(
+          () => sender.close(code),
+          /^TypeError: First argument must be a valid error code number$/
+        );
+      }
+    });
+
     it('throws an error if the second argument is invalid', () => {
       const mockSocket = new MockSocket();
       const sender = new Sender(mockSocket);

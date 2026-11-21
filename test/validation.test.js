@@ -2,7 +2,21 @@
 
 const assert = require('assert');
 
-const { isValidUTF8 } = require('../lib/validation');
+const { isValidStatusCode, isValidUTF8 } = require('../lib/validation');
+
+describe('isValidStatusCode', () => {
+  it('returns false for non-integer values', () => {
+    for (const code of [1000.5, 3000.5, 4999.9]) {
+      assert.strictEqual(isValidStatusCode(code), false);
+    }
+  });
+
+  it('returns true for valid integer values', () => {
+    for (const code of [1000, 1013, 3000, 4999]) {
+      assert.strictEqual(isValidStatusCode(code), true);
+    }
+  });
+});
 
 describe('extension', () => {
   describe('isValidUTF8', () => {
