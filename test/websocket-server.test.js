@@ -953,6 +953,43 @@ describe('WebSocketServer', () => {
       });
     });
 
+    it('fails if the Sec-WebSocket-Version header is not a decimal integer', (done) => {
+      const values = ['0xd', '013', '13.0', '+13', '1.3e1', '0b1101', '8.0'];
+      const wss = new WebSocket.Server({ port: 0 }, () => {
+        (function next() {
+          if (!values.length) {
+            wss.close(done);
+            return;
+          }
+
+          const version = values.shift();
+          const req = http.get({
+            port: wss.address().port,
+            headers: {
+              Connection: 'Upgrade',
+              Upgrade: 'websocket',
+              'Sec-WebSocket-Key': 'dGhlIHNhbXBsZSBub25jZQ==',
+              'Sec-WebSocket-Version': version
+            }
+          });
+
+          req.on('response', (res) => {
+            assert.strictEqual(res.statusCode, 400);
+            assert.strictEqual(res.headers['sec-websocket-version'], '13, 8');
+            res.resume();
+            res.on('end', next);
+          });
+
+          req.on('upgrade', (res, socket) => {
+            socket.destroy();
+            wss.close(() => {
+              done(new Error(`Unexpected 'upgrade' event for ${version}`));
+            });
+          });
+        })();
+      });
+    });
+
     it('fails is the Sec-WebSocket-Protocol header is invalid', (done) => {
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const req = http.get({
