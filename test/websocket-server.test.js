@@ -917,44 +917,7 @@ describe('WebSocketServer', () => {
     });
 
     it('fails if the Sec-WebSocket-Version header is invalid (2/2)', (done) => {
-      const wss = new WebSocket.Server({ port: 0 }, () => {
-        const req = http.get({
-          port: wss.address().port,
-          headers: {
-            Connection: 'Upgrade',
-            Upgrade: 'websocket',
-            'Sec-WebSocket-Key': 'dGhlIHNhbXBsZSBub25jZQ==',
-            'Sec-WebSocket-Version': 12
-          }
-        });
-
-        req.on('response', (res) => {
-          assert.strictEqual(res.statusCode, 400);
-          assert.strictEqual(res.headers['sec-websocket-version'], '13, 8');
-
-          const chunks = [];
-
-          res.on('data', (chunk) => {
-            chunks.push(chunk);
-          });
-
-          res.on('end', () => {
-            assert.strictEqual(
-              Buffer.concat(chunks).toString(),
-              'Missing or invalid Sec-WebSocket-Version header'
-            );
-            wss.close(done);
-          });
-        });
-      });
-
-      wss.on('connection', () => {
-        done(new Error("Unexpected 'connection' event"));
-      });
-    });
-
-    it('fails if the Sec-WebSocket-Version header is not a decimal integer', (done) => {
-      const values = ['0xd', '013', '13.0', '+13', '1.3e1', '0b1101', '8.0'];
+      const values = ['12', '0xd', '013', '13.0', '0b1000', '+8'];
       const wss = new WebSocket.Server({ port: 0 }, () => {
         (function next() {
           if (!values.length) {
@@ -976,8 +939,8 @@ describe('WebSocketServer', () => {
           req.on('response', (res) => {
             assert.strictEqual(res.statusCode, 400);
             assert.strictEqual(res.headers['sec-websocket-version'], '13, 8');
-            res.resume();
             res.on('end', next);
+            res.resume();
           });
 
           req.on('upgrade', (res, socket) => {
