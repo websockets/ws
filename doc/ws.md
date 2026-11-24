@@ -59,10 +59,10 @@
   - [WS_ERR_INVALID_CONTROL_PAYLOAD_LENGTH](#ws_err_invalid_control_payload_length)
   - [WS_ERR_INVALID_OPCODE](#ws_err_invalid_opcode)
   - [WS_ERR_INVALID_UTF8](#ws_err_invalid_utf8)
+  - [WS_ERR_TOO_MANY_BUFFERED_PARTS](#ws_err_too_many_buffered_parts)
   - [WS_ERR_UNEXPECTED_MASK](#ws_err_unexpected_mask)
   - [WS_ERR_UNEXPECTED_RSV_1](#ws_err_unexpected_rsv_1)
   - [WS_ERR_UNEXPECTED_RSV_2_3](#ws_err_unexpected_rsv_2_3)
-  - [WS_ERR_TOO_MANY_BUFFERED_PARTS](#ws_err_too_many_buffered_parts)
   - [WS_ERR_UNSUPPORTED_DATA_PAYLOAD_LENGTH](#ws_err_unsupported_data_payload_length)
   - [WS_ERR_UNSUPPORTED_MESSAGE_LENGTH](#ws_err_unsupported_message_length)
 
@@ -707,6 +707,11 @@ A WebSocket frame was received with an invalid opcode.
 
 A text or close frame was received containing invalid UTF-8 data.
 
+### WS_ERR_TOO_MANY_BUFFERED_PARTS
+
+The configured maximum number of buffered data chunks or message fragments was
+exceeded.
+
 ### WS_ERR_UNEXPECTED_MASK
 
 A masked WebSocket frame was received by a WebSocket client.
@@ -718,11 +723,6 @@ A WebSocket frame was received with the RSV1 bit set unexpectedly.
 ### WS_ERR_UNEXPECTED_RSV_2_3
 
 A WebSocket frame was received with the RSV2 or RSV3 bit set unexpectedly.
-
-### WS_ERR_TOO_MANY_BUFFERED_PARTS
-
-The configured maximum number of buffered data chunks or message fragments was
-exceeded.
 
 ### WS_ERR_UNSUPPORTED_DATA_PAYLOAD_LENGTH
 
