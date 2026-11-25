@@ -692,6 +692,26 @@ describe('PerMessageDeflate', () => {
       process.nextTick(() => perMessageDeflate.cleanup());
     });
 
+    it('does not throw if the inflate stream is closed while flushing', (done) => {
+      const perMessageDeflate = new PerMessageDeflate();
+      const buf = Buffer.from('33343236313533b7000000', 'hex');
+
+      perMessageDeflate.accept([{}]);
+
+      let called = false;
+      perMessageDeflate._decompress(buf, true, () => {
+        called = true;
+      });
+
+      setImmediate(() => {
+        perMessageDeflate.cleanup();
+        setImmediate(() => {
+          assert.strictEqual(called, false);
+          done();
+        });
+      });
+    });
+
     it('recreates the inflate stream if it ends', (done) => {
       const perMessageDeflate = new PerMessageDeflate();
       const extensions = extension.parse(
